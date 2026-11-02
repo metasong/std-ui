@@ -37,23 +37,34 @@ type IsBranch<T> = T extends readonly unknown[]
 			? true
 			: false;
 
-/**
- * The reactive mirror of `T`: plain objects become `Computed<T>` nodes with one child property
- * per key (each itself a `SignalTree`), everything else becomes a plain `Signal<T>`.
- */
-export type SignalTree<T> = IsBranch<T> extends true
-	? { readonly [K in keyof T]: SignalTree<T[K]> } & Computed<T>
-	: Signal<T>;
-
-/** Recursively makes every leaf in `T` optional, for partial tree updates via `patch`. */
+/** Recursively makes every leaf in `T` optional, for partial tree updates via `.patch()`. */
 export type DeepPartial<T> = IsBranch<T> extends true
 	? { [K in keyof T]?: DeepPartial<T[K]> }
 	: T;
 
-/** True if `node` is a leaf (`Signal`) rather than a branch (`Computed` with child properties). */
-function isLeafNode(node: unknown): node is Signal<unknown> {
-	return typeof node === 'function' && typeof (node as Signal<unknown>).set === 'function';
+/** Methods present on every `SignalTree` node, branch or leaf. */
+interface SignalTreeMethods<T> {
+	/**
+	 * Reads this node back into a plain object/value without tracking it as a dependency (uses
+	 * `.peek()` on every leaf). Useful for logging, debugging, or one-off snapshots.
+	 */
+	peak(): T;
+	/**
+	 * Writes `partial` into this node in place: for each provided key, recurses into branches and
+	 * calls `.set()` on leaves, leaving any keys omitted from `partial` untouched. Each touched leaf
+	 * notifies independently, so unrelated branches of the tree don't recompute.
+	 */
+	patch(partial: DeepPartial<T>): void;
 }
+
+/**
+ * The reactive mirror of `T`: plain objects become `Computed<T>` nodes with one child property
+ * per key (each itself a `SignalTree`), everything else becomes a plain `Signal<T>`. Every node,
+ * branch or leaf, also carries `.peak()`/`.patch()` helpers (see `SignalTreeMethods`).
+ */
+export type SignalTree<T> = IsBranch<T> extends true
+	? { readonly [K in keyof T]: SignalTree<T[K]> } & Computed<T> & SignalTreeMethods<T>
+	: Signal<T> & SignalTreeMethods<T>;
 
 /**
  * Converts a plain-object value into a `SignalTree`: every leaf becomes a `signal()`, and every
@@ -61,9 +72,14 @@ function isLeafNode(node: unknown): node is Signal<unknown> {
  * object, exposing each child as a same-named property for direct access (e.g. `tree.b.c.d`).
  */
 export function buildSignalTree<T>(value: T): SignalTree<T> {
-	if (!isPlainObject(value)) return signal(value) as SignalTree<T>;
+	if (!isPlainObject(value)) {
+		const leaf = signal(value) as Signal<T> & Partial<SignalTreeMethods<T>>;
+		leaf.peak = () => leaf.peek();
+		leaf.patch = (partial) => leaf.set(partial as T);
+		return leaf as SignalTree<T>;
+	}
 
-	const children: Record<string, unknown> = {};
+	const children: Record<string, SignalTree<unknown>> = {};
 	for (const key of Object.keys(value)) {
 		children[key] = buildSignalTree((value as PlainObject)[key]);
 	}
@@ -71,45 +87,25 @@ export function buildSignalTree<T>(value: T): SignalTree<T> {
 	const node = computed(() => {
 		const result: PlainObject = {};
 		for (const key of Object.keys(children)) {
-			result[key] = (children[key] as Computed<unknown> | Signal<unknown>)();
+			result[key] = children[key]();
 		}
 		return result;
-	});
+	}) as Computed<T> & Partial<SignalTreeMethods<T>>;
+
+	node.peak = (): T => {
+		const result: PlainObject = {};
+		for (const key of Object.keys(children)) {
+			result[key] = children[key].peak();
+		}
+		return result as T;
+	};
+	node.patch = (partial: DeepPartial<T>): void => {
+		for (const key of Object.keys(partial as object)) {
+			const value = (partial as Record<string, unknown>)[key];
+			if (value === undefined) continue;
+			children[key].patch(value);
+		}
+	};
 
 	return Object.assign(node, children) as SignalTree<T>;
-}
-
-/**
- * Reads a `SignalTree` back into a plain object/value without tracking it as a dependency
- * (uses `.peek()` on every leaf). Useful for logging, debugging, or one-off snapshots.
- */
-export function peak<T>(node: SignalTree<T>): T {
-	if (isLeafNode(node)) return node.peek() as T;
-
-	const result: PlainObject = {};
-	for (const key of Object.keys(node as object)) {
-		result[key] = peak((node as unknown as Record<string, SignalTree<unknown>>)[key]);
-	}
-	return result as T;
-}
-
-/**
- * Writes `partial` into `tree` in place: for each provided key, recurses into branches and calls
- * `.set()` on leaves, leaving any keys omitted from `partial` untouched. Each touched leaf notifies
- * independently, so unrelated branches of the tree don't recompute.
- */
-export function patch<T>(tree: SignalTree<T>, partial: DeepPartial<T>): void {
-	if (isLeafNode(tree)) {
-		(tree as Signal<unknown>).set(partial);
-		return;
-	}
-
-	for (const key of Object.keys(partial as object)) {
-		const value = (partial as Record<string, unknown>)[key];
-		if (value === undefined) continue;
-		patch(
-			(tree as unknown as Record<string, SignalTree<unknown>>)[key],
-			value as DeepPartial<unknown>,
-		);
-	}
 }
