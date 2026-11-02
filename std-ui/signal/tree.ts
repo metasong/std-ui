@@ -10,7 +10,7 @@
 // (numbers, strings, booleans, arrays, class instances, null, undefined, functions, ...) is a leaf
 // and becomes a `Signal` holding that value as-is.
 
-import { computed, signal, type Computed, type Signal } from './index.js';
+import { computed, signal, type Computed, type Signal } from './signal.js';
 
 /** A plain object eligible to become a branch node; anything else is a leaf value. */
 type PlainObject = Record<string, unknown>;

@@ -1,14 +1,12 @@
 export { element, UIElement } from './component.js';
 export {
+	buildSignalTree,
 	computed,
 	effect,
 	signal,
 	type Computed,
+	type DeepPartial,
 	type OnCleanup,
 	type Signal,
-} from './signal/index.js';
-export {
-	buildSignalTree,
-	type DeepPartial,
 	type SignalTree,
-} from './signal/tree.js';
+} from './signal/index.js';

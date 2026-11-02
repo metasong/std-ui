@@ -9,8 +9,11 @@
 // static markup in `index.html` or another component injecting them via `template()`. So parents
 // can freely compose child tags without any manual mount ordering/registration anywhere.
 
-import type { SignalTree } from './signal/tree.js';
-import { effect as createEffect, type OnCleanup } from './signal/index.js';
+import {
+	effect as createEffect,
+	type OnCleanup,
+	type SignalTree,
+} from './signal/index.js';
 
 /** Class decorator that registers the decorated `UIElement` subclass as a custom element under `tag`. */
 export function element(tag: string) {
