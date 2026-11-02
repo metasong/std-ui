@@ -1,61 +1,38 @@
-// Tiny "component" convention for src/ui — no external UI library. A `UIComponent` is just a
-// plain object naming a root element plus optional one-time setup (`mount`) and per-state-change
-// sync (`render`) functions. Each component owns its own DOM lookups/listeners; nothing about it
-// needs to be registered anywhere else except the registry array in `ui/components/index.ts`.
+// Tiny "component" convention for src/ui - no external UI library. Every UI piece is a native
+// Custom Element: a class extending `UIElement`, registered under its own kebab-case tag name via
+// `customElements.define()` (see each file in `ui/components/`).
 //
-// This replaces the old pattern of one shared `appNodes` map + one shared `renderApp()` + one
-// shared `controls-wiring.ts`, where adding a single new control meant touching every one of
-// those files. Now: implement `root`/`mount`/`render` in a new file, add it to the registry array.
+// Custom elements auto-mount the instant they're inserted into the document - whether that's
+// static markup in `index.html` or another component injecting them via `template()`. So parents
+// can freely compose child tags without any manual mount ordering/registration anywhere.
 
-import type { AppState, Store } from '../../core/store.js';
+import { store, type AppState } from '../../core/store.js';
 
-export interface UIComponent<S = AppState> {
-	/** CSS selector for this component's existing root element in `index.html`. */
-	root: string;
-	/**
-	 * Optional markup injected into the root element once, before `mount()` runs — for components
-	 * that render their own children from data (e.g. the settings form fields) rather than relying
-	 * on static markup already present in `index.html`.
-	 */
-	template?: () => string;
-	/** One-time DOM setup: resolve child nodes, attach event listeners. Runs once, after any `template()` injection. */
-	mount?: (root: Element) => void;
-	/** Called with the latest state (and once immediately at startup) to sync this component's DOM to `state`. */
-	render?: (state: S, root: Element) => void;
-}
+export abstract class UIElement<S = AppState> extends HTMLElement {
+	#unsubscribe?: () => void;
+	#mounted = false;
 
-/**
- * Resolves each component's root element, injects its `template()` markup (if any), then runs
- * `mount()`. Call once, after `index.html`'s static markup exists but before the first render.
- */
-export function mountAll(components: UIComponent[]): void {
-	components.forEach(component => {
-		const root = document.querySelector(component.root);
-		if (!root) {
-			console.warn(`UIComponent root not found: "${component.root}"`);
-			return;
+	/** Optional markup injected into `this` once, before `mount()` runs. */
+	template?(): string;
+
+	/** One-time setup (resolve child nodes, attach listeners). Runs once, after any `template()` injection. */
+	mount?(): void;
+
+	/** Called with the latest state (and once immediately on connect) to sync DOM to `state`. */
+	render?(state: S): void;
+
+	connectedCallback(): void {
+		if (!this.#mounted) {
+			this.#mounted = true;
+			if (this.template) this.innerHTML = this.template();
+			this.mount?.();
 		}
-		if (component.template) {
-			root.innerHTML = component.template();
-		}
-		component.mount?.(root);
-	});
-}
 
-/**
- * Subscribes to `store` once, calling every component's `render()` (if present) on every state
- * change — then performs one immediate render with the current state so the initial paint
- * reflects it without waiting for the first `setState()` call.
- */
-export function subscribeAll(components: UIComponent[], store: typeof Store): void {
-	const renderAll = (state: AppState): void => {
-		components.forEach(component => {
-			if (!component.render) return;
-			const root = document.querySelector(component.root);
-			if (root) component.render!(state, root);
-		});
-	};
+		this.#unsubscribe = store.subscribe(state => this.render?.(state as unknown as S));
+		this.render?.(store.state as unknown as S);
+	}
 
-	store.subscribe(renderAll);
-	renderAll(store.state);
+	disconnectedCallback(): void {
+		this.#unsubscribe?.();
+	}
 }
