@@ -45,7 +45,7 @@ export type SignalTree<T> = IsBranch<T> extends true
 	? { readonly [K in keyof T]: SignalTree<T[K]> } & Computed<T>
 	: Signal<T>;
 
-/** Recursively makes every leaf in `T` optional, for partial tree updates via `patchTree`. */
+/** Recursively makes every leaf in `T` optional, for partial tree updates via `patch`. */
 export type DeepPartial<T> = IsBranch<T> extends true
 	? { [K in keyof T]?: DeepPartial<T[K]> }
 	: T;
@@ -83,31 +83,31 @@ export function buildSignalTree<T>(value: T): SignalTree<T> {
  * Reads a `SignalTree` back into a plain object/value without tracking it as a dependency
  * (uses `.peek()` on every leaf). Useful for logging, debugging, or one-off snapshots.
  */
-export function peekTree<T>(node: SignalTree<T>): T {
+export function peak<T>(node: SignalTree<T>): T {
 	if (isLeafNode(node)) return node.peek() as T;
 
 	const result: PlainObject = {};
 	for (const key of Object.keys(node as object)) {
-		result[key] = peekTree((node as unknown as Record<string, SignalTree<unknown>>)[key]);
+		result[key] = peak((node as unknown as Record<string, SignalTree<unknown>>)[key]);
 	}
 	return result as T;
 }
 
 /**
- * Writes `patch` into `tree` in place: for each provided key, recurses into branches and calls
- * `.set()` on leaves, leaving any keys omitted from `patch` untouched. Each touched leaf notifies
+ * Writes `partial` into `tree` in place: for each provided key, recurses into branches and calls
+ * `.set()` on leaves, leaving any keys omitted from `partial` untouched. Each touched leaf notifies
  * independently, so unrelated branches of the tree don't recompute.
  */
-export function patchTree<T>(tree: SignalTree<T>, patch: DeepPartial<T>): void {
+export function patch<T>(tree: SignalTree<T>, partial: DeepPartial<T>): void {
 	if (isLeafNode(tree)) {
-		(tree as Signal<unknown>).set(patch);
+		(tree as Signal<unknown>).set(partial);
 		return;
 	}
 
-	for (const key of Object.keys(patch as object)) {
-		const value = (patch as Record<string, unknown>)[key];
+	for (const key of Object.keys(partial as object)) {
+		const value = (partial as Record<string, unknown>)[key];
 		if (value === undefined) continue;
-		patchTree(
+		patch(
 			(tree as unknown as Record<string, SignalTree<unknown>>)[key],
 			value as DeepPartial<unknown>,
 		);

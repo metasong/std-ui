@@ -9,8 +9,8 @@ export {
 } from './signal/index.js';
 export {
 	buildSignalTree,
-	patchTree,
-	peekTree,
+	patch,
+	peak,
 	type DeepPartial,
 	type SignalTree,
 } from './signal/tree.js';
