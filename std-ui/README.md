@@ -88,7 +88,7 @@ When that signal later changes (via `.set`/`.update`), it notifies its subscribe
 Each consumer's dependency set is rebuilt from scratch on every run, so stale subscriptions
 from a previous run (e.g. a branch that's no longer read) are automatically dropped.
 
-## Where this fits in the ui-kit
+## Where this fits in mini-ui
 
 - `./store.ts`'s `Store` is backed by a `Signal`, so `store.state` can be read inside a
   `computed()`/`effect()` (auto-tracked) in addition to the classic `subscribe()` API.
