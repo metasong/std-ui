@@ -1,11 +1,11 @@
 // Generic, app-agnostic observable state container. Nothing in this file knows
 // anything about fireworks specifically - it's safe to lift into any project.
 //
-// Built on top of `./signal.ts`: `state` is backed by a `Signal<State>`, so besides the classic
+// Built on top of `./signal/`: `state` is backed by a `Signal<State>`, so besides the classic
 // `subscribe()` API below, `store.state` can also be read from inside a `computed()`/`effect()`,
 // which will auto-track it and re-run whenever `setState()` runs.
 
-import { signal, type Signal } from './signal.js';
+import { signal, type Signal } from './signal/index.js';
 
 /** Listener called with the new state and the previous state whenever `setState()` runs. */
 export type StoreListener<State> = (state: State, prevState: State) => void;

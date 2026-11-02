@@ -9,7 +9,7 @@
 // can freely compose child tags without any manual mount ordering/registration anywhere.
 
 import type { Store } from './store.js';
-import { effect as createEffect, type OnCleanup } from './signal.js';
+import { effect as createEffect, type OnCleanup } from './signal/index.js';
 
 /** Class decorator that registers the decorated `UIElement` subclass as a custom element under `tag`. */
 export function element(tag: string) {
@@ -41,7 +41,7 @@ export abstract class UIElement<S extends object> extends HTMLElement {
 
 	/**
 	 * Fine-grained alternative to `render(state)`: a `signal`/`computed`-tracking effect (see
-	 * `./signal.js`), auto-disposed on disconnect. Prefer this when only a small slice of DOM
+	 * `./signal/`), auto-disposed on disconnect. Prefer this when only a small slice of DOM
 	 * needs to react to specific signals, rather than the whole component re-rendering.
 	 */
 	protected effect(fn: (onCleanup: OnCleanup) => void): void {

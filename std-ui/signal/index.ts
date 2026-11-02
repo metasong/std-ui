@@ -1,5 +1,5 @@
 // Generic, app-agnostic fine-grained reactivity primitives, Angular-signals-flavored: `signal()`,
-// `computed()`, and `effect()`. Safe to lift into any project, same as `./store.ts`.
+// `computed()`, and `effect()`. Safe to lift into any project, same as `../store.ts`.
 //
 // - `signal(initial)`: a writable value. Call it to read (and auto-track), `.set`/`.update` to write.
 // - `computed(fn)`: a read-only value, lazily re-derived when a signal/computed it read changes.

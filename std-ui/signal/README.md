@@ -1,7 +1,7 @@
-# `signal.ts` usage
+# `signal/` usage
 
 Generic, app-agnostic fine-grained reactivity primitives, Angular-signals-flavored:
-`signal()`, `computed()`, and `effect()`. Safe to lift into any project, same as `./store.ts`.
+`signal()`, `computed()`, and `effect()`. Safe to lift into any project, same as `../store.ts`.
 
 ## API at a glance
 
@@ -16,7 +16,7 @@ Generic, app-agnostic fine-grained reactivity primitives, Angular-signals-flavor
 A writable reactive value.
 
 ```ts
-import { signal } from './signal.js';
+import { signal } from './index.js';
 
 const count = signal(0);
 
@@ -36,7 +36,7 @@ A read-only value, lazily re-derived the next time it's read after one of its de
 changes (not eagerly on every write).
 
 ```ts
-import { computed } from './signal.js';
+import { computed } from './index.js';
 
 const double = computed(() => count() * 2);
 
@@ -56,7 +56,7 @@ re-run. Use this for side effects (DOM writes, logging, subscriptions) - not for
 (use `computed` for that).
 
 ```ts
-import { effect } from './signal.js';
+import { effect } from './index.js';
 
 const dispose = effect(onCleanup => {
 	el.textContent = String(double());
@@ -90,8 +90,8 @@ from a previous run (e.g. a branch that's no longer read) are automatically drop
 
 ## Where this fits in mini-ui
 
-- `./store.ts`'s `Store` is backed by a `Signal`, so `store.state` can be read inside a
+- `../store.ts`'s `Store` is backed by a `Signal`, so `store.state` can be read inside a
   `computed()`/`effect()` (auto-tracked) in addition to the classic `subscribe()` API.
-- `./component.ts`'s `UIElement.effect()` wraps `effect()` from this file, auto-disposing it on
+- `../component.ts`'s `UIElement.effect()` wraps `effect()` from this folder, auto-disposing it on
   the element's `disconnectedCallback()` - use it for DOM slices that should react to specific
   signals without re-rendering the whole component.
