@@ -21,16 +21,32 @@ function isPlainObject(value: unknown): value is PlainObject {
 	return proto === Object.prototype || proto === null;
 }
 
+// Type-level stand-in for `isPlainObject()`'s runtime check. NOTE: deliberately looser than the
+// runtime check (any non-array, non-function object type, not just `{ ... }` literal shapes) -
+// `T extends Record<string, unknown>` would be the literal translation, but named `interface`s
+// (as opposed to object-literal `type` aliases) don't satisfy that constraint in a conditional
+// type even when they're plain data shapes (a long-standing TS quirk: interfaces don't get an
+// implicit index signature for `extends` checks the way type-literals do), which would wrongly
+// push every `interface`-typed branch (e.g. this app's `AppState`/`Config`) down the `Signal<T>`
+// leaf path instead of the branch path.
+type IsBranch<T> = T extends readonly unknown[]
+	? false
+	: T extends Function
+		? false
+		: T extends object
+			? true
+			: false;
+
 /**
  * The reactive mirror of `T`: plain objects become `Computed<T>` nodes with one child property
  * per key (each itself a `SignalTree`), everything else becomes a plain `Signal<T>`.
  */
-export type SignalTree<T> = T extends PlainObject
+export type SignalTree<T> = IsBranch<T> extends true
 	? { readonly [K in keyof T]: SignalTree<T[K]> } & Computed<T>
 	: Signal<T>;
 
 /** Recursively makes every leaf in `T` optional, for partial tree updates via `patchTree`. */
-export type DeepPartial<T> = T extends PlainObject
+export type DeepPartial<T> = IsBranch<T> extends true
 	? { [K in keyof T]?: DeepPartial<T[K]> }
 	: T;
 

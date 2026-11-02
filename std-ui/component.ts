@@ -1,14 +1,15 @@
 // Tiny, app-agnostic "component" convention: every UI piece is a native Custom Element that
-// subscribes to some `Store<S>` and re-renders on change. No external UI library, no
-// knowledge of any particular app's state shape or store singleton - both are supplied by
-// whoever subclasses `UIElement` (see `../ui/app-element.ts` for this app's binding, and each
-// file in `ui/components/` for concrete components).
+// reads from some reactive `SignalTree<S>` (see `./signal/tree.js`) and re-renders whenever any
+// field it touches changes. No external UI library, no knowledge of any particular app's state
+// shape or state singleton - both are supplied by whoever subclasses `UIElement` (see
+// `../ui/app-element.ts` for this app's binding, and each file in `ui/components/` for concrete
+// components).
 //
 // Custom elements auto-mount the instant they're inserted into the document - whether that's
 // static markup in `index.html` or another component injecting them via `template()`. So parents
 // can freely compose child tags without any manual mount ordering/registration anywhere.
 
-import type { Store } from './store.js';
+import type { SignalTree } from './signal/tree.js';
 import { effect as createEffect, type OnCleanup } from './signal/index.js';
 
 /** Class decorator that registers the decorated `UIElement` subclass as a custom element under `tag`. */
@@ -20,12 +21,11 @@ export function element(tag: string) {
 }
 
 export abstract class UIElement<S extends object> extends HTMLElement {
-	#unsubscribe?: () => void;
 	#mounted = false;
 	#effectDisposers: Array<() => void> = [];
 
-	/** The store this component reads from and re-renders in response to. Supply via a per-app subclass. */
-	protected abstract get store(): Store<S>;
+	/** The reactive state tree this component reads from and re-renders in response to. Supply via a per-app subclass. */
+	protected abstract get state(): SignalTree<S>;
 
 	/** Optional markup injected into `this` once, before the `mount()` hook runs. */
 	template?(): string;
@@ -57,13 +57,16 @@ export abstract class UIElement<S extends object> extends HTMLElement {
 			this.mount?.();
 		}
 
-		this.#unsubscribe = this.store.subscribe(state => this.render?.(state));
-		this.render?.(this.store.state);
+		// `this.state()` is a tracked read of the tree root - a `Computed` that reassembles every
+		// leaf into a fresh plain object - so this effect re-runs `render()` whenever any field
+		// anywhere in the tree changes (runs once synchronously now, then microtask-batched).
+		this.#effectDisposers.push(createEffect(() => {
+			this.render?.(this.state());
+		}));
 	}
 
-	/** Removed from the document; unsubscribes from the store and disposes any `effect()`s. */
+	/** Removed from the document; disposes the render effect and any `effect()`s set up in `mount()`. */
 	private disconnectedCallback(): void {
-		this.#unsubscribe?.();
 		this.unmount?.();
 		this.#mounted = false;
 		this.#effectDisposers.forEach(dispose => dispose());
