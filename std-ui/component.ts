@@ -28,25 +28,25 @@ export abstract class UIElement<S extends object> extends HTMLElement {
 	protected abstract get state(): SignalTree<S>;
 
 	/** Optional markup injected into `this` once, before the `mount()` hook runs. */
-	template?(): string;
+	protected template?(): string;
 
 	/** lifecycle hook: One-time setup (resolve child nodes, attach listeners). Runs once, after any `template()` injection. */
-	mount?(): void;
+	protected mount?(): void;
 
 	/** lifecycle hook: Called with the latest state (and once immediately on connect) to sync DOM to `state`. */
-	render?(state: S): void;
+	protected render?(state: S): void;
 
 	/** lifecycle hook: Tear down what `mount()` set up (listeners, timers). Runs on every disconnect. */
-	unmount?(): void;
+	protected unmount?(): void;
 
 	/**
 	 * Fine-grained alternative to `render(state)`: a `signal`/`computed`-tracking effect (see
 	 * `./signal/`), auto-disposed on disconnect. Prefer this when only a small slice of DOM
 	 * needs to react to specific signals, rather than the whole component re-rendering.
 	 */
-	protected effect(fn: (onCleanup: OnCleanup) => void): void {
+	protected readonly effect = (fn: (onCleanup: OnCleanup) => void): void => {
 		this.#effectDisposers.push(createEffect(fn));
-	}
+	};
 
 	// Browser lifecycle entry points — `private` so TS subclasses cannot override; extend `mount` / `unmount` / `render` instead.
 	/** Connected to the document (static HTML, parent markup, re-insert after remove). */
