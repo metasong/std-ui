@@ -107,6 +107,9 @@ export function signal<T>(initial: T): Signal<T> {
 		value = next;
 		notify(dep);
 	};
+	/** Updates the signal value by applying `fn` to the **current** value.
+	 * Returns the new value.
+	*/
 	read.update = (fn: (prev: T) => T): T => {
 		const next = fn(value);
 		read.set(next);

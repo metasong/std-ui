@@ -54,24 +54,25 @@ effect or computed without adding it as a dependency.
 a.peak(); // { b: { c: { d: 5 } } }, untracked
 ```
 
-### `node.patch(partial)`
+### `node.set(partial)` (branches)
 
-Writes a partial object into the node in place. Only keys present in `partial` are touched — each
+Writes a partial object into a **branch** node in place. Only keys present in `partial` are touched — each
 touched leaf calls `.set()` independently, so untouched branches don't recompute/notify. Can be
 called on the whole tree or on any branch within it.
 
 ```ts
-a.patch({ b: { c: { d: 9 } } }); // only a.b.c.d changes; sibling branches untouched
-a.b.c.patch({ d: 10 });          // equivalent, scoped to the `c` branch
+a.set({ b: { c: { d: 9 } } }); // only a.b.c.d changes; sibling branches untouched
+a.b.c.set({ d: 10 });          // equivalent, scoped to the `c` branch
 ```
 
-`patch` is typed as `DeepPartial<T>`, so any subset of nested keys is allowed.
+`set` is typed as `DeepPartial<T>`, so any subset of nested keys is allowed. **Leaves** use the same
+`.set(value)` as a plain `signal()` (replace the whole leaf value).
 
 ## Notes / gotchas
 
 - Tree shape is fixed at `buildSignalTree()` time — you can't add/remove keys later (it mirrors
   the object's *structure*, not its contents).
-- Branch nodes are read-only (`Computed`); you can't call `.set()` on `a.b`, only on leaves
-  (`a.b.c.d`) or via `.patch(...)`.
-- `.patch()`'s recursion assumes the partial object's shape matches the tree below each key you provide; it
+- Branch nodes are read-only as a whole (`Computed` reads); update them with `.set(partial)` or write
+  individual leaves (`a.b.c.d.set(...)`).
+- Branch `.set()`'s recursion assumes the partial object's shape matches the tree below each key you provide; it
   does not validate the input is a plain object before recursing.

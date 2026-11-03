@@ -99,7 +99,7 @@ describe('doc: signals drive html render', () => {
 		expect(span.textContent).toBe('10');
 		expect(button.hasAttribute('disabled')).toBe(true);
 
-		shared.counter.patch({ max: 20 });
+		shared.counter.set({ max: 20 });
 		await flush();
 		expect(span.textContent).toBe('10');
 		expect(button.hasAttribute('disabled')).toBe(false);

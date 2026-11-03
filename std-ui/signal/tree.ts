@@ -37,7 +37,7 @@ type IsBranch<T> = T extends readonly unknown[]
 			? true
 			: false;
 
-/** Recursively makes every leaf in `T` optional, for partial tree updates via `.patch()`. */
+/** Recursively makes every leaf in `T` optional, for partial tree updates via branch `.set()`. */
 export type DeepPartial<T> = IsBranch<T> extends true
 	? { [K in keyof T]?: DeepPartial<T[K]> }
 	: T;
@@ -54,13 +54,13 @@ interface SignalTreeMethods<T> {
 	 * calls `.set()` on leaves, leaving any keys omitted from `partial` untouched. Each touched leaf
 	 * notifies independently, so unrelated branches of the tree don't recompute.
 	 */
-	patch(partial: DeepPartial<T>): void;
+	set(partial: DeepPartial<T>): void;
 }
 
 /**
  * The reactive mirror of `T`: plain objects become `Computed<T>` nodes with one child property
  * per key (each itself a `SignalTree`), everything else becomes a plain `Signal<T>`. Every node,
- * branch or leaf, also carries `.peak()`/`.patch()` helpers (see `SignalTreeMethods`).
+ * branch or leaf, also carries `.peak()` and branch-level `.set(partial)` (see `SignalTreeMethods`).
  */
 export type SignalTree<T> = IsBranch<T> extends true
 	? { readonly [K in keyof T]: SignalTree<T[K]> } & Computed<T> & SignalTreeMethods<T>
@@ -75,7 +75,6 @@ export function buildSignalTree<T>(value: T): SignalTree<T> {
 	if (!isPlainObject(value)) {
 		const leaf = signal(value) as Signal<T> & Partial<SignalTreeMethods<T>>;
 		leaf.peak = () => leaf.peek();
-		leaf.patch = (partial) => leaf.set(partial as T);
 		return leaf as SignalTree<T>;
 	}
 
@@ -99,11 +98,11 @@ export function buildSignalTree<T>(value: T): SignalTree<T> {
 		}
 		return result as T;
 	};
-	node.patch = (partial: DeepPartial<T>): void => {
+	node.set = (partial: DeepPartial<T>): void => {
 		for (const key of Object.keys(partial as object)) {
 			const value = (partial as Record<string, unknown>)[key];
 			if (value === undefined) continue;
-			children[key].patch(value);
+			children[key].set(value as DeepPartial<unknown>);
 		}
 	};
 

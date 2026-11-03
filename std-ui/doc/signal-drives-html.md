@@ -95,10 +95,10 @@ class DemoCounter extends UIElement<DemoState> {
 document.body.appendChild(document.createElement('demo-counter'));
 
 shared.counter.value.set(5);           // write a leaf: shared.counter.value is a Signal
-shared.counter.patch({ max: 20 });     // or patch a branch without touching sibling leaves
+shared.counter.set({ max: 20 });     // or set a branch without touching sibling leaves
 ```
 
-Nested objects become branch `Computed`s; leaves like `value` and `max` are writable `Signal`s on the tree (`shared.counter.value.set(...)`). In `render`, you read the plain snapshot `state.counter.value` — same shape as your interface. See [`../signal/tree.md`](../signal/tree.md) for `patch` and `.peak()`.
+Nested objects become branch `Computed`s; leaves like `value` and `max` are writable `Signal`s on the tree (`shared.counter.value.set(...)`). In `render`, you read the plain snapshot `state.counter.value` — same shape as your interface. See [`../signal/tree.md`](../signal/tree.md) for branch `.set(partial)` and `.peak()`.
 
 What `UIElement` does for you (see `component.ts`):
 
@@ -144,7 +144,7 @@ That effect is disposed on disconnect. Prefer **Pattern B** for structure and bi
 ```mermaid
 flowchart LR
   subgraph write
-    W["leaf.set() / patch()"]
+    W["leaf.set() / branch.set(partial)"]
   end
   subgraph react
     S[Signals / Computed]
@@ -180,6 +180,6 @@ flowchart LR
 ## Related reading
 
 - [`../signal/signal.md`](../signal/signal.md) — primitives, tracking, batching, `peek`.
-- [`../signal/tree.md`](../signal/tree.md) — `buildSignalTree`, `patch`, app-shaped state.
+- [`../signal/tree.md`](../signal/tree.md) — `buildSignalTree`, branch `.set(partial)`, app-shaped state.
 - [`../template/html.md`](../template/html.md) — binding kinds, limitations, `svg`, `unsafeHTML`.
 - [`signal-drives-html.example.test.ts`](signal-drives-html.example.test.ts) — executable walkthrough of Patterns A, B, and C.
