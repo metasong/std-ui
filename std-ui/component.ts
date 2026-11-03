@@ -15,7 +15,7 @@ import {
 	type OnCleanup,
 	type SignalTree,
 } from './signal/index.js';
-import { render as renderHtml, type TemplateResult } from './template/index.js';
+import { render, type TemplateResult } from './template/index.js';
 
 /** Class decorator that registers the decorated `UIElement` subclass as a custom element under `tag`. */
 export function element(tag: string) {
@@ -77,7 +77,7 @@ export abstract class UIElement<S extends object> extends HTMLElement {
 		this.#effectDisposers.push(createEffect(() => {
 			const state = this.state();
 			const result = this.template?.(state);
-			if (result) renderHtml(result, this);
+			if (result) render(result, this);
 
 			if (!this.#firstRenderDone) {
 				this.#firstRenderDone = true;
