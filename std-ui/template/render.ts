@@ -24,7 +24,7 @@ export function render(result: TemplateResult, container: Element | DocumentFrag
 	}
 
 	container.textContent = '';
-	const { fragment, parts } = instantiate(getTemplate(result.strings));
+	const { fragment, parts } = instantiate(getTemplate(result.strings, result.type));
 	for (let i = 0; i < parts.length; i++) parts[i].update(result.values[i]);
 	container.appendChild(fragment);
 	renderedInstances.set(container, { strings: result.strings, parts });

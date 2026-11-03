@@ -105,5 +105,16 @@ class HelloBanner extends UIElement<AppState> {
 - **No directives** (`classMap`, `styleMap`, `ref`, etc.) - just the five binding kinds above.
 - **One interpolation per attribute.** `class="${a} ${b}"` or `class="static ${dynamic}"` are not
   supported - an attribute's value must be exactly one `${...}`.
-- **No SVG/MathML template handling** - markup is parsed via `<template>`, which is fine for plain
-  HTML but SVG elements inside will come out of the wrong namespace.
+- **No MathML support.** There's no `mathml` tag function analogous to `svg` below.
+- **SVG needs the `svg` tag for namespace-less fragments.** Markup containing its own top-level
+  `<svg>...</svg>` works fine with plain `html` - the parser assigns the SVG namespace as soon as
+  it sees the `<svg>` tag, even inside a `<template>`. But a reusable snippet meant to be
+  interpolated as a *child* of an existing `<svg>` (e.g. `html`<circle r="${r}" />`` with no
+  wrapping `<svg>`) would parse as an unnamespaced, non-rendering element - use `svg` instead:
+
+  ```ts
+  import { html, svg, render } from './index.js';
+
+  const dot = (r: number) => svg`<circle r="${r}" />`;
+  render(html`<svg viewBox="0 0 10 10">${dot(3)}</svg>`, container);
+  ```

@@ -26,7 +26,14 @@ export interface Template {
 	parts: PartDescriptor[];
 }
 
-const templateCache = new WeakMap<TemplateStringsArray, Template>();
+/** `'svg'` wraps the compiled markup in a temporary `<svg>` during parsing so elements land in the
+ *  SVG namespace (needed when the markup has no `<svg>` of its own, e.g. a `<circle>` meant to be
+ *  interpolated as a child of an existing `<svg>`). See `html.ts`'s `svg()`. */
+export type TemplateType = 'html' | 'svg';
+
+/** Keyed by `strings` then by `type`, since the same `strings` identity is never reused across
+ *  `html`/`svg` call sites in practice, but this keeps the cache correct either way. */
+const templateCache = new WeakMap<TemplateStringsArray, Partial<Record<TemplateType, Template>>>();
 
 /** True if `markup` (built so far) currently sits inside an unclosed tag, i.e. in attribute position. */
 function isInsideTag(markup: string): boolean {
@@ -42,7 +49,7 @@ function readAttrName(markup: string): { kind: PartKind; name: string } {
 	return { kind, name };
 }
 
-function compile(strings: TemplateStringsArray): Template {
+function compile(strings: TemplateStringsArray, type: TemplateType): Template {
 	let markup = '';
 	const descriptors: PartDescriptor[] = [];
 
@@ -60,7 +67,18 @@ function compile(strings: TemplateStringsArray): Template {
 	markup += strings[strings.length - 1];
 
 	const element = document.createElement('template');
-	element.innerHTML = markup;
+	if (type === 'svg') {
+		// Parse inside a temporary `<svg>` so the HTML parser assigns the SVG namespace to the
+		// markup's elements, then hoist the `<svg>`'s children back up to `element.content` so
+		// node indices line up exactly like the `'html'` path (no wrapper left behind).
+		element.innerHTML = `<svg>${markup}</svg>`;
+		const wrapper = element.content.firstChild as SVGElement;
+		while (wrapper.firstChild) element.content.appendChild(wrapper.firstChild);
+		wrapper.remove();
+	}
+	else {
+		element.innerHTML = markup;
+	}
 	resolvePartIndices(element.content, descriptors);
 
 	return { element, parts: descriptors };
@@ -91,11 +109,16 @@ function resolvePartIndices(root: DocumentFragment, descriptors: PartDescriptor[
 	}
 }
 
-export function getTemplate(strings: TemplateStringsArray): Template {
-	let template = templateCache.get(strings);
+export function getTemplate(strings: TemplateStringsArray, type: TemplateType = 'html'): Template {
+	let byType = templateCache.get(strings);
+	if (!byType) {
+		byType = {};
+		templateCache.set(strings, byType);
+	}
+	let template = byType[type];
 	if (!template) {
-		template = compile(strings);
-		templateCache.set(strings, template);
+		template = compile(strings, type);
+		byType[type] = template;
 	}
 	return template;
 }

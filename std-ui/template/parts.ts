@@ -115,7 +115,7 @@ export class ChildPart implements Part {
 			return;
 		}
 		this.#clear();
-		const { fragment, parts } = instantiate(getTemplate(result.strings));
+		const { fragment, parts } = instantiate(getTemplate(result.strings, result.type));
 		const nodes = Array.from(fragment.childNodes);
 		this.anchor.before(fragment);
 		for (let i = 0; i < parts.length; i++) parts[i].update(result.values[i]);

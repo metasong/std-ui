@@ -24,21 +24,42 @@
 //     the DOM (`Part`s no-op on `Object.is`-equal values).
 //
 // What's intentionally left out, vs. real lit-html: keyed list reconciliation (`repeat()`),
-// directives, SVG/MathML template handling, and multi-expression attributes (`class="${a} ${b}"`).
-// Bindings must be single interpolations like `attr="${value}"`.
+// directives, MathML template handling, and multi-expression attributes (`class="${a} ${b}"`).
+// Bindings must be single interpolations like `attr="${value}"`. SVG is supported via `svg()`
+// below, for the one case plain `html` can't handle: a namespace-less fragment (no `<svg>`
+// wrapper of its own) meant to be interpolated as a child of an existing `<svg>` element.
 //
 // This module ties the pieces (compilation, parts, rendering) together; see the sibling files for
 // each concern: `compile.ts`, `parts.ts`, `unsafe-html.ts`, `render.ts`.
 
-/** The result of calling `html` - inert until passed to `render()`. */
+/** The result of calling `html`/`svg` - inert until passed to `render()`. */
 export interface TemplateResult {
 	readonly strings: TemplateStringsArray;
 	readonly values: readonly unknown[];
+	/** `'svg'` for results from `svg\`...\``; tells `compile.ts` to parse the markup inside a
+	 *  temporary `<svg>` wrapper so its elements land in the SVG namespace. Absent (`undefined`)
+	 *  for plain `html` results. */
+	readonly type?: 'svg';
 }
 
 /** Tags a template literal as HTML to be rendered via `render()`. Does no DOM work itself. */
 export function html(strings: TemplateStringsArray, ...values: unknown[]): TemplateResult {
 	return { strings, values };
+}
+
+/**
+ * Like `html`, but for markup that's pure SVG content with no `<svg>` wrapper of its own - e.g. a
+ * reusable snippet meant to be interpolated as a child of an existing `<svg>` element:
+ *
+ *   const dot = (r: number) => svg`<circle r="${r}" />`;
+ *   html`<svg viewBox="0 0 10 10">${dot(3)}</svg>`;
+ *
+ * If your markup already includes its own top-level `<svg>...</svg>`, plain `html` works fine -
+ * the parser assigns the SVG namespace as soon as it sees the `<svg>` tag, even inside a
+ * `<template>`. `svg` is only needed for namespace-less fragments like the `<circle>` above.
+ */
+export function svg(strings: TemplateStringsArray, ...values: unknown[]): TemplateResult {
+	return { strings, values, type: 'svg' };
 }
 
 export function isTemplateResult(value: unknown): value is TemplateResult {
