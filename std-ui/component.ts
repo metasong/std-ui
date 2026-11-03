@@ -14,6 +14,7 @@ import {
 	type OnCleanup,
 	type SignalTree,
 } from './signal/index.js';
+import { render as renderHtml, type TemplateResult } from './template/index.js';
 
 /** Class decorator that registers the decorated `UIElement` subclass as a custom element under `tag`. */
 export function element(tag: string) {
@@ -36,8 +37,14 @@ export abstract class UIElement<S extends object> extends HTMLElement {
 	/** lifecycle hook: One-time setup (resolve child nodes, attach listeners). Runs once, after any `template()` injection. */
 	protected mount?(): void;
 
-	/** lifecycle hook: Called with the latest state (and once immediately on connect) to sync DOM to `state`. */
-	protected render?(state: S): void;
+	/**
+	 * lifecycle hook: Called with the latest state (and once immediately on connect) to sync DOM to
+	 * `state`. Either sync the DOM imperatively (`querySelector`/`textContent`/... and return
+	 * nothing), or return an `html` (see `./template/html.js`) tagged-template result describing the
+	 * component's full markup - the diffing in `./template/html.js` will patch only what changed
+	 * since last time.
+	 */
+	protected render?(state: S): TemplateResult | void;
 
 	/** lifecycle hook: Tear down what `mount()` set up (listeners, timers). Runs on every disconnect. */
 	protected unmount?(): void;
@@ -64,7 +71,8 @@ export abstract class UIElement<S extends object> extends HTMLElement {
 		// leaf into a fresh plain object - so this effect re-runs `render()` whenever any field
 		// anywhere in the tree changes (runs once synchronously now, then microtask-batched).
 		this.#effectDisposers.push(createEffect(() => {
-			this.render?.(this.state());
+			const result = this.render?.(this.state());
+			if (result) renderHtml(result, this);
 		}));
 	}
 
