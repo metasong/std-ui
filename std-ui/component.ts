@@ -27,7 +27,7 @@ export function element(tag: string) {
 
 export abstract class UIElement<S extends object> extends HTMLElement {
 	#connected = false;
-	#firstUpdateDone = false;
+	#firstRenderDone = false;
 	#effectDisposers: Array<() => void> = [];
 
 	/** The reactive state tree this component reads from and re-renders in response to. Supply via a per-app subclass. */
@@ -43,19 +43,19 @@ export abstract class UIElement<S extends object> extends HTMLElement {
 	 * component's full markup - the diffing in `./template/html.js` will patch only what changed
 	 * since last time.
 	 */
-	protected render?(state: S): TemplateResult | void;
+	protected template?(state: S): TemplateResult | void;
 
-	/** lifecycle hook: Called once, with the latest state, right after the first `render()` has been applied to the DOM. */
-	protected firstUpdated?(state: S): void;
+	/** lifecycle hook: Called once, with the latest state, right after the first `template()` has been applied to the DOM. */
+	protected firstRendered?(state: S): void;
 
-	/** lifecycle hook: Called with the latest state after every `render()` (including the first) has been applied to the DOM. */
-	protected updated?(state: S): void;
+	/** lifecycle hook: Called with the latest state after every `template()` (including the first) has been applied to the DOM. */
+	protected rendered?(state: S): void;
 
 	/** lifecycle hook: Tear down what `connect()` set up (listeners, timers). Runs on every disconnect. */
 	protected disconnect?(): void;
 
 	/**
-	 * Fine-grained alternative to `render(state)`: a `signal`/`computed`-tracking effect (see
+	 * Fine-grained alternative to `template(state)`: a `signal`/`computed`-tracking effect (see
 	 * `./signal/`), auto-disposed on disconnect. Prefer this when only a small slice of DOM
 	 * needs to react to specific signals, rather than the whole component re-rendering.
 	 */
@@ -63,7 +63,7 @@ export abstract class UIElement<S extends object> extends HTMLElement {
 		this.#effectDisposers.push(createEffect(fn));
 	};
 
-	// Browser lifecycle entry points — `private` so TS subclasses cannot override; extend `connect` / `disconnect` / `render` / `firstUpdated` / `updated` instead.
+	// Browser lifecycle entry points — `private` so TS subclasses cannot override; extend `connect` / `disconnect` / `template` / `firstRendered` / `rendered` instead.
 	/** Connected to the document (static HTML, parent markup, re-insert after remove). */
 	private connectedCallback(): void {
 		if (!this.#connected) {
@@ -72,18 +72,18 @@ export abstract class UIElement<S extends object> extends HTMLElement {
 		}
 
 		// `this.state()` is a tracked read of the tree root - a `Computed` that reassembles every
-		// leaf into a fresh plain object - so this effect re-runs `render()` whenever any field
+		// leaf into a fresh plain object - so this effect re-runs `template()` whenever any field
 		// anywhere in the tree changes (runs once synchronously now, then microtask-batched).
 		this.#effectDisposers.push(createEffect(() => {
 			const state = this.state();
-			const result = this.render?.(state);
+			const result = this.template?.(state);
 			if (result) renderHtml(result, this);
 
-			if (!this.#firstUpdateDone) {
-				this.#firstUpdateDone = true;
-				this.firstUpdated?.(state);
+			if (!this.#firstRenderDone) {
+				this.#firstRenderDone = true;
+				this.firstRendered?.(state);
 			}
-			this.updated?.(state);
+			this.rendered?.(state);
 		}));
 	}
 
@@ -91,7 +91,7 @@ export abstract class UIElement<S extends object> extends HTMLElement {
 	private disconnectedCallback(): void {
 		this.disconnect?.();
 		this.#connected = false;
-		this.#firstUpdateDone = false;
+		this.#firstRenderDone = false;
 		this.#effectDisposers.forEach(dispose => dispose());
 		this.#effectDisposers = [];
 	}

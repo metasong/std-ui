@@ -70,7 +70,7 @@ describe('UIElement', () => {
 		el.remove();
 	});
 
-	it('calls render(state) immediately on connect and again whenever state changes', async () => {
+	it('calls template(state) immediately on connect and again whenever state changes', async () => {
 		const tag = uniqueTag();
 		const tree = buildSignalTree<State>({ count: 0 });
 		const renderSpy = vi.fn();
@@ -80,7 +80,7 @@ describe('UIElement', () => {
 			protected override get state(): SignalTree<State> {
 				return tree;
 			}
-			protected override render(state: State): void {
+			protected override template(state: State): void {
 				renderSpy(state.count);
 			}
 		}
@@ -96,7 +96,7 @@ describe('UIElement', () => {
 		el.remove();
 	});
 
-	it('renders an html() result returned from render(state) into the element', () => {
+	it('renders an html() result returned from template(state) into the element', () => {
 		const tag = uniqueTag();
 
 		@element(tag)
@@ -104,7 +104,7 @@ describe('UIElement', () => {
 			protected override get state(): SignalTree<State> {
 				return buildSignalTree({ count: 7 });
 			}
-			protected override render(state: State) {
+			protected override template(state: State) {
 				return html`<em>${state.count}</em>`;
 			}
 		}
@@ -127,7 +127,7 @@ describe('UIElement', () => {
 				return tree;
 			}
 			protected override disconnect = disconnect;
-			protected override render(state: State): void {
+			protected override template(state: State): void {
 				renderSpy(state.count);
 			}
 		}

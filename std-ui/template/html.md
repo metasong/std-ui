@@ -65,7 +65,7 @@ Switching to a *different* template literal (e.g. a different `if` branch return
 
 ## Using it in a `UIElement`
 
-`../component.ts`'s `UIElement.render(state)` hook accepts either style: sync the DOM imperatively
+`../component.ts`'s `UIElement.template(state)` hook accepts either style: sync the DOM imperatively
 and return nothing (as existing components do), or return an `html` result and it's rendered into
 the element automatically - same hook, same schedule, your choice per component:
 
@@ -74,7 +74,7 @@ import { element, html, UIElement } from '../index.js';
 
 @element('hello-banner')
 class HelloBanner extends UIElement<AppState> {
-	override render(state: AppState) {
+	override template(state: AppState) {
 		return html`<p>Hello, ${state.userName}!</p>`;
 	}
 }

@@ -50,7 +50,7 @@ describe('doc: signals drive html render', () => {
 		renderSpy.mockRestore();
 	});
 
-	it('Pattern B — UIElement wires SignalTree to html render, @click, and firstUpdated', async () => {
+	it('Pattern B — UIElement wires SignalTree to html render, @click, and firstRendered', async () => {
 		const tag = `doc-counter-${Math.random().toString(36).slice(2)}`;
 		type DemoState = { counter: { value: number; max: number } };
 		const shared = buildSignalTree<DemoState>({
@@ -63,7 +63,7 @@ describe('doc: signals drive html render', () => {
 				return shared;
 			}
 
-			protected override render(state: DemoState) {
+			protected override template(state: DemoState) {
 				const { value, max } = state.counter;
 				return html`
 					<span>${value}</span> / ${max}
@@ -75,7 +75,7 @@ describe('doc: signals drive html render', () => {
 				`;
 			}
 
-			protected override firstUpdated(_state: DemoState): void {
+			protected override firstRendered(_state: DemoState): void {
 				this.querySelector('span')!.setAttribute('aria-live', 'polite');
 			}
 		}
@@ -110,7 +110,7 @@ describe('doc: signals drive html render', () => {
 		expect(span.textContent).toBe('10');
 	});
 
-	it('Pattern C — firstUpdated registers effect() to patch a static .badge node', async () => {
+	it('Pattern C — firstRendered registers effect() to patch a static .badge node', async () => {
 		const tag = `doc-badge-${Math.random().toString(36).slice(2)}`;
 		type ShellState = { title: string; unreadCount: number };
 		const shared = buildSignalTree<ShellState>({
@@ -124,14 +124,14 @@ describe('doc: signals drive html render', () => {
 				return shared;
 			}
 
-			protected override render(state: ShellState) {
+			protected override template(state: ShellState) {
 				return html`
 					<h1>${state.title}</h1>
 					<span class="badge"></span>
 				`;
 			}
 
-			protected override firstUpdated(): void {
+			protected override firstRendered(): void {
 				const badge = this.querySelector('.badge') as HTMLElement;
 
 				this.effect(() => {
