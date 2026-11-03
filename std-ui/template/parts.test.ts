@@ -1,0 +1,178 @@
+import { describe, expect, it, vi } from 'vitest';
+import {
+	AttributePart,
+	BooleanAttributePart,
+	ChildPart,
+	EventPart,
+	PropertyPart,
+} from './parts.js';
+import { html } from './html.js';
+import { unsafeHTML } from './unsafe-html.js';
+
+describe('AttributePart', () => {
+	it('sets the attribute as a string', () => {
+		const el = document.createElement('div');
+		const part = new AttributePart(el, 'id');
+		part.update('x');
+		expect(el.getAttribute('id')).toBe('x');
+	});
+
+	it('removes the attribute on null/undefined', () => {
+		const el = document.createElement('div');
+		el.setAttribute('id', 'x');
+		const part = new AttributePart(el, 'id');
+		part.update(null);
+		expect(el.hasAttribute('id')).toBe(false);
+	});
+
+	it('is a no-op (no DOM write) for an Object.is-equal value', () => {
+		const el = document.createElement('div');
+		const part = new AttributePart(el, 'id');
+		part.update('x');
+		const setAttribute = vi.spyOn(el, 'setAttribute');
+		part.update('x');
+		expect(setAttribute).not.toHaveBeenCalled();
+	});
+});
+
+describe('BooleanAttributePart', () => {
+	it('toggles the attribute based on truthiness', () => {
+		const el = document.createElement('div');
+		const part = new BooleanAttributePart(el, 'hidden');
+		part.update(true);
+		expect(el.hasAttribute('hidden')).toBe(true);
+		part.update(false);
+		expect(el.hasAttribute('hidden')).toBe(false);
+	});
+
+	it('is a no-op for an Object.is-equal value', () => {
+		const el = document.createElement('div');
+		const part = new BooleanAttributePart(el, 'hidden');
+		part.update(true);
+		const toggleAttribute = vi.spyOn(el, 'toggleAttribute');
+		part.update(true);
+		expect(toggleAttribute).not.toHaveBeenCalled();
+	});
+});
+
+describe('PropertyPart', () => {
+	it('assigns the JS property directly (not an HTML attribute)', () => {
+		const el = document.createElement('input');
+		const part = new PropertyPart(el, 'value');
+		part.update('hello');
+		expect(el.value).toBe('hello');
+		expect(el.hasAttribute('value')).toBe(false);
+	});
+});
+
+describe('EventPart', () => {
+	it('adds the listener and invokes it on dispatch', () => {
+		const el = document.createElement('button');
+		const part = new EventPart(el, 'click');
+		const handler = vi.fn();
+		part.update(handler);
+		el.dispatchEvent(new Event('click'));
+		expect(handler).toHaveBeenCalledTimes(1);
+	});
+
+	it('swaps the listener when updated with a different function', () => {
+		const el = document.createElement('button');
+		const part = new EventPart(el, 'click');
+		const first = vi.fn();
+		const second = vi.fn();
+		part.update(first);
+		part.update(second);
+		el.dispatchEvent(new Event('click'));
+		expect(first).not.toHaveBeenCalled();
+		expect(second).toHaveBeenCalledTimes(1);
+	});
+
+	it('removes the listener when updated with a non-function value', () => {
+		const el = document.createElement('button');
+		const part = new EventPart(el, 'click');
+		const handler = vi.fn();
+		part.update(handler);
+		part.update(undefined);
+		el.dispatchEvent(new Event('click'));
+		expect(handler).not.toHaveBeenCalled();
+	});
+});
+
+describe('ChildPart', () => {
+	function makePart(): { part: ChildPart; container: HTMLElement; anchor: Comment } {
+		const container = document.createElement('div');
+		const anchor = document.createComment('mini-ui-part');
+		container.appendChild(anchor);
+		return { part: new ChildPart(anchor), container, anchor };
+	}
+
+	it('renders strings/numbers as text nodes', () => {
+		const { part, container } = makePart();
+		part.update('hello');
+		expect(container.textContent).toBe('hello');
+		part.update(42);
+		expect(container.textContent).toBe('42');
+	});
+
+	it('renders null/undefined/false as nothing, clearing any previous content', () => {
+		const { part, container } = makePart();
+		part.update('hello');
+		part.update(null);
+		expect(container.textContent).toBe('');
+		part.update('hello');
+		part.update(undefined);
+		expect(container.textContent).toBe('');
+		part.update('hello');
+		part.update(false);
+		expect(container.textContent).toBe('');
+	});
+
+	it('renders a nested html() result and patches it in place on same-strings re-updates', () => {
+		const { part, container } = makePart();
+		const view = (name: string) => html`<b>${name}</b>`;
+		part.update(view('Ada'));
+		expect(container.querySelector('b')!.textContent).toBe('Ada');
+
+		part.update(view('Grace'));
+		expect(container.querySelectorAll('b')).toHaveLength(1); // same DOM reused, not rebuilt
+		expect(container.querySelector('b')!.textContent).toBe('Grace');
+	});
+
+	it('tears down and rebuilds when switching to a different template literal', () => {
+		const { part, container } = makePart();
+		part.update(html`<b>${'x'}</b>`);
+		const firstB = container.querySelector('b');
+		part.update(html`<i>${'x'}</i>`);
+		expect(container.querySelector('b')).toBeNull();
+		expect(container.querySelector('i')).not.toBeNull();
+		expect(container.querySelector('i')).not.toBe(firstB);
+	});
+
+	it('renders unsafeHTML markup as real parsed nodes', () => {
+		const { part, container } = makePart();
+		part.update(unsafeHTML('<em>hi</em>'));
+		expect(container.querySelector('em')!.textContent).toBe('hi');
+	});
+
+	it('renders an array of values as sibling nodes, diffed positionally', () => {
+		const { part, container } = makePart();
+		part.update(['a', 'b', 'c']);
+		expect(container.textContent).toBe('abc');
+
+		part.update(['a', 'z']); // shrink: drops the extra trailing item
+		expect(container.textContent).toBe('az');
+
+		part.update(['a', 'z', 'c']); // grow back
+		expect(container.textContent).toBe('azc');
+	});
+
+	it('renders an array of nested templates, each independently diffed', () => {
+		const { part, container } = makePart();
+		const item = (label: string) => html`<li>${label}</li>`;
+		part.update([item('one'), item('two')]);
+		expect(Array.from(container.querySelectorAll('li')).map(li => li.textContent)).toEqual(['one', 'two']);
+
+		part.update([item('ONE'), item('two')]);
+		expect(Array.from(container.querySelectorAll('li')).map(li => li.textContent)).toEqual(['ONE', 'two']);
+	});
+});

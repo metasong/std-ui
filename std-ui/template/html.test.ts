@@ -1,0 +1,48 @@
+import { describe, expect, it } from 'vitest';
+import { html, isTemplateResult, svg } from './html.js';
+
+describe('html', () => {
+	it('captures strings/values without doing any DOM work', () => {
+		const result = html`<p>Hello, ${'Ada'}!</p>`;
+		expect(result.values).toEqual(['Ada']);
+		expect(Array.from(result.strings)).toEqual(['<p>Hello, ', '!</p>']);
+		expect(result.type).toBeUndefined();
+	});
+
+	it('reuses the same `strings` identity across calls at the same call site', () => {
+		const view = (name: string) => html`<p>${name}</p>`;
+		const a = view('Ada');
+		const b = view('Grace');
+		expect(a.strings).toBe(b.strings);
+	});
+
+	it('gives different call sites different `strings` identities', () => {
+		const a = html`<p>${1}</p>`;
+		const b = html`<p>${1}</p>`;
+		expect(a.strings).not.toBe(b.strings);
+	});
+});
+
+describe('svg', () => {
+	it('captures strings/values and tags the result with type "svg"', () => {
+		const result = svg`<circle r="${3}" />`;
+		expect(result.values).toEqual([3]);
+		expect(result.type).toBe('svg');
+	});
+});
+
+describe('isTemplateResult', () => {
+	it('is true for html()/svg() results', () => {
+		expect(isTemplateResult(html`<p></p>`)).toBe(true);
+		expect(isTemplateResult(svg`<circle />`)).toBe(true);
+	});
+
+	it('is false for plain values', () => {
+		expect(isTemplateResult('hello')).toBe(false);
+		expect(isTemplateResult(42)).toBe(false);
+		expect(isTemplateResult(null)).toBe(false);
+		expect(isTemplateResult(undefined)).toBe(false);
+		expect(isTemplateResult({})).toBe(false);
+		expect(isTemplateResult({ strings: [] })).toBe(false);
+	});
+});

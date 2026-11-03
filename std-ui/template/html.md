@@ -27,6 +27,7 @@ Each `${...}` interpolation is bound based on *where* it appears in the markup:
 | `@`-prefixed attribute | `@click="${handler}"` | `el.addEventListener('click', handler)` |
 
 Child content accepts:
+
 - `string` / `number` → rendered as a text node.
 - `null` / `undefined` / `false` → renders nothing (clears any previous content).
 - Another `html` result → rendered as a nested template, diffed independently.
@@ -46,9 +47,9 @@ html`
 
 ## `render(result, container)`
 
-Renders `result` into `container`. Call it again with a new `result` from the *same* tagged
-template call site (literally the same `html\`...\`` expression in source, evaluated with new
-values) and it reuses the previous DOM, updating only the parts whose value changed:
+Renders `result` into `container`. Call it again with a new `result` from the *same* tagged-template
+call site (literally the same `html\`...\`` expression in source, evaluated with new values) and it
+reuses the previous DOM, updating only the parts whose value changed:
 
 ```ts
 function view(state: State) {
@@ -104,7 +105,15 @@ class HelloBanner extends UIElement<AppState> {
   for reordering/insertion in the middle.
 - **No directives** (`classMap`, `styleMap`, `ref`, etc.) - just the five binding kinds above.
 - **One interpolation per attribute.** `class="${a} ${b}"` or `class="static ${dynamic}"` are not
-  supported - an attribute's value must be exactly one `${...}`.
+  supported - an attribute's value must be exactly one `${...}`. Combine multiple pieces into a
+  single string yourself before interpolating:
+
+  ```ts
+  html`<div class="${`${a} ${b}`}">`;
+  // or, more readably:
+  const cls = `static-${dynamic}`;
+  html`<div class="${cls}">`;
+  ```
 - **No MathML support.** There's no `mathml` tag function analogous to `svg` below.
 - **SVG needs the `svg` tag for namespace-less fragments.** Markup containing its own top-level
   `<svg>...</svg>` works fine with plain `html` - the parser assigns the SVG namespace as soon as
