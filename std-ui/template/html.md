@@ -45,6 +45,65 @@ html`
 `;
 ```
 
+## Embedding templates
+
+Build reusable markup as functions (or variables) that return `html` results, then interpolate them
+as child content in a parent template. The nested part keeps its own compiled template and updates
+in place when you re-render with the same inner call site:
+
+```ts
+import { html, render } from './index.js';
+
+const badge = (label: string) => html`<span class="badge">${label}</span>`;
+const statusRow = (label: string) => html`<p>Status: ${badge(label)}</p>`;
+
+const container = document.createElement('div');
+render(statusRow('ok'), container);
+render(statusRow('fail'), container); // same DOM; only the badge text changes
+```
+
+There is no separate “include” API—composition is just `${nestedHtmlResult}` between tags.
+
+## Logic: conditionals and lists
+
+Use ordinary JavaScript in `${...}` to pick or build child content. The parent `` html`...` ``
+call site stays the same; only the bound values change between renders.
+
+**If / else (different template parts):**
+
+```ts
+const success = (msg: string) => html`<p class="ok">${msg}</p>`;
+const error = (msg: string) => html`<p class="err">${msg}</p>`;
+
+const alert = (ok: boolean, msg: string) =>
+	html`<section>${ok ? success(msg) : error(msg)}</section>`;
+
+// or with an if statement before the parent template:
+function alertBody(ok: boolean, msg: string) {
+	if (ok) return success(msg);
+	return error(msg);
+}
+const alertFromIf = (ok: boolean, msg: string) => html`<section>${alertBody(ok, msg)}</section>`;
+```
+
+Each branch returns a different `` html`...` `` (different call sites). The nested `ChildPart`
+swaps them by tearing down the old subtree and mounting the new one. The outer `<section>` wrapper
+is unchanged if `alert` / `alertFromIf` always uses the same parent literal.
+
+**Lists (`.map()` or a `for` loop):**
+
+```ts
+const row = (label: string) => html`<li>${label}</li>`;
+
+html`<ul>${items.map(item => row(item.label))}</ul>`;
+
+const rows = [];
+for (const item of items) rows.push(row(item.label));
+html`<ul>${rows}</ul>`;
+```
+
+Arrays are diffed by index (not keyed)—see Limitations.
+
 ## `render(result, container)`
 
 Renders `result` into `container`. Call it again with a new `result` from the *same* tagged-template

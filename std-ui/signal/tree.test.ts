@@ -159,7 +159,7 @@ describe('buildSignalTree', () => {
 	});
 
 	it('buildSignalTree on a plain object with a null prototype is still a branch', () => {
-		const value = Object.assign(Object.create(null), { n: 1 });
+		const value = Object.assign(Object.create(null), { n: 1 }) as { n: number };
 		const tree = buildSignalTree(value);
 		expect(tree.n()).toBe(1);
 		tree.n.set(2);

@@ -55,4 +55,59 @@ describe('render', () => {
 		expect(containerA.textContent).toBe('A');
 		expect(containerB.textContent).toBe('B');
 	});
+
+	it('renders nested html() parts embedded in a parent and patches them in place', () => {
+		const container = document.createElement('div');
+		const badge = (label: string) => html`<span class="badge">${label}</span>`;
+		const view = (label: string) => html`<p>Status: ${badge(label)}</p>`;
+
+		render(view('ok'), container);
+		expect(container.querySelector('.badge')!.textContent).toBe('ok');
+
+		render(view('fail'), container);
+		expect(container.querySelectorAll('.badge')).toHaveLength(1);
+		expect(container.querySelector('.badge')!.textContent).toBe('fail');
+	});
+
+	it('switches child content with if/else between different html() parts', () => {
+		const container = document.createElement('div');
+		const success = (msg: string) => html`<p class="ok">${msg}</p>`;
+		const error = (msg: string) => html`<p class="err">${msg}</p>`;
+		const view = (ok: boolean, msg: string) =>
+			html`<section>${ok ? success(msg) : error(msg)}</section>`;
+
+		render(view(true, 'saved'), container);
+		expect(container.querySelector('.ok')!.textContent).toBe('saved');
+		expect(container.querySelector('.err')).toBeNull();
+
+		render(view(false, 'failed'), container);
+		expect(container.querySelector('.ok')).toBeNull();
+		expect(container.querySelector('.err')!.textContent).toBe('failed');
+	});
+
+	it('renders a list of html() parts from map() or a for-loop array', () => {
+		const row = (label: string) => html`<li>${label}</li>`;
+
+		const fromMap = document.createElement('div');
+		render(html`<ul>${['one', 'two'].map(row)}</ul>`, fromMap);
+		expect(Array.from(fromMap.querySelectorAll('li')).map(li => li.textContent)).toEqual([
+			'one',
+			'two',
+		]);
+
+		const fromLoop = document.createElement('div');
+		const rows = [];
+		for (const label of ['alpha', 'beta']) rows.push(row(label));
+		render(html`<ul>${rows}</ul>`, fromLoop);
+		expect(Array.from(fromLoop.querySelectorAll('li')).map(li => li.textContent)).toEqual([
+			'alpha',
+			'beta',
+		]);
+
+		render(html`<ul>${['ONE', 'two'].map(row)}</ul>`, fromMap);
+		expect(Array.from(fromMap.querySelectorAll('li')).map(li => li.textContent)).toEqual([
+			'ONE',
+			'two',
+		]);
+	});
 });

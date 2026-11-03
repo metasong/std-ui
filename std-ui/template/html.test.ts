@@ -21,6 +21,13 @@ describe('html', () => {
 		const b = html`<p>${1}</p>`;
 		expect(a.strings).not.toBe(b.strings);
 	});
+
+	it('captures nested html() results in values when embedding a template part', () => {
+		const badge = html`<span>${'new'}</span>`;
+		const outer = html`<div class="row">${badge}</div>`;
+		expect(outer.values).toEqual([badge]);
+		expect(isTemplateResult(outer.values[0])).toBe(true);
+	});
 });
 
 describe('svg', () => {
