@@ -29,18 +29,18 @@ function isPlainObject(value: unknown): value is PlainObject {
 // implicit index signature for `extends` checks the way type-literals do), which would wrongly
 // push every `interface`-typed branch (e.g. this app's `AppState`/`Config`) down the `Signal<T>`
 // leaf path instead of the branch path.
-type IsBranch<T> = T extends readonly unknown[]
+type IsBranch<T> = T extends readonly unknown[] // array → leaf
 	? false
-	: T extends Function
+	: T extends Function // function → leaf
 		? false
-		: T extends object
+		: T extends object // object (incl. null in TS) → branch
 			? true
-			: false;
+			: false; // primitive(number, string, boolean, bigint, symbol, etc.) | undefined → leaf
 
 /** Recursively makes every leaf in `T` optional, for partial tree updates via branch `.set()`. */
-export type DeepPartial<T> = IsBranch<T> extends true
-	? { [K in keyof T]?: DeepPartial<T[K]> }
-	: T;
+export type DeepPartial<T> = IsBranch<T> extends true // is none array obj(incl. null)?
+? { [K in keyof T]?: DeepPartial<T[K]> } // branch → optional nested keys
+	: T; // leaf → whole value
 
 /**
  * Interface shared by every `SignalTree` node, branch or leaf - identical to `Signal<T>` (callable
