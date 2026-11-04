@@ -4,7 +4,7 @@
 //
 // Why `context.metadata`, not `ctor[Symbol.metadata]`: the stage-3 decorators spec gives every
 // decorator on a class (member *and* class) the *same* `context.metadata` object, accumulated as
-// each member decorator runs - precisely so a class decorator (`element()` in `../component.ts`)
+// each member decorator runs - precisely so a class decorator (`tag()` in `../component.ts`)
 // can read what member decorators (`property()`) registered, *synchronously, during its own
 // execution*. `ctor[Symbol.metadata]` (that same object installed as a static property) is only
 // assigned "after the class has been fully defined" (tc39/proposal-decorator-metadata) - which
@@ -76,7 +76,7 @@ export function getPropertyDefs(ctor: Function): readonly PropertyDef[] {
  * Sets `ctor.observedAttributes` (read by `customElements.define()`) from every `@property()`
  * attribute registered on `ctor` (own + inherited), using `context.metadata` - the *class
  * decorator's own* decorator context, received alongside `ctor` - since `ctor[Symbol.metadata]`
- * isn't assigned yet at this point (see file header). Call this from `element()`, before
+ * isn't assigned yet at this point (see file header). Call this from `tag()`, before
  * `customElements.define()`. No-op if no attribute-reflecting properties are registered.
  */
 export function defineObservedAttributes(ctor: CustomElementConstructor, context: ClassDecoratorContext): void {

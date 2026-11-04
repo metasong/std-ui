@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { element, property, UIElement } from '../component.js';
+import { tag, property, UIElement } from '../component.js';
 import { buildSignalTree } from '../signal/tree.js';
 import { html } from '../template/html.js';
 
@@ -13,7 +13,7 @@ function flush(): Promise<void> {
 
 describe('template `.prop` bindings with @property()', () => {
 	it('binds a parent property directly to a child `.prop` and re-renders the child template on change', async () => {
-		@element('bind-child')
+		@tag('bind-child')
 		class Badge extends UIElement {
 			@property() count = 0;
 
@@ -22,7 +22,7 @@ describe('template `.prop` bindings with @property()', () => {
 			}
 		}
 
-		@element('bind-panel')
+		@tag('bind-panel')
 		class Panel extends UIElement {
 			readonly tree = buildSignalTree<ParentState>({ count: 3 });
 

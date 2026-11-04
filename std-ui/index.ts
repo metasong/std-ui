@@ -1,5 +1,5 @@
 export {
-	element,
+	tag,
 	property,
 	UIElement,
 	type PropertyConverter,

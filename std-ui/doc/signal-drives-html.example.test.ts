@@ -3,7 +3,7 @@
  * Run: npm test -- src/std-ui/doc/signal-drives-html.example.test.ts
  */
 import { describe, expect, it, vi } from 'vitest';
-import { element, UIElement } from '../component.js';
+import { tag, UIElement } from '../component.js';
 import { computed, effect, signal } from '../signal/index.js';
 import { buildSignalTree } from '../signal/tree.js';
 import { html } from '../template/html.js';
@@ -56,7 +56,7 @@ describe('doc: signals drive html render', () => {
 			counter: { value: 0, max: 10 },
 		});
 
-		@element('demo-counter')
+		@tag('demo-counter')
 		class DocCounter extends UIElement {
 			protected override template() {
 				const { value, max } = shared.counter;
@@ -112,7 +112,7 @@ describe('doc: signals drive html render', () => {
 			unreadCount: 0,
 		});
 
-		@element('demo-badge')
+		@tag('demo-badge')
 		class DocInboxBadge extends UIElement {
 			protected override template() {
 				return html`

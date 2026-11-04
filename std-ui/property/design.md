@@ -12,7 +12,7 @@ is. For usage and API, see [`README.md`](./README.md).
 | [`store.ts`](./store.ts) | `createStore` — picks the reactive store (`SignalTree`) backing a field's value. |
 | [`decorator.ts`](./decorator.ts) | The `@property()` decorator itself and `PropertyOptions` — wires the three pieces above into the field's `get`/`set`. |
 | [`index.ts`](./index.ts) | Public re-exports. |
-| [`property.test.ts`](./property.test.ts) | Behavior tests, through `UIElement`/`element()`. |
+| [`property.test.ts`](./property.test.ts) | Behavior tests, through `UIElement`/`tag()`. |
 
 Outside this folder, [`../component.ts`](../component.ts) owns the custom-element lifecycle hooks
 (`attributeChangedCallback`, the reflection `effect()` in `connectedCallback`) that call into
@@ -60,7 +60,7 @@ So `@property()` leans on field initializer semantics plus `addInitializer` timi
 A plain field can't delegate through a prototype `get`/`set` the way an `accessor` field can: class
 field initializers always use `[[DefineOwnProperty]]` ("define" semantics) directly onto the
 instance, never `[[Set]]`, regardless of what's on the prototype chain — so an accessor installed
-once on the prototype (e.g. from `element()`) would simply be shadowed by every instance's own
+once on the prototype (e.g. from `tag()`) would simply be shadowed by every instance's own
 field initializer. Redefining the *instance's own* property, per instance, right after that
 instance's data property was created, avoids this entirely.
 
@@ -80,14 +80,14 @@ whenever they run (even for attributes present at upgrade, before `connectedCall
 element's constructor — including every field's `init()`/`addInitializer` — always finishes running
 before any lifecycle callback can fire.
 
-## Registering defs: `context.metadata` and `element()`
+## Registering defs: `context.metadata` and `tag()`
 
 Each `@property({ ... })` that isn't `attribute: false` pushes a `PropertyDef` onto
 `context.metadata` (via `registerPropertyDef`, see `metadata.ts`) — a plain object the stage-3
 decorators spec passes to **every** decorator applied to or within a class, specifically so a class
 decorator can see what member decorators registered.
 
-When **`@element(tag)`** runs (see `../component.ts`):
+When **`@tag(tag)`** runs (see `../component.ts`):
 
 1. `defineObservedAttributes(ctor, context)` reads `context.metadata` directly (*not*
    `ctor[Symbol.metadata]` — see below) and walks its prototype chain, which the spec already sets
@@ -106,11 +106,11 @@ parses the attribute into them), but `connectedCallback` skips the reflection `e
 ### Why `context.metadata`, not `ctor[Symbol.metadata]`?
 
 `context.metadata` (the shared object already accumulated by every prior member decorator) is
-available to every decorator on the class the instant it runs — including `element()`. By
+available to every decorator on the class the instant it runs — including `tag()`. By
 contrast, `ctor[Symbol.metadata]` (that same object installed as a static property) is only
 assigned "after the class has been fully defined" (tc39/proposal-decorator-metadata), which
 includes class decorators having already run — so a class decorator can never see it populated
-during its own execution. `element()` reads `context.metadata` for this reason; `getPropertyDefs(ctor)`
+during its own execution. `tag()` reads `context.metadata` for this reason; `getPropertyDefs(ctor)`
 (used later at runtime) reads `ctor[Symbol.metadata]`, which by then is populated.
 
 ## Attribute → property: native callback
@@ -181,5 +181,5 @@ that merged list. A single `attributeChangedCallback` on `UIElement` handles eve
 
 - [`README.md`](./README.md) — public API and examples
 - [`decorator.ts`](./decorator.ts) / [`converter.ts`](./converter.ts) / [`metadata.ts`](./metadata.ts) / [`store.ts`](./store.ts) — implementation
-- [`../component.ts`](../component.ts) — `element()`, `connectedCallback`, `attributeChangedCallback`
+- [`../component.ts`](../component.ts) — `tag()`, `connectedCallback`, `attributeChangedCallback`
 - [`property.test.ts`](./property.test.ts) — behavior tests (upgrade seeding, booleans, `attribute: false`)

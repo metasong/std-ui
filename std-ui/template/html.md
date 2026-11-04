@@ -130,9 +130,9 @@ the element automatically - same hook, same schedule, your choice per component.
 signal(s) you need directly inside `template()`:
 
 ```ts
-import { element, html, UIElement } from '../index.js';
+import { tag, html, UIElement } from '../index.js';
 
-@element('hello-banner')
+@tag('hello-banner')
 class HelloBanner extends UIElement {
 	override template() {
 		return html`<p>Hello, ${userName()}!</p>`;

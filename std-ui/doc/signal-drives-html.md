@@ -55,7 +55,7 @@ Important details:
 For custom elements, you usually don't call `effect` + `render` yourself. Subclass `UIElement` and return `html` from `template()`, reading whatever signals you need directly inside it (module-level signals, a shared `buildSignalTree()` tree, or app-wide state like `appState` - `UIElement` itself has no notion of "the" state). `connect()` runs **before** the first `template`, so markup from your template is not in the DOM yet — put bindings and structure in `template`, and use `firstRendered` / `rendered` when you need to touch rendered nodes.
 
 ```ts
-import { buildSignalTree, element, html, UIElement } from '../index.js';
+import { buildSignalTree, tag, html, UIElement } from '../index.js';
 
 interface DemoState {
 	counter: {
@@ -68,7 +68,7 @@ const shared = buildSignalTree<DemoState>({
 	counter: { value: 0, max: 10 },
 });
 
-@element('demo-counter')
+@tag('demo-counter')
 class DemoCounter extends UIElement {
 	protected override template() {
 		const { value, max } = shared.counter;

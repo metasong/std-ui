@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { element, property, UIElement } from '../component.js';
+import { tag, property, UIElement } from '../component.js';
 
 function flush(): Promise<void> {
 	return new Promise(resolve => queueMicrotask(() => queueMicrotask(resolve)));
@@ -7,7 +7,7 @@ function flush(): Promise<void> {
 
 describe('@property()', () => {
 	it('reflects the initial field value onto the attribute on connect when reflect: true', () => {
-		@element('prop-reflect-init')
+		@tag('prop-reflect-init')
 		class Foo extends UIElement {
 			@property({ type: Number, reflect: true }) count = 5;
 		}
@@ -19,7 +19,7 @@ describe('@property()', () => {
 	});
 
 	it('seeds the property/signal from a pre-existing attribute (upgrade), overriding the field default', () => {
-		@element('prop-seed-attr')
+		@tag('prop-seed-attr')
 		class Foo extends UIElement {
 			@property({ type: Number }) count = 0;
 		}
@@ -32,7 +32,7 @@ describe('@property()', () => {
 	});
 
 	it('does not reflect the property onto the attribute by default', async () => {
-		@element('prop-no-reflect')
+		@tag('prop-no-reflect')
 		class Foo extends UIElement {
 			@property() label = 'hi';
 		}
@@ -49,7 +49,7 @@ describe('@property()', () => {
 	});
 
 	it('updates the attribute when the property is set from JS, with reflect: true', async () => {
-		@element('prop-reflect-js')
+		@tag('prop-reflect-js')
 		class Foo extends UIElement {
 			@property({ reflect: true }) label = 'hi';
 		}
@@ -65,7 +65,7 @@ describe('@property()', () => {
 	});
 
 	it('updates the property when the attribute is set/changed on the tag (native attributeChangedCallback)', async () => {
-		@element('prop-attr-change')
+		@tag('prop-attr-change')
 		class Foo extends UIElement {
 			@property({ type: Number }) count = 0;
 		}
@@ -79,7 +79,7 @@ describe('@property()', () => {
 	});
 
 	it('supports boolean attributes: presence-based, removed when false', async () => {
-		@element('prop-boolean')
+		@tag('prop-boolean')
 		class Foo extends UIElement {
 			@property({ type: Boolean, reflect: true }) active = false;
 		}
@@ -99,7 +99,7 @@ describe('@property()', () => {
 	});
 
 	it('supports attribute: false to opt a property out of attribute reflection entirely', async () => {
-		@element('prop-no-attr')
+		@tag('prop-no-attr')
 		class Foo extends UIElement {
 			@property({ attribute: false }) internalOnly = 'secret';
 		}
@@ -116,7 +116,7 @@ describe('@property()', () => {
 	});
 
 	it('defaults the attribute name to kebab-case of the field name', () => {
-		@element('prop-kebab')
+		@tag('prop-kebab')
 		class Foo extends UIElement {
 			@property({ reflect: true }) maxCount = 'ten';
 		}
@@ -130,7 +130,7 @@ describe('@property()', () => {
 	it('is readable/writable inside template(), re-rendering when the property changes', async () => {
 		const rendered: string[] = [];
 
-		@element('prop-template')
+		@tag('prop-template')
 		class Foo extends UIElement {
 			@property() label = 'a';
 			protected override template(): void {
@@ -149,7 +149,7 @@ describe('@property()', () => {
 	});
 
 	it('backs a complex-object field with a SignalTree, reading/writing the whole object', async () => {
-		@element('prop-obj-tree')
+		@tag('prop-obj-tree')
 		class Foo extends UIElement {
 			@property({ attribute: false }) config = { a: 1, b: { c: 2 } };
 		}
@@ -165,7 +165,7 @@ describe('@property()', () => {
 	});
 
 	it('leaves an unrelated nested branch untouched (same object identity) when only a sibling leaf changes', async () => {
-		@element('prop-obj-sibling')
+		@tag('prop-obj-sibling')
 		class Foo extends UIElement {
 			@property({ attribute: false }) config = { a: 1, b: { c: 2 } };
 		}
@@ -181,7 +181,7 @@ describe('@property()', () => {
 	});
 
 	it('supports type: Object to reflect a complex-object field to/from the attribute as JSON', async () => {
-		@element('prop-obj-json')
+		@tag('prop-obj-json')
 		class Foo extends UIElement {
 			@property({ type: Object, reflect: true }) config = { a: 1 };
 		}
@@ -200,7 +200,7 @@ describe('@property()', () => {
 	});
 
 	it('leaves an object field untouched when the attribute is absent/unparsable (empty-object merge is a no-op)', () => {
-		@element('prop-obj-bad')
+		@tag('prop-obj-bad')
 		class Foo extends UIElement {
 			@property({ type: Object }) config = { a: 1 };
 		}
@@ -216,7 +216,7 @@ describe('@property()', () => {
 	});
 
 	it('infers type: Number from a numeric initial value when type/converter are omitted', () => {
-		@element('prop-inf-num')
+		@tag('prop-inf-num')
 		class Foo extends UIElement {
 			@property({ reflect: true }) count = 5; // no `type` - inferred as Number from `5`
 		}
@@ -231,7 +231,7 @@ describe('@property()', () => {
 	});
 
 	it('infers type: Boolean from a boolean initial value when type/converter are omitted', async () => {
-		@element('prop-inf-bool')
+		@tag('prop-inf-bool')
 		class Foo extends UIElement {
 			@property({ reflect: true }) active = false;
 		}
@@ -247,7 +247,7 @@ describe('@property()', () => {
 	});
 
 	it('infers type: Object from a plain-object initial value when type/converter are omitted', () => {
-		@element('prop-inf-obj')
+		@tag('prop-inf-obj')
 		class Foo extends UIElement {
 			@property({ reflect: true }) config = { a: 1 };
 		}
@@ -262,7 +262,7 @@ describe('@property()', () => {
 	});
 
 	it('infers type: Array from an array initial value when type/converter are omitted', () => {
-		@element('prop-inf-arr')
+		@tag('prop-inf-arr')
 		class Foo extends UIElement {
 			@property({ attribute: false }) tags: string[] = ['a', 'b'];
 		}
@@ -274,7 +274,7 @@ describe('@property()', () => {
 	});
 
 	it('supports a fully custom converter, overriding the type-based default', async () => {
-		@element('prop-converter')
+		@tag('prop-converter')
 		class Foo extends UIElement {
 			@property({
 				type: Object,

@@ -14,9 +14,9 @@ A **plain-object** field instead becomes a tree of signals/computeds mirroring i
 For implementation details, see [`design.md`](./design.md).
 
 ```ts
-import { element, property, UIElement } from '../index.js';
+import { tag, property, UIElement } from '../index.js';
 
-@element('user-badge')
+@tag('user-badge')
 class UserBadge extends UIElement {
 	@property({ type: Number, reflect: true }) count = 0; // mirrors the `count` attribute both ways
 	@property() label = 'Guest'; // attribute -> property only (string, the default); JS writes don't reflect back
@@ -43,7 +43,7 @@ el.setAttribute('count', '9'); // native attributeChangedCallback parses it back
 
 - The field can be plain (`@property() foo = 0;`) or an `accessor` field
   (`@property() accessor foo = 0;`) - both work.
-- The class must also be decorated with `element()` (see `../component.ts`). `element()` reads the
+- The class must also be decorated with `tag()` (see `../component.ts`). `tag()` reads the
   `@property()` registrations made while the class body was evaluating and uses them to set
   `observedAttributes` before calling `customElements.define()`.
 
@@ -146,7 +146,7 @@ attribute as JSON text:
 
 ## How the two directions work
 
-- **Attribute -> property**: `element()` computes `ctor.observedAttributes` from every
+- **Attribute -> property**: `tag()` computes `ctor.observedAttributes` from every
   `@property()`-registered attribute (own + inherited). The browser calls `UIElement`'s private
   `attributeChangedCallback` natively whenever one of those attributes is set, changed, or removed -
   including once per attribute already present in static markup, right when the element upgrades,

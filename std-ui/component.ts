@@ -24,14 +24,14 @@ export { property, type PropertyConverter, type PropertyOptions, type PropertyTy
 
 /**
  * Class decorator that registers the decorated `UIElement` subclass as a custom element under
- * `tag`. Also wires up `observedAttributes` from any `@property()`-decorated fields (see
+ * `name`. Also wires up `observedAttributes` from any `@property()`-decorated fields (see
  * `./property/`) so the browser calls `attributeChangedCallback` for them - must run before
  * `customElements.define()`, which reads `observedAttributes` once, at definition time.
  */
-export function element(tag: string) {
+export function tag(name: string) {
 	return function <T extends CustomElementConstructor>(ctor: T, context: ClassDecoratorContext): T {
 		defineObservedAttributes(ctor, context);
-		customElements.define(tag, ctor);
+		customElements.define(name, ctor);
 		return ctor;
 	};
 }
@@ -124,7 +124,7 @@ export abstract class UIElement extends HTMLElement {
 
 	/**
 	 * Attribute → property direction: the browser calls this natively whenever an attribute listed
-	 * in `static observedAttributes` (set up by `element()` from `@property()` fields) is set,
+	 * in `static observedAttributes` (set up by `tag()` from `@property()` fields) is set,
 	 * changed, or removed - including once per already-present attribute right when a pre-existing
 	 * element is upgraded, *before* `connectedCallback`. Parses the new attribute text per the
 	 * field's `type` and writes it through the `@property()` accessor (`this[def.key] = ...`), which
