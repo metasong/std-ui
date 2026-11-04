@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import * as miniUi from './index.js';
 
-describe('mini-ui/index.ts barrel', () => {
+describe('std-ui/index.ts barrel', () => {
 	it('re-exports the full public API surface', () => {
 		expect(miniUi.element).toBeTypeOf('function');
 		expect(miniUi.UIElement).toBeTypeOf('function');

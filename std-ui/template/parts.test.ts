@@ -101,7 +101,7 @@ describe('EventPart', () => {
 describe('ChildPart', () => {
 	function makePart(): { part: ChildPart; container: HTMLElement; anchor: Comment } {
 		const container = document.createElement('div');
-		const anchor = document.createComment('mini-ui-part');
+		const anchor = document.createComment('std-ui-part');
 		container.appendChild(anchor);
 		return { part: new ChildPart(anchor), container, anchor };
 	}

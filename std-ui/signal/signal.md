@@ -88,7 +88,7 @@ When that signal later changes (via `.set`/`.update`), it notifies its subscribe
 Each consumer's dependency set is rebuilt from scratch on every run, so stale subscriptions
 from a previous run (e.g. a branch that's no longer read) are automatically dropped.
 
-## Where this fits in mini-ui
+## Where this fits in std-ui
 
 - `./tree.ts`'s `buildSignalTree()` mirrors a plain-object state shape into a tree of these
   `Signal`/`Computed` nodes - that's what backs an app's state (e.g. `core/store.ts`'s `appState`).

@@ -137,7 +137,7 @@ export class ChildPart implements Part {
 		}
 		// Grow: each item gets its own anchor comment, inserted in order right before this part's anchor.
 		while (items.length < values.length) {
-			const itemAnchor = document.createComment('mini-ui-part');
+			const itemAnchor = document.createComment('std-ui-part');
 			this.anchor.before(itemAnchor);
 			items.push(new ChildPart(itemAnchor));
 		}

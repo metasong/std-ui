@@ -6,10 +6,10 @@
 // nodes for a fresh render.
 
 /** Marks a child-content position; kept as a real comment node in the DOM to anchor updates. */
-const CHILD_MARKER = 'mini-ui-part';
+const CHILD_MARKER = 'std-ui-part';
 const CHILD_MARKER_COMMENT = `<!--${CHILD_MARKER}-->`;
 /** Marks an attribute-value position; always the *entire* attribute value (no interpolation mixing). */
-const ATTR_MARKER = 'mini-ui-part';
+const ATTR_MARKER = 'std-ui-part';
 
 export type PartKind = 'child' | 'attr' | 'bool' | 'prop' | 'event';
 

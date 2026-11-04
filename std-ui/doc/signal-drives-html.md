@@ -1,6 +1,6 @@
 # Signals driving HTML template render
 
-mini-ui pairs two ideas that stay useful on their own but work especially well together:
+std-ui pairs two ideas that stay useful on their own but work especially well together:
 
 1. **Signals** — fine-grained reactivity (`signal`, `computed`, `effect`, or a `buildSignalTree()` app state).
 2. **`html` + `render`** — lit-html-style tagged templates that patch the DOM in place instead of rebuilding it.
@@ -46,7 +46,7 @@ count.set(3); // effect re-runs → render patches text + disabled, same <p> and
 
 Important details:
 
-- **`view` must keep the same `html` call site** — always `return html\`...\`` from the same tagged template expression. If you switch to a *different* template literal (e.g. alternate `if` branches that each define their own `` html`...` ``), mini-ui tears down and rebuilds that container's DOM. Prefer one template with conditional *values* (`?disabled`, ternary in `${...}`) over conditional *templates* when you care about reuse.
+- **`view` must keep the same `html` call site** — always `return html\`...\`` from the same tagged template expression. If you switch to a *different* template literal (e.g. alternate `if` branches that each define their own `` html`...` ``), std-ui tears down and rebuilds that container's DOM. Prefer one template with conditional *values* (`?disabled`, ternary in `${...}`) over conditional *templates* when you care about reuse.
 - **`computed` for derived text** — keeps the effect from manually syncing extra fields; only re-read when dependencies change.
 - **Event handlers** — `@click` bindings are re-bound when the handler reference changes; inline arrows are fine for demos, stable references are better in production.
 
