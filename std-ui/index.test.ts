@@ -4,6 +4,7 @@ import * as miniUi from './index.js';
 describe('std-ui/index.ts barrel', () => {
 	it('re-exports the full public API surface', () => {
 		expect(miniUi.element).toBeTypeOf('function');
+		expect(miniUi.property).toBeTypeOf('function');
 		expect(miniUi.UIElement).toBeTypeOf('function');
 		expect(miniUi.html).toBeTypeOf('function');
 		expect(miniUi.svg).toBeTypeOf('function');

@@ -1,4 +1,11 @@
-export { element, UIElement } from './component.js';
+export {
+	element,
+	property,
+	UIElement,
+	type PropertyConverter,
+	type PropertyOptions,
+	type PropertyType,
+} from './component.js';
 export { html, svg, render, unsafeHTML, type TemplateResult } from './template/index.js';
 export {
 	buildSignalTree,

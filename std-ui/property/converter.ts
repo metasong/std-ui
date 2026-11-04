@@ -1,0 +1,116 @@
+// Attribute <-> property value conversion: the `type`/`converter` half of `@property()`'s options
+// (see `./decorator.ts`). Everything here is pure data + pure functions - no class-field or
+// metadata concerns - so it can be read/tested in isolation from *how* a field ends up calling it.
+
+/**
+ * `lit`-style type hint for the *default* attribute <-> property conversion: the JS constructor
+ * the property's value conceptually is, not a runtime `typeof`/`instanceof` check. Defaults to
+ * `String`. Pass an explicit `converter` (below) instead of (or alongside) `type` for anything
+ * these five defaults don't cover - `type` just selects which default converter applies when no
+ * `converter` is given.
+ */
+export type PropertyType =
+	| StringConstructor
+	| NumberConstructor
+	| BooleanConstructor
+	| ObjectConstructor
+	| ArrayConstructor;
+
+/**
+ * Explicit, fully custom attribute <-> property conversion for one `@property()` field - same
+ * shape as `lit`'s `converter` option. Supplying this overrides whatever default converter `type`
+ * would otherwise select.
+ */
+export interface PropertyConverter<V = unknown> {
+	/** Converts the HTML attribute string (or `null` if absent/removed) into the property value. */
+	fromAttribute(value: string | null): V;
+	/** Converts the property value into attribute text, or `null` to remove the attribute. */
+	toAttribute(value: V): string | null;
+}
+
+const stringConverter: PropertyConverter<string> = {
+	fromAttribute: value => value ?? '',
+	toAttribute: value => (value == null ? null : String(value)),
+};
+
+const numberConverter: PropertyConverter<number> = {
+	fromAttribute: value => (value === null ? 0 : Number(value)),
+	toAttribute: value => (value == null ? null : String(value)),
+};
+
+const booleanConverter: PropertyConverter<boolean> = {
+	// Presence-based, matching `?attr` in `../template/html.md`: any text (including `""`) means
+	// `true`; only an absent/removed attribute means `false`.
+	fromAttribute: value => value !== null,
+	toAttribute: value => (value ? '' : null),
+};
+
+/**
+ * Default `Object`/`Array` converter: JSON-serializes the value for the attribute and JSON-parses
+ * it back, falling back to `emptyValue` (`{}` / `[]`) when the attribute is absent or unparsable.
+ * `toAttribute` deliberately returns `''` (present-but-empty), not `null` (removed), for a falsy
+ * value, so the attribute always reflects *some* JSON text once the property has ever been set -
+ * matching `lit`'s own `Object`/`Array` converter convention.
+ */
+function jsonConverter<V>(emptyValue: V): PropertyConverter<V> {
+	return {
+		fromAttribute: value => {
+			if (!value) return emptyValue;
+			try { return JSON.parse(value) as V; } catch { return emptyValue; }
+		},
+		toAttribute: value => (value ? JSON.stringify(value) : ''),
+	};
+}
+
+/** `type` -> default `PropertyConverter`, keyed by the constructor identity `lit` itself uses. */
+const defaultConverters = new Map<PropertyType, PropertyConverter<unknown>>([
+	[String, stringConverter],
+	[Number, numberConverter],
+	[Boolean, booleanConverter],
+	[Object, jsonConverter({})],
+	[Array, jsonConverter([])],
+]);
+
+/**
+ * Infers the default `PropertyType` from a field's own initial value, for when `@property()` is
+ * given neither `type` nor `converter` - so an obviously-numeric/boolean/object/array initializer
+ * (`count = 0`, `active = false`, `config = {}`, `tags = []`) doesn't also need `type: Number` /
+ * `Boolean` / `Object` / `Array` spelled out redundantly. `null`/`undefined`/anything else falls
+ * back to `String`, matching the pre-existing default.
+ */
+export function inferPropertyType(value: unknown): PropertyType {
+	if (Array.isArray(value)) return Array;
+	switch (typeof value) {
+		case 'number': return Number;
+		case 'boolean': return Boolean;
+		case 'object': return value === null ? String : Object;
+		default: return String;
+	}
+}
+
+/** Picks `converter` if given, else the default converter for `type` (`String` if omitted). */
+export function resolveConverter<V>(type: PropertyType | undefined, converter: PropertyConverter<V> | undefined): PropertyConverter<V> {
+	if (converter) return converter;
+	const resolved = defaultConverters.get(type ?? String);
+	if (!resolved) {
+		throw new Error(
+			"@property(): no default converter for this 'type' - pass a 'converter' option instead.",
+		);
+	}
+	return resolved as PropertyConverter<V>;
+}
+
+/** Parses an attribute string (or `null` if absent/removed) into a property value, via `converter`. */
+export function parseAttribute(value: string | null, converter: PropertyConverter): unknown {
+	return converter.fromAttribute(value);
+}
+
+/** Serializes a property value back into attribute text, or `null` to remove the attribute, via `converter`. */
+export function serializeAttribute(value: unknown, converter: PropertyConverter): string | null {
+	return converter.toAttribute(value);
+}
+
+/** `maxCount` -> `max-count`: default attribute name for a camelCase (or plain) field name. */
+export function toAttributeName(key: PropertyKey): string {
+	return String(key).replace(/([a-z0-9])([A-Z])/g, '$1-$2').toLowerCase();
+}
