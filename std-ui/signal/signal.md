@@ -7,7 +7,7 @@ Generic, app-agnostic fine-grained reactivity primitives, Angular-signals-flavor
 
 | Primitive | Create | Read | Write |
 |---|---|---|---|
-| `signal(initial)` | `const count = signal(0)` | `count()` | `count.set(5)` / `count.update(n => n + 1)` / `count.peek()` |
+| `signal(initial)` | `const count = signal(0)` | `count()`/`count.peek()`  | `count.set(5)` / `count.update(n => n + 1)` |
 | `computed(fn)` | `const double = computed(() => count() * 2)` | `double()` | n/a (read-only, derived) |
 | `effect(fn)` | `effect(onCleanup => { ... })` | n/a (runs itself) | n/a |
 
