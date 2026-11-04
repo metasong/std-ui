@@ -5,7 +5,7 @@ export {
 	type Computed,
 	type OnCleanup,
 	type Signal,
-} from './core/signal.js';
+} from './core/index.js';
 
 export {
 	buildSignalTree,

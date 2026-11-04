@@ -1,6 +1,6 @@
 # Lazy `computed` recomputation
 
-How `computed()` in [`./signal.ts`](./signal.ts) caches its last result and only re-runs the
+How `computed()` in [`./computed.ts`](./computed.ts) caches its last result and only re-runs the
 derivation when marked **dirty**. See [`./signal.md`](./signal.md) for the full signals API.
 
 `computed` stores the last result in `value` and only runs `fn` again when `dirty` is true. That
@@ -11,7 +11,7 @@ is lazy memoization: invalidate on dependency change, recompute on the next read
 If not dirty, the cached `value` is returned and `fn` is not called:
 
 ```ts
-// signal.ts — computed read()
+// computed.ts — computed read()
 const read = (): T => {
 	if (dirty) {
 		value = runTracked(consumer, fn);
@@ -28,7 +28,7 @@ const read = (): T => {
 The computed is marked dirty and downstream subscribers are notified; there is no eager recompute:
 
 ```ts
-// signal.ts — computed consumer.run()
+// computed.ts — computed consumer.run()
 run(): void {
 	if (dirty) return;
 	dirty = true;

@@ -3,6 +3,10 @@
 Generic, app-agnostic fine-grained reactivity primitives, Angular-signals-flavored:
 `signal()`, `computed()`, and `effect()`. Safe to lift into any project.
 
+Implementation lives under `./core/`: [`signal.ts`](./signal.ts) (writable values),
+[`computed.ts`](./computed.ts) (derived values), [`effect.ts`](./effect.ts) (side effects),
+[`tracking.ts`](./tracking.ts) (shared dependency graph). Import from [`../index.js`](../index.js).
+
 ## API at a glance
 
 | Primitive | Create | Read | Write |
