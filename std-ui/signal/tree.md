@@ -44,29 +44,42 @@ a.b.c.d.set(5); // write the leaf
 a();            // { b: { c: { d: 5 } } } (tracked read, recomputed lazily)
 ```
 
-### `node.peak()`
+### `node.peek()`
 
-Reads a node (or whole tree) back into a plain value **without** tracking it as a dependency —
-every leaf is read via `.peek()`. Use this for logging/debugging/one-off snapshots inside an
-effect or computed without adding it as a dependency.
+Reads a node (or whole tree) back into a plain value **without** tracking it (or any descendant)
+as a dependency — a deep untracked snapshot, recursing via `.peek()` on every child. Use this for
+logging/debugging/one-off snapshots inside an effect or computed without adding any dependency.
+This overrides `Computed`'s own shallow `.peek()` on branches, which would otherwise still track
+children through their tracked `()` reads.
 
 ```ts
-a.peak(); // { b: { c: { d: 5 } } }, untracked
+a.peek(); // { b: { c: { d: 5 } } }, untracked
 ```
 
-### `node.set(partial)` (branches)
+### `node.set(partial)`
 
-Writes a partial object into a **branch** node in place. Only keys present in `partial` are touched — each
-touched leaf calls `.set()` independently, so untouched branches don't recompute/notify. Can be
-called on the whole tree or on any branch within it.
+Writes a partial object into a node in place. On **branches**, only keys present in `partial` are
+touched — each touched leaf calls `.set()` independently, so untouched branches don't
+recompute/notify. Can be called on the whole tree or on any branch within it. On **leaves**,
+`partial` is the whole value (`DeepPartial<T>` is just `T` for leaves), same as a plain `signal()`.
 
 ```ts
 a.set({ b: { c: { d: 9 } } }); // only a.b.c.d changes; sibling branches untouched
 a.b.c.set({ d: 10 });          // equivalent, scoped to the `c` branch
+a.b.c.d.set(11);                // leaf: replace the whole value
 ```
 
-`set` is typed as `DeepPartial<T>`, so any subset of nested keys is allowed. **Leaves** use the same
-`.set(value)` as a plain `signal()` (replace the whole leaf value).
+`set` is typed as `DeepPartial<T>`, so any subset of nested keys is allowed.
+
+### `node.update(fn)`
+
+Reads the node with `.peek()`, passes it to `fn`, and `.set()`s the result back — works the same
+way on branches and leaves. `fn` may return a partial value for branches, same rules as `.set()`.
+
+```ts
+a.b.c.d.update((prev) => prev + 1);          // leaf: increment
+a.b.c.update((prev) => ({ d: prev.d + 1 })); // branch: partial update
+```
 
 ## Notes / gotchas
 

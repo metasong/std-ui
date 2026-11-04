@@ -42,29 +42,32 @@ export type DeepPartial<T> = IsBranch<T> extends true
 	? { [K in keyof T]?: DeepPartial<T[K]> }
 	: T;
 
-/** Methods present on every `SignalTree` node, branch or leaf. */
-interface SignalTreeMethods<T> {
-	/**
-	 * Reads this node back into a plain object/value without tracking it as a dependency (uses
-	 * `.peek()` on every leaf). Useful for logging, debugging, or one-off snapshots.
-	 */
-	peak(): T;
+/**
+ * Interface shared by every `SignalTree` node, branch or leaf - identical to `Signal<T>` (callable
+ * read, `.peek()`), except `.set()`/`.update()` work on `DeepPartial<T>` so branches can be patched
+ * instead of replaced wholesale. For branches, `.peek()` is overridden to be a deep-untracked
+ * snapshot (recursing via `.peek()` on every child), rather than `Computed`'s shallow one.
+ */
+type SignalTreeNode<T> = Pick<Signal<T>, 'peek'> & {
+	/** Reads the current value and tracks it as a dependency. */
+	(): T;
 	/**
 	 * Writes `partial` into this node in place: for each provided key, recurses into branches and
 	 * calls `.set()` on leaves, leaving any keys omitted from `partial` untouched. Each touched leaf
 	 * notifies independently, so unrelated branches of the tree don't recompute.
 	 */
 	set(partial: DeepPartial<T>): void;
-}
+	/** Updates the node by applying `fn` to its current (`.peek()`) value, then `.set()`-ing the result. */
+	update(fn: (prev: T) => DeepPartial<T>): T;
+};
 
 /**
- * The reactive mirror of `T`: plain objects become `Computed<T>` nodes with one child property
- * per key (each itself a `SignalTree`), everything else becomes a plain `Signal<T>`. Every node,
- * branch or leaf, also carries `.peak()` and branch-level `.set(partial)` (see `SignalTreeMethods`).
+ * The reactive mirror of `T`: every node - branch or leaf - shares the same `SignalTreeNode`
+ * interface (call to read, `.peek()`, `.set()`, `.update()`); branches additionally expose one
+ * child property per key, each itself a `SignalTree`.
  */
-export type SignalTree<T> = IsBranch<T> extends true
-	? { readonly [K in keyof T]: SignalTree<T[K]> } & Computed<T> & SignalTreeMethods<T>
-	: Signal<T> & SignalTreeMethods<T>;
+export type SignalTree<T> = SignalTreeNode<T> &
+	(IsBranch<T> extends true ? { readonly [K in keyof T]: SignalTree<T[K]> } : unknown);
 
 /**
  * Converts a plain-object value into a `SignalTree`: every leaf becomes a `signal()`, and every
@@ -73,9 +76,9 @@ export type SignalTree<T> = IsBranch<T> extends true
  */
 export function buildSignalTree<T>(value: T): SignalTree<T> {
 	if (!isPlainObject(value)) {
-		const leaf = signal(value) as Signal<T> & Partial<SignalTreeMethods<T>>;
-		leaf.peak = () => leaf.peek();
-		return leaf as SignalTree<T>;
+		// `Signal<T>` already provides `()`, `peek`, `set`, and `update` matching `SignalTreeNode<T>`
+		// (for leaves, `DeepPartial<T>` is just `T`, and there are no children to leak through).
+		return signal(value) as unknown as SignalTree<T>;
 	}
 
 	const children: Record<string, SignalTree<unknown>> = {};
@@ -89,12 +92,15 @@ export function buildSignalTree<T>(value: T): SignalTree<T> {
 			result[key] = children[key]();
 		}
 		return result;
-	}) as Computed<T> & Partial<SignalTreeMethods<T>>;
+	}) as Computed<T> & Partial<SignalTreeNode<T>>;
 
-	node.peak = (): T => {
+	// Overrides `Computed`'s own (shallow-untracked) `.peek()`: that one still calls children's
+	// *tracked* `()` reads internally, leaking dependencies on the whole subtree. This version
+	// recurses via each child's `.peek()` instead, for a true deep-untracked snapshot.
+	node.peek = (): T => {
 		const result: PlainObject = {};
 		for (const key of Object.keys(children)) {
-			result[key] = children[key].peak();
+			result[key] = children[key].peek();
 		}
 		return result as T;
 	};
@@ -104,6 +110,11 @@ export function buildSignalTree<T>(value: T): SignalTree<T> {
 			if (value === undefined) continue;
 			children[key].set(value as DeepPartial<unknown>);
 		}
+	};
+	node.update = (fn: (prev: T) => DeepPartial<T>): T => {
+		const next = fn(node.peek!());
+		node.set!(next);
+		return node.peek!();
 	};
 
 	return Object.assign(node, children) as SignalTree<T>;

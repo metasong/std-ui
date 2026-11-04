@@ -52,13 +52,13 @@ describe('buildSignalTree', () => {
 		expect(tree()).toEqual({ count: 0, user: { label: 'Grace', age: 30 }, tags: ['a', 'b'] });
 	});
 
-	it('peak() snapshots the current value without tracking it as a dependency', async () => {
+	it('peek() snapshots the current value without tracking it as a dependency', async () => {
 		const tree = buildSignalTree(makeState());
-		expect(tree.peak()).toEqual(makeState());
+		expect(tree.peek()).toEqual(makeState());
 
 		let runs = 0;
 		effect(() => {
-			tree.user.peak();
+			tree.user.peek();
 			runs++;
 		});
 		await flush();
@@ -66,14 +66,14 @@ describe('buildSignalTree', () => {
 
 		tree.user.label.set('Grace');
 		await flush();
-		expect(runs).toBe(before); // no re-run: `peak()` didn't register a dependency
+		expect(runs).toBe(before); // no re-run: `peek()` didn't register a dependency
 	});
 
-	it('peak() on the root is untracked inside an effect', async () => {
+	it('peek() on the root is untracked inside an effect', async () => {
 		const tree = buildSignalTree(makeState());
 		let runs = 0;
 		effect(() => {
-			tree.peak();
+			tree.peek();
 			runs++;
 		});
 		await flush();
@@ -169,7 +169,7 @@ describe('buildSignalTree', () => {
 	it('buildSignalTree on a non-object root is a single leaf signal tree', () => {
 		const tree = buildSignalTree(42);
 		expect(tree()).toBe(42);
-		expect(tree.peak()).toBe(42);
+		expect(tree.peek()).toBe(42);
 		tree.set(7);
 		expect(tree()).toBe(7);
 	});

@@ -98,7 +98,7 @@ shared.counter.value.set(5);           // write a leaf: shared.counter.value is 
 shared.counter.set({ max: 20 });     // or set a branch without touching sibling leaves
 ```
 
-Nested objects become branch `Computed`s; leaves like `value` and `max` are writable `Signal`s on the tree (`shared.counter.value.set(...)`). In `template`, you read the plain snapshot `state.counter.value` — same shape as your interface. See [`../signal/tree.md`](../signal/tree.md) for branch `.set(partial)` and `.peak()`.
+Nested objects become branch `Computed`s; leaves like `value` and `max` are writable `Signal`s on the tree (`shared.counter.value.set(...)`). In `template`, you read the plain snapshot `state.counter.value` — same shape as your interface. See [`../signal/tree.md`](../signal/tree.md) for branch `.set(partial)` and `.peek()`.
 
 What `UIElement` does for you (see `component.ts`):
 
