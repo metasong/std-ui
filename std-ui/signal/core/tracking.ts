@@ -12,16 +12,16 @@ export interface Dependency {
 	subscribers: Set<Consumer>;
 }
 
-/** The consumer currently executing, if any - signal reads during this window get tracked. */
+/** global variable, the consumer currently executing, if any - signal reads during this window get tracked. */
 let activeConsumer: Consumer | null = null;
 
-/** Removes `consumer` from every dependency it previously subscribed to. */
+/** Break the 2-way link between a consumer and its dependencies */
 export function clearDeps(consumer: Consumer): void {
 	for (const dep of consumer.deps) dep.subscribers.delete(consumer);
 	consumer.deps.clear();
 }
 
-/** Tracks `dep` as a dependency of the currently-running consumer, if any. */
+/** Setup the 2-way link between the dependency and  the active consumer. */
 export function track(dep: Dependency): void {
 	if (activeConsumer) {
 		dep.subscribers.add(activeConsumer);
@@ -32,11 +32,13 @@ export function track(dep: Dependency): void {
 /** Notifies `dep`'s subscribers that it changed. */
 export function notify(dep: Dependency): void {
 	// Snapshot first: a subscriber reacting may mutate `subscribers` (e.g. a computed re-notifying).
-	for (const consumer of Array.from(dep.subscribers)) consumer.run();
+	for (const consumer of Array.from(dep.subscribers))
+		consumer.run(); // may trigger subscribers modification
 }
 
 /** Runs `fn` as `consumer`, tracking whatever signals it reads, then restores the prior consumer. */
 export function runTracked<T>(consumer: Consumer, fn: () => T): T {
+	// clear for re-setup the consumer's dependencies after running the function
 	clearDeps(consumer);
 	const prev = activeConsumer;
 	activeConsumer = consumer;

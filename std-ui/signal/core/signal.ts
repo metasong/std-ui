@@ -5,11 +5,12 @@ import { notify, track, type Dependency } from './tracking.js';
 
 /** A reactive value: call it to read (and track), call `.set`/`.update` to write. */
 export interface Signal<T> {
+	/** Reads the current value and tracks it as a dependency. */
 	(): T;
+	/** Reads the current value without tracking it as a dependency.*/
+	peek(): T;
 	set(value: T): void;
 	update(fn: (prev: T) => T): T;
-	/** Reads the current value without tracking it as a dependency. */
-	peek(): T;
 }
 
 /** Creates a writable reactive value, seeded with `initial`. */

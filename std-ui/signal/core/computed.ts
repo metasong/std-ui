@@ -5,6 +5,7 @@ import { notify, runTracked, track, type Consumer, type Dependency } from './tra
 
 /** A read-only, lazily-recomputed derived value. Call it to read (and track). */
 export interface Computed<T> {
+	/** Reads the current value and tracks it as a dependency. */
 	(): T;
 	/** Reads the current value without tracking it as a dependency (still recomputes if dirty). */
 	peek(): T;
@@ -12,6 +13,7 @@ export interface Computed<T> {
 
 /** Creates a read-only derived value, lazily re-run whenever a signal/computed it reads changes. */
 export function computed<T>(fn: () => T): Computed<T> {
+	// cached the computed value to avoid recomputing if not necessary
 	let value: T;
 	let hasValue = false;
 	let dirty = true;
