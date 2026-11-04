@@ -8,7 +8,7 @@ Generic, app-agnostic fine-grained reactivity primitives, Angular-signals-flavor
 | Primitive | Create | Read | Write |
 |---|---|---|---|
 | `signal(initial)` | `const count = signal(0)` | `count()`/`count.peek()`  | `count.set(5)` / `count.update(n => n + 1)` |
-| `computed(fn)` | `const double = computed(() => count() * 2)` | `double()` | n/a (read-only, derived) |
+| `computed(fn)` | `const double = computed(() => count() * 2)` | `double()` / `double.peek()` | n/a (read-only, derived) |
 | `effect(fn)` | `effect(onCleanup => { ... })` | n/a (runs itself) | n/a |
 
 ### `signal(initial)`
@@ -16,7 +16,7 @@ Generic, app-agnostic fine-grained reactivity primitives, Angular-signals-flavor
 A writable reactive value.
 
 ```ts
-import { signal } from './index.js';
+import { signal } from '../index.js';
 
 const count = signal(0);
 
@@ -36,13 +36,16 @@ A read-only value, lazily re-derived the next time it's read after one of its de
 changes (not eagerly on every write).
 
 ```ts
-import { computed } from './index.js';
+import { computed } from '../index.js';
 
 const double = computed(() => count() * 2);
 
-double(); // reads (and auto-tracks) count; recomputes only if marked dirty since last read
+double();       // reads (and auto-tracks) count; recomputes only if marked dirty since last read
+double.peek();  // same value, but does not track this computed as a dependency
 ```
 
+- Use `.peek()` on a `computed` inside another `computed`/`effect` when you need its value but
+  don't want changes to it to trigger a re-run (still recomputes lazily if dirty).
 - Dependencies are rebuilt on every recompute, so conditional reads (`a() ? b() : c()`) are
   tracked correctly - whichever branch actually ran is what's subscribed to.
 - A `computed` can itself be read by another `computed`/`effect`; changes propagate through the
@@ -57,7 +60,7 @@ re-run. Use this for side effects (DOM writes, logging, subscriptions) - not for
 (use `computed` for that).
 
 ```ts
-import { effect } from './index.js';
+import { effect } from '../index.js';
 
 const dispose = effect(onCleanup => {
 	el.textContent = String(double());
@@ -91,9 +94,9 @@ from a previous run (e.g. a branch that's no longer read) are automatically drop
 
 ## Where this fits in std-ui
 
-- `./tree.ts`'s `buildSignalTree()` mirrors a plain-object state shape into a tree of these
+- `../tree.ts`'s `buildSignalTree()` mirrors a plain-object state shape into a tree of these
   `Signal`/`Computed` nodes - that's what backs an app's state (e.g. `core/store.ts`'s `appState`).
-- `../component.ts`'s `UIElement` reads its `state` (a `SignalTree<S>`) inside an `effect()` to
+- `../../component.ts`'s `UIElement` reads its `state` (a `SignalTree<S>`) inside an `effect()` to
   drive `template()` on every change. `UIElement.effect()` itself wraps `effect()` from this folder,
   auto-disposing it on the element's `disconnectedCallback()` - use it for DOM slices that should
   react to specific signals without re-rendering the whole component.

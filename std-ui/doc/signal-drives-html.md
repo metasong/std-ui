@@ -179,7 +179,7 @@ flowchart LR
 
 ## Related reading
 
-- [`../signal/signal.md`](../signal/signal.md) — primitives, tracking, batching, `peek`.
+- [`../signal/core/signal.md`](../signal/core/signal.md) — primitives, tracking, batching, `peek`.
 - [`../signal/tree.md`](../signal/tree.md) — `buildSignalTree`, branch `.set(partial)`, app-shaped state.
 - [`../template/html.md`](../template/html.md) — binding kinds, limitations, `svg`, `unsafeHTML`.
 - [`signal-drives-html.example.test.ts`](signal-drives-html.example.test.ts) — executable walkthrough of Patterns A, B, and C.

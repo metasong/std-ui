@@ -85,6 +85,31 @@ describe('computed', () => {
 		a.set(2);
 		expect(quadrupled()).toBe(8);
 	});
+
+	it('peek() reads without tracking (no dependency registered)', async () => {
+		const a = signal(1);
+		const doubled = computed(() => a() * 2);
+		doubled(); // warm cache
+		const spy = vi.fn();
+		effect(() => {
+			doubled.peek();
+			spy();
+		});
+		await flush();
+		spy.mockClear();
+
+		a.set(2);
+		await flush();
+		expect(spy).not.toHaveBeenCalled();
+	});
+
+	it('peek() still recomputes when dirty and returns the fresh value', () => {
+		const a = signal(1);
+		const doubled = computed(() => a() * 2);
+		expect(doubled()).toBe(2);
+		a.set(3);
+		expect(doubled.peek()).toBe(6);
+	});
 });
 
 describe('effect', () => {

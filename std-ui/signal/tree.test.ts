@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { effect } from './signal.js';
+import { effect } from './core/signal.js';
 import { buildSignalTree } from './tree.js';
 
 interface State {

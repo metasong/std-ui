@@ -21,6 +21,8 @@ export interface Signal<T> {
 /** A read-only, lazily-recomputed derived value. Call it to read (and track). */
 export interface Computed<T> {
 	(): T;
+	/** Reads the current value without tracking it as a dependency (still recomputes if dirty). */
+	peek(): T;
 }
 
 /** Call inside an `effect()` body to register cleanup that runs before the next re-run, and on dispose. */
@@ -137,15 +139,21 @@ export function computed<T>(fn: () => T): Computed<T> {
 		}
 	};
 
-	const read = (): T => {
+	const recomputeIfDirty = (): T => {
 		if (dirty) {
 			value = runTracked(consumer, fn);
 			dirty = false;
 			hasValue = true;
 		}
-		track(dep);
 		return hasValue ? value : (value as T);
 	};
+
+	const read = (): T => {
+		const next = recomputeIfDirty();
+		track(dep);
+		return next;
+	};
+	read.peek = recomputeIfDirty;
 	return read as Computed<T>;
 }
 

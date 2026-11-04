@@ -40,4 +40,10 @@ run(): void {
 
 Repeated reads while clean return the same cached value without calling `fn` again. Writes to
 dependencies only set `dirty = true`; the derivation runs the first time something reads the
-computed after that.
+computed after that (via `computed()` or `computed.peek()` — both call the same
+`recomputeIfDirty` path; only a tracked `computed()` read registers the caller as a subscriber).
+
+## Untracked read: `.peek()`
+
+`computed.peek()` uses the same lazy recompute when `dirty`, but skips `track(dep)` so the active
+consumer does not subscribe to this computed.
