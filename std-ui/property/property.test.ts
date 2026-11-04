@@ -1,15 +1,5 @@
 import { describe, expect, it } from 'vitest';
 import { element, property, UIElement } from '../component.js';
-import { buildSignalTree, type SignalTree } from '../signal/tree.js';
-
-interface State {
-	count: number;
-}
-
-let tagCounter = 0;
-function uniqueTag(): string {
-	return `test-property-${tagCounter++}`;
-}
 
 function flush(): Promise<void> {
 	return new Promise(resolve => queueMicrotask(() => queueMicrotask(resolve)));
@@ -17,34 +7,24 @@ function flush(): Promise<void> {
 
 describe('@property()', () => {
 	it('reflects the initial field value onto the attribute on connect when reflect: true', () => {
-		const tag = uniqueTag();
-
-		@element(tag)
-		class Foo extends UIElement<State> {
+		@element('prop-reflect-init')
+		class Foo extends UIElement {
 			@property({ type: Number, reflect: true }) count = 5;
-			protected override get state(): SignalTree<State> {
-				return buildSignalTree({ count: 0 });
-			}
 		}
 
-		const el = document.createElement(tag) as Foo;
+		const el = document.createElement('prop-reflect-init') as Foo;
 		document.body.appendChild(el);
 		expect(el.getAttribute('count')).toBe('5');
 		el.remove();
 	});
 
 	it('seeds the property/signal from a pre-existing attribute (upgrade), overriding the field default', () => {
-		const tag = uniqueTag();
-
-		@element(tag)
-		class Foo extends UIElement<State> {
+		@element('prop-seed-attr')
+		class Foo extends UIElement {
 			@property({ type: Number }) count = 0;
-			protected override get state(): SignalTree<State> {
-				return buildSignalTree({ count: 0 });
-			}
 		}
 
-		const el = document.createElement(tag) as Foo;
+		const el = document.createElement('prop-seed-attr') as Foo;
 		el.setAttribute('count', '42');
 		document.body.appendChild(el);
 		expect(el.count).toBe(42);
@@ -52,17 +32,12 @@ describe('@property()', () => {
 	});
 
 	it('does not reflect the property onto the attribute by default', async () => {
-		const tag = uniqueTag();
-
-		@element(tag)
-		class Foo extends UIElement<State> {
+		@element('prop-no-reflect')
+		class Foo extends UIElement {
 			@property() label = 'hi';
-			protected override get state(): SignalTree<State> {
-				return buildSignalTree({ count: 0 });
-			}
 		}
 
-		const el = document.createElement(tag) as Foo;
+		const el = document.createElement('prop-no-reflect') as Foo;
 		document.body.appendChild(el);
 		expect(el.hasAttribute('label')).toBe(false);
 
@@ -74,17 +49,12 @@ describe('@property()', () => {
 	});
 
 	it('updates the attribute when the property is set from JS, with reflect: true', async () => {
-		const tag = uniqueTag();
-
-		@element(tag)
-		class Foo extends UIElement<State> {
+		@element('prop-reflect-js')
+		class Foo extends UIElement {
 			@property({ reflect: true }) label = 'hi';
-			protected override get state(): SignalTree<State> {
-				return buildSignalTree({ count: 0 });
-			}
 		}
 
-		const el = document.createElement(tag) as Foo;
+		const el = document.createElement('prop-reflect-js') as Foo;
 		document.body.appendChild(el);
 		expect(el.getAttribute('label')).toBe('hi');
 
@@ -95,17 +65,12 @@ describe('@property()', () => {
 	});
 
 	it('updates the property when the attribute is set/changed on the tag (native attributeChangedCallback)', async () => {
-		const tag = uniqueTag();
-
-		@element(tag)
-		class Foo extends UIElement<State> {
+		@element('prop-attr-change')
+		class Foo extends UIElement {
 			@property({ type: Number }) count = 0;
-			protected override get state(): SignalTree<State> {
-				return buildSignalTree({ count: 0 });
-			}
 		}
 
-		const el = document.createElement(tag) as Foo;
+		const el = document.createElement('prop-attr-change') as Foo;
 		document.body.appendChild(el);
 
 		el.setAttribute('count', '9');
@@ -114,17 +79,12 @@ describe('@property()', () => {
 	});
 
 	it('supports boolean attributes: presence-based, removed when false', async () => {
-		const tag = uniqueTag();
-
-		@element(tag)
-		class Foo extends UIElement<State> {
+		@element('prop-boolean')
+		class Foo extends UIElement {
 			@property({ type: Boolean, reflect: true }) active = false;
-			protected override get state(): SignalTree<State> {
-				return buildSignalTree({ count: 0 });
-			}
 		}
 
-		const el = document.createElement(tag) as Foo;
+		const el = document.createElement('prop-boolean') as Foo;
 		document.body.appendChild(el);
 		expect(el.hasAttribute('active')).toBe(false);
 
@@ -139,17 +99,12 @@ describe('@property()', () => {
 	});
 
 	it('supports attribute: false to opt a property out of attribute reflection entirely', async () => {
-		const tag = uniqueTag();
-
-		@element(tag)
-		class Foo extends UIElement<State> {
+		@element('prop-no-attr')
+		class Foo extends UIElement {
 			@property({ attribute: false }) internalOnly = 'secret';
-			protected override get state(): SignalTree<State> {
-				return buildSignalTree({ count: 0 });
-			}
 		}
 
-		const el = document.createElement(tag) as Foo;
+		const el = document.createElement('prop-no-attr') as Foo;
 		document.body.appendChild(el);
 		expect(el.hasAttribute('internal-only')).toBe(false);
 
@@ -161,39 +116,29 @@ describe('@property()', () => {
 	});
 
 	it('defaults the attribute name to kebab-case of the field name', () => {
-		const tag = uniqueTag();
-
-		@element(tag)
-		class Foo extends UIElement<State> {
+		@element('prop-kebab')
+		class Foo extends UIElement {
 			@property({ reflect: true }) maxCount = 'ten';
-			protected override get state(): SignalTree<State> {
-				return buildSignalTree({ count: 0 });
-			}
 		}
 
-		const el = document.createElement(tag) as Foo;
+		const el = document.createElement('prop-kebab') as Foo;
 		document.body.appendChild(el);
 		expect(el.getAttribute('max-count')).toBe('ten');
 		el.remove();
 	});
 
-	it('is readable/writable inside template(state), re-rendering when the property changes', async () => {
-		const tag = uniqueTag();
-		const tree = buildSignalTree<State>({ count: 0 });
+	it('is readable/writable inside template(), re-rendering when the property changes', async () => {
 		const rendered: string[] = [];
 
-		@element(tag)
-		class Foo extends UIElement<State> {
+		@element('prop-template')
+		class Foo extends UIElement {
 			@property() label = 'a';
-			protected override get state(): SignalTree<State> {
-				return tree;
-			}
 			protected override template(): void {
 				rendered.push(this.label);
 			}
 		}
 
-		const el = document.createElement(tag) as Foo;
+		const el = document.createElement('prop-template') as Foo;
 		document.body.appendChild(el);
 		expect(rendered).toEqual(['a']);
 
@@ -204,17 +149,12 @@ describe('@property()', () => {
 	});
 
 	it('backs a complex-object field with a SignalTree, reading/writing the whole object', async () => {
-		const tag = uniqueTag();
-
-		@element(tag)
-		class Foo extends UIElement<State> {
+		@element('prop-obj-tree')
+		class Foo extends UIElement {
 			@property({ attribute: false }) config = { a: 1, b: { c: 2 } };
-			protected override get state(): SignalTree<State> {
-				return buildSignalTree({ count: 0 });
-			}
 		}
 
-		const el = document.createElement(tag) as Foo;
+		const el = document.createElement('prop-obj-tree') as Foo;
 		document.body.appendChild(el);
 		expect(el.config).toEqual({ a: 1, b: { c: 2 } });
 
@@ -225,17 +165,12 @@ describe('@property()', () => {
 	});
 
 	it('leaves an unrelated nested branch untouched (same object identity) when only a sibling leaf changes', async () => {
-		const tag = uniqueTag();
-
-		@element(tag)
-		class Foo extends UIElement<State> {
+		@element('prop-obj-sibling')
+		class Foo extends UIElement {
 			@property({ attribute: false }) config = { a: 1, b: { c: 2 } };
-			protected override get state(): SignalTree<State> {
-				return buildSignalTree({ count: 0 });
-			}
 		}
 
-		const el = document.createElement(tag) as Foo;
+		const el = document.createElement('prop-obj-sibling') as Foo;
 		document.body.appendChild(el);
 		const bBefore = el.config.b;
 
@@ -246,17 +181,12 @@ describe('@property()', () => {
 	});
 
 	it('supports type: Object to reflect a complex-object field to/from the attribute as JSON', async () => {
-		const tag = uniqueTag();
-
-		@element(tag)
-		class Foo extends UIElement<State> {
+		@element('prop-obj-json')
+		class Foo extends UIElement {
 			@property({ type: Object, reflect: true }) config = { a: 1 };
-			protected override get state(): SignalTree<State> {
-				return buildSignalTree({ count: 0 });
-			}
 		}
 
-		const el = document.createElement(tag) as Foo;
+		const el = document.createElement('prop-obj-json') as Foo;
 		document.body.appendChild(el);
 		expect(el.getAttribute('config')).toBe('{"a":1}');
 
@@ -270,17 +200,12 @@ describe('@property()', () => {
 	});
 
 	it('leaves an object field untouched when the attribute is absent/unparsable (empty-object merge is a no-op)', () => {
-		const tag = uniqueTag();
-
-		@element(tag)
-		class Foo extends UIElement<State> {
+		@element('prop-obj-bad')
+		class Foo extends UIElement {
 			@property({ type: Object }) config = { a: 1 };
-			protected override get state(): SignalTree<State> {
-				return buildSignalTree({ count: 0 });
-			}
 		}
 
-		const el = document.createElement(tag) as Foo;
+		const el = document.createElement('prop-obj-bad') as Foo;
 		el.setAttribute('config', 'not json');
 		document.body.appendChild(el);
 		// The default `Object` converter falls back to `{}` on unparsable text, but writing `{}`
@@ -291,17 +216,12 @@ describe('@property()', () => {
 	});
 
 	it('infers type: Number from a numeric initial value when type/converter are omitted', () => {
-		const tag = uniqueTag();
-
-		@element(tag)
-		class Foo extends UIElement<State> {
+		@element('prop-inf-num')
+		class Foo extends UIElement {
 			@property({ reflect: true }) count = 5; // no `type` - inferred as Number from `5`
-			protected override get state(): SignalTree<State> {
-				return buildSignalTree({ count: 0 });
-			}
 		}
 
-		const el = document.createElement(tag) as Foo;
+		const el = document.createElement('prop-inf-num') as Foo;
 		document.body.appendChild(el);
 		expect(el.getAttribute('count')).toBe('5'); // reflected as Number's converter would
 
@@ -311,17 +231,12 @@ describe('@property()', () => {
 	});
 
 	it('infers type: Boolean from a boolean initial value when type/converter are omitted', async () => {
-		const tag = uniqueTag();
-
-		@element(tag)
-		class Foo extends UIElement<State> {
+		@element('prop-inf-bool')
+		class Foo extends UIElement {
 			@property({ reflect: true }) active = false;
-			protected override get state(): SignalTree<State> {
-				return buildSignalTree({ count: 0 });
-			}
 		}
 
-		const el = document.createElement(tag) as Foo;
+		const el = document.createElement('prop-inf-bool') as Foo;
 		document.body.appendChild(el);
 		expect(el.hasAttribute('active')).toBe(false); // Boolean converter, not String's `''`
 
@@ -332,17 +247,12 @@ describe('@property()', () => {
 	});
 
 	it('infers type: Object from a plain-object initial value when type/converter are omitted', () => {
-		const tag = uniqueTag();
-
-		@element(tag)
-		class Foo extends UIElement<State> {
+		@element('prop-inf-obj')
+		class Foo extends UIElement {
 			@property({ reflect: true }) config = { a: 1 };
-			protected override get state(): SignalTree<State> {
-				return buildSignalTree({ count: 0 });
-			}
 		}
 
-		const el = document.createElement(tag) as Foo;
+		const el = document.createElement('prop-inf-obj') as Foo;
 		document.body.appendChild(el);
 		expect(el.getAttribute('config')).toBe('{"a":1}'); // JSON, like type: Object
 
@@ -352,27 +262,20 @@ describe('@property()', () => {
 	});
 
 	it('infers type: Array from an array initial value when type/converter are omitted', () => {
-		const tag = uniqueTag();
-
-		@element(tag)
-		class Foo extends UIElement<State> {
+		@element('prop-inf-arr')
+		class Foo extends UIElement {
 			@property({ attribute: false }) tags: string[] = ['a', 'b'];
-			protected override get state(): SignalTree<State> {
-				return buildSignalTree({ count: 0 });
-			}
 		}
 
-		const el = document.createElement(tag) as Foo;
+		const el = document.createElement('prop-inf-arr') as Foo;
 		document.body.appendChild(el);
 		expect(el.tags).toEqual(['a', 'b']);
 		el.remove();
 	});
 
 	it('supports a fully custom converter, overriding the type-based default', async () => {
-		const tag = uniqueTag();
-
-		@element(tag)
-		class Foo extends UIElement<State> {
+		@element('prop-converter')
+		class Foo extends UIElement {
 			@property({
 				type: Object,
 				reflect: true,
@@ -384,12 +287,9 @@ describe('@property()', () => {
 				},
 			})
 			config = { theme: 'dark' };
-			protected override get state(): SignalTree<State> {
-				return buildSignalTree({ count: 0 });
-			}
 		}
 
-		const el = document.createElement(tag) as Foo;
+		const el = document.createElement('prop-converter') as Foo;
 		document.body.appendChild(el);
 		expect(el.getAttribute('config')).toBe('{"theme":"dark"}');
 

@@ -17,7 +17,7 @@ For implementation details, see [`design.md`](./design.md).
 import { element, property, UIElement } from '../index.js';
 
 @element('user-badge')
-class UserBadge extends UIElement<AppState> {
+class UserBadge extends UIElement {
 	@property({ type: Number, reflect: true }) count = 0; // mirrors the `count` attribute both ways
 	@property() label = 'Guest'; // attribute -> property only (string, the default); JS writes don't reflect back
 	@property({ attribute: false }) internal = 'x'; // store-backed only, no attribute
@@ -116,7 +116,7 @@ its own independently-writable `Signal`, and reads flow through a `Computed` tha
 when a leaf actually touched by a write changes:
 
 ```ts
-class ConfigPanel extends UIElement<AppState> {
+class ConfigPanel extends UIElement {
 	@property({ attribute: false }) config = { theme: 'dark', limits: { max: 10 } };
 
 	protected override template() {
@@ -161,9 +161,10 @@ attribute as JSON text:
   attribute -> property direction is harmless because the store only notifies when the value
   actually changes (`Object.is`) - so the property -> attribute effect simply doesn't re-run for a
   no-op write.
-- **Reads inside `template(state)`**: a `@property()` field's getter reads its store, so using
+- **Reads inside `template()`**: a `@property()` field's getter reads its store, so using
   `this.someProp` inside `template()` (or any `this.effect()`) tracks it like any other signal -
-  the component re-renders when the property/attribute changes, same as a `state` field would.
+  the component re-renders when the property/attribute changes, same as reading any other signal
+  would.
 
 ## Related reading
 

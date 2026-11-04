@@ -5,7 +5,7 @@
 import { describe, expect, it, vi } from 'vitest';
 import { element, UIElement } from '../component.js';
 import { computed, effect, signal } from '../signal/index.js';
-import { buildSignalTree, type SignalTree } from '../signal/tree.js';
+import { buildSignalTree } from '../signal/tree.js';
 import { html } from '../template/html.js';
 import { render } from '../template/render.js';
 
@@ -50,37 +50,32 @@ describe('doc: signals drive html render', () => {
 		renderSpy.mockRestore();
 	});
 
-	it('Pattern B — UIElement wires SignalTree to html render, @click, and firstRendered', async () => {
-		const tag = `doc-counter-${Math.random().toString(36).slice(2)}`;
+	it('Pattern B — UIElement\'s template() reads signals directly, drives html render, @click, and firstRendered', async () => {
 		type DemoState = { counter: { value: number; max: number } };
 		const shared = buildSignalTree<DemoState>({
 			counter: { value: 0, max: 10 },
 		});
 
-		@element(tag)
-		class DocCounter extends UIElement<DemoState> {
-			protected override get state(): SignalTree<DemoState> {
-				return shared;
-			}
-
-			protected override template(state: DemoState) {
-				const { value, max } = state.counter;
+		@element('demo-counter')
+		class DocCounter extends UIElement {
+			protected override template() {
+				const { value, max } = shared.counter;
 				return html`
-					<span>${value}</span> / ${max}
+					<span>${value()}</span> / ${max()}
 					<button
 						type="button"
-						?disabled="${value >= max}"
+						?disabled="${value() >= max()}"
 						@click="${() => shared.counter.value.update(n => n + 1)}"
 					>+</button>
 				`;
 			}
 
-			protected override firstRendered(_state: DemoState): void {
+			protected override firstRendered(): void {
 				this.querySelector('span')!.setAttribute('aria-live', 'polite');
 			}
 		}
 
-		const el = document.createElement(tag) as DocCounter;
+		const el = document.createElement('demo-counter') as DocCounter;
 		document.body.appendChild(el);
 		const span = el.querySelector('span')!;
 		const button = el.querySelector('button')!;
@@ -111,22 +106,17 @@ describe('doc: signals drive html render', () => {
 	});
 
 	it('Pattern C — firstRendered registers effect() to patch a static .badge node', async () => {
-		const tag = `doc-badge-${Math.random().toString(36).slice(2)}`;
 		type ShellState = { title: string; unreadCount: number };
 		const shared = buildSignalTree<ShellState>({
 			title: 'Inbox',
 			unreadCount: 0,
 		});
 
-		@element(tag)
-		class DocInboxBadge extends UIElement<ShellState> {
-			protected override get state(): SignalTree<ShellState> {
-				return shared;
-			}
-
-			protected override template(state: ShellState) {
+		@element('demo-badge')
+		class DocInboxBadge extends UIElement {
+			protected override template() {
 				return html`
-					<h1>${state.title}</h1>
+					<h1>${shared.title()}</h1>
 					<span class="badge"></span>
 				`;
 			}
@@ -135,12 +125,12 @@ describe('doc: signals drive html render', () => {
 				const badge = this.querySelector('.badge') as HTMLElement;
 
 				this.effect(() => {
-					badge.textContent = String(this.state().unreadCount);
+					badge.textContent = String(shared.unreadCount());
 				});
 			}
 		}
 
-		const el = document.createElement(tag) as DocInboxBadge;
+		const el = document.createElement('demo-badge') as DocInboxBadge;
 		document.body.appendChild(el);
 		const badge = el.querySelector('.badge')!;
 		const heading = el.querySelector('h1')!;

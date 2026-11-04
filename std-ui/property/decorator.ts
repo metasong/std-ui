@@ -73,7 +73,7 @@ export interface PropertyOptions<V = unknown> {
  * complex field gets per-leaf reactivity, not just whole-field identity comparison:
  *
  * ```ts
- * class MyBadge extends UIElement<State> {
+ * class MyBadge extends UIElement {
  *   @property({ type: Number }) count = 0; // attribute -> property only (no reflect back)
  *   @property({ type: Number, reflect: true }) age = 0; // also mirrors `age` back onto the attribute
  *   @property({ attribute: false }) internalOnly = 'x'; // store only, no attribute

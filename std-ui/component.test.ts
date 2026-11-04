@@ -1,49 +1,34 @@
 import { describe, expect, it, vi } from 'vitest';
 import { element, UIElement } from './component.js';
-import { buildSignalTree, type SignalTree } from './signal/tree.js';
+import { buildSignalTree } from './signal/tree.js';
 import { html } from './template/html.js';
 
 interface State {
 	count: number;
 }
 
-let tagCounter = 0;
-function uniqueTag(): string {
-	return `test-component-${tagCounter++}`;
-}
-
 describe('element() decorator', () => {
 	it('registers the class as a custom element under the given tag', () => {
-		const tag = uniqueTag();
+		@element('el-registers')
+		class Foo extends UIElement {}
 
-		@element(tag)
-		class Foo extends UIElement<State> {
-			protected override get state(): SignalTree<State> {
-				return buildSignalTree({ count: 0 });
-			}
-		}
-
-		expect(customElements.get(tag)).toBe(Foo);
+		expect(customElements.get('el-registers')).toBe(Foo);
 	});
 });
 
 describe('UIElement', () => {
 	it('runs connect() once on first connect, which can inject markup', () => {
-		const tag = uniqueTag();
 		const calls: string[] = [];
 
-		@element(tag)
-		class Foo extends UIElement<State> {
-			protected override get state(): SignalTree<State> {
-				return buildSignalTree({ count: 0 });
-			}
+		@element('el-connect')
+		class Foo extends UIElement {
 			protected override connect(): void {
 				calls.push('connect');
 				this.innerHTML = '<span>injected</span>';
 			}
 		}
 
-		const el = document.createElement(tag) as Foo;
+		const el = document.createElement('el-connect') as Foo;
 		document.body.appendChild(el);
 		expect(calls).toEqual(['connect']);
 		expect(el.querySelector('span')!.textContent).toBe('injected');
@@ -51,18 +36,14 @@ describe('UIElement', () => {
 	});
 
 	it('re-runs connect() on every connect, including after a disconnect', () => {
-		const tag = uniqueTag();
 		const connect = vi.fn();
 
-		@element(tag)
-		class Foo extends UIElement<State> {
-			protected override get state(): SignalTree<State> {
-				return buildSignalTree({ count: 0 });
-			}
+		@element('el-reconnect')
+		class Foo extends UIElement {
 			protected override connect = connect;
 		}
 
-		const el = document.createElement(tag) as Foo;
+		const el = document.createElement('el-reconnect') as Foo;
 		document.body.appendChild(el);
 		el.remove();
 		document.body.appendChild(el);
@@ -70,22 +51,18 @@ describe('UIElement', () => {
 		el.remove();
 	});
 
-	it('calls template(state) immediately on connect and again whenever state changes', async () => {
-		const tag = uniqueTag();
+	it('calls template() immediately on connect and again whenever a signal it reads changes', async () => {
 		const tree = buildSignalTree<State>({ count: 0 });
 		const renderSpy = vi.fn();
 
-		@element(tag)
-		class Foo extends UIElement<State> {
-			protected override get state(): SignalTree<State> {
-				return tree;
-			}
-			protected override template(state: State): void {
-				renderSpy(state.count);
+		@element('el-template')
+		class Foo extends UIElement {
+			protected override template(): void {
+				renderSpy(tree.count());
 			}
 		}
 
-		const el = document.createElement(tag) as Foo;
+		const el = document.createElement('el-template') as Foo;
 		document.body.appendChild(el);
 		expect(renderSpy).toHaveBeenCalledTimes(1);
 		expect(renderSpy).toHaveBeenLastCalledWith(0);
@@ -96,43 +73,36 @@ describe('UIElement', () => {
 		el.remove();
 	});
 
-	it('renders an html() result returned from template(state) into the element', () => {
-		const tag = uniqueTag();
+	it('renders an html() result returned from template() into the element', () => {
+		const tree = buildSignalTree<State>({ count: 7 });
 
-		@element(tag)
-		class Foo extends UIElement<State> {
-			protected override get state(): SignalTree<State> {
-				return buildSignalTree({ count: 7 });
-			}
-			protected override template(state: State) {
-				return html`<em>${state.count}</em>`;
+		@element('el-html')
+		class Foo extends UIElement {
+			protected override template() {
+				return html`<em>${tree.count()}</em>`;
 			}
 		}
 
-		const el = document.createElement(tag) as Foo;
+		const el = document.createElement('el-html') as Foo;
 		document.body.appendChild(el);
 		expect(el.querySelector('em')!.textContent).toBe('7');
 		el.remove();
 	});
 
-	it('calls disconnect() and stops reacting to state after disconnect', async () => {
-		const tag = uniqueTag();
+	it('calls disconnect() and stops reacting to signals after disconnect', async () => {
 		const tree = buildSignalTree<State>({ count: 0 });
 		const renderSpy = vi.fn();
 		const disconnect = vi.fn();
 
-		@element(tag)
-		class Foo extends UIElement<State> {
-			protected override get state(): SignalTree<State> {
-				return tree;
-			}
+		@element('el-disconnect')
+		class Foo extends UIElement {
 			protected override disconnect = disconnect;
-			protected override template(state: State): void {
-				renderSpy(state.count);
+			protected override template(): void {
+				renderSpy(tree.count());
 			}
 		}
 
-		const el = document.createElement(tag) as Foo;
+		const el = document.createElement('el-disconnect') as Foo;
 		document.body.appendChild(el);
 		el.remove();
 		expect(disconnect).toHaveBeenCalledTimes(1);
@@ -144,15 +114,11 @@ describe('UIElement', () => {
 	});
 
 	it('disposes effect()-registered reactions on disconnect', async () => {
-		const tag = uniqueTag();
 		const tree = buildSignalTree<State>({ count: 0 });
 		const effectSpy = vi.fn();
 
-		@element(tag)
-		class Foo extends UIElement<State> {
-			protected override get state(): SignalTree<State> {
-				return tree;
-			}
+		@element('el-effect')
+		class Foo extends UIElement {
 			protected override connect(): void {
 				this.effect(() => {
 					effectSpy(tree.count());
@@ -160,7 +126,7 @@ describe('UIElement', () => {
 			}
 		}
 
-		const el = document.createElement(tag) as Foo;
+		const el = document.createElement('el-effect') as Foo;
 		document.body.appendChild(el);
 		expect(effectSpy).toHaveBeenCalledTimes(1);
 

@@ -17,7 +17,7 @@ Wiring them up gives you declarative UI that updates surgically: when state chan
 | **Authoring** | Markup stays in `html\`...\`` templates with attribute/event bindings; state stays in signals, not scattered DOM queries. |
 | **Components** | `UIElement` already connects a `SignalTree` to `template()` for you; you can still drop to raw `effect` + `render` outside custom elements. |
 
-The fireworks app uses this throughout `src/ui/components/` — e.g. `pause-button` swaps icon markup when `state.paused` changes, and `controls-bar` toggles layout classes from state while composing child custom elements in one template.
+The fireworks app uses this throughout `src/ui/components/` — e.g. `pause-button` swaps icon markup when `appState.paused()` changes, and `controls-bar` toggles layout classes from `appState` while composing child custom elements in one template.
 
 ## Pattern A — Standalone: `effect` + `render` + signals
 
@@ -50,12 +50,12 @@ Important details:
 - **`computed` for derived text** — keeps the effect from manually syncing extra fields; only re-read when dependencies change.
 - **Event handlers** — `@click` bindings are re-bound when the handler reference changes; inline arrows are fine for demos, stable references are better in production.
 
-## Pattern B — `UIElement`: state tree → `template(state)` → automatic `render`
+## Pattern B — `UIElement`: `template()` reads signals directly → automatic `render`
 
-For custom elements, you usually don't call `effect` + `render` yourself. Subclass `UIElement`, expose a `SignalTree` as `state`, and return `html` from `template`. `connect()` runs **before** the first `template`, so markup from your template is not in the DOM yet — put bindings and structure in `template`, and use `firstRendered` / `rendered` when you need to touch rendered nodes.
+For custom elements, you usually don't call `effect` + `render` yourself. Subclass `UIElement` and return `html` from `template()`, reading whatever signals you need directly inside it (module-level signals, a shared `buildSignalTree()` tree, or app-wide state like `appState` - `UIElement` itself has no notion of "the" state). `connect()` runs **before** the first `template`, so markup from your template is not in the DOM yet — put bindings and structure in `template`, and use `firstRendered` / `rendered` when you need to touch rendered nodes.
 
 ```ts
-import { buildSignalTree, element, html, UIElement, type SignalTree } from '../index.js';
+import { buildSignalTree, element, html, UIElement } from '../index.js';
 
 interface DemoState {
 	counter: {
@@ -69,24 +69,20 @@ const shared = buildSignalTree<DemoState>({
 });
 
 @element('demo-counter')
-class DemoCounter extends UIElement<DemoState> {
-	protected override get state(): SignalTree<DemoState> {
-		return shared;
-	}
-
-	protected override template(state: DemoState) {
-		const { value, max } = state.counter;
+class DemoCounter extends UIElement {
+	protected override template() {
+		const { value, max } = shared.counter;
 		return html`
-			<span>${value}</span> / ${max}
+			<span>${value()}</span> / ${max()}
 			<button
 				type="button"
-				?disabled="${value >= max}"
+				?disabled="${value() >= max()}"
 				@click="${() => shared.counter.value.update(n => n + 1)}"
 			>+</button>
 		`;
 	}
 
-	protected override firstRendered(_state: DemoState): void {
+	protected override firstRendered(): void {
 		// Rendered light DOM exists now — safe to query children (not in `connect()`).
 		this.querySelector('span')!.setAttribute('aria-live', 'polite');
 	}
@@ -98,13 +94,13 @@ shared.counter.value.set(5);           // write a leaf: shared.counter.value is 
 shared.counter.set({ max: 20 });     // or set a branch without touching sibling leaves
 ```
 
-Nested objects become branch `Computed`s; leaves like `value` and `max` are writable `Signal`s on the tree (`shared.counter.value.set(...)`). In `template`, you read the plain snapshot `state.counter.value` — same shape as your interface. See [`../signal/tree.md`](../signal/tree.md) for branch `.set(partial)` and `.peek()`.
+Nested objects become branch `Computed`s; leaves like `value` and `max` are writable `Signal`s on the tree (`shared.counter.value.set(...)`) and are also readable as tracked functions (`shared.counter.value()`). Reading any of them inside `template()` registers that leaf as a dependency of the render effect — same tracking rule as any other `effect()`. See [`../signal/tree.md`](../signal/tree.md) for branch `.set(partial)` and `.peek()`.
 
 What `UIElement` does for you (see `component.ts`):
 
 1. On **connect** (insertion into the document), runs `connect()` once for that connection cycle — **before** the first `template` — for host-only setup (attributes on `this`, timers, `this.effect()`). Do not assume rendered children exist yet.
-2. Registers a render **`effect`** that reads `const state = this.state()`, calls `template(state)`, and if the result is a `TemplateResult`, passes it to `renderHtml(result, this)`.
-3. After each render pass in that effect, calls **`firstRendered(state)`** once (first pass only), then **`rendered(state)`** every pass (including the first).
+2. Registers a render **`effect`** that calls `template()`, and if the result is a `TemplateResult`, passes it to `renderHtml(result, this)`. Whatever signals `template()` reads become that effect's dependencies.
+3. After each render pass in that effect, calls **`firstRendered()`** once (first pass only), then **`rendered()`** every pass (including the first).
 4. On **disconnect**, runs `disconnect()`, disposes the render effect and any `this.effect(...)` you registered in `connect`, and resets first-render tracking so a later re-insert gets `connect()` and `firstRendered()` again.
 
 **Lifecycle order (each connection cycle):**
@@ -112,27 +108,27 @@ What `UIElement` does for you (see `component.ts`):
 | Step | Hook | When |
 |---|---|---|
 | 1 | `connect()` | Before first `template`; one-time setup per connect cycle |
-| 2 | `template(state)` | Whenever tracked state changes (and once immediately after connect) |
+| 2 | `template()` | Whenever a signal it read changes (and once immediately after connect) |
 | 3 | DOM patch | Only if `template` returned `html\`...\`` |
-| 4 | `firstRendered(state)` | Once, right after the first successful render pass in step 2 |
-| 5 | `rendered(state)` | After every render pass, including the first (always after step 4 on the first pass) |
+| 4 | `firstRendered()` | Once, right after the first successful render pass in step 2 |
+| 5 | `rendered()` | After every render pass, including the first (always after step 4 on the first pass) |
 
-`this.state()` reads the tree root — a `Computed` that depends on every leaf — so any leaf write schedules another pass through steps 2–5.
+Because `UIElement` has no built-in state, the render effect only re-runs when `template()` itself reads a signal/computed — there's no implicit "whole tree" dependency; each component declares its own dependencies just by reading them.
 
-Return `void` from `template` if you prefer imperative DOM updates (`querySelector`, `classList`, …); the same effect still runs on every state change, and `firstRendered` / `rendered` still run with the latest `state` even when you did not return a template.
+Return `void` from `template` if you prefer imperative DOM updates (`querySelector`, `classList`, …); the same effect still runs whenever a signal it reads changes, and `firstRendered` / `rendered` still run even when you did not return a template.
 
-Use **`firstRendered(state)`** when you need DOM that only exists after the first `template` (measure layout, focus a field, `querySelector`, wire third-party widgets). Use **`rendered(state)`** for work that must repeat after every state-driven render (sync aria attributes from state, notify parents). Keep **`connect()`** for setup that does not depend on rendered output (host attributes, registering `this.effect()`).
+Use **`firstRendered()`** when you need DOM that only exists after the first `template` (measure layout, focus a field, `querySelector`, wire third-party widgets). Use **`rendered()`** for work that must repeat after every render (sync aria attributes, notify parents). Keep **`connect()`** for setup that does not depend on rendered output (host attributes, registering `this.effect()`).
 
 ## Pattern C — Fine-grained `this.effect()` (avoid full re-render)
 
-When only a sliver of DOM should track one signal, use `UIElement.effect()` after rendered nodes exist (typically in `firstRendered`) instead of expanding `template(state)`:
+When only a sliver of DOM should track one signal, use `UIElement.effect()` after rendered nodes exist (typically in `firstRendered`) instead of expanding `template()`:
 
 ```ts
 protected override firstRendered(): void {
 	const badge = this.querySelector('.badge') as HTMLElement;
 
 	this.effect(() => {
-		badge.textContent = String(this.state().unreadCount);
+		badge.textContent = String(shared.unreadCount());
 	});
 }
 ```
@@ -174,7 +170,7 @@ flowchart LR
 - **No-op updates** — `count.set(5)` when already `5` does not notify; DOM is not touched.
 - **Derived state** — `computed(() => count() * 2)` inside the template or passed into `${...}`.
 - **Fine-grained DOM** — `this.effect()` in `firstRendered` to update a node omitted from `template` (Pattern C).
-- **Post-render hooks** — `firstRendered(state)` once, then `rendered(state)` on every state-driven render pass (including the first).
+- **Post-render hooks** — `firstRendered()` once, then `rendered()` on every render pass (including the first).
 - **Cleanup** — disconnect the element or call the `effect` disposer; no stray updates after teardown.
 
 ## Related reading

@@ -1,9 +1,7 @@
-// Tiny, app-agnostic "component" convention: every UI piece is a native Custom Element that
-// reads from some reactive `SignalTree<S>` (see `./signal/tree.js`) and re-renders whenever any
-// field it touches changes. No external UI library, no knowledge of any particular app's state
-// shape or state singleton - both are supplied by whoever subclasses `UIElement` (see
-// `../ui/app-element.ts` for this app's binding, and each file in `ui/components/` for concrete
-// components).
+// Tiny, app-agnostic "component" convention: every UI piece is a native Custom Element whose
+// `template()` reads whatever `signal`/`computed` values it needs directly (see `./signal/`) and
+// re-renders whenever any of those it touches changes. No external UI library, no knowledge of
+// any particular app's state shape baked into the base class.
 //
 // Custom elements auto-connect the instant they're inserted into the document - whether that's
 // static markup in `index.html` or another component injecting them while assembling its own
@@ -19,7 +17,6 @@ import {
 import {
 	effect as createEffect,
 	type OnCleanup,
-	type SignalTree,
 } from './signal/index.js';
 import { render, type TemplateResult } from './template/index.js';
 
@@ -39,13 +36,10 @@ export function element(tag: string) {
 	};
 }
 
-export abstract class UIElement<S extends object> extends HTMLElement {
+export abstract class UIElement extends HTMLElement {
 	#connected = false;
 	#firstRenderDone = false;
 	#effectDisposers: Array<() => void> = [];
-
-	/** The reactive state tree this component reads from and re-renders in response to. Supply via a per-app subclass. */
-	protected abstract get state(): SignalTree<S>;
 
 	/** lifecycle hook: One-time setup (resolve child nodes, attach listeners, inject any static markup). */
 	protected connect?(): void;
@@ -57,13 +51,13 @@ export abstract class UIElement<S extends object> extends HTMLElement {
 	 * component's full markup - the diffing in `./template/html.js` will patch only what changed
 	 * since last time.
 	 */
-	protected template?(state: S): TemplateResult | void;
+	protected template?(): TemplateResult | void;
 
-	/** lifecycle hook: Called once, with the latest state, right after the first `template()` has been applied to the DOM. */
-	protected firstRendered?(state: S): void;
+	/** lifecycle hook: Called once, right after the first `template()` has been applied to the DOM. */
+	protected firstRendered?(): void;
 
-	/** lifecycle hook: Called with the latest state after every `template()` (including the first) has been applied to the DOM. */
-	protected rendered?(state: S): void;
+	/** lifecycle hook: Called after every `template()` (including the first) has been applied to the DOM. */
+	protected rendered?(): void;
 
 	/** lifecycle hook: Tear down what `connect()` set up (listeners, timers). Runs on every disconnect. */
 	protected disconnect?(): void;
@@ -103,19 +97,19 @@ export abstract class UIElement<S extends object> extends HTMLElement {
 			}));
 		}
 
-		// `this.state()` is a tracked read of the tree root - a `Computed` that reassembles every
-		// leaf into a fresh plain object - so this effect re-runs `template()` whenever any field
-		// anywhere in the tree changes (runs once synchronously now, then microtask-batched).
+		/// ui updating effect:
+		// This effect re-runs `template()` whenever any signal it reads (directly or via nested
+		// `signal`/`computed` reads) changes (runs once synchronously now, then microtask-batched).
 		this.#effectDisposers.push(createEffect(() => {
-			const state = this.state();
-			const result = this.template?.(state);
+			const result = this.template?.(); // if the template read any signal inside the function, the effect will be executed again.
 			if (result) render(result, this);
 
+			//todo: these functions below no need to be monitored for this ui effect.(adjust the createEffect function)
 			if (!this.#firstRenderDone) {
 				this.#firstRenderDone = true;
-				this.firstRendered?.(state);
+				this.firstRendered?.();
 			}
-			this.rendered?.(state);
+			this.rendered?.();
 		}));
 	}
 

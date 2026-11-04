@@ -25,7 +25,8 @@ export function render(result: TemplateResult, container: Element | DocumentFrag
 
 	container.textContent = '';
 	const { fragment, parts } = instantiate(getTemplate(result.strings, result.type));
-	for (let i = 0; i < parts.length; i++) parts[i].update(result.values[i]);
 	container.appendChild(fragment);
+	// After connect so custom elements are upgraded before `.prop` bindings hit `@property()` accessors.
+	for (let i = 0; i < parts.length; i++) parts[i].update(result.values[i]);
 	renderedInstances.set(container, { strings: result.strings, parts });
 }
