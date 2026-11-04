@@ -47,6 +47,7 @@ double(); // reads (and auto-tracks) count; recomputes only if marked dirty sinc
   tracked correctly - whichever branch actually ran is what's subscribed to.
 - A `computed` can itself be read by another `computed`/`effect`; changes propagate through the
   whole chain.
+- Lazy caching and dirty invalidation: [`./computed-lazy.md`](./computed-lazy.md).
 
 ### `effect(fn)`
 
