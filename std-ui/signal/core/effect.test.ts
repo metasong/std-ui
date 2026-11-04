@@ -77,4 +77,35 @@ describe('effect', () => {
 		await flushEffects();
 		expect(spy).toHaveBeenCalledTimes(1);
 	});
+
+	it('runs afterAction after monitoredAction, re-running it when monitoredAction re-runs, but not tracking signals it reads', async () => {
+		const count = signal(0);
+		const other = signal(0);
+		const order: string[] = [];
+		const monitoredSpy = vi.fn(() => order.push('monitored'));
+		const afterSpy = vi.fn(() => {
+			order.push('after');
+			other(); // read inside afterAction - should not be tracked
+		});
+		effect(() => {
+			count();
+			monitoredSpy();
+		}, afterSpy);
+		expect(monitoredSpy).toHaveBeenCalledTimes(1);
+		expect(afterSpy).toHaveBeenCalledTimes(1);
+		expect(order).toEqual(['monitored', 'after']);
+
+		// Signal read inside monitoredAction triggers a re-run of both monitoredAction and afterAction.
+		count.set(1);
+		await flushEffects();
+		expect(monitoredSpy).toHaveBeenCalledTimes(2);
+		expect(afterSpy).toHaveBeenCalledTimes(2);
+		expect(order).toEqual(['monitored', 'after', 'monitored', 'after']);
+
+		// Signal read only inside afterAction isn't tracked, so changing it shouldn't trigger a re-run.
+		other.set(1);
+		await flushEffects();
+		expect(monitoredSpy).toHaveBeenCalledTimes(2);
+		expect(afterSpy).toHaveBeenCalledTimes(2);
+	});
 });

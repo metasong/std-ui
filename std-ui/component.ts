@@ -100,17 +100,20 @@ export abstract class UIElement extends HTMLElement {
 		/// ui updating effect:
 		// This effect re-runs `template()` whenever any signal it reads (directly or via nested
 		// `signal`/`computed` reads) changes (runs once synchronously now, then microtask-batched).
-		this.#effectDisposers.push(createEffect(() => {
-			const result = this.template?.(); // if the template read any signal inside the function, the effect will be executed again.
-			if (result) render(result, this);
-
-			//todo: these functions below no need to be monitored for this ui effect.(adjust the createEffect function)
-			if (!this.#firstRenderDone) {
-				this.#firstRenderDone = true;
-				this.firstRendered?.();
+		this.#effectDisposers.push(createEffect(
+			() => {
+				const result = this.template?.(); // if the template read any signal inside the function, the effect will be executed again.
+				if (result) render(result, this);
+			},
+			() => {
+				//  these functions below no need to be monitored for this ui effect.
+				if (!this.#firstRenderDone) {
+					this.#firstRenderDone = true;
+					this.firstRendered?.();
+				}
+				this.rendered?.();
 			}
-			this.rendered?.();
-		}));
+		));
 	}
 
 	/** Removed from the document; disposes the render effect and any `effect()`s set up in `connect()`. */

@@ -56,6 +56,7 @@ export function effect(
 	// trigger one re-run.
 	const rerun = (): void => {
 		if (disposed) return;
+
 		runCleanup();
 		runTracked(consumer, () => monitoredAction(onCleanup));
 		afterAction?.();
