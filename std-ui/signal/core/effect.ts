@@ -26,10 +26,20 @@ function flush(): void {
 }
 
 /**
- * Runs `fn` immediately, then re-runs it (batched into a microtask) whenever any signal/computed
- * it read changes. Returns a `dispose()` that stops future re-runs and runs any pending cleanup.
+ * Runs `monitoredAction` immediately, then re-runs it (batched into a microtask) whenever any
+ * signal/computed it read changes. Returns a `dispose()` that stops future re-runs and runs any
+ * pending cleanup.
+ *
+ * @param monitoredAction - The tracked effect body, run initially and on every re-run. Receives
+ * `onCleanup` to register cleanup that runs before the next re-run and on dispose.
+ * @param afterAction - Optional callback run right after `monitoredAction` on every run (initial
+ * and re-runs). Not dependency-tracked, so signals it reads won't trigger re-runs. Defaults to
+ * `null`.
  */
-export function effect(fn: (onCleanup: OnCleanup) => void): () => void {
+export function effect(
+	monitoredAction: (onCleanup: OnCleanup) => void,
+	afterAction: (() => void) | null = null
+): () => void {
 	let cleanup: (() => void) | undefined;
 	let disposed = false;
 
@@ -47,7 +57,8 @@ export function effect(fn: (onCleanup: OnCleanup) => void): () => void {
 	const rerun = (): void => {
 		if (disposed) return;
 		runCleanup();
-		runTracked(consumer, () => fn(onCleanup));
+		runTracked(consumer, () => monitoredAction(onCleanup));
+		afterAction?.();
 	};
 	const consumer: Consumer = {
 		deps: new Set(),
