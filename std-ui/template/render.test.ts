@@ -28,6 +28,19 @@ describe('render', () => {
 		expect(p!.getAttribute('class')).toBe('Grace');
 	});
 
+	it('binds .-prefixed attributes to JS properties (not HTML attributes)', () => {
+		const container = document.createElement('div');
+		const view = (value: string) => html`<input .value="${value}" />`;
+		render(view('hello'), container);
+		const input = container.querySelector('input')!;
+		expect(input.value).toBe('hello');
+		expect(input.hasAttribute('value')).toBe(false);
+
+		render(view('world'), container);
+		expect(container.querySelector('input')).toBe(input);
+		expect(input.value).toBe('world');
+	});
+
 	it('tears down and rebuilds fresh when switching to a different template literal', () => {
 		const container = document.createElement('div');
 		render(html`<p>${'x'}</p>`, container);
