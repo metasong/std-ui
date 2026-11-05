@@ -13,9 +13,11 @@ export {
 	computed,
 	effect,
 	signal,
+	subtle,
 	type Computed,
 	type DeepPartial,
 	type OnCleanup,
 	type Signal,
+	type SignalOptions,
 	type SignalTree,
 } from './signal/index.js';

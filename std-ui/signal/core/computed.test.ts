@@ -63,4 +63,18 @@ describe('computed', () => {
 		a.set(3);
 		expect(doubled.peek()).toBe(6);
 	});
+
+	it('options.equals keeps the previous cached reference when the recomputed value is equivalent', () => {
+		const a = signal(1);
+		const point = computed(
+			() => ({ parity: a() % 2 === 0 ? 'even' : 'odd' }),
+			{ equals: (x, y) => x.parity === y.parity }
+		);
+		const first = point();
+		a.set(3); // still odd - recomputes, but equals() says it's the same as before
+		expect(point()).toBe(first); // same object reference, not a freshly recomputed one
+		a.set(4); // now even - genuinely different
+		expect(point()).not.toBe(first);
+		expect(point()).toEqual({ parity: 'even' });
+	});
 });

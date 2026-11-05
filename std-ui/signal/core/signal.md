@@ -1,6 +1,8 @@
 # `signal/` usage
 
-Generic, app-agnostic fine-grained reactivity primitives, Angular-signals-flavored:
+Generic, app-agnostic fine-grained reactivity primitives, Angular-signals-flavored in ergonomics
+(callable reads, `.peek()`) but modeled internally on the
+[proposed standard JavaScript `Signal`s API](https://github.com/tc39/proposal-signals):
 `signal()`, `computed()`, and `effect()`. Safe to lift into any project.
 
 Implementation lives under `./core/`: [`signal.ts`](./signal.ts) (writable values),
@@ -33,6 +35,8 @@ count.peek();          // read WITHOUT tracking as a dependency
 - `set`/`update` are no-ops (no notify) when the new value is `Object.is`-equal to the old one.
 - Use `.peek()` inside a `computed`/`effect` when you need a signal's value but don't want
   changes to it to trigger a re-run.
+- Pass `{ equals }` as a second argument to customize the change check, same role as
+  `Signal.State`'s `equals` option in the proposal: `signal(value, { equals: (a, b) => ... })`.
 
 ### `computed(fn)`
 
@@ -55,6 +59,10 @@ double.peek();  // same value, but does not track this computed as a dependency
 - A `computed` can itself be read by another `computed`/`effect`; changes propagate through the
   whole chain.
 - Lazy caching and dirty invalidation: [`./computed-lazy.md`](./computed-lazy.md).
+- Also accepts `{ equals }` (default `Object.is`, same as `Signal.Computed`'s option): on
+  recompute, if the fresh value `equals()` the previously cached one, the old reference is kept
+  instead of being replaced - useful so a parent `computed`/an `effect` doing its own reference
+  checks on this value doesn't see spurious "changes".
 
 ### `effect(fn)`
 
@@ -95,6 +103,21 @@ When that signal later changes (via `.set`/`.update`), it notifies its subscribe
 
 Each consumer's dependency set is rebuilt from scratch on every run, so stale subscriptions
 from a previous run (e.g. a branch that's no longer read) are automatically dropped.
+
+## Low-level primitives: `subtle`
+
+`../index.js` also exports `subtle`, grouping two low-level primitives named after
+`Signal.subtle` in the proposal. Most code should stick to `signal()`/`computed()`/`effect()` -
+reach for these only when building a custom scheduler or framework integration on top of the
+dependency graph (`effect()` itself is built on `subtle.Watcher`; see [`./effect.ts`](./effect.ts)):
+
+- **`subtle.Watcher`** (`new Watcher(notify)`) - watches a fixed set of dependencies (via
+  `.watch(...)`/`.unwatch(...)`) and fires `notify` once, synchronously, the moment any of them
+  changes, then goes inert until re-`watch()`ed. `.getPending()` lists currently-dirty watched
+  dependencies without forcing a recompute.
+- **`subtle.untrack(fn)`** - runs `fn` with tracking suspended, even inside a `computed`/`effect`
+  body, so any signal/computed it reads is not registered as a dependency. (`.peek()` is the
+  single-read sibling of this for one signal/computed at a time.)
 
 ## Where this fits in std-ui
 

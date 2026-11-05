@@ -25,15 +25,17 @@ const read = (): T => {
 
 ## When a dependency changes
 
-The computed is marked dirty and downstream subscribers are notified; there is no eager recompute:
+The computed is marked dirty and downstream subscribers are notified; there is no eager recompute.
+This runs inside a `Watcher` (see [`./tracking.ts`](./tracking.ts)), whose `run()` unsubscribes
+from every dependency the moment it fires - so further changes to *other* deps before the next
+recompute re-subscribes via `runTracked` are silently ignored, with no manual `dirty` guard needed:
 
 ```ts
-// computed.ts — computed consumer.run()
-run(): void {
-	if (dirty) return;
+// computed.ts — the Watcher's notify callback
+const consumer = new Watcher(() => {
 	dirty = true;
 	notify(dep);
-}
+});
 ```
 
 ## Summary

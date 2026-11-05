@@ -1,14 +1,16 @@
-// Side-effect runner: `effect()`. Re-runs are microtask-batched. Uses `./tracking.ts`.
+// Side-effect runner: `effect()`. Re-runs are microtask-batched. Built on top of `Watcher` from
+// `./tracking.ts` - the low-level primitive modeled on `Signal.subtle.Watcher` in the proposed
+// standard signals API.
 
-import { clearDeps, runTracked, type Consumer } from './tracking.js';
+import { clearDeps, runTracked, Watcher } from './tracking.js';
 
 /** Call inside an `effect()` body to register cleanup that runs before the next re-run, and on dispose. */
 export type OnCleanup = (cleanup: () => void) => void;
 
-/** Effects pending a (microtask-batched) re-run. */
-const pendingEffects = new Set<Consumer>();
-/** Each effect consumer's re-run body, looked up by `flush()`. */
-const effectBodies = new Map<Consumer, () => void>();
+/** Watchers pending a (microtask-batched) re-run. */
+const pendingWatchers = new Set<Watcher>();
+/** Each watcher's re-run body, looked up by `flush()`. */
+const effectBodies = new Map<Watcher, () => void>();
 let flushScheduled = false;
 
 function scheduleFlush(): void {
@@ -20,9 +22,9 @@ function scheduleFlush(): void {
 function flush(): void {
 	flushScheduled = false;
 	// Snapshot first: an effect re-running may schedule more effects, which should run next flush.
-	const effects = Array.from(pendingEffects);
-	pendingEffects.clear();
-	for (const consumer of effects) effectBodies.get(consumer)?.();
+	const watchers = Array.from(pendingWatchers);
+	pendingWatchers.clear();
+	for (const watcher of watchers) effectBodies.get(watcher)?.();
 }
 
 /**
@@ -51,34 +53,33 @@ export function effect(
 		cleanup = fn;
 	};
 
-	// `rerun` does the actual work; `consumer.run` (called by dependencies on change) just
-	// schedules `rerun` into the shared microtask flush, so multiple synchronous writes only
-	// trigger one re-run.
+	// `rerun` does the actual work. Running it through `runTracked(watcher, ...)` re-arms the
+	// watcher with whatever deps this run actually read (a `Watcher` goes inert - stops watching -
+	// the moment it fires `notify`, per the proposed standard signals API).
 	const rerun = (): void => {
 		if (disposed) return;
 
 		runCleanup();
-		runTracked(consumer, () => monitoredAction(onCleanup));
+		runTracked(watcher, () => monitoredAction(onCleanup));
 		afterAction?.();
 	};
-	const consumer: Consumer = {
-		deps: new Set(),
-		run(): void {
-			if (disposed || pendingEffects.has(consumer)) return;
-			pendingEffects.add(consumer);
-			scheduleFlush();
-		}
-	};
-	effectBodies.set(consumer, rerun);
+	// `notify` (called by `watcher.run()` when a watched dependency changes) just schedules `rerun`
+	// into the shared microtask flush, so multiple synchronous writes only trigger one re-run.
+	const watcher = new Watcher(function notify(this: Watcher): void {
+		if (disposed || pendingWatchers.has(this)) return;
+		pendingWatchers.add(this);
+		scheduleFlush();
+	});
+	effectBodies.set(watcher, rerun);
 
 	// First run happens synchronously, so initial DOM sync isn't deferred a tick.
 	rerun();
 
 	return () => {
 		disposed = true;
-		pendingEffects.delete(consumer);
-		effectBodies.delete(consumer);
-		clearDeps(consumer);
+		pendingWatchers.delete(watcher);
+		effectBodies.delete(watcher);
+		clearDeps(watcher);
 		runCleanup();
 	};
 }

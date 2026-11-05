@@ -51,4 +51,26 @@ describe('signal', () => {
 		await flushEffects();
 		expect(spy).not.toHaveBeenCalled();
 	});
+
+	it('options.equals overrides the default Object.is change check', async () => {
+		// Case-insensitive string signal: setting a value that only differs by case is a no-op.
+		const name = signal('Ada', { equals: (a, b) => a.toLowerCase() === b.toLowerCase() });
+		const spy = vi.fn();
+		effect(() => {
+			name();
+			spy();
+		});
+		await flushEffects();
+		spy.mockClear();
+
+		name.set('ADA');
+		await flushEffects();
+		expect(spy).not.toHaveBeenCalled();
+		expect(name()).toBe('Ada'); // unchanged - equals() said it was the same value
+
+		name.set('Lin');
+		await flushEffects();
+		expect(spy).toHaveBeenCalledTimes(1);
+		expect(name()).toBe('Lin');
+	});
 });
