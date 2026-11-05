@@ -25,6 +25,9 @@ export {
 	attribute,
 	consume,
 	createContextKey,
+	query,
+	queryAll,
+	queryAsync,
 	state,
 	tag,
 	type AttributeConverter,
@@ -39,6 +42,21 @@ export abstract class UIElement extends HTMLElement {
 	#firstRenderDone = false;
 	#effectDisposers: Array<() => void> = [];
 	#contextListenerDisposers: Array<() => void> = [];
+
+	/**
+	 * Resolves once any render/effect re-run currently pending (microtask-batched, see
+	 * `./signal/core/effect.ts`) has run - i.e. the DOM reflects every signal write made so far.
+	 * Used by `@queryAsync()` (`./decorators/query.decorator.ts`) so a query issued right after
+	 * writing a signal sees the DOM that write produces, not the stale DOM from before it.
+	 */
+	public get updateComplete(): Promise<true> {
+		return new Promise(resolve => {
+			// Two microtask hops: the first lets the pending effect flush (`scheduleFlush()` in
+			// `./signal/core/effect.ts` queues exactly one microtask); the second runs after that,
+			// guaranteeing the flush has already executed by the time we resolve.
+			queueMicrotask(() => queueMicrotask(() => resolve(true)));
+		});
+	}
 
 	/** lifecycle hook: occur when the element is connected to the document.
 	 *  This is a one-time setup (resolve child nodes, attach listeners, inject any static markup).
@@ -77,7 +95,7 @@ export abstract class UIElement extends HTMLElement {
 	/** Re-runs `template()` when any signal it reads changes; invokes `firstRendered` / `rendered` after each apply. */
 	#wireTemplateRenderEffect(): void {
 		this.#effectDisposers.push(createEffect(
-			this.#requestUpdate,
+			this.#requestUpdate.bind(this),
 			() => {
 				if (!this.#firstRenderDone) {
 					this.#firstRenderDone = true;
