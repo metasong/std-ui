@@ -10,7 +10,7 @@
 
 import {
 	defineObservedAttributes,
-	getPropertyDefs,
+	getAttributeDefs,
 	parseAttribute,
 	serializeAttribute,
 } from './property/index.js';
@@ -20,11 +20,11 @@ import {
 } from './signal/index.js';
 import { render, type TemplateResult } from './template/index.js';
 
-export { property, type PropertyConverter, type PropertyOptions, type PropertyType } from './property/index.js';
+export { attribute, state, type AttributeConverter, type AttributeOptions, type AttributeType } from './property/index.js';
 
 /**
  * Class decorator that registers the decorated `UIElement` subclass as a custom element under
- * `name`. Also wires up `observedAttributes` from any `@property()`-decorated fields (see
+ * `name`. Also wires up `observedAttributes` from any `@attribute()`-decorated fields (see
  * `./property/`) so the browser calls `attributeChangedCallback` for them - must run before
  * `customElements.define()`, which reads `observedAttributes` once, at definition time.
  */
@@ -79,15 +79,16 @@ export abstract class UIElement extends HTMLElement {
 			this.connect?.();
 		}
 
-		// Property → attribute direction: one effect per `@property({ reflect: true })` field,
+		// Property → attribute direction: one effect per `@attribute({ reflect: true })` field,
 		// mirroring its signal's value onto the host attribute. Opt-in (defaults to `false`,
-		// like `lit`) - plain `@property()` fields only flow attribute → property (see
-		// `attributeChangedCallback` below), not back out. Runs once synchronously now (so the
-		// attribute matches the property's current/initial value even before any change), then
-		// again whenever the property is written from anywhere (JS or the attribute side). Reading
-		// `this[def.key]` goes through the `@property()` accessor, which reads its backing signal -
-		// an ordinary tracked read, so this effect re-runs exactly like any other signal-driven one.
-		for (const def of getPropertyDefs(this.constructor)) {
+		// like `lit`) - plain `@attribute()` fields only flow attribute → property (see
+		// `attributeChangedCallback` below), not back out; `@state()` fields never appear here at
+		// all (no attribute concern). Runs once synchronously now (so the attribute matches the
+		// property's current/initial value even before any change), then again whenever the
+		// property is written from anywhere (JS or the attribute side). Reading `this[def.key]`
+		// goes through the `@attribute()` accessor, which reads its backing signal - an ordinary
+		// tracked read, so this effect re-runs exactly like any other signal-driven one.
+		for (const def of getAttributeDefs(this.constructor)) {
 			if (!def.reflect) continue;
 			this.#effectDisposers.push(createEffect(() => {
 				const value = (this as unknown as Record<PropertyKey, unknown>)[def.key];
@@ -127,16 +128,16 @@ export abstract class UIElement extends HTMLElement {
 
 	/**
 	 * Attribute → property direction: the browser calls this natively whenever an attribute listed
-	 * in `static observedAttributes` (set up by `tag()` from `@property()` fields) is set,
+	 * in `static observedAttributes` (set up by `tag()` from `@attribute()` fields) is set,
 	 * changed, or removed - including once per already-present attribute right when a pre-existing
 	 * element is upgraded, *before* `connectedCallback`. Parses the new attribute text per the
-	 * field's `type` and writes it through the `@property()` accessor (`this[def.key] = ...`), which
+	 * field's `type` and writes it through the `@attribute()` accessor (`this[def.key] = ...`), which
 	 * sets its backing signal - the same signal the property → attribute effect above reads, so
 	 * writing back the same (serialized) text is a no-op: `signal.set` only notifies on an actual
 	 * value change.
 	 */
 	private attributeChangedCallback(name: string, _oldValue: string | null, newValue: string | null): void {
-		const def = getPropertyDefs(this.constructor).find(def => def.attribute === name);
+		const def = getAttributeDefs(this.constructor).find(def => def.attribute === name);
 		if (!def) return;
 		(this as unknown as Record<PropertyKey, unknown>)[def.key] = parseAttribute(newValue, def.converter);
 	}

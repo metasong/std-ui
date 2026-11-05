@@ -1,5 +1,5 @@
-// Attribute <-> property value conversion: the `type`/`converter` half of `@property()`'s options
-// (see `./decorator.ts`). Everything here is pure data + pure functions - no class-field or
+// Attribute <-> property value conversion: the `type`/`converter` half of `@attribute()`'s options
+// (see `./attribute.ts`). Everything here is pure data + pure functions - no class-field or
 // metadata concerns - so it can be read/tested in isolation from *how* a field ends up calling it.
 
 /**
@@ -9,7 +9,7 @@
  * these five defaults don't cover - `type` just selects which default converter applies when no
  * `converter` is given.
  */
-export type PropertyType =
+export type AttributeType =
 	| StringConstructor
 	| NumberConstructor
 	| BooleanConstructor
@@ -17,28 +17,28 @@ export type PropertyType =
 	| ArrayConstructor;
 
 /**
- * Explicit, fully custom attribute <-> property conversion for one `@property()` field - same
+ * Explicit, fully custom attribute <-> property conversion for one `@attribute()` field - same
  * shape as `lit`'s `converter` option. Supplying this overrides whatever default converter `type`
  * would otherwise select.
  */
-export interface PropertyConverter<V = unknown> {
+export interface AttributeConverter<V = unknown> {
 	/** Converts the HTML attribute string (or `null` if absent/removed) into the property value. */
 	fromAttribute(value: string | null): V;
 	/** Converts the property value into attribute text, or `null` to remove the attribute. */
 	toAttribute(value: V): string | null;
 }
 
-const stringConverter: PropertyConverter<string> = {
+const stringConverter: AttributeConverter<string> = {
 	fromAttribute: value => value ?? '',
 	toAttribute: value => (value == null ? null : String(value)),
 };
 
-const numberConverter: PropertyConverter<number> = {
+const numberConverter: AttributeConverter<number> = {
 	fromAttribute: value => (value === null ? 0 : Number(value)),
 	toAttribute: value => (value == null ? null : String(value)),
 };
 
-const booleanConverter: PropertyConverter<boolean> = {
+const booleanConverter: AttributeConverter<boolean> = {
 	// Presence-based, matching `?attr` in `../template/html.md`: any text (including `""`) means
 	// `true`; only an absent/removed attribute means `false`.
 	fromAttribute: value => value !== null,
@@ -52,7 +52,7 @@ const booleanConverter: PropertyConverter<boolean> = {
  * value, so the attribute always reflects *some* JSON text once the property has ever been set -
  * matching `lit`'s own `Object`/`Array` converter convention.
  */
-function jsonConverter<V>(emptyValue: V): PropertyConverter<V> {
+function jsonConverter<V>(emptyValue: V): AttributeConverter<V> {
 	return {
 		fromAttribute: value => {
 			if (!value) return emptyValue;
@@ -62,8 +62,8 @@ function jsonConverter<V>(emptyValue: V): PropertyConverter<V> {
 	};
 }
 
-/** `type` -> default `PropertyConverter`, keyed by the constructor identity `lit` itself uses. */
-const defaultConverters = new Map<PropertyType, PropertyConverter<unknown>>([
+/** `type` -> default `AttributeConverter`, keyed by the constructor identity `lit` itself uses. */
+const defaultConverters = new Map<AttributeType, AttributeConverter<unknown>>([
 	[String, stringConverter],
 	[Number, numberConverter],
 	[Boolean, booleanConverter],
@@ -72,13 +72,13 @@ const defaultConverters = new Map<PropertyType, PropertyConverter<unknown>>([
 ]);
 
 /**
- * Infers the default `PropertyType` from a field's own initial value, for when `@property()` is
+ * Infers the default `AttributeType` from a field's own initial value, for when `@attribute()` is
  * given neither `type` nor `converter` - so an obviously-numeric/boolean/object/array initializer
  * (`count = 0`, `active = false`, `config = {}`, `tags = []`) doesn't also need `type: Number` /
  * `Boolean` / `Object` / `Array` spelled out redundantly. `null`/`undefined`/anything else falls
  * back to `String`, matching the pre-existing default.
  */
-export function inferPropertyType(value: unknown): PropertyType {
+export function inferAttributeType(value: unknown): AttributeType {
 	if (Array.isArray(value)) return Array;
 	switch (typeof value) {
 		case 'number': return Number;
@@ -89,24 +89,24 @@ export function inferPropertyType(value: unknown): PropertyType {
 }
 
 /** Picks `converter` if given, else the default converter for `type` (`String` if omitted). */
-export function resolveConverter<V>(type: PropertyType | undefined, converter: PropertyConverter<V> | undefined): PropertyConverter<V> {
+export function resolveConverter<V>(type: AttributeType | undefined, converter: AttributeConverter<V> | undefined): AttributeConverter<V> {
 	if (converter) return converter;
 	const resolved = defaultConverters.get(type ?? String);
 	if (!resolved) {
 		throw new Error(
-			"@property(): no default converter for this 'type' - pass a 'converter' option instead.",
+			"@attribute(): no default converter for this 'type' - pass a 'converter' option instead.",
 		);
 	}
-	return resolved as PropertyConverter<V>;
+	return resolved as AttributeConverter<V>;
 }
 
 /** Parses an attribute string (or `null` if absent/removed) into a property value, via `converter`. */
-export function parseAttribute(value: string | null, converter: PropertyConverter): unknown {
+export function parseAttribute(value: string | null, converter: AttributeConverter): unknown {
 	return converter.fromAttribute(value);
 }
 
 /** Serializes a property value back into attribute text, or `null` to remove the attribute, via `converter`. */
-export function serializeAttribute(value: unknown, converter: PropertyConverter): string | null {
+export function serializeAttribute(value: unknown, converter: AttributeConverter): string | null {
 	return converter.toAttribute(value);
 }
 

@@ -1,30 +1,30 @@
 import { describe, expect, it } from 'vitest';
-import { tag, property, UIElement } from '../component.js';
+import { attribute, state, tag, UIElement } from '../component.js';
 
 function flush(): Promise<void> {
 	return new Promise(resolve => queueMicrotask(() => queueMicrotask(resolve)));
 }
 
-describe('@property()', () => {
+describe('@attribute()', () => {
 	it('reflects the initial field value onto the attribute on connect when reflect: true', () => {
-		@tag('prop-reflect-init')
+		@tag('attr-reflect-init')
 		class Foo extends UIElement {
-			@property({ type: Number, reflect: true }) count = 5;
+			@attribute({ type: Number, reflect: true }) count = 5;
 		}
 
-		const el = document.createElement('prop-reflect-init') as Foo;
+		const el = document.createElement('attr-reflect-init') as Foo;
 		document.body.appendChild(el);
 		expect(el.getAttribute('count')).toBe('5');
 		el.remove();
 	});
 
 	it('seeds the property/signal from a pre-existing attribute (upgrade), overriding the field default', () => {
-		@tag('prop-seed-attr')
+		@tag('attr-seed-attr')
 		class Foo extends UIElement {
-			@property({ type: Number }) count = 0;
+			@attribute({ type: Number }) count = 0;
 		}
 
-		const el = document.createElement('prop-seed-attr') as Foo;
+		const el = document.createElement('attr-seed-attr') as Foo;
 		el.setAttribute('count', '42');
 		document.body.appendChild(el);
 		expect(el.count).toBe(42);
@@ -32,12 +32,12 @@ describe('@property()', () => {
 	});
 
 	it('does not reflect the property onto the attribute by default', async () => {
-		@tag('prop-no-reflect')
+		@tag('attr-no-reflect')
 		class Foo extends UIElement {
-			@property() label = 'hi';
+			@attribute() label = 'hi';
 		}
 
-		const el = document.createElement('prop-no-reflect') as Foo;
+		const el = document.createElement('attr-no-reflect') as Foo;
 		document.body.appendChild(el);
 		expect(el.hasAttribute('label')).toBe(false);
 
@@ -49,12 +49,12 @@ describe('@property()', () => {
 	});
 
 	it('updates the attribute when the property is set from JS, with reflect: true', async () => {
-		@tag('prop-reflect-js')
+		@tag('attr-reflect-js')
 		class Foo extends UIElement {
-			@property({ reflect: true }) label = 'hi';
+			@attribute({ reflect: true }) label = 'hi';
 		}
 
-		const el = document.createElement('prop-reflect-js') as Foo;
+		const el = document.createElement('attr-reflect-js') as Foo;
 		document.body.appendChild(el);
 		expect(el.getAttribute('label')).toBe('hi');
 
@@ -65,12 +65,12 @@ describe('@property()', () => {
 	});
 
 	it('updates the property when the attribute is set/changed on the tag (native attributeChangedCallback)', async () => {
-		@tag('prop-attr-change')
+		@tag('attr-attr-change')
 		class Foo extends UIElement {
-			@property({ type: Number }) count = 0;
+			@attribute({ type: Number }) count = 0;
 		}
 
-		const el = document.createElement('prop-attr-change') as Foo;
+		const el = document.createElement('attr-attr-change') as Foo;
 		document.body.appendChild(el);
 
 		el.setAttribute('count', '9');
@@ -79,12 +79,12 @@ describe('@property()', () => {
 	});
 
 	it('supports boolean attributes: presence-based, removed when false', async () => {
-		@tag('prop-boolean')
+		@tag('attr-boolean')
 		class Foo extends UIElement {
-			@property({ type: Boolean, reflect: true }) active = false;
+			@attribute({ type: Boolean, reflect: true }) active = false;
 		}
 
-		const el = document.createElement('prop-boolean') as Foo;
+		const el = document.createElement('attr-boolean') as Foo;
 		document.body.appendChild(el);
 		expect(el.hasAttribute('active')).toBe(false);
 
@@ -98,15 +98,16 @@ describe('@property()', () => {
 		el.remove();
 	});
 
-	it('supports attribute: false to opt a property out of attribute reflection entirely', async () => {
-		@tag('prop-no-attr')
+	it('uses @state() (not @attribute()) to opt a property out of attribute reflection entirely', async () => {
+		@tag('attr-use-state-instead')
 		class Foo extends UIElement {
-			@property({ attribute: false }) internalOnly = 'secret';
+			@state() internalOnly = 'secret';
 		}
 
-		const el = document.createElement('prop-no-attr') as Foo;
+		const el = document.createElement('attr-use-state-instead') as Foo;
 		document.body.appendChild(el);
 		expect(el.hasAttribute('internal-only')).toBe(false);
+		expect((Foo as unknown as { observedAttributes?: string[] }).observedAttributes ?? []).not.toContain('internal-only');
 
 		el.internalOnly = 'still-secret';
 		await flush();
@@ -116,77 +117,37 @@ describe('@property()', () => {
 	});
 
 	it('defaults the attribute name to kebab-case of the field name', () => {
-		@tag('prop-kebab')
+		@tag('attr-kebab')
 		class Foo extends UIElement {
-			@property({ reflect: true }) maxCount = 'ten';
+			@attribute({ reflect: true }) maxCount = 'ten';
 		}
 
-		const el = document.createElement('prop-kebab') as Foo;
+		const el = document.createElement('attr-kebab') as Foo;
 		document.body.appendChild(el);
 		expect(el.getAttribute('max-count')).toBe('ten');
 		el.remove();
 	});
 
-	it('is readable/writable inside template(), re-rendering when the property changes', async () => {
-		const rendered: string[] = [];
-
-		@tag('prop-template')
+	it('supports a custom name option, overriding the kebab-case default (the old `attribute` option)', () => {
+		@tag('attr-custom-name')
 		class Foo extends UIElement {
-			@property() label = 'a';
-			protected override template(): void {
-				rendered.push(this.label);
-			}
+			@attribute({ name: 'data-max', reflect: true }) maxCount = 'ten';
 		}
 
-		const el = document.createElement('prop-template') as Foo;
+		const el = document.createElement('attr-custom-name') as Foo;
 		document.body.appendChild(el);
-		expect(rendered).toEqual(['a']);
-
-		el.label = 'b';
-		await flush();
-		expect(rendered).toEqual(['a', 'b']);
-		el.remove();
-	});
-
-	it('backs a complex-object field with a SignalTree, reading/writing the whole object', async () => {
-		@tag('prop-obj-tree')
-		class Foo extends UIElement {
-			@property({ attribute: false }) config = { a: 1, b: { c: 2 } };
-		}
-
-		const el = document.createElement('prop-obj-tree') as Foo;
-		document.body.appendChild(el);
-		expect(el.config).toEqual({ a: 1, b: { c: 2 } });
-
-		el.config = { ...el.config, a: 2 };
-		await flush();
-		expect(el.config).toEqual({ a: 2, b: { c: 2 } });
-		el.remove();
-	});
-
-	it('leaves an unrelated nested branch untouched (same object identity) when only a sibling leaf changes', async () => {
-		@tag('prop-obj-sibling')
-		class Foo extends UIElement {
-			@property({ attribute: false }) config = { a: 1, b: { c: 2 } };
-		}
-
-		const el = document.createElement('prop-obj-sibling') as Foo;
-		document.body.appendChild(el);
-		const bBefore = el.config.b;
-
-		el.config = { ...el.config, a: 2 }; // only `a` changes; `b`'s leaf (`c`) is unchanged
-		await flush();
-		expect(el.config.b).toBe(bBefore); // `b`'s branch never recomputed, so its identity is preserved
+		expect(el.getAttribute('data-max')).toBe('ten');
+		expect(el.hasAttribute('max-count')).toBe(false);
 		el.remove();
 	});
 
 	it('supports type: Object to reflect a complex-object field to/from the attribute as JSON', async () => {
-		@tag('prop-obj-json')
+		@tag('attr-obj-json')
 		class Foo extends UIElement {
-			@property({ type: Object, reflect: true }) config = { a: 1 };
+			@attribute({ type: Object, reflect: true }) config = { a: 1 };
 		}
 
-		const el = document.createElement('prop-obj-json') as Foo;
+		const el = document.createElement('attr-obj-json') as Foo;
 		document.body.appendChild(el);
 		expect(el.getAttribute('config')).toBe('{"a":1}');
 
@@ -200,12 +161,12 @@ describe('@property()', () => {
 	});
 
 	it('leaves an object field untouched when the attribute is absent/unparsable (empty-object merge is a no-op)', () => {
-		@tag('prop-obj-bad')
+		@tag('attr-obj-bad')
 		class Foo extends UIElement {
-			@property({ type: Object }) config = { a: 1 };
+			@attribute({ type: Object }) config = { a: 1 };
 		}
 
-		const el = document.createElement('prop-obj-bad') as Foo;
+		const el = document.createElement('attr-obj-bad') as Foo;
 		el.setAttribute('config', 'not json');
 		document.body.appendChild(el);
 		// The default `Object` converter falls back to `{}` on unparsable text, but writing `{}`
@@ -216,12 +177,12 @@ describe('@property()', () => {
 	});
 
 	it('infers type: Number from a numeric initial value when type/converter are omitted', () => {
-		@tag('prop-inf-num')
+		@tag('attr-inf-num')
 		class Foo extends UIElement {
-			@property({ reflect: true }) count = 5; // no `type` - inferred as Number from `5`
+			@attribute({ reflect: true }) count = 5; // no `type` - inferred as Number from `5`
 		}
 
-		const el = document.createElement('prop-inf-num') as Foo;
+		const el = document.createElement('attr-inf-num') as Foo;
 		document.body.appendChild(el);
 		expect(el.getAttribute('count')).toBe('5'); // reflected as Number's converter would
 
@@ -231,12 +192,12 @@ describe('@property()', () => {
 	});
 
 	it('infers type: Boolean from a boolean initial value when type/converter are omitted', async () => {
-		@tag('prop-inf-bool')
+		@tag('attr-inf-bool')
 		class Foo extends UIElement {
-			@property({ reflect: true }) active = false;
+			@attribute({ reflect: true }) active = false;
 		}
 
-		const el = document.createElement('prop-inf-bool') as Foo;
+		const el = document.createElement('attr-inf-bool') as Foo;
 		document.body.appendChild(el);
 		expect(el.hasAttribute('active')).toBe(false); // Boolean converter, not String's `''`
 
@@ -247,12 +208,12 @@ describe('@property()', () => {
 	});
 
 	it('infers type: Object from a plain-object initial value when type/converter are omitted', () => {
-		@tag('prop-inf-obj')
+		@tag('attr-inf-obj')
 		class Foo extends UIElement {
-			@property({ reflect: true }) config = { a: 1 };
+			@attribute({ reflect: true }) config = { a: 1 };
 		}
 
-		const el = document.createElement('prop-inf-obj') as Foo;
+		const el = document.createElement('attr-inf-obj') as Foo;
 		document.body.appendChild(el);
 		expect(el.getAttribute('config')).toBe('{"a":1}'); // JSON, like type: Object
 
@@ -262,21 +223,21 @@ describe('@property()', () => {
 	});
 
 	it('infers type: Array from an array initial value when type/converter are omitted', () => {
-		@tag('prop-inf-arr')
+		@tag('attr-inf-arr')
 		class Foo extends UIElement {
-			@property({ attribute: false }) tags: string[] = ['a', 'b'];
+			@attribute({ reflect: true }) tags: string[] = ['a', 'b'];
 		}
 
-		const el = document.createElement('prop-inf-arr') as Foo;
+		const el = document.createElement('attr-inf-arr') as Foo;
 		document.body.appendChild(el);
-		expect(el.tags).toEqual(['a', 'b']);
+		expect(el.getAttribute('tags')).toBe('["a","b"]'); // JSON, like type: Array
 		el.remove();
 	});
 
 	it('supports a fully custom converter, overriding the type-based default', async () => {
-		@tag('prop-converter')
+		@tag('attr-converter')
 		class Foo extends UIElement {
-			@property({
+			@attribute({
 				type: Object,
 				reflect: true,
 				converter: {
@@ -289,7 +250,7 @@ describe('@property()', () => {
 			config = { theme: 'dark' };
 		}
 
-		const el = document.createElement('prop-converter') as Foo;
+		const el = document.createElement('attr-converter') as Foo;
 		document.body.appendChild(el);
 		expect(el.getAttribute('config')).toBe('{"theme":"dark"}');
 

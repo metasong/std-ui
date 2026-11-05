@@ -1,15 +1,16 @@
-// The reactive store backing a `@property()` field's value. Isolated from `./decorator.ts` so the
-// "what holds the value" choice is a one-line swap, independent of accessor/field decorator
-// mechanics.
+// The reactive store backing a `@state()`/`@attribute()` field's value. Isolated from
+// `./field-store.ts` so the "what holds the value" choice is a one-line swap, independent of
+// accessor/field decorator mechanics - and shared by both decorators, since `@attribute()` is
+// "everything `@state()` does, plus attribute sync" (see `./field-store.ts`).
 
 import { buildSignalTree, type SignalTree } from '../signal/index.js';
 
 /**
- * Picks the reactive store that backs a `@property()` field's value: `buildSignalTree()` (see
- * `../signal/tree.ts`) for *any* initial value, not just plain objects.
+ * Picks the reactive store that backs a `@state()`/`@attribute()` field's value: `buildSignalTree()`
+ * (see `../signal/tree.ts`) for *any* initial value, not just plain objects.
  *
  * For a primitive/array/class-instance/etc. initial value, `buildSignalTree()` already degrades to
- * a plain `signal()` internally - so a `number`/`string`/`boolean` `@property()` behaves exactly as
+ * a plain `signal()` internally - so a `number`/`string`/`boolean` field behaves exactly as
  * before, just reached through `SignalTree`'s identical `()`/`.peek()`/`.set()`/`.update()` surface.
  * For a *plain-object* initial value, it instead builds a tree of signals/computeds mirroring that
  * object's shape (see `../signal/tree.md`): each leaf becomes an independently-writable `Signal`,

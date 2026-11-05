@@ -1,26 +1,34 @@
-# `@property()` — attribute-backed component properties
+# `@state()` / `@attribute()` — reactive and attribute-backed component fields
 
-`@property()` is a field decorator for `UIElement` (see `../component.ts`) subclasses: a decorated
-field is backed by a reactive store (a `SignalTree`, see [`../signal/tree.md`](../signal/tree.md))
-and, by default, parses an HTML attribute of the same (kebab-case) name into the field (attribute
--> property), using the platform's own custom-element monitoring mechanism (`observedAttributes` /
-`attributeChangedCallback`) - not a `MutationObserver` or polling. The opposite direction (property
--> attribute) is opt-in via `reflect: true`, matching `lit`.
+Two field decorators for `UIElement` (see `../component.ts`) subclasses, both backing a field with
+a reactive store (a `SignalTree`, see [`../signal/tree.md`](../signal/tree.md)):
+
+- **`@state()`** — just the reactive store. No attribute involved at all.
+- **`@attribute()`** — everything `@state()` does, *plus* keeps the field in sync with an HTML
+  attribute, using the platform's own custom-element monitoring mechanism (`observedAttributes` /
+  `attributeChangedCallback`) - not a `MutationObserver` or polling. By default, sync is
+  attribute -> property only; the opposite direction (property -> attribute) is opt-in via
+  `reflect: true`, matching `lit`.
+
+`@attribute()` is built on top of `@state()`'s own field/accessor wiring (see
+[`design.md`](./design.md)) rather than duplicating it - so the two decorators always agree on how
+a plain-value field vs. a complex-object field behaves; `@attribute()` just adds the
+attribute-facing half on top.
 
 A primitive/array/class-instance field behaves exactly as a plain `signal()`-backed one always did.
 A **plain-object** field instead becomes a tree of signals/computeds mirroring its shape - see
-["Complex-object properties"](#complex-object-properties) below.
+["Complex-object fields"](#complex-object-fields) below. This is true for both decorators.
 
 For implementation details, see [`design.md`](./design.md).
 
 ```ts
-import { tag, property, UIElement } from '../index.js';
+import { tag, state, attribute, UIElement } from '../index.js';
 
 @tag('user-badge')
 class UserBadge extends UIElement {
-	@property({ type: Number, reflect: true }) count = 0; // mirrors the `count` attribute both ways
-	@property() label = 'Guest'; // attribute -> property only (string, the default); JS writes don't reflect back
-	@property({ attribute: false }) internal = 'x'; // store-backed only, no attribute
+	@attribute({ type: Number, reflect: true }) count = 0; // mirrors the `count` attribute both ways
+	@attribute() label = 'Guest'; // attribute -> property only (string, the default); JS writes don't reflect back
+	@state() internal = 'x'; // store-backed only, no attribute at all
 
 	protected override template() {
 		return html`<span>${this.label}: ${this.count}</span>`;
@@ -41,17 +49,34 @@ el.setAttribute('count', '9'); // native attributeChangedCallback parses it back
 
 ## Requirements
 
-- The field can be plain (`@property() foo = 0;`) or an `accessor` field
-  (`@property() accessor foo = 0;`) - both work.
-- The class must also be decorated with `tag()` (see `../component.ts`). `tag()` reads the
-  `@property()` registrations made while the class body was evaluating and uses them to set
-  `observedAttributes` before calling `customElements.define()`.
+- The field can be plain (`@state() foo = 0;` / `@attribute() foo = 0;`) or an `accessor` field
+  (`@state() accessor foo = 0;` / `@attribute() accessor foo = 0;`) - both work.
+- For `@attribute()`, the class must also be decorated with `tag()` (see `../component.ts`). `tag()`
+  reads the `@attribute()` registrations made while the class body was evaluating and uses them to
+  set `observedAttributes` before calling `customElements.define()`. `@state()` fields never
+  register anything with `tag()` - they have no attribute concern.
 
-## `PropertyOptions`
+## `@state()`
+
+Takes no options - it's just "back this field with a reactive store":
+
+```ts
+@state() count = 0;
+@state() accessor label = 'x';
+@state() config = { theme: 'dark' }; // SignalTree-backed, see below
+```
+
+Use `@state()` for any field that should be reactive (readable inside `template()`/`effect()`,
+triggering re-renders) but has no business being an HTML attribute - internal UI state, derived
+working data, anything not meant to be set from markup.
+
+Stack `@state()` and `@attribute()` on the same field is allowed.
+
+## `AttributeOptions` (for `@attribute()`)
 
 | Option | Default | Effect |
 |---|---|---|
-| `attribute` | kebab-case of the field name | Attribute name to parse from. Pass `false` to disable attribute syncing entirely - the field is then a plain store-backed property, settable/readable in JS only. |
+| `name` | kebab-case of the field name | Attribute name to parse from/reflect to. This is what used to be `@property()`'s `attribute` option - there's no `false` case anymore: use `@state()` instead of `@attribute()` for a field that shouldn't touch an attribute at all. |
 | `type` | inferred from the field's initial value | Selects the *default* attribute <-> property converter (see below). Ignored if `converter` is given. |
 | `reflect` | `false` | Whether writing the property (from JS) also reflects back onto the attribute. When `false` (default, like `lit`), sync is attribute -> property only. |
 | `converter` | — | Fully custom `{ fromAttribute, toAttribute }` pair, overriding `type`'s default - see below. |
@@ -61,8 +86,8 @@ el.setAttribute('count', '9'); // native attributeChangedCallback parses it back
 `type` takes the constructor itself (`String`, `Number`, `Boolean`, `Object`, `Array`), matching
 `lit`'s convention - it's a hint selecting a default converter, not a runtime `typeof` check. If
 omitted (and no `converter` is given either), it's **inferred from the field's own initial value**
-(`inferPropertyType()` in `./converter.ts`) once that value is known, at first-instance
-construction time - so `@property() count = 0;` behaves exactly like `@property({ type: Number })
+(`inferAttributeType()` in `./converter.ts`) once that value is known, at first-instance
+construction time - so `@attribute() count = 0;` behaves exactly like `@attribute({ type: Number })
 count = 0;` without spelling `type` out:
 
 | Initial value | Inferred `type` |
@@ -90,7 +115,7 @@ For anything the five `type` defaults don't cover - a non-empty JSON fallback, a
 validated enum, etc. - pass your own `converter`, exactly like `lit`:
 
 ```ts
-@property({
+@attribute({
 	type: Object,
 	reflect: true, // also mirror JS writes back onto the attribute
 	converter: {
@@ -108,16 +133,16 @@ config = { theme: 'dark' };
 `type` is still worth passing alongside `converter` as a readability hint (it has no runtime effect
 once `converter` is given).
 
-## Complex-object properties
+## Complex-object fields
 
-A `@property()` field whose value is a plain object (`{ ... }`) is backed by a full
+A `@state()`/`@attribute()` field whose value is a plain object (`{ ... }`) is backed by a full
 [`SignalTree`](../signal/tree.md) instead of a single flat `signal()` - every leaf of the object gets
 its own independently-writable `Signal`, and reads flow through a `Computed` that only recomputes
 when a leaf actually touched by a write changes:
 
 ```ts
 class ConfigPanel extends UIElement {
-	@property({ attribute: false }) config = { theme: 'dark', limits: { max: 10 } };
+	@state() config = { theme: 'dark', limits: { max: 10 } };
 
 	protected override template() {
 		return html`<span>${this.config.theme} / ${this.config.limits.max}</span>`;
@@ -132,39 +157,39 @@ Writing the field always takes a **whole** replacement object (`this.config = {.
 complete (if leaf-by-leaf) merge, so sibling leaves whose value didn't change don't spuriously
 notify their own readers just because the field as a whole was reassigned.
 
-Pass `attribute: false` if a complex-object field shouldn't touch the DOM attribute at all, or
-`type: Object` (the default JSON converter - see above) if you do want it reflected to/from the
-attribute as JSON text:
+Use `@state()` if a complex-object field shouldn't touch the DOM attribute at all, or `@attribute()`
+with `type: Object` (the default JSON converter - see above) if you do want it reflected to/from
+the attribute as JSON text:
 
 ```ts
-@property({ type: Object, reflect: true }) config = { theme: 'dark' };
+@attribute({ type: Object, reflect: true }) config = { theme: 'dark' };
 ```
 
 ```html
 <config-panel config='{"theme":"light"}'></config-panel>
 ```
 
-## How the two directions work
+## How the two attribute directions work
 
 - **Attribute -> property**: `tag()` computes `ctor.observedAttributes` from every
-  `@property()`-registered attribute (own + inherited). The browser calls `UIElement`'s private
+  `@attribute()`-registered attribute (own + inherited). The browser calls `UIElement`'s private
   `attributeChangedCallback` natively whenever one of those attributes is set, changed, or removed -
   including once per attribute already present in static markup, right when the element upgrades,
   *before* `connectedCallback`. That callback parses the new text per `type`/`converter` and calls
   `.set()` on the field's backing store.
-- **Property -> attribute** (only for `@property({ reflect: true })` fields): in
-  `connectedCallback`, `UIElement` sets up one `effect()` per reflecting `@property()` that reads
-  the field's store and calls `setAttribute`/`removeAttribute` with the serialized value - run once
-  immediately (so the attribute reflects the current value right away) and again whenever the value
-  changes. These effects are disposed on disconnect, like the render effect.
+- **Property -> attribute** (only for `@attribute({ reflect: true })` fields): in
+  `connectedCallback`, `UIElement` sets up one `effect()` per reflecting `@attribute()` field that
+  reads the field's store and calls `setAttribute`/`removeAttribute` with the serialized value - run
+  once immediately (so the attribute reflects the current value right away) and again whenever the
+  value changes. These effects are disposed on disconnect, like the render effect.
 - **No infinite loop**: writing the same (re-serialized) text back via `setAttribute` inside the
   attribute -> property direction is harmless because the store only notifies when the value
   actually changes (`Object.is`) - so the property -> attribute effect simply doesn't re-run for a
   no-op write.
-- **Reads inside `template()`**: a `@property()` field's getter reads its store, so using
-  `this.someProp` inside `template()` (or any `this.effect()`) tracks it like any other signal -
-  the component re-renders when the property/attribute changes, same as reading any other signal
-  would.
+- **Reads inside `template()`**: a `@state()`/`@attribute()` field's getter reads its store, so
+  using `this.someField` inside `template()` (or any `this.effect()`) tracks it like any other
+  signal - the component re-renders when the field/attribute changes, same as reading any other
+  signal would.
 
 ## Related reading
 
