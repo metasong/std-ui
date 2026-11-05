@@ -43,16 +43,16 @@ connect — see "Consume side" below.
 
 ### Why a plain field decorator, not an accessor one
 
-`@consume()` only accepts `context.kind === 'field'` (throws otherwise) - there is no `accessor`
-branch. This isn't a technical limitation so much as there being nothing for it to *do*: an
-`accessor` decorator's whole point is to hand back a replacement `get`/`set` pair at
-decoration-time, but as established above, there is no real value to back that pair with until
-connect-time - so `connectedCallback` would have to redefine the property anyway, making the
-`accessor` keyword pure noise (plus the opposite of its usual purpose: a consumed field is never
-locally written at all - see "Read-only" below). A plain field needs no such pair; `connectedCallback`
-simply `Object.defineProperty`s over the field's own (otherwise-`undefined`) own property, the same
-mechanism `../field-store.ts` already uses for a plain (non-`accessor`) `@state()`/`@attribute()`
-field.
+`@consume()` only accepts `context.kind === 'field'` (throws otherwise) - same confinement
+`@state()`/`@attribute()` apply (see [`../design.md`](../design.md#plain-fields-only-addinitializer--objectdefineproperty)),
+but for an even more fundamental reason here: there's nothing for an `accessor` decorator to *do*.
+Its whole point is to hand back a replacement `get`/`set` pair at decoration-time, but as
+established above, there is no real value to back that pair with until connect-time - so
+`connectedCallback` would have to redefine the property anyway, making the `accessor` keyword pure
+noise (plus the opposite of its usual purpose: a consumed field is never locally written at all -
+see "Read-only" below). A plain field needs no such pair; `connectedCallback` simply
+`Object.defineProperty`s over the field's own (otherwise-`undefined`) own property, the same
+mechanism `../field-store.ts` already uses for a `@state()`/`@attribute()` field.
 
 ## The wire protocol: `ContextRequestEvent`
 
@@ -190,7 +190,7 @@ the original request.
 | Phase | What happens |
 |---|---|
 | Class eval | `@state({ contextKey })` registers a `ProvidedContextDef`; `@consume()` registers a `ConsumedContextDef`. Neither creates any storage by itself. |
-| Instance create | `@state()`'s own field/accessor wiring creates the provider field's store, exactly as it would with no `contextKey` at all. `@consume()` fields stay plain, unresolved own properties (`undefined`) until connect. |
+| Instance create | `@state()`'s own field wiring creates the provider field's store, exactly as it would with no `contextKey` at all. `@consume()` fields stay plain, unresolved own properties (`undefined`) until connect. |
 | `connectedCallback` | Provider listeners registered (before `connect()`); `connect()` runs; consumer requests dispatched and resolved synchronously (throws if unanswered); consumed fields redefined as reactive read-only accessors. |
 | Provider field write | Provider's own render/effects react, same as any `@state()` write; the context-serving `effect()` per past request also re-runs, flowing the new value into each consumer's own `signal()`. |
 | `disconnectedCallback` | All effects (render, attribute-reflection, context-serving) disposed; provider's `context-request` listeners removed. |
@@ -200,6 +200,6 @@ the original request.
 - [`README.md`](./README.md) — public API and examples
 - [`key.ts`](./key.ts) / [`metadata.ts`](./metadata.ts) / [`request-event.ts`](./request-event.ts) / [`consume.decorator.ts`](./consume.decorator.ts) — implementation
 - [`../state/state.decorator.ts`](../state/state.decorator.ts) — the provide-side `contextKey` option
-- [`../design.md`](../design.md) — `@state()`/`@attribute()`'s own field/accessor mechanics, which `@state({ contextKey })` reuses unchanged
+- [`../design.md`](../design.md) — `@state()`/`@attribute()`'s own field mechanics, which `@state({ contextKey })` reuses unchanged
 - [`../../component.ts`](../../component.ts) — `connectedCallback`/`disconnectedCallback` wiring
 - [`consume.test.ts`](./consume.test.ts) — behavior tests (resolution, reactivity, missing provider, read-only, nearest-provider-wins)

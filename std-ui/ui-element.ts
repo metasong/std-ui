@@ -46,7 +46,7 @@ export abstract class UIElement extends HTMLElement {
 	/**
 	 * Resolves once any render/effect re-run currently pending (microtask-batched, see
 	 * `./signal/core/effect.ts`) has run - i.e. the DOM reflects every signal write made so far.
-	 * Used by `@queryAsync()` (`./decorators/query.decorator.ts`) so a query issued right after
+	 * Used by `@queryAsync()` (`./decorators/query/query-async.decorator.ts`) so a query issued right after
 	 * writing a signal sees the DOM that write produces, not the stale DOM from before it.
 	 */
 	public get updateComplete(): Promise<true> {

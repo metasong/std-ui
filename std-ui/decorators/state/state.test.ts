@@ -44,19 +44,14 @@ describe('@state()', () => {
 		el.remove();
 	});
 
-	it('works on an `accessor` field too', async () => {
-		@tag('state-accessor')
-		class Foo extends UIElement {
-			@state() accessor label = 'a';
-		}
-
-		const el = document.createElement('state-accessor') as Foo;
-		document.body.appendChild(el);
-		expect(el.label).toBe('a');
-
-		el.label = 'b';
-		expect(el.label).toBe('b');
-		el.remove();
+	it('throws when applied to an `accessor` field (plain fields only)', () => {
+		expect(() => {
+			class Foo extends UIElement {
+				// @ts-expect-error - intentionally decorating an `accessor` field to test the guard
+				@state() accessor label = 'a';
+			}
+			void Foo;
+		}).toThrow(/plain class field/);
 	});
 
 	it('backs a complex-object field with a SignalState, reading/writing the whole object', async () => {

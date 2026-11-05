@@ -67,8 +67,8 @@ per concern, except collision-proof.
 
 ## `@state({ contextKey })` (provide)
 
-Exactly `@state()` (see [`../README.md`](../README.md)) - same reactive store, same plain-field/
-`accessor` support, same complex-object (`SignalTree`) handling - plus registers the field so
+Exactly `@state()` (see [`../README.md`](../README.md)) - same reactive store, same plain-field-only
+mechanics, same complex-object (`SignalTree`) handling - plus registers the field so
 descendants can find it:
 
 ```ts

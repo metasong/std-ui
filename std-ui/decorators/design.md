@@ -8,12 +8,12 @@ see [`README.md`](./README.md).
 
 | File | Owns |
 |---|---|
-| [`field-store.ts`](./field-store.ts) | `applyFieldStore()` — the shared accessor/plain-field decorator mechanics (store-backed `get`/`set`/`init`) that both `@state()` and `@attribute()` delegate to. This is the one piece of logic they share, so neither re-implements it. |
+| [`field-store.ts`](./field-store.ts) | `applyFieldStore()` — the shared plain-field decorator mechanics (store-backed `get`/`set` via `addInitializer`/`Object.defineProperty`) that both `@state()` and `@attribute()` delegate to. This is the one piece of logic they share, so neither re-implements it. |
 | [`store.ts`](./store.ts) | `createStore` — picks the reactive store (`SignalTree`) backing a field's value. |
 | [`state/state.decorator.ts`](./state/state.decorator.ts) | The `@state()` decorator itself — just wires a field to `applyFieldStore()`, no attribute concern at all. |
 | [`attribute/converter.ts`](./attribute/converter.ts) | `AttributeType`/`AttributeConverter` types, the five default converters (`String`/`Number`/`Boolean`/`Object`/`Array`), `resolveConverter`, `parseAttribute`/`serializeAttribute`, `toAttributeName`. Only `@attribute()` uses this. |
 | [`attribute/metadata.ts`](./attribute/metadata.ts) | `AttributeDef`, registering defs into `context.metadata`, `getAttributeDefs`, `defineObservedAttributes`. Only `@attribute()` fields register here. |
-| [`attribute/attribute.decorator.ts`](./attribute/attribute.decorator.ts) | The `@attribute()` decorator and `AttributeOptions` — resolves `converter`/`type`, registers the `AttributeDef`, then delegates the actual field/accessor wiring to `field-store.ts`'s `applyFieldStore()` (the same function `@state()` calls), passing a hook that resolves the type-inferred converter once the initial value is known. |
+| [`attribute/attribute.decorator.ts`](./attribute/attribute.decorator.ts) | The `@attribute()` decorator and `AttributeOptions` — resolves `converter`/`type`, registers the `AttributeDef`, then delegates the actual field wiring to `field-store.ts`'s `applyFieldStore()` (the same function `@state()` calls), passing a hook that resolves the type-inferred converter once the initial value is known. |
 | [`index.ts`](./index.ts) | Public re-exports. |
 | [`state/state.test.ts`](./state/state.test.ts) / [`attribute/attribute.test.ts`](./attribute/attribute.test.ts) | Behavior tests, through `UIElement`/`tag()`. |
 
@@ -30,14 +30,14 @@ on the `AttributeDef` — so per-instance code never re-derives it from `type`.
 ## Why `@attribute()` is built on top of `@state()`, not a copy of it
 
 `@attribute()` is "everything `@state()` does, plus attribute registration/sync" - every field it
-decorates is store-backed exactly the way a `@state()` field is, with the same accessor/plain-field
+decorates is store-backed exactly the way a `@state()` field is, with the same field-decorator
 mechanics, the same complex-object (`SignalTree`) handling, the same `undefined`-write no-op
 convention. Rather than duplicating that logic in both decorators (and risking them drifting apart),
 `field-store.ts` extracts it into one function, `applyFieldStore()`, parameterized by an optional
 `onInitialValue(initial)` hook:
 
-- `state()` calls `applyFieldStore(target, context)` - no hook, nothing attribute-related.
-- `attribute()` calls `applyFieldStore(target, context, resolveInferredConverter)` - same wiring,
+- `state()` calls `applyFieldStore(context)` - no hook, nothing attribute-related.
+- `attribute()` calls `applyFieldStore(context, resolveInferredConverter)` - same wiring,
   plus a hook that resolves the type-inferred converter (see below) once the field's initial value
   is known, and (before calling `applyFieldStore()` at all) registers an `AttributeDef` so `tag()`/
   `UIElement` know this field has an attribute to sync.
@@ -46,31 +46,14 @@ So the "field becomes reactive" concern lives in exactly one place, and `attribu
 what's actually new: `AttributeOptions` handling, converter resolution, and `AttributeDef`
 registration.
 
-Stacking `@state()` and `@attribute()` on one field isn't an error
-## Two field shapes: `accessor` and plain
+## Plain fields only: `addInitializer` + `Object.defineProperty`
 
-Both decorators support an `accessor` field and a plain field. They end up equivalent
-(`this.count` always resolves through the store), but get there by different decorator mechanics,
-because the stage-3 decorators spec gives `accessor` and plain-field decorators different
-capabilities. This is all handled once, in `field-store.ts`'s `applyFieldStore()`.
-
-### `accessor` fields: a class accessor decorator
-
-For `accessor count = 0`, the decorator runs as a **class accessor decorator**: it returns a
-replacement `get`/`set` pair that delegate to a per-instance store, instead of storing the value on
-the instance directly. The field initializer still runs once per instance; the decorator's
-`init(value)` hook wraps that initializer's value, returning `createStore(value)` instead of the
-raw value — that store, not the raw value, is what actually gets stored in the field's private
-accessor slot. `get`/`set` then read/write *through* the store rather than returning/replacing it.
-
-### Plain fields: `addInitializer` + `Object.defineProperty`
-
-For `count = 0` (no `accessor`), the decorator runs as a **class field decorator**, which has a
-narrower contract: it may only supply a replacement initializer function or register an
-`addInitializer` callback — it has no way to return a `get`/`set` pair, because a plain field has
-no such slot to replace.
-
-So `applyFieldStore()` leans on field initializer semantics plus `addInitializer` timing instead:
+Both decorators only accept a **plain** field (`count = 0`, no `accessor`) - they throw if applied
+to an `accessor` field. A plain field decorator (`context.kind === 'field'`) has a narrower
+contract than an accessor decorator: it may only supply a replacement initializer function or
+register an `addInitializer` callback - it has no way to return a `get`/`set` pair, because a plain
+field has no such slot to replace. So `applyFieldStore()` leans on field initializer semantics plus
+`addInitializer` timing instead:
 
 1. It leaves the field's own initializer untouched, so `this.count = 0` runs exactly like it would
    with no decorator at all — an ordinary own data property.
@@ -80,28 +63,34 @@ So `applyFieldStore()` leans on field initializer semantics plus `addInitializer
    `Object.defineProperty(this, key, { get, set })` — redefining the very same own property with an
    accessor backed by the store, before the constructor can run any later code.
 
-A plain field can't delegate through a prototype `get`/`set` the way an `accessor` field can: class
-field initializers always use `[[DefineOwnProperty]]` ("define" semantics) directly onto the
-instance, never `[[Set]]`, regardless of what's on the prototype chain — so an accessor installed
-once on the prototype (e.g. from `tag()`) would simply be shadowed by every instance's own
-field initializer. Redefining the *instance's own* property, per instance, right after that
-instance's data property was created, avoids this entirely.
+A plain field can't delegate through a prototype `get`/`set`: class field initializers always use
+`[[DefineOwnProperty]]` ("define" semantics) directly onto the instance, bypassing any
+inherited/decorator-installed accessor — so an accessor installed once on the prototype (e.g. from
+`tag()`) would simply be shadowed by every instance's own field initializer. Redefining the
+*instance's own* property, per instance, right after that instance's data property was created,
+avoids this entirely. (An `accessor` field *would* sidestep this - it has its own private storage
+slot a decorator can return a replacement `get`/`set` for directly - but `@state()`/`@attribute()`
+don't support it; see [`README.md`](./README.md#plain-fields-only) for why.)
+
+This does mean the decorated field needs *some* initializer (`tsconfig.json` sets
+`useDefineForClassFields: true` precisely so this isn't the gotcha it would otherwise be for a
+field with *no* initializer at all - see that file's comment) - moot for `@state()`/`@attribute()`
+regardless, since their whole point is giving the field a real starting value.
 
 ## Where the store lives (no side table)
 
 Per-instance state (the store itself) is not kept in a module-level `WeakMap`/`Map`, and not stored
-as a separate public property. For an `accessor` field, it lives in the private storage slot the
-`accessor` keyword already allocates per field per instance. For a plain field, it's closed over by
-the `get`/`set` pair `Object.defineProperty` installs on that instance's own property. Either way,
-code outside this folder — `UIElement`'s `attributeChangedCallback` and its reflection `effect()` —
-just reads/writes the property the normal way (`this[def.key]`), exactly like any other caller; the
-decorator's `get`/`set` does the store dereference internally, including **tracking**: reading
-`this[def.key]` from inside an `effect()` tracks the field's store transparently.
+as a separate public property - it's closed over by the `get`/`set` pair `Object.defineProperty`
+installs on that instance's own property. Code outside this folder — `UIElement`'s
+`attributeChangedCallback` and its reflection `effect()` — just reads/writes the property the
+normal way (`this[def.key]`), exactly like any other caller; the decorator's `get`/`set` does the
+store dereference internally, including **tracking**: reading `this[def.key]` from inside an
+`effect()` tracks the field's store transparently.
 
 `attributeChangedCallback` and the reflection effect can safely assume the store already exists
 whenever they run (even for attributes present at upgrade, before `connectedCallback`): a custom
-element's constructor — including every field's `init()`/`addInitializer` — always finishes running
-before any lifecycle callback can fire.
+element's constructor — including every field's `addInitializer` — always finishes running before
+any lifecycle callback can fire.
 
 ## Registering defs: `context.metadata` and `tag()`
 
@@ -122,8 +111,8 @@ When **`@tag(tag)`** runs (see `../component.ts`):
 `customElements.define` reads `observedAttributes` once, at definition time — so step 2 must
 complete before define.
 
-`@state()` fields never write to `context.metadata`; they still get a store and accessor wrapping,
-but never appear in `observedAttributes` or reflection effects. `@attribute()` fields with
+`@state()` fields never write to `context.metadata`; they still get a store and accessor wrapping
+around the field itself, but never appear in `observedAttributes` or reflection effects. `@attribute()` fields with
 `reflect` left at its default (`false`) do get a def entry (so `attributeChangedCallback` still
 parses the attribute into them), but `connectedCallback` skips the reflection `effect()` for them.
 
@@ -196,7 +185,7 @@ that merged list. A single `attributeChangedCallback` on `UIElement` handles eve
 | Phase | What happens |
 |---|---|
 | Class eval | `@attribute()` defs registered; `observedAttributes` set; custom element defined. `@state()` fields register nothing. |
-| Instance create | Field initializers + `addInitializer`/`init` (via `applyFieldStore()`) create stores from initial values, for both `@state()` and `@attribute()` fields |
+| Instance create | Field initializers + `addInitializer` (via `applyFieldStore()`) create stores from initial values, for both `@state()` and `@attribute()` fields |
 | Upgrade / attr set (pre-connect) | `attributeChangedCallback` may update `@attribute()` fields' stores from markup |
 | `connectedCallback` | Reflection effects registered for `@attribute({ reflect: true })` fields only; their attributes synced to current values |
 | Store write | Notify subscribers; reflection (for `@attribute()`) + render effects as applicable |
@@ -206,6 +195,6 @@ that merged list. A single `attributeChangedCallback` on `UIElement` handles eve
 
 - [`README.md`](./README.md) — public API and examples
 - [`field-store.ts`](./field-store.ts) / [`state/state.decorator.ts`](./state/state.decorator.ts) / [`attribute/attribute.decorator.ts`](./attribute/attribute.decorator.ts) / [`attribute/converter.ts`](./attribute/converter.ts) / [`attribute/metadata.ts`](./attribute/metadata.ts) / [`store.ts`](./store.ts) — implementation
-- [`./context/design.md`](./context/design.md) — `@state({ contextKey })` / `@consume()`, built on top of `@state()`'s field/accessor wiring described here
+- [`./context/design.md`](./context/design.md) — `@state({ contextKey })` / `@consume()`, built on top of `@state()`'s field wiring described here
 - [`../component.ts`](../component.ts) — `tag()`, `connectedCallback`, `attributeChangedCallback`
 - [`state/state.test.ts`](./state/state.test.ts) / [`attribute/attribute.test.ts`](./attribute/attribute.test.ts) — behavior tests (upgrade seeding, booleans, store-only fields)

@@ -8,14 +8,13 @@
 //   store set from anywhere in JS     --(effect in UIElement.connectedCallback)-->  setAttribute(serialized)
 //
 // `@attribute()` is deliberately "everything `@state()` does, plus attribute registration/sync" -
-// it reuses `../field-store.ts`'s exact accessor/plain-field wiring (the same function `@state()`
-// calls) instead of duplicating it, and layers `./converter.ts` (attribute<->value conversion) and
-// `./metadata.ts` (attribute registration/lookup) on top. `../component.ts` wires the two
-// native-facing halves (attribute -> property, property -> attribute) using `./metadata.ts` and
-// `./converter.ts`.
+// it reuses `../field-store.ts`'s exact field wiring (the same function `@state()` calls) instead
+// of duplicating it, and layers `./converter.ts` (attribute<->value conversion) and `./metadata.ts`
+// (attribute registration/lookup) on top. `../component.ts` wires the two native-facing halves
+// (attribute -> property, property -> attribute) using `./metadata.ts` and `./converter.ts`.
 
 import { type AttributeConverter, type AttributeType, inferAttributeType, resolveConverter, toAttributeName } from './converter.js';
-import { applyFieldStore, type FieldDecoratorResult } from '../field-store.js';
+import { applyFieldStore } from '../field-store.js';
 import { type AttributeDef, registerAttributeDef } from './metadata.js';
 
 export interface AttributeOptions<V = unknown> {
@@ -89,30 +88,12 @@ export interface AttributeOptions<V = unknown> {
  * }
  * ```
  *
- * See `../field-store.ts` for the accessor/plain-field mechanics this delegates to, and
- * `./design.md` for the full picture.
+ * Plain field only (no `accessor`) - see `../field-store.ts` for why.
  */
 export function attribute<T, V>(options: AttributeOptions<V> = {}) {
-	// Overloaded so each call site is checked against the one shape that matches how it's used -
-	// `@attribute() foo = 0` (plain field) vs. `@attribute() accessor foo = 0` (auto-accessor) -
-	// rather than TS trying to reconcile both possible return shapes against a single usage every
-	// time.
-	function attributeDecorator(
-		value: undefined,
-		context: ClassFieldDecoratorContext<T, V>,
-	): ((this: T, value: V) => V) | void;
-	function attributeDecorator(
-		value: ClassAccessorDecoratorTarget<T, V>,
-		context: ClassAccessorDecoratorContext<T, V>,
-	): ClassAccessorDecoratorResult<T, V>;
-	function attributeDecorator(
-		target: ClassAccessorDecoratorTarget<T, V> | undefined,
-		context: ClassAccessorDecoratorContext<T, V> | ClassFieldDecoratorContext<T, V>,
-	): FieldDecoratorResult<T, V> {
-		if (context.kind !== 'accessor' && context.kind !== 'field') {
-			throw new Error(
-				"@attribute() can only decorate class fields (plain or 'accessor'), e.g. `@attribute() foo = 0;`",
-			);
+	return function attributeDecorator(_value: undefined, context: ClassFieldDecoratorContext<T, V>): void {
+		if (context.kind !== 'field') {
+			throw new Error("@attribute() can only decorate a plain class field, e.g. `@attribute() foo = 0;` (no 'accessor').");
 		}
 
 		const key = context.name;
@@ -143,8 +124,6 @@ export function attribute<T, V>(options: AttributeOptions<V> = {}) {
 		// runs or is a no-op (see `applyFieldStore()`'s stacking note in `../field-store.ts`) - the
 		// attribute still needs to parse/reflect through whichever store ends up backing the field.
 		registerAttributeDef(context.metadata as object, def);
-		return applyFieldStore(target, context, resolveInferredConverter);
-	}
-
-	return attributeDecorator;
+		applyFieldStore(context, resolveInferredConverter);
+	};
 }

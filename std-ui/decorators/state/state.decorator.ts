@@ -7,11 +7,11 @@
 //
 // This is the "just a reactive field" half of what used to be `@property()`'s combined behavior -
 // for the attribute-syncing half, see `@attribute()` in `../attribute/attribute.decorator.ts`, which reuses this exact
-// field/accessor wiring (via `../field-store.ts`) and layers attribute registration/sync on top.
+// field wiring (via `../field-store.ts`) and layers attribute registration/sync on top.
 
 import type { ContextKey } from '../context/key.js';
 import { registerProvidedContextDef } from '../context/metadata.js';
-import { applyFieldStore, type FieldDecoratorResult } from '../field-store.js';
+import { applyFieldStore } from '../field-store.js';
 
 export interface StateOptions<V = unknown> {
 	/**
@@ -32,16 +32,13 @@ export interface StateOptions<V = unknown> {
  * ```ts
  * class MyPanel extends UIElement {
  *   @state() count = 0; // plain store-backed property
- *   @state() accessor label = 'x'; // `accessor` fields work too
  *   @state() config = { a: 1, b: { c: 2 } }; // plain-object value -> `SignalState`-backed (see
  *     // `./store.ts`): each leaf is independently writable/reactive, and writing
  *     // `this.config = { ...this.config, a: 2 }` only notifies readers of the `a` leaf.
  * }
  * ```
  *
- * Works for both a plain field (`@state() foo = 0;`) and an `accessor` field
- * (`@state() accessor foo = 0;`) - see `../field-store.ts` for why they need different decorator
- * mechanics to end up equivalent.
+ * Plain field only (no `accessor`) - see `../field-store.ts` for why.
  *
  * Pass `{ contextKey }` to additionally expose this field to descendants via `@consume()` - see
  * `StateOptions` and `./consume.decorator.ts`:
@@ -51,23 +48,9 @@ export interface StateOptions<V = unknown> {
  * ```
  */
 export function state<T, V>(options: StateOptions<V> = {}) {
-	// Overloaded so each call site is checked against the one shape that matches how it's used -
-	// `@state() foo = 0` (plain field) vs. `@state() accessor foo = 0` (auto-accessor) - rather than
-	// TS trying to reconcile both possible return shapes against a single usage every time.
-	function stateDecorator(
-		value: undefined,
-		context: ClassFieldDecoratorContext<T, V>,
-	): ((this: T, value: V) => V) | void;
-	function stateDecorator(
-		value: ClassAccessorDecoratorTarget<T, V>,
-		context: ClassAccessorDecoratorContext<T, V>,
-	): ClassAccessorDecoratorResult<T, V>;
-	function stateDecorator(
-		target: ClassAccessorDecoratorTarget<T, V> | undefined,
-		context: ClassAccessorDecoratorContext<T, V> | ClassFieldDecoratorContext<T, V>,
-	): FieldDecoratorResult<T, V> {
-		if (context.kind !== 'accessor' && context.kind !== 'field') {
-			throw new Error("@state() can only decorate class fields (plain or 'accessor'), e.g. `@state() foo = 0;`");
+	return function stateDecorator(_value: undefined, context: ClassFieldDecoratorContext<T, V>): void {
+		if (context.kind !== 'field') {
+			throw new Error("@state() can only decorate a plain class field, e.g. `@state() foo = 0;` (no 'accessor').");
 		}
 		if (options.contextKey) {
 			registerProvidedContextDef(context.metadata as object, {
@@ -75,8 +58,6 @@ export function state<T, V>(options: StateOptions<V> = {}) {
 				contextKey: options.contextKey as ContextKey<unknown>,
 			});
 		}
-		return applyFieldStore(target, context);
-	}
-
-	return stateDecorator;
+		applyFieldStore(context);
+	};
 }

@@ -10,7 +10,7 @@ a reactive store (a `SignalTree`, see [`../signal/tree.md`](../signal/tree.md)):
   attribute -> property only; the opposite direction (property -> attribute) is opt-in via
   `reflect: true`, matching `lit`.
 
-`@attribute()` is built on top of `@state()`'s own field/accessor wiring (see
+`@attribute()` is built on top of `@state()`'s own field wiring (see
 [`design.md`](./design.md)) rather than duplicating it - so the two decorators always agree on how
 a plain-value field vs. a complex-object field behaves; `@attribute()` just adds the
 attribute-facing half on top.
@@ -49,8 +49,9 @@ el.setAttribute('count', '9'); // native attributeChangedCallback parses it back
 
 ## Requirements
 
-- The field can be plain (`@state() foo = 0;` / `@attribute() foo = 0;`) or an `accessor` field
-  (`@state() accessor foo = 0;` / `@attribute() accessor foo = 0;`) - both work.
+- Plain fields only (`@state() foo = 0;` / `@attribute() foo = 0;`) - no `accessor`. Both
+  decorators throw if applied to an `accessor` field; see ["Plain fields
+  only"](#plain-fields-only) below for why.
 - For `@attribute()`, the class must also be decorated with `tag()` (see `../component.ts`). `tag()`
   reads the `@attribute()` registrations made while the class body was evaluating and uses them to
   set `observedAttributes` before calling `customElements.define()`. `@state()` fields never
@@ -62,7 +63,6 @@ Takes no options - it's just "back this field with a reactive store":
 
 ```ts
 @state() count = 0;
-@state() accessor label = 'x';
 @state() config = { theme: 'dark' }; // SignalTree-backed, see below
 ```
 
@@ -193,6 +193,18 @@ the attribute as JSON text:
   using `this.someField` inside `template()` (or any `this.effect()`) tracks it like any other
   signal - the component re-renders when the field/attribute changes, same as reading any other
   signal would.
+
+## Plain fields only
+
+`@state()`/`@attribute()` only accept a plain field (`count = 0`), not an `accessor` field
+(`accessor count = 0`) - the decorator throws otherwise. An earlier version supported both (an
+`accessor` field can hand a decorator a `get`/`set` pair directly, which is arguably the more
+"proper" stage-3 mechanism), but nothing in this codebase actually used it, and supporting it meant
+`field-store.ts` carried two parallel implementations of the same "field becomes a store-backed
+property" behavior for one API. Confining to plain fields cut that duplication; see
+[`design.md`](./design.md#plain-fields-only-addinitializer--objectdefineproperty) for the mechanics
+this relies on instead (and why a plain field needs *some* initializer, which `@state()`/
+`@attribute()` always give it anyway).
 
 ## Related reading
 
