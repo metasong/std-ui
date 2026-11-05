@@ -9,7 +9,7 @@ export {
 } from './ui-element.js';
 export { html, svg, render, unsafeHTML, type TemplateResult } from './template/index.js';
 export {
-	buildSignalTree,
+	signalState,
 	computed,
 	effect,
 	subtle,

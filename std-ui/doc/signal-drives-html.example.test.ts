@@ -4,13 +4,13 @@
  */
 import { describe, expect, it, vi } from 'vitest';
 import { tag, UIElement } from '../ui-element.js';
-import { buildSignalTree, computed, effect } from '../signal/index.js';
+import { signalState, computed, effect } from '../signal/index.js';
 import { html } from '../template/html.js';
 import { render } from '../template/render.js';
 
 describe('doc: signals drive html render', () => {
 	it('Pattern A — effect + render patches DOM in place when signals change', async () => {
-		const count = buildSignalTree(0);
+		const count = signalState(0);
 		const label = computed(() => (count() === 1 ? 'click' : 'clicks'));
 		const container = document.createElement('div');
 
@@ -51,7 +51,7 @@ describe('doc: signals drive html render', () => {
 
 	it('Pattern B — UIElement\'s template() reads signals directly, drives html render, @click, and firstRendered', async () => {
 		type DemoState = { counter: { value: number; max: number } };
-		const shared = buildSignalTree<DemoState>({
+		const shared = signalState<DemoState>({
 			counter: { value: 0, max: 10 },
 		});
 
@@ -106,7 +106,7 @@ describe('doc: signals drive html render', () => {
 
 	it('Pattern C — firstRendered registers effect() to patch a static .badge node', async () => {
 		type ShellState = { title: string; unreadCount: number };
-		const shared = buildSignalTree<ShellState>({
+		const shared = signalState<ShellState>({
 			title: 'Inbox',
 			unreadCount: 0,
 		});

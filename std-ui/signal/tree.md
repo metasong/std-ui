@@ -5,9 +5,9 @@ every nested object becomes a `computed()` that reassembles its children, and ea
 exposed as a same-named property so you can navigate/write the tree like the original object.
 
 ```ts
-import { buildSignalTree, effect } from '../index.js';
+import { signalState, effect } from '../index.js';
 
-const a = buildSignalTree({ b: { c: { d: 1 } } });
+const a = signalState({ b: { c: { d: 1 } } });
 
 // Conceptual shape after build:
 // a.b.c.d  — Signal<number>
@@ -32,7 +32,7 @@ a.b.c.d.set(2); // d notifies -> c dirty -> b dirty -> a dirty -> effect re-runs
 
 ## API
 
-### `buildSignalTree(value)`
+### `signalState(value)`
 
 Converts a value into its `SignalState`. Call the result (or any sub-node) like a function to read
 it reactively (tracks as a dependency, like `computed()`/`signal()` reads). Reach into leaves to
@@ -83,7 +83,7 @@ a.b.c.update((prev) => ({ d: prev.d + 1 })); // branch: partial update
 
 ## Notes / gotchas
 
-- Tree shape is fixed at `buildSignalTree()` time — you can't add/remove keys later (it mirrors
+- Tree shape is fixed at `signalState()` time — you can't add/remove keys later (it mirrors
   the object's *structure*, not its contents).
 - Branch nodes are read-only as a whole (`Computed` reads); update them with `.set(partial)` or write
   individual leaves (`a.b.c.d.set(...)`).

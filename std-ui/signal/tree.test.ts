@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { effect } from './core/index.js';
-import { buildSignalTree } from './tree.js';
+import { signalState } from './tree.js';
 
 interface State {
 	count: number;
@@ -15,27 +15,27 @@ function makeState(): State {
 	return { count: 0, user: { label: 'Ada', age: 30 }, tags: ['a', 'b'] };
 }
 
-describe('buildSignalTree', () => {
+describe('signalState', () => {
 	it('mirrors a plain object: reading the root reassembles every leaf', () => {
-		const tree = buildSignalTree(makeState());
+		const tree = signalState(makeState());
 		expect(tree()).toEqual(makeState());
 	});
 
 	it('exposes each branch/leaf as a same-named property', () => {
-		const tree = buildSignalTree(makeState());
+		const tree = signalState(makeState());
 		expect(tree.count()).toBe(0);
 		expect(tree.user()).toEqual({ label: 'Ada', age: 30 });
 		expect(tree.user.label()).toBe('Ada');
 	});
 
 	it('treats arrays as leaves, not branches', () => {
-		const tree = buildSignalTree(makeState());
+		const tree = signalState(makeState());
 		expect(tree.tags()).toEqual(['a', 'b']);
 		expect(typeof tree.tags.set).toBe('function');
 	});
 
 	it('replaces an array leaf wholesale via .set() on the leaf or root .set({ tags })', () => {
-		const tree = buildSignalTree(makeState());
+		const tree = signalState(makeState());
 		tree.tags.set(['x']);
 		expect(tree.tags()).toEqual(['x']);
 		expect(tree()).toEqual({ ...makeState(), tags: ['x'] });
@@ -45,7 +45,7 @@ describe('buildSignalTree', () => {
 	});
 
 	it('a leaf .set() is reflected when reading its ancestor branches', () => {
-		const tree = buildSignalTree(makeState());
+		const tree = signalState(makeState());
 		tree.user.label.set('Grace');
 		expect(tree.user.label()).toBe('Grace');
 		expect(tree.user()).toEqual({ label: 'Grace', age: 30 });
@@ -53,7 +53,7 @@ describe('buildSignalTree', () => {
 	});
 
 	it('peek() snapshots the current value without tracking it as a dependency', async () => {
-		const tree = buildSignalTree(makeState());
+		const tree = signalState(makeState());
 		expect(tree.peek()).toEqual(makeState());
 
 		let runs = 0;
@@ -70,7 +70,7 @@ describe('buildSignalTree', () => {
 	});
 
 	it('peek() on the root is untracked inside an effect', async () => {
-		const tree = buildSignalTree(makeState());
+		const tree = signalState(makeState());
 		let runs = 0;
 		effect(() => {
 			tree.peek();
@@ -85,26 +85,26 @@ describe('buildSignalTree', () => {
 	});
 
 	it('set() on a branch writes only the provided leaves, leaving others untouched', () => {
-		const tree = buildSignalTree(makeState());
+		const tree = signalState(makeState());
 		tree.user.set({ label: 'Grace' });
 		expect(tree.user()).toEqual({ label: 'Grace', age: 30 });
 	});
 
 	it('set() on the root recurses into nested branches', () => {
-		const tree = buildSignalTree(makeState());
+		const tree = signalState(makeState());
 		tree.set({ count: 5, user: { age: 31 } });
 		expect(tree()).toEqual({ count: 5, user: { label: 'Ada', age: 31 }, tags: ['a', 'b'] });
 	});
 
 	it('set() skips keys whose value is undefined', () => {
-		const tree = buildSignalTree(makeState());
+		const tree = signalState(makeState());
 		tree.set({ count: undefined, user: { label: 'Grace' } });
 		expect(tree.count()).toBe(0);
 		expect(tree.user.label()).toBe('Grace');
 	});
 
 	it('setting one branch only notifies effects that read that branch', async () => {
-		const tree = buildSignalTree(makeState());
+		const tree = signalState(makeState());
 		let userRuns = 0;
 		let countRuns = 0;
 		effect(() => { tree.user(); userRuns++; });
@@ -118,7 +118,7 @@ describe('buildSignalTree', () => {
 	});
 
 	it('branch .set() only notifies effects that read that branch', async () => {
-		const tree = buildSignalTree(makeState());
+		const tree = signalState(makeState());
 		let userRuns = 0;
 		let countRuns = 0;
 		effect(() => { tree.user(); userRuns++; });
@@ -132,7 +132,7 @@ describe('buildSignalTree', () => {
 	});
 
 	it('an effect on the root re-runs when a nested leaf changes', async () => {
-		const tree = buildSignalTree(makeState());
+		const tree = signalState(makeState());
 		let rootRuns = 0;
 		effect(() => {
 			tree();
@@ -148,7 +148,7 @@ describe('buildSignalTree', () => {
 	});
 
 	it('branch .set() with an empty partial is a no-op for subscribers', async () => {
-		const tree = buildSignalTree(makeState());
+		const tree = signalState(makeState());
 		let userRuns = 0;
 		effect(() => { tree.user(); userRuns++; });
 		await flush();
@@ -158,16 +158,16 @@ describe('buildSignalTree', () => {
 		expect(userRuns).toBe(1);
 	});
 
-	it('buildSignalTree on a plain object with a null prototype is still a branch', () => {
+	it('signalState on a plain object with a null prototype is still a branch', () => {
 		const value = Object.assign(Object.create(null), { n: 1 }) as { n: number };
-		const tree = buildSignalTree(value);
+		const tree = signalState(value);
 		expect(tree.n()).toBe(1);
 		tree.n.set(2);
 		expect(tree()).toEqual({ n: 2 });
 	});
 
-	it('buildSignalTree on a non-object root is a single leaf signal tree', () => {
-		const tree = buildSignalTree(42);
+	it('signalState on a non-object root is a single leaf signal tree', () => {
+		const tree = signalState(42);
 		expect(tree()).toBe(42);
 		expect(tree.peek()).toBe(42);
 		tree.set(7);

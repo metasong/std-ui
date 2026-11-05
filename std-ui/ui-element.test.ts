@@ -1,6 +1,6 @@
 import { describe, expect, it, vi } from 'vitest';
 import { tag, UIElement } from './ui-element.js';
-import { buildSignalTree } from './signal/tree.js';
+import { signalState } from './signal/tree.js';
 import { html } from './template/html.js';
 
 interface State {
@@ -52,7 +52,7 @@ describe('UIElement', () => {
 	});
 
 	it('calls template() immediately on connect and again whenever a signal it reads changes', async () => {
-		const tree = buildSignalTree<State>({ count: 0 });
+		const tree = signalState<State>({ count: 0 });
 		const renderSpy = vi.fn();
 
 		@tag('el-template')
@@ -74,7 +74,7 @@ describe('UIElement', () => {
 	});
 
 	it('renders an html() result returned from template() into the element', () => {
-		const tree = buildSignalTree<State>({ count: 7 });
+		const tree = signalState<State>({ count: 7 });
 
 		@tag('el-html')
 		class Foo extends UIElement {
@@ -90,7 +90,7 @@ describe('UIElement', () => {
 	});
 
 	it('calls disconnect() and stops reacting to signals after disconnect', async () => {
-		const tree = buildSignalTree<State>({ count: 0 });
+		const tree = signalState<State>({ count: 0 });
 		const renderSpy = vi.fn();
 		const disconnect = vi.fn();
 
@@ -114,7 +114,7 @@ describe('UIElement', () => {
 	});
 
 	it('disposes effect()-registered reactions on disconnect', async () => {
-		const tree = buildSignalTree<State>({ count: 0 });
+		const tree = signalState<State>({ count: 0 });
 		const effectSpy = vi.fn();
 
 		@tag('el-effect')

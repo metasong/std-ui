@@ -12,7 +12,7 @@ export {
 } from './core/index.js';
 
 export {
-	buildSignalTree,
+	signalState,
 	type DeepPartial,
 	type SignalState,
 } from './tree.js';

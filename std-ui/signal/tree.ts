@@ -2,7 +2,7 @@
 // independently-writable `Signal` and every branch is a `Computed` that reassembles its children
 // into a plain object. Reading/writing follows normal property access:
 //
-//   const a = buildSignalTree({ b: { c: { d: 1 } } });
+//   const a = signalState({ b: { c: { d: 1 } } });
 //   effect(() => console.log(a()));  // logs { b: { c: { d: 1 } } }
 //   a.b.c.d.set(2);                  // d notifies -> c dirty -> b dirty -> a dirty -> effect re-runs
 //
@@ -77,7 +77,7 @@ export type SignalState<T> = SignalTreeNode<T> &
  * `signalOptions` is forwarded to every leaf `signal()` created in the tree (e.g. to customize
  * `equals`); it has no effect on branches, which are always `computed()`.
  */
-export function buildSignalTree<T>(value: T, signalOptions?: SignalOptions<T>): SignalState<T> {
+export function signalState<T>(value: T, signalOptions?: SignalOptions<T>): SignalState<T> {
 	if (!isPlainObject(value)) {
 		// `Signal<T>` already provides `()`, `peek`, `set`, and `update` matching `SignalTreeNode<T>`
 		// (for leaves, `DeepPartial<T>` is just `T`, and there are no children to leak through).
@@ -86,7 +86,7 @@ export function buildSignalTree<T>(value: T, signalOptions?: SignalOptions<T>): 
 
 	const children: Record<string, SignalState<unknown>> = {};
 	for (const key of Object.keys(value)) {
-		children[key] = buildSignalTree(
+		children[key] = signalState(
 			(value as PlainObject)[key],
 			signalOptions as SignalOptions<unknown> | undefined,
 		);

@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { state, tag, UIElement } from '../ui-element.js';
-import { buildSignalTree } from '../signal/tree.js';
+import { signalState } from '../signal/tree.js';
 import { html } from '../template/html.js';
 
 interface ParentState {
@@ -24,7 +24,7 @@ describe('template `.prop` bindings with @state()', () => {
 
 		@tag('bind-panel')
 		class Panel extends UIElement {
-			readonly tree = buildSignalTree<ParentState>({ count: 3 });
+			readonly tree = signalState<ParentState>({ count: 3 });
 
 			protected override template() {
 				return html`<bind-child .count="${this.tree.count()}"></bind-child>`;

@@ -2,7 +2,7 @@
 
 std-ui pairs two ideas that stay useful on their own but work especially well together:
 
-1. **Signals** — fine-grained reactivity (`buildSignalTree`, `computed`, `effect`, or app-shaped state like `appState`).
+1. **Signals** — fine-grained reactivity (`signalState`, `computed`, `effect`, or app-shaped state like `appState`).
 2. **`html` + `render`** — lit-html-style tagged templates that patch the DOM in place instead of rebuilding it.
 
 Wiring them up gives you declarative UI that updates surgically: when state changes, only the DOM nodes and attributes whose bound values actually changed are touched. No virtual DOM, no full `innerHTML` refresh on every tick.
@@ -24,9 +24,9 @@ The fireworks app uses this throughout `src/ui/components/` — e.g. `pause-butt
 Use this for a widget, panel, or one-off view that is not a custom element. The effect is the "render loop": read signals, build a template result, pass it to `render`.
 
 ```ts
-import { buildSignalTree, computed, effect, html, render } from '../index.js';
+import { signalState, computed, effect, html, render } from '../index.js';
 
-const count = buildSignalTree(0);
+const count = signalState(0);
 const label = computed(() => (count() === 1 ? 'click' : 'clicks'));
 
 const container = document.getElementById('app')!;
@@ -52,10 +52,10 @@ Important details:
 
 ## Pattern B — `UIElement`: `template()` reads signals directly → automatic `render`
 
-For custom elements, you usually don't call `effect` + `render` yourself. Subclass `UIElement` and return `html` from `template()`, reading whatever signals you need directly inside it (module-level signals, a shared `buildSignalTree()` tree, or app-wide state like `appState` - `UIElement` itself has no notion of "the" state). `connect()` runs **before** the first `template`, so markup from your template is not in the DOM yet — put bindings and structure in `template`, and use `firstRendered` / `rendered` when you need to touch rendered nodes.
+For custom elements, you usually don't call `effect` + `render` yourself. Subclass `UIElement` and return `html` from `template()`, reading whatever signals you need directly inside it (module-level signals, a shared `signalState()` tree, or app-wide state like `appState` - `UIElement` itself has no notion of "the" state). `connect()` runs **before** the first `template`, so markup from your template is not in the DOM yet — put bindings and structure in `template`, and use `firstRendered` / `rendered` when you need to touch rendered nodes.
 
 ```ts
-import { buildSignalTree, tag, html, UIElement } from '../index.js';
+import { signalState, tag, html, UIElement } from '../index.js';
 
 interface DemoState {
 	counter: {
@@ -64,7 +64,7 @@ interface DemoState {
 	};
 }
 
-const shared = buildSignalTree<DemoState>({
+const shared = signalState<DemoState>({
 	counter: { value: 0, max: 10 },
 });
 
@@ -176,6 +176,6 @@ flowchart LR
 ## Related reading
 
 - [`../signal/core/signal.md`](../signal/core/signal.md) — primitives, tracking, batching, `peek`.
-- [`../signal/tree.md`](../signal/tree.md) — `buildSignalTree`, branch `.set(partial)`, app-shaped state.
+- [`../signal/tree.md`](../signal/tree.md) — `signalState`, branch `.set(partial)`, app-shaped state.
 - [`../template/html.md`](../template/html.md) — binding kinds, limitations, `svg`, `unsafeHTML`.
 - [`signal-drives-html.example.test.ts`](signal-drives-html.example.test.ts) — executable walkthrough of Patterns A, B, and C.
