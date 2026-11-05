@@ -77,10 +77,7 @@ export abstract class UIElement extends HTMLElement {
 	/** Re-runs `template()` when any signal it reads changes; invokes `firstRendered` / `rendered` after each apply. */
 	#wireTemplateRenderEffect(): void {
 		this.#effectDisposers.push(createEffect(
-			() => {
-				const result = this.template?.();
-				if (result) render(result, this);
-			},
+			this.#requestUpdate,
 			() => {
 				if (!this.#firstRenderDone) {
 					this.#firstRenderDone = true;
@@ -89,6 +86,11 @@ export abstract class UIElement extends HTMLElement {
 				this.rendered?.();
 			},
 		));
+	}
+
+	#requestUpdate() {
+		const result = this.template?.();
+		if (result) render(result, this);
 	}
 
 	// Browser lifecycle entry points — `private` so TS subclasses cannot override; extend `connect` / `disconnect` / `template` / `firstRendered` / `rendered` instead.
