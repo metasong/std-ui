@@ -1,10 +1,7 @@
 export {
 	computed,
 	effect,
-	untrack,
-	Watcher,
 	type Computed,
-	type Dependency,
 	type OnCleanup,
 	type SignalOptions,
 } from './core/index.js';
