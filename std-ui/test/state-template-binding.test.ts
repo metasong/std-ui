@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { state, tag, UIElement } from '../component.js';
+import { state, tag, UIElement } from '../ui-element.js';
 import { buildSignalTree } from '../signal/tree.js';
 import { html } from '../template/html.js';
 

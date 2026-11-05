@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { attribute, state, tag, UIElement } from '../component.js';
+import { attribute, state, tag, UIElement } from '../ui-element.js';
 
 // `@state()` and `@attribute()` are allowed to be stacked on the same field, but stacking them
 // shouldn't throw or corrupt the field either - whichever decorator is closer to the field (runs

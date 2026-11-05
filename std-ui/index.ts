@@ -6,7 +6,7 @@ export {
 	type AttributeConverter,
 	type AttributeOptions,
 	type AttributeType,
-} from './component.js';
+} from './ui-element.js';
 export { html, svg, render, unsafeHTML, type TemplateResult } from './template/index.js';
 export {
 	buildSignalTree,
