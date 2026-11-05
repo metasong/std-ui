@@ -72,6 +72,9 @@ working data, anything not meant to be set from markup.
 
 Stack `@state()` and `@attribute()` on the same field is allowed.
 
+Pass `{ contextKey }` to additionally expose a `@state()` field to descendants (any depth), read
+reactively via `@consume(contextKey)` - see [`context/README.md`](./context/README.md).
+
 ## `AttributeOptions` (for `@attribute()`)
 
 | Option | Default | Effect |
@@ -86,7 +89,7 @@ Stack `@state()` and `@attribute()` on the same field is allowed.
 `type` takes the constructor itself (`String`, `Number`, `Boolean`, `Object`, `Array`), matching
 `lit`'s convention - it's a hint selecting a default converter, not a runtime `typeof` check. If
 omitted (and no `converter` is given either), it's **inferred from the field's own initial value**
-(`inferAttributeType()` in `./converter.ts`) once that value is known, at first-instance
+(`inferAttributeType()` in `./attribute/converter.ts`) once that value is known, at first-instance
 construction time - so `@attribute() count = 0;` behaves exactly like `@attribute({ type: Number })
 count = 0;` without spelling `type` out:
 
@@ -194,6 +197,7 @@ the attribute as JSON text:
 ## Related reading
 
 - [`./design.md`](./design.md) — how registration, stores, and the two sync directions work internally.
+- [`./context/README.md`](./context/README.md) / [`./context/design.md`](./context/design.md) — `@state({ contextKey })` / `@consume()`, passing a `@state()` field down to arbitrarily deep descendants.
 - [`../component.ts`](../component.ts) / [`../doc/signal-drives-html.md`](../doc/signal-drives-html.md) - `UIElement` lifecycle this plugs into.
 - [`../signal/core/signal.md`](../signal/core/signal.md) - the `signal()`/`effect()` primitives backing this.
 - [`../template/html.md`](../template/html.md) - the `?attr`/`.prop` binding conventions `type: Boolean` mirrors.

@@ -1,5 +1,5 @@
 // Attribute <-> property value conversion: the `type`/`converter` half of `@attribute()`'s options
-// (see `./attribute.decorator.ts`). Everything here is pure data + pure functions - no class-field or
+// (see `./attribute.decorator.ts`, same folder). Everything here is pure data + pure functions - no class-field or
 // metadata concerns - so it can be read/tested in isolation from *how* a field ends up calling it.
 
 /**

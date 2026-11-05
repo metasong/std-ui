@@ -9,18 +9,33 @@
 // anywhere.
 
 import {
+	CONTEXT_REQUEST_EVENT,
+	ContextRequestEvent,
 	defineObservedAttributes,
 	getAttributeDefs,
+	getConsumedContextDefs,
+	getProvidedContextDefs,
 	parseAttribute,
 	serializeAttribute,
 } from './decorators/index.js';
 import {
 	effect as createEffect,
+	signal,
 	type OnCleanup,
 } from './signal/index.js';
 import { render, type TemplateResult } from './template/index.js';
 
-export { attribute, state, type AttributeConverter, type AttributeOptions, type AttributeType } from './decorators/index.js';
+export {
+	attribute,
+	consume,
+	createContextKey,
+	state,
+	type AttributeConverter,
+	type AttributeOptions,
+	type AttributeType,
+	type ContextKey,
+	type StateOptions,
+} from './decorators/index.js';
 
 /**
  * Class decorator that registers the decorated `UIElement` subclass as a custom element under
@@ -40,6 +55,7 @@ export abstract class UIElement extends HTMLElement {
 	#connected = false;
 	#firstRenderDone = false;
 	#effectDisposers: Array<() => void> = [];
+	#contextListenerDisposers: Array<() => void> = [];
 
 	/** lifecycle hook: One-time setup (resolve child nodes, attach listeners, inject any static markup). */
 	protected connect?(): void;
@@ -71,23 +87,31 @@ export abstract class UIElement extends HTMLElement {
 		this.#effectDisposers.push(createEffect(fn));
 	};
 
-	// Browser lifecycle entry points — `private` so TS subclasses cannot override; extend `connect` / `disconnect` / `template` / `firstRendered` / `rendered` instead.
-	/** Connected to the document (static HTML, parent markup, re-insert after remove). */
-	private connectedCallback(): void {
-		if (!this.#connected) {
-			this.#connected = true;
-			this.connect?.();
+	/**
+	 * Context, provide side: one `context-request` listener per `@state({ contextKey })` field.
+	 * Must run before `connect()` so descendants appended there can `@consume()` synchronously.
+	 * `stopPropagation()` on a match gives nearest-provider-wins — see `./decorators/context/request-event.ts`.
+	 */
+	#wireProvidedContextListeners(): void {
+		for (const def of getProvidedContextDefs(this.constructor)) {
+			const listener = (event: Event): void => {
+				const request = event as ContextRequestEvent<unknown>;
+				if (request.contextKey !== def.contextKey) return;
+				request.stopPropagation();
+				this.#effectDisposers.push(createEffect(() => {
+					request.callback((this as unknown as Record<PropertyKey, unknown>)[def.key]);
+				}));
+			};
+			this.addEventListener(CONTEXT_REQUEST_EVENT, listener);
+			this.#contextListenerDisposers.push(() => this.removeEventListener(CONTEXT_REQUEST_EVENT, listener));
 		}
+	}
 
-		// Property → attribute direction: one effect per `@attribute({ reflect: true })` field,
-		// mirroring its signal's value onto the host attribute. Opt-in (defaults to `false`,
-		// like `lit`) - plain `@attribute()` fields only flow attribute → property (see
-		// `attributeChangedCallback` below), not back out; `@state()` fields never appear here at
-		// all (no attribute concern). Runs once synchronously now (so the attribute matches the
-		// property's current/initial value even before any change), then again whenever the
-		// property is written from anywhere (JS or the attribute side). Reading `this[def.key]`
-		// goes through the `@attribute()` accessor, which reads its backing signal - an ordinary
-		// tracked read, so this effect re-runs exactly like any other signal-driven one.
+	/**
+	 * Property → attribute: one effect per `@attribute({ reflect: true })` field, mirroring its
+	 * backing signal onto the host attribute (opt-in; `@state()` never appears here).
+	 */
+	#wireReflectedAttributes(): void {
 		for (const def of getAttributeDefs(this.constructor)) {
 			if (!def.reflect) continue;
 			this.#effectDisposers.push(createEffect(() => {
@@ -97,24 +121,71 @@ export abstract class UIElement extends HTMLElement {
 				else this.setAttribute(def.attribute, serialized);
 			}));
 		}
+	}
 
-		/// ui updating effect:
-		// This effect re-runs `template()` whenever any signal it reads (directly or via nested
-		// `signal`/`computed` reads) changes (runs once synchronously now, then microtask-batched).
+	/**
+	 * Context, consume side: one `ContextRequestEvent` dispatch per `@consume(contextKey)` field,
+	 * resolved synchronously against the nearest ancestor provider.
+	 */
+	#wireConsumedContextFields(): void {
+		for (const def of getConsumedContextDefs(this.constructor)) {
+			const value = signal<unknown>(undefined);
+			let found = false;
+			this.dispatchEvent(new ContextRequestEvent(def.contextKey, next => {
+				found = true;
+				value.set(next);
+			}));
+			if (!found) {
+				throw new Error(
+					`@consume() field "${String(def.key)}" on <${this.tagName.toLowerCase()}> found no ancestor ` +
+						`providing context "${def.contextKey.description}" - add a matching @state({ contextKey }) ` +
+						`further up the tree.`,
+				);
+			}
+			Object.defineProperty(this, def.key, {
+				get(): unknown {
+					return value();
+				},
+				set(): void {
+					throw new Error(`@consume() field "${String(def.key)}" is read-only - its value comes from the provider.`);
+				},
+				enumerable: true,
+				configurable: true,
+			});
+		}
+	}
+
+	/** Re-runs `template()` when any signal it reads changes; invokes `firstRendered` / `rendered` after each apply. */
+	#wireTemplateRenderEffect(): void {
 		this.#effectDisposers.push(createEffect(
 			() => {
-				const result = this.template?.(); // if the template read any signal inside the function, the effect will be executed again.
+				const result = this.template?.();
 				if (result) render(result, this);
 			},
 			() => {
-				//  these functions below no need to be monitored for this ui effect.
 				if (!this.#firstRenderDone) {
 					this.#firstRenderDone = true;
 					this.firstRendered?.();
 				}
 				this.rendered?.();
-			}
+			},
 		));
+	}
+
+	// Browser lifecycle entry points — `private` so TS subclasses cannot override; extend `connect` / `disconnect` / `template` / `firstRendered` / `rendered` instead.
+	/** Connected to the document (static HTML, parent markup, re-insert after remove). */
+	private connectedCallback(): void {
+		this.#wireProvidedContextListeners();
+
+		// Runs after the listeners above so descendants appended here(in `connect()`) can `@consume()` synchronously.
+		if (!this.#connected) {
+			this.#connected = true;
+			this.connect?.();
+		}
+
+		this.#wireReflectedAttributes();
+		this.#wireConsumedContextFields();
+		this.#wireTemplateRenderEffect();
 	}
 
 	/** Removed from the document; disposes the render effect and any `effect()`s set up in `connect()`. */
@@ -124,6 +195,8 @@ export abstract class UIElement extends HTMLElement {
 		this.#firstRenderDone = false;
 		this.#effectDisposers.forEach(dispose => dispose());
 		this.#effectDisposers = [];
+		this.#contextListenerDisposers.forEach(dispose => dispose());
+		this.#contextListenerDisposers = [];
 	}
 
 	/**

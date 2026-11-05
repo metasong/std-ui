@@ -2,7 +2,7 @@
 // the class's stage-3 decorator `context.metadata` object, and reading it back - at
 // class-definition time (for `observedAttributes`) and at runtime (for
 // `attributeChangedCallback`/reflection). `@state()` fields never register here - they have no
-// attribute concern at all (see `./state.decorator.ts`).
+// attribute concern at all (see `../state/state.decorator.ts`).
 //
 // Why `context.metadata`, not `ctor[Symbol.metadata]`: the stage-3 decorators spec gives every
 // decorator on a class (member *and* class) the *same* `context.metadata` object, accumulated as

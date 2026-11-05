@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { attribute, state, tag, UIElement } from '../component.js';
+import { attribute, state, tag, UIElement } from '../../component.js';
 
 function flush(): Promise<void> {
 	return new Promise(resolve => queueMicrotask(() => queueMicrotask(resolve)));

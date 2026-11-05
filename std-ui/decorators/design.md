@@ -10,12 +10,12 @@ see [`README.md`](./README.md).
 |---|---|
 | [`field-store.ts`](./field-store.ts) | `applyFieldStore()` — the shared accessor/plain-field decorator mechanics (store-backed `get`/`set`/`init`) that both `@state()` and `@attribute()` delegate to. This is the one piece of logic they share, so neither re-implements it. |
 | [`store.ts`](./store.ts) | `createStore` — picks the reactive store (`SignalTree`) backing a field's value. |
-| [`state.decorator.ts`](./state.decorator.ts) | The `@state()` decorator itself — just wires a field to `applyFieldStore()`, no attribute concern at all. |
-| [`converter.ts`](./converter.ts) | `AttributeType`/`AttributeConverter` types, the five default converters (`String`/`Number`/`Boolean`/`Object`/`Array`), `resolveConverter`, `parseAttribute`/`serializeAttribute`, `toAttributeName`. Only `@attribute()` uses this. |
-| [`metadata.ts`](./metadata.ts) | `AttributeDef`, registering defs into `context.metadata`, `getAttributeDefs`, `defineObservedAttributes`. Only `@attribute()` fields register here. |
-| [`attribute.decorator.ts`](./attribute.decorator.ts) | The `@attribute()` decorator and `AttributeOptions` — resolves `converter`/`type`, registers the `AttributeDef`, then delegates the actual field/accessor wiring to `field-store.ts`'s `applyFieldStore()` (the same function `@state()` calls), passing a hook that resolves the type-inferred converter once the initial value is known. |
+| [`state/state.decorator.ts`](./state/state.decorator.ts) | The `@state()` decorator itself — just wires a field to `applyFieldStore()`, no attribute concern at all. |
+| [`attribute/converter.ts`](./attribute/converter.ts) | `AttributeType`/`AttributeConverter` types, the five default converters (`String`/`Number`/`Boolean`/`Object`/`Array`), `resolveConverter`, `parseAttribute`/`serializeAttribute`, `toAttributeName`. Only `@attribute()` uses this. |
+| [`attribute/metadata.ts`](./attribute/metadata.ts) | `AttributeDef`, registering defs into `context.metadata`, `getAttributeDefs`, `defineObservedAttributes`. Only `@attribute()` fields register here. |
+| [`attribute/attribute.decorator.ts`](./attribute/attribute.decorator.ts) | The `@attribute()` decorator and `AttributeOptions` — resolves `converter`/`type`, registers the `AttributeDef`, then delegates the actual field/accessor wiring to `field-store.ts`'s `applyFieldStore()` (the same function `@state()` calls), passing a hook that resolves the type-inferred converter once the initial value is known. |
 | [`index.ts`](./index.ts) | Public re-exports. |
-| [`state.test.ts`](./state.test.ts) / [`attribute.test.ts`](./attribute.test.ts) | Behavior tests, through `UIElement`/`tag()`. |
+| [`state/state.test.ts`](./state/state.test.ts) / [`attribute/attribute.test.ts`](./attribute/attribute.test.ts) | Behavior tests, through `UIElement`/`tag()`. |
 
 Outside this folder, [`../component.ts`](../component.ts) owns the custom-element lifecycle hooks
 (`attributeChangedCallback`, the reflection `effect()` in `connectedCallback`) that call into
@@ -148,7 +148,7 @@ then forwards it into the field's store.
 The browser invokes this for `setAttribute`/`removeAttribute` calls, and for every attribute
 already present on an element when it is **upgraded** (typically before `connectedCallback`) — so
 static markup like `<user-badge count="3">` can override the field default before connect (see
-[`attribute.test.ts`](./attribute.test.ts)).
+[`attribute.test.ts`](./attribute/attribute.test.ts)).
 
 A custom `converter` can return anything it wants from `fromAttribute`/`toAttribute`, including
 `undefined` from `fromAttribute` to mean "leave the property untouched" — `applyFieldStore()`'s
@@ -205,6 +205,7 @@ that merged list. A single `attributeChangedCallback` on `UIElement` handles eve
 ## Related reading
 
 - [`README.md`](./README.md) — public API and examples
-- [`field-store.ts`](./field-store.ts) / [`state.decorator.ts`](./state.decorator.ts) / [`attribute.decorator.ts`](./attribute.decorator.ts) / [`converter.ts`](./converter.ts) / [`metadata.ts`](./metadata.ts) / [`store.ts`](./store.ts) — implementation
+- [`field-store.ts`](./field-store.ts) / [`state/state.decorator.ts`](./state/state.decorator.ts) / [`attribute/attribute.decorator.ts`](./attribute/attribute.decorator.ts) / [`attribute/converter.ts`](./attribute/converter.ts) / [`attribute/metadata.ts`](./attribute/metadata.ts) / [`store.ts`](./store.ts) — implementation
+- [`./context/design.md`](./context/design.md) — `@state({ contextKey })` / `@consume()`, built on top of `@state()`'s field/accessor wiring described here
 - [`../component.ts`](../component.ts) — `tag()`, `connectedCallback`, `attributeChangedCallback`
-- [`state.test.ts`](./state.test.ts) / [`attribute.test.ts`](./attribute.test.ts) — behavior tests (upgrade seeding, booleans, store-only fields)
+- [`state/state.test.ts`](./state/state.test.ts) / [`attribute/attribute.test.ts`](./attribute/attribute.test.ts) — behavior tests (upgrade seeding, booleans, store-only fields)

@@ -1,5 +1,5 @@
 // `@attribute()` field decorator: turns a class field on a `UIElement` subclass (see
-// `../component.ts`) into a store-backed property - exactly like `@state()` (`./state.decorator.ts`) - and
+// `../component.ts`) into a store-backed property - exactly like `@state()` (`../state/state.decorator.ts`) - and
 // additionally keeps it in sync with an HTML attribute via the platform's own custom-element
 // "attribute changed" monitoring mechanism (`observedAttributes` + `attributeChangedCallback`,
 // wired through `./metadata.ts`), rather than polling or a `MutationObserver`.
@@ -8,14 +8,14 @@
 //   store set from anywhere in JS     --(effect in UIElement.connectedCallback)-->  setAttribute(serialized)
 //
 // `@attribute()` is deliberately "everything `@state()` does, plus attribute registration/sync" -
-// it reuses `./field-store.ts`'s exact accessor/plain-field wiring (the same function `@state()`
+// it reuses `../field-store.ts`'s exact accessor/plain-field wiring (the same function `@state()`
 // calls) instead of duplicating it, and layers `./converter.ts` (attribute<->value conversion) and
 // `./metadata.ts` (attribute registration/lookup) on top. `../component.ts` wires the two
 // native-facing halves (attribute -> property, property -> attribute) using `./metadata.ts` and
 // `./converter.ts`.
 
 import { type AttributeConverter, type AttributeType, inferAttributeType, resolveConverter, toAttributeName } from './converter.js';
-import { applyFieldStore, type FieldDecoratorResult } from './field-store.js';
+import { applyFieldStore, type FieldDecoratorResult } from '../field-store.js';
 import { type AttributeDef, registerAttributeDef } from './metadata.js';
 
 export interface AttributeOptions<V = unknown> {
@@ -67,7 +67,7 @@ export interface AttributeOptions<V = unknown> {
 
 /**
  * Class field decorator that backs the field with a reactive store - exactly like `@state()`
- * (`./state.decorator.ts`), via the shared `applyFieldStore()` - and registers it to be mirrored to/from an
+ * (`../state/state.decorator.ts`), via the shared `applyFieldStore()` - and registers it to be mirrored to/from an
  * HTML attribute by `UIElement` (see `../component.ts`): reading/writing the field reads/writes
  * the store; the store's value is reflected onto the host's attribute; and the attribute being set
  * (including by the browser while parsing static markup) parses back into the store.
@@ -89,7 +89,7 @@ export interface AttributeOptions<V = unknown> {
  * }
  * ```
  *
- * See `./field-store.ts` for the accessor/plain-field mechanics this delegates to, and
+ * See `../field-store.ts` for the accessor/plain-field mechanics this delegates to, and
  * `./design.md` for the full picture.
  */
 export function attribute<T, V>(options: AttributeOptions<V> = {}) {
@@ -140,7 +140,7 @@ export function attribute<T, V>(options: AttributeOptions<V> = {}) {
 		}
 
 		// Registered regardless of whether this decorator's own field-store wiring (below) actually
-		// runs or is a no-op (see `applyFieldStore()`'s stacking note in `./field-store.ts`) - the
+		// runs or is a no-op (see `applyFieldStore()`'s stacking note in `../field-store.ts`) - the
 		// attribute still needs to parse/reflect through whichever store ends up backing the field.
 		registerAttributeDef(context.metadata as object, def);
 		return applyFieldStore(target, context, resolveInferredConverter);
