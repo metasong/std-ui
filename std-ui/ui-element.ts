@@ -9,7 +9,6 @@
 // anywhere.
 
 import {
-	defineObservedAttributes,
 	getAttributeDefs,
 	parseAttribute,
 	wireConsumedContextFields,
@@ -27,6 +26,7 @@ export {
 	consume,
 	createContextKey,
 	state,
+	tag,
 	type AttributeConverter,
 	type AttributeOptions,
 	type AttributeType,
@@ -34,27 +34,17 @@ export {
 	type StateOptions,
 } from './decorators/index.js';
 
-/**
- * Class decorator that registers the decorated `UIElement` subclass as a custom element under
- * `name`. Also wires up `observedAttributes` from any `@attribute()`-decorated fields (see
- * `./decorators/`) so the browser calls `attributeChangedCallback` for them - must run before
- * `customElements.define()`, which reads `observedAttributes` once, at definition time.
- */
-export function tag(name: string) {
-	return function <T extends CustomElementConstructor>(ctor: T, context: ClassDecoratorContext): T {
-		defineObservedAttributes(ctor, context);
-		customElements.define(name, ctor);
-		return ctor;
-	};
-}
-
 export abstract class UIElement extends HTMLElement {
 	#connected = false;
 	#firstRenderDone = false;
 	#effectDisposers: Array<() => void> = [];
 	#contextListenerDisposers: Array<() => void> = [];
 
-	/** lifecycle hook: One-time setup (resolve child nodes, attach listeners, inject any static markup). */
+	/** lifecycle hook: occur when the element is connected to the document.
+	 *  This is a one-time setup (resolve child nodes, attach listeners, inject any static markup).
+	 *  The most common of these is adding event listeners to nodes external to the element, like a keydown event handler added to the window.
+	 *  Typically, anything done in connect() should be undone when the element is disconnect
+	*/
 	protected connect?(): void;
 
 	/**
