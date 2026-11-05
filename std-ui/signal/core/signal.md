@@ -7,7 +7,7 @@ Generic, app-agnostic fine-grained reactivity primitives, Angular-signals-flavor
 
 Implementation lives under `./core/`: [`signal.ts`](./signal.ts) (writable values),
 [`computed.ts`](./computed.ts) (derived values), [`effect.ts`](./effect.ts) (side effects),
-[`tracking.ts`](./tracking.ts) (shared dependency graph). Import from [`../index.js`](../index.js).
+[`tracking.ts`](./tracking.ts) (shared dependency graph). App code imports `signalState`, `computed`, and `effect` from [`../index.js`](../index.js); leaf `signal()` lives in [`./signal.ts`](./signal.ts) (internal).
 
 ## API at a glance
 
@@ -22,7 +22,7 @@ Implementation lives under `./core/`: [`signal.ts`](./signal.ts) (writable value
 A writable reactive value.
 
 ```ts
-import { signal } from '../index.js';
+import { signal } from './signal.js';
 
 const count = signal(0);
 

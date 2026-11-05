@@ -4,19 +4,19 @@
 // `component.ts`) because it's purely about the context protocol - same reasoning as the rest of
 // this folder.
 
-import { signal } from '../../signal/index.js';
+import { signalState } from '../../signal/index.js';
 import { getConsumedContextDefs } from './metadata.js';
 import { ContextRequestEvent } from './request-event.js';
 
 /**
  * For each `@consume(contextKey)` field recorded on `host`'s constructor, dispatches a
  * `ContextRequestEvent` from `host` to find the nearest ancestor provider, then redefines the
- * field on `host` as a reactive accessor backed by a `signal` kept in sync with the provider's
+ * field on `host` as a reactive accessor backed by `signalState(undefined)` kept in sync with the provider's
  * value. Throws if no ancestor currently provides a given field's `contextKey`.
  */
 export function wireConsumedContextFields(host: HTMLElement): void {
 	for (const def of getConsumedContextDefs(host.constructor)) {
-		const value = signal<unknown>(undefined);
+		const value = signalState<unknown>(undefined);
 		let found = false;
 		host.dispatchEvent(new ContextRequestEvent(def.contextKey, next => {
 			found = true;
