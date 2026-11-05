@@ -1,6 +1,6 @@
 // Shared field/accessor decorator mechanics for turning a class field into a store-backed
-// property (see `./store.ts`). Both `@state()` (`./state.ts`, store only) and `@attribute()`
-// (`./attribute.ts`, store + attribute sync) delegate here instead of duplicating the
+// property (see `./store.ts`). Both `@state()` (`./state.decorator.ts`, store only) and `@attribute()`
+// (`./attribute.decorator.ts`, store + attribute sync) delegate here instead of duplicating the
 // accessor-vs-plain-field branching - `@attribute()` is "everything `@state()` does, plus
 // attribute registration/sync", so this is the one piece of logic they share.
 //
@@ -32,7 +32,7 @@ function wiredFields(meta: object): Set<PropertyKey> {
  * entire body of what used to be `@property()`, minus any attribute concern. `onInitialValue`, if
  * given, runs once per instance with the field's initial value, right as its store is created -
  * `@attribute()` uses this to resolve a type-inferred converter once that value is known (see
- * `./attribute.ts`); `@state()` doesn't need it.
+ * `./attribute.decorator.ts`); `@state()` doesn't need it.
  *
  * `accessor` fields: this decorator is called as a **class accessor decorator**, returning a
  * replacement `get`/`set` pair backed by a per-instance store kept in the accessor's own private
@@ -57,7 +57,7 @@ function wiredFields(meta: object): Set<PropertyKey> {
  * accessor layer) - it only still forwards the resolved initial value to its own `onInitialValue`
  * if given, since the field's own property already resolves through the winning store by then.
  * `@attribute()` always registers its `AttributeDef` regardless of which one wins (see
- * `./attribute.ts`), so attribute parsing/reflection keeps working through whichever store ends
+ * `./attribute.decorator.ts`), so attribute parsing/reflection keeps working through whichever store ends
  * up backing the field.
  */
 export function applyFieldStore<T, V>(

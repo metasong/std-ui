@@ -24,10 +24,10 @@
 			"import": "./dist/template/index.js",
 			"default": "./dist/template/index.js"
 		},
-		"./property": {
-			"types": "./dist/property/index.d.ts",
-			"import": "./dist/property/index.js",
-			"default": "./dist/property/index.js"
+		"./decorators": {
+			"types": "./dist/decorators/index.d.ts",
+			"import": "./dist/decorators/index.js",
+			"default": "./dist/decorators/index.js"
 		},
 		"./package.json": "./package.json"
 	},

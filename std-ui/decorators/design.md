@@ -10,10 +10,10 @@ see [`README.md`](./README.md).
 |---|---|
 | [`field-store.ts`](./field-store.ts) | `applyFieldStore()` — the shared accessor/plain-field decorator mechanics (store-backed `get`/`set`/`init`) that both `@state()` and `@attribute()` delegate to. This is the one piece of logic they share, so neither re-implements it. |
 | [`store.ts`](./store.ts) | `createStore` — picks the reactive store (`SignalTree`) backing a field's value. |
-| [`state.ts`](./state.ts) | The `@state()` decorator itself — just wires a field to `applyFieldStore()`, no attribute concern at all. |
+| [`state.decorator.ts`](./state.decorator.ts) | The `@state()` decorator itself — just wires a field to `applyFieldStore()`, no attribute concern at all. |
 | [`converter.ts`](./converter.ts) | `AttributeType`/`AttributeConverter` types, the five default converters (`String`/`Number`/`Boolean`/`Object`/`Array`), `resolveConverter`, `parseAttribute`/`serializeAttribute`, `toAttributeName`. Only `@attribute()` uses this. |
 | [`metadata.ts`](./metadata.ts) | `AttributeDef`, registering defs into `context.metadata`, `getAttributeDefs`, `defineObservedAttributes`. Only `@attribute()` fields register here. |
-| [`attribute.ts`](./attribute.ts) | The `@attribute()` decorator and `AttributeOptions` — resolves `converter`/`type`, registers the `AttributeDef`, then delegates the actual field/accessor wiring to `field-store.ts`'s `applyFieldStore()` (the same function `@state()` calls), passing a hook that resolves the type-inferred converter once the initial value is known. |
+| [`attribute.decorator.ts`](./attribute.decorator.ts) | The `@attribute()` decorator and `AttributeOptions` — resolves `converter`/`type`, registers the `AttributeDef`, then delegates the actual field/accessor wiring to `field-store.ts`'s `applyFieldStore()` (the same function `@state()` calls), passing a hook that resolves the type-inferred converter once the initial value is known. |
 | [`index.ts`](./index.ts) | Public re-exports. |
 | [`state.test.ts`](./state.test.ts) / [`attribute.test.ts`](./attribute.test.ts) | Behavior tests, through `UIElement`/`tag()`. |
 
@@ -23,7 +23,7 @@ Outside this folder, [`../component.ts`](../component.ts) owns the custom-elemen
 conversion logic in `converter.ts` means `UIElement` never branches on `type` itself — it only
 passes `def.converter` into `parseAttribute`/`serializeAttribute`.
 
-`attribute.ts` resolves `options.converter` (if given) or a default converter looked up from
+`attribute.decorator.ts` resolves `options.converter` (if given) or a default converter looked up from
 `options.type` exactly once, at class-definition time, and stores the resolved `AttributeConverter`
 on the `AttributeDef` — so per-instance code never re-derives it from `type`.
 
@@ -42,7 +42,7 @@ convention. Rather than duplicating that logic in both decorators (and risking t
   is known, and (before calling `applyFieldStore()` at all) registers an `AttributeDef` so `tag()`/
   `UIElement` know this field has an attribute to sync.
 
-So the "field becomes reactive" concern lives in exactly one place, and `attribute.ts` only adds
+So the "field becomes reactive" concern lives in exactly one place, and `attribute.decorator.ts` only adds
 what's actually new: `AttributeOptions` handling, converter resolution, and `AttributeDef`
 registration.
 
@@ -205,6 +205,6 @@ that merged list. A single `attributeChangedCallback` on `UIElement` handles eve
 ## Related reading
 
 - [`README.md`](./README.md) — public API and examples
-- [`field-store.ts`](./field-store.ts) / [`state.ts`](./state.ts) / [`attribute.ts`](./attribute.ts) / [`converter.ts`](./converter.ts) / [`metadata.ts`](./metadata.ts) / [`store.ts`](./store.ts) — implementation
+- [`field-store.ts`](./field-store.ts) / [`state.decorator.ts`](./state.decorator.ts) / [`attribute.decorator.ts`](./attribute.decorator.ts) / [`converter.ts`](./converter.ts) / [`metadata.ts`](./metadata.ts) / [`store.ts`](./store.ts) — implementation
 - [`../component.ts`](../component.ts) — `tag()`, `connectedCallback`, `attributeChangedCallback`
 - [`state.test.ts`](./state.test.ts) / [`attribute.test.ts`](./attribute.test.ts) — behavior tests (upgrade seeding, booleans, store-only fields)

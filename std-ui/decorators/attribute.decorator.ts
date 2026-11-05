@@ -1,5 +1,5 @@
 // `@attribute()` field decorator: turns a class field on a `UIElement` subclass (see
-// `../component.ts`) into a store-backed property - exactly like `@state()` (`./state.ts`) - and
+// `../component.ts`) into a store-backed property - exactly like `@state()` (`./state.decorator.ts`) - and
 // additionally keeps it in sync with an HTML attribute via the platform's own custom-element
 // "attribute changed" monitoring mechanism (`observedAttributes` + `attributeChangedCallback`,
 // wired through `./metadata.ts`), rather than polling or a `MutationObserver`.
@@ -67,7 +67,7 @@ export interface AttributeOptions<V = unknown> {
 
 /**
  * Class field decorator that backs the field with a reactive store - exactly like `@state()`
- * (`./state.ts`), via the shared `applyFieldStore()` - and registers it to be mirrored to/from an
+ * (`./state.decorator.ts`), via the shared `applyFieldStore()` - and registers it to be mirrored to/from an
  * HTML attribute by `UIElement` (see `../component.ts`): reading/writing the field reads/writes
  * the store; the store's value is reflected onto the host's attribute; and the attribute being set
  * (including by the browser while parsing static markup) parses back into the store.

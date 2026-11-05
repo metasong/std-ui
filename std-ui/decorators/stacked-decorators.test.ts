@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { attribute, state, tag, UIElement } from '../component.js';
 
-// `@state()` and `@attribute()` are not meant to be stacked on the same field, but stacking them
+// `@state()` and `@attribute()` are allowed to be stacked on the same field, but stacking them
 // shouldn't throw or corrupt the field either - whichever decorator is closer to the field (runs
 // first) owns the actual store; the other is a transparent no-op for storage, while `@attribute()`
 // still always registers its `AttributeDef` regardless of order (see `./field-store.ts`).

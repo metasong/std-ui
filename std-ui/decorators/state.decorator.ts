@@ -6,14 +6,14 @@
 // same way reading any other signal would.
 //
 // This is the "just a reactive field" half of what used to be `@property()`'s combined behavior -
-// for the attribute-syncing half, see `@attribute()` in `./attribute.ts`, which reuses this exact
+// for the attribute-syncing half, see `@attribute()` in `./attribute.decorator.ts`, which reuses this exact
 // field/accessor wiring (via `./field-store.ts`) and layers attribute registration/sync on top.
 
 import { applyFieldStore, type FieldDecoratorResult } from './field-store.js';
 
 /**
  * Class field decorator that backs the field with a reactive store, with no attribute involved.
- * Use `@attribute()` (`./attribute.ts`) instead for a field that should also parse from / reflect
+ * Use `@attribute()` (`./attribute.decorator.ts`) instead for a field that should also parse from / reflect
  * to an HTML attribute.
  *
  * ```ts

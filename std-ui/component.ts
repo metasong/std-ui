@@ -13,19 +13,19 @@ import {
 	getAttributeDefs,
 	parseAttribute,
 	serializeAttribute,
-} from './property/index.js';
+} from './decorators/index.js';
 import {
 	effect as createEffect,
 	type OnCleanup,
 } from './signal/index.js';
 import { render, type TemplateResult } from './template/index.js';
 
-export { attribute, state, type AttributeConverter, type AttributeOptions, type AttributeType } from './property/index.js';
+export { attribute, state, type AttributeConverter, type AttributeOptions, type AttributeType } from './decorators/index.js';
 
 /**
  * Class decorator that registers the decorated `UIElement` subclass as a custom element under
  * `name`. Also wires up `observedAttributes` from any `@attribute()`-decorated fields (see
- * `./property/`) so the browser calls `attributeChangedCallback` for them - must run before
+ * `./decorators/`) so the browser calls `attributeChangedCallback` for them - must run before
  * `customElements.define()`, which reads `observedAttributes` once, at definition time.
  */
 export function tag(name: string) {
