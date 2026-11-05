@@ -2,7 +2,7 @@
 
 std-ui pairs two ideas that stay useful on their own but work especially well together:
 
-1. **Signals** — fine-grained reactivity (`signal`, `computed`, `effect`, or a `buildSignalTree()` app state).
+1. **Signals** — fine-grained reactivity (`buildSignalTree`, `computed`, `effect`, or app-shaped state like `appState`).
 2. **`html` + `render`** — lit-html-style tagged templates that patch the DOM in place instead of rebuilding it.
 
 Wiring them up gives you declarative UI that updates surgically: when state changes, only the DOM nodes and attributes whose bound values actually changed are touched. No virtual DOM, no full `innerHTML` refresh on every tick.
@@ -15,7 +15,7 @@ Wiring them up gives you declarative UI that updates surgically: when state chan
 | **Dependencies** | An `effect` re-runs only when signals it *read* change; branch changes in `computed`/`if` are tracked correctly each run. |
 | **Batching** | Multiple synchronous `.set()` calls in one turn collapse to one effect flush (microtask), then one render pass. |
 | **Authoring** | Markup stays in `html\`...\`` templates with attribute/event bindings; state stays in signals, not scattered DOM queries. |
-| **Components** | `UIElement` already connects a `SignalTreeState` to `template()` for you; you can still drop to raw `effect` + `render` outside custom elements. |
+| **Components** | `UIElement` already connects a `SignalState` to `template()` for you; you can still drop to raw `effect` + `render` outside custom elements. |
 
 The fireworks app uses this throughout `src/ui/components/` — e.g. `pause-button` swaps icon markup when `appState.paused()` changes, and `controls-bar` toggles layout classes from `appState` while composing child custom elements in one template.
 
@@ -24,9 +24,9 @@ The fireworks app uses this throughout `src/ui/components/` — e.g. `pause-butt
 Use this for a widget, panel, or one-off view that is not a custom element. The effect is the "render loop": read signals, build a template result, pass it to `render`.
 
 ```ts
-import { computed, effect, html, render, signal } from '../index.js';
+import { buildSignalTree, computed, effect, html, render } from '../index.js';
 
-const count = signal(0);
+const count = buildSignalTree(0);
 const label = computed(() => (count() === 1 ? 'click' : 'clicks'));
 
 const container = document.getElementById('app')!;
@@ -90,11 +90,11 @@ class DemoCounter extends UIElement {
 
 document.body.appendChild(document.createElement('demo-counter'));
 
-shared.counter.value.set(5);           // write a leaf: shared.counter.value is a SignalState
+shared.counter.value.set(5);           // write a leaf: shared.counter.value is a Signal
 shared.counter.set({ max: 20 });     // or set a branch without touching sibling leaves
 ```
 
-Nested objects become branch `Computed`s; leaves like `value` and `max` are writable `SignalState`s on the tree (`shared.counter.value.set(...)`) and are also readable as tracked functions (`shared.counter.value()`). Reading any of them inside `template()` registers that leaf as a dependency of the render effect — same tracking rule as any other `effect()`. See [`../signal/tree.md`](../signal/tree.md) for branch `.set(partial)` and `.peek()`.
+Nested objects become branch `Computed`s; leaves like `value` and `max` are writable `Signal`s on the tree (`shared.counter.value.set(...)`) and are also readable as tracked functions (`shared.counter.value()`). Reading any of them inside `template()` registers that leaf as a dependency of the render effect — same tracking rule as any other `effect()`. See [`../signal/tree.md`](../signal/tree.md) for branch `.set(partial)` and `.peek()`.
 
 What `UIElement` does for you (see `component.ts`):
 

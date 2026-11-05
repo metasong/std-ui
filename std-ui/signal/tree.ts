@@ -1,5 +1,5 @@
 // Builds a tree of signals/computeds that mirrors a plain-object shape, so each leaf is an
-// independently-writable `SignalState` and every branch is a `Computed` that reassembles its children
+// independently-writable `Signal` and every branch is a `Computed` that reassembles its children
 // into a plain object. Reading/writing follows normal property access:
 //
 //   const a = buildSignalTree({ b: { c: { d: 1 } } });
@@ -8,9 +8,9 @@
 //
 // Only plain objects (`{ ... }` / `Object.create(null)`) are treated as branches; everything else
 // (numbers, strings, booleans, arrays, class instances, null, undefined, functions, ...) is a leaf
-// and becomes a `SignalState` holding that value as-is.
+// and becomes a `Signal` holding that value as-is.
 
-import { computed, signal, type Computed, type SignalOptions, type SignalState } from './core/index.js';
+import { computed, signal, type Computed, type SignalOptions, type Signal } from './core/index.js';
 
 /** A plain object eligible to become a branch node; anything else is a leaf value. */
 type PlainObject = Record<string, unknown>;
@@ -27,7 +27,7 @@ function isPlainObject(value: unknown): value is PlainObject {
 // (as opposed to object-literal `type` aliases) don't satisfy that constraint in a conditional
 // type even when they're plain data shapes (a long-standing TS quirk: interfaces don't get an
 // implicit index signature for `extends` checks the way type-literals do), which would wrongly
-// push every `interface`-typed branch (e.g. this app's `AppState`/`Config`) down the `SignalState<T>`
+// push every `interface`-typed branch (e.g. this app's `AppState`/`Config`) down the `Signal<T>`
 // leaf path instead of the branch path.
 type IsBranch<T> = T extends readonly unknown[] // array → leaf
 	? false
@@ -43,12 +43,12 @@ export type DeepPartial<T> = IsBranch<T> extends true // is none array obj(incl.
 	: T; // leaf → whole value
 
 /**
- * Interface shared by every `SignalTreeState` node, branch or leaf - identical to `SignalState<T>` (callable
+ * Interface shared by every `SignalState` node, branch or leaf - identical to `Signal<T>` (callable
  * read, `.peek()`), except `.set()`/`.update()` work on `DeepPartial<T>` so branches can be patched
  * instead of replaced wholesale. For branches, `.peek()` is overridden to be a deep-untracked
  * snapshot (recursing via `.peek()` on every child), rather than `Computed`'s shallow one.
  */
-type SignalTreeNode<T> = Pick<SignalState<T>, 'peek'> & {
+type SignalTreeNode<T> = Pick<Signal<T>, 'peek'> & {
 	/** Reads the current value and tracks it as a dependency. */
 	(): T;
 	/**
@@ -64,27 +64,27 @@ type SignalTreeNode<T> = Pick<SignalState<T>, 'peek'> & {
 /**
  * The reactive mirror of `T`: every node - branch or leaf - shares the same `SignalTreeNode`
  * interface (call to read, `.peek()`, `.set()`, `.update()`); branches additionally expose one
- * child property per key, each itself a `SignalTreeState`.
+ * child property per key, each itself a `SignalState`.
  */
-export type SignalTreeState<T> = SignalTreeNode<T> &
-	(IsBranch<T> extends true ? { readonly [K in keyof T]: SignalTreeState<T[K]> } : unknown);
+export type SignalState<T> = SignalTreeNode<T> &
+	(IsBranch<T> extends true ? { readonly [K in keyof T]: SignalState<T[K]> } : unknown);
 
 /**
- * Converts a plain-object value into a `SignalTreeState`: every leaf becomes a `signal()`, and every
+ * Converts a plain-object value into a `SignalState`: every leaf becomes a `signal()`, and every
  * branch becomes a `computed()` that reads all of its children and reassembles them into a plain
  * object, exposing each child as a same-named property for direct access (e.g. `tree.b.c.d`).
  *
  * `signalOptions` is forwarded to every leaf `signal()` created in the tree (e.g. to customize
  * `equals`); it has no effect on branches, which are always `computed()`.
  */
-export function buildSignalTree<T>(value: T, signalOptions?: SignalOptions<T>): SignalTreeState<T> {
+export function buildSignalTree<T>(value: T, signalOptions?: SignalOptions<T>): SignalState<T> {
 	if (!isPlainObject(value)) {
-		// `SignalState<T>` already provides `()`, `peek`, `set`, and `update` matching `SignalTreeNode<T>`
+		// `Signal<T>` already provides `()`, `peek`, `set`, and `update` matching `SignalTreeNode<T>`
 		// (for leaves, `DeepPartial<T>` is just `T`, and there are no children to leak through).
-		return signal(value, signalOptions) as unknown as SignalTreeState<T>;
+		return signal(value, signalOptions) as unknown as SignalState<T>;
 	}
 
-	const children: Record<string, SignalTreeState<unknown>> = {};
+	const children: Record<string, SignalState<unknown>> = {};
 	for (const key of Object.keys(value)) {
 		children[key] = buildSignalTree(
 			(value as PlainObject)[key],
@@ -123,5 +123,5 @@ export function buildSignalTree<T>(value: T, signalOptions?: SignalOptions<T>): 
 		return node.peek!();
 	};
 
-	return Object.assign(node, children) as SignalTreeState<T>;
+	return Object.assign(node, children) as SignalState<T>;
 }

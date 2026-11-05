@@ -10,7 +10,7 @@ import { buildSignalTree, effect } from '../index.js';
 const a = buildSignalTree({ b: { c: { d: 1 } } });
 
 // Conceptual shape after build:
-// a.b.c.d  — SignalState<number>
+// a.b.c.d  — Signal<number>
 // a.b.c    — Computed<{ d: number }>   → reads d()
 // a.b      — Computed<{ c: {...} }>    → reads c()
 // a        — Computed<{ b: {...} }>    → reads b()
@@ -34,7 +34,7 @@ a.b.c.d.set(2); // d notifies -> c dirty -> b dirty -> a dirty -> effect re-runs
 
 ### `buildSignalTree(value)`
 
-Converts a value into its `SignalTreeState`. Call the result (or any sub-node) like a function to read
+Converts a value into its `SignalState`. Call the result (or any sub-node) like a function to read
 it reactively (tracks as a dependency, like `computed()`/`signal()` reads). Reach into leaves to
 write them directly:
 

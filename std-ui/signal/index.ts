@@ -7,14 +7,14 @@ export {
 	type Computed,
 	type Dependency,
 	type OnCleanup,
-	type SignalState,
+	type Signal,
 	type SignalOptions,
 } from './core/index.js';
 
 export {
 	buildSignalTree,
 	type DeepPartial,
-	type SignalTreeState,
+	type SignalState,
 } from './tree.js';
 
 import { untrack as _untrack, Watcher as _Watcher } from './core/index.js';

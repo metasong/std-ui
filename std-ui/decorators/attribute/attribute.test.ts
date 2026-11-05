@@ -170,7 +170,7 @@ describe('@attribute()', () => {
 		el.setAttribute('config', 'not json');
 		document.body.appendChild(el);
 		// The default `Object` converter falls back to `{}` on unparsable text, but writing `{}`
-		// through the `SignalTreeState`'s `DeepPartial` merge provides no keys to overwrite, so the
+		// through the `SignalState`'s `DeepPartial` merge provides no keys to overwrite, so the
 		// field's existing leaves are left as-is rather than cleared.
 		expect(el.config).toEqual({ a: 1 });
 		el.remove();

@@ -12,7 +12,7 @@ export interface SignalOptions<T> {
 }
 
 /** A reactive value: call it to read (and track), call `.set`/`.update` to write. */
-export interface SignalState<T> {
+export interface Signal<T> {
 	/** Reads the current value and tracks it as a dependency. */
 	(): T;
 	/** Reads the current value without tracking it as a dependency.*/
@@ -22,7 +22,7 @@ export interface SignalState<T> {
 }
 
 /** Creates a writable reactive value, seeded with `initial`. */
-export function signal<T>(initial: T, options: SignalOptions<T> = {}): SignalState<T> {
+export function signal<T>(initial: T, options: SignalOptions<T> = {}): Signal<T> {
 	const { equals = Object.is } = options;
 	let value = initial;
 	const dep: Dependency = { subscribers: new Set() };
@@ -45,5 +45,5 @@ export function signal<T>(initial: T, options: SignalOptions<T> = {}): SignalSta
 		return next;
 	};
 	read.peek = (): T => value;
-	return read as SignalState<T>;
+	return read as Signal<T>;
 }

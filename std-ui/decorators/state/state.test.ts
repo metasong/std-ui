@@ -59,7 +59,7 @@ describe('@state()', () => {
 		el.remove();
 	});
 
-	it('backs a complex-object field with a SignalTreeState, reading/writing the whole object', async () => {
+	it('backs a complex-object field with a SignalState, reading/writing the whole object', async () => {
 		@tag('state-obj-tree')
 		class Foo extends UIElement {
 			@state() config = { a: 1, b: { c: 2 } };

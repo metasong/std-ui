@@ -4,14 +4,13 @@
  */
 import { describe, expect, it, vi } from 'vitest';
 import { tag, UIElement } from '../ui-element.js';
-import { computed, effect, signal } from '../signal/index.js';
-import { buildSignalTree } from '../signal/tree.js';
+import { buildSignalTree, computed, effect } from '../signal/index.js';
 import { html } from '../template/html.js';
 import { render } from '../template/render.js';
 
 describe('doc: signals drive html render', () => {
 	it('Pattern A — effect + render patches DOM in place when signals change', async () => {
-		const count = signal(0);
+		const count = buildSignalTree(0);
 		const label = computed(() => (count() === 1 ? 'click' : 'clicks'));
 		const container = document.createElement('div');
 
