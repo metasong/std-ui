@@ -9,18 +9,15 @@
 // anywhere.
 
 import {
-	CONTEXT_REQUEST_EVENT,
-	ContextRequestEvent,
 	defineObservedAttributes,
 	getAttributeDefs,
-	getConsumedContextDefs,
-	getProvidedContextDefs,
 	parseAttribute,
-	serializeAttribute,
+	wireConsumedContextFields,
+	wireProvidedContextListeners,
+	wireReflectedAttributes,
 } from './decorators/index.js';
 import {
 	effect as createEffect,
-	signal,
 	type OnCleanup,
 } from './signal/index.js';
 import { render, type TemplateResult } from './template/index.js';
@@ -87,74 +84,6 @@ export abstract class UIElement extends HTMLElement {
 		this.#effectDisposers.push(createEffect(fn));
 	};
 
-	/**
-	 * Context, provide side: one `context-request` listener per `@state({ contextKey })` field.
-	 * Must run before `connect()` so descendants appended there can `@consume()` synchronously.
-	 * `stopPropagation()` on a match gives nearest-provider-wins — see `./decorators/context/request-event.ts`.
-	 */
-	#wireProvidedContextListeners(): void {
-		for (const def of getProvidedContextDefs(this.constructor)) {
-			const listener = (event: Event): void => {
-				const request = event as ContextRequestEvent<unknown>;
-				if (request.contextKey !== def.contextKey) return;
-				request.stopPropagation();
-				this.#effectDisposers.push(createEffect(() => {
-					request.callback((this as unknown as Record<PropertyKey, unknown>)[def.key]);
-				}));
-			};
-			this.addEventListener(CONTEXT_REQUEST_EVENT, listener);
-			this.#contextListenerDisposers.push(() => this.removeEventListener(CONTEXT_REQUEST_EVENT, listener));
-		}
-	}
-
-	/**
-	 * Property → attribute: one effect per `@attribute({ reflect: true })` field, mirroring its
-	 * backing signal onto the host attribute (opt-in; `@state()` never appears here).
-	 */
-	#wireReflectedAttributes(): void {
-		for (const def of getAttributeDefs(this.constructor)) {
-			if (!def.reflect) continue;
-			this.#effectDisposers.push(createEffect(() => {
-				const value = (this as unknown as Record<PropertyKey, unknown>)[def.key];
-				const serialized = serializeAttribute(value, def.converter);
-				if (serialized === null) this.removeAttribute(def.attribute);
-				else this.setAttribute(def.attribute, serialized);
-			}));
-		}
-	}
-
-	/**
-	 * Context, consume side: one `ContextRequestEvent` dispatch per `@consume(contextKey)` field,
-	 * resolved synchronously against the nearest ancestor provider.
-	 */
-	#wireConsumedContextFields(): void {
-		for (const def of getConsumedContextDefs(this.constructor)) {
-			const value = signal<unknown>(undefined);
-			let found = false;
-			this.dispatchEvent(new ContextRequestEvent(def.contextKey, next => {
-				found = true;
-				value.set(next);
-			}));
-			if (!found) {
-				throw new Error(
-					`@consume() field "${String(def.key)}" on <${this.tagName.toLowerCase()}> found no ancestor ` +
-						`providing context "${def.contextKey.description}" - add a matching @state({ contextKey }) ` +
-						`further up the tree.`,
-				);
-			}
-			Object.defineProperty(this, def.key, {
-				get(): unknown {
-					return value();
-				},
-				set(): void {
-					throw new Error(`@consume() field "${String(def.key)}" is read-only - its value comes from the provider.`);
-				},
-				enumerable: true,
-				configurable: true,
-			});
-		}
-	}
-
 	/** Re-runs `template()` when any signal it reads changes; invokes `firstRendered` / `rendered` after each apply. */
 	#wireTemplateRenderEffect(): void {
 		this.#effectDisposers.push(createEffect(
@@ -175,7 +104,11 @@ export abstract class UIElement extends HTMLElement {
 	// Browser lifecycle entry points — `private` so TS subclasses cannot override; extend `connect` / `disconnect` / `template` / `firstRendered` / `rendered` instead.
 	/** Connected to the document (static HTML, parent markup, re-insert after remove). */
 	private connectedCallback(): void {
-		this.#wireProvidedContextListeners();
+		wireProvidedContextListeners(
+			this,
+			dispose => this.#effectDisposers.push(dispose),
+			dispose => this.#contextListenerDisposers.push(dispose),
+		);
 
 		// Runs after the listeners above so descendants appended here(in `connect()`) can `@consume()` synchronously.
 		if (!this.#connected) {
@@ -183,8 +116,8 @@ export abstract class UIElement extends HTMLElement {
 			this.connect?.();
 		}
 
-		this.#wireReflectedAttributes();
-		this.#wireConsumedContextFields();
+		wireReflectedAttributes(this, dispose => this.#effectDisposers.push(dispose));
+		wireConsumedContextFields(this);
 		this.#wireTemplateRenderEffect();
 	}
 

@@ -3,6 +3,7 @@ export { attribute, type AttributeOptions } from './attribute/attribute.decorato
 export { type AttributeConverter, type AttributeType } from './attribute/converter.js';
 export { parseAttribute, serializeAttribute } from './attribute/converter.js';
 export { defineObservedAttributes, getAttributeDefs, type AttributeDef } from './attribute/metadata.js';
+export { wireReflectedAttributes } from './attribute/wire-reflect.js';
 export {
 	consume,
 	createContextKey,
@@ -10,6 +11,8 @@ export {
 	CONTEXT_REQUEST_EVENT,
 	getProvidedContextDefs,
 	getConsumedContextDefs,
+	wireConsumedContextFields,
+	wireProvidedContextListeners,
 	type ContextKey,
 	type ProvidedContextDef,
 	type ConsumedContextDef,
