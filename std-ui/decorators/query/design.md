@@ -105,6 +105,9 @@ initializer does.
 
 ## `@queryAsync()` and `UIElement.updateComplete`
 
+For the user-facing “why not `@query()`?” narrative (deferred renders, conditional `template()`
+branches, when to `await`), see [`README.md`](./README.md#why-queryasync-exists).
+
 `@queryAsync()` is the one of the three that can't just run its query immediately - the whole
 point is to wait until any render/effect re-run *currently pending* (from a signal write made just
 before reading the field) has actually applied to the DOM. That wait is `UIElement.updateComplete`

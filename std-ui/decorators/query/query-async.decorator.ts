@@ -4,8 +4,11 @@ import { assertPlainField } from './assert-plain-field.js';
 /**
  * Read-only field that resolves to a `Promise` of `this.querySelector(selector)`, waiting first for
  * `this.updateComplete` (see `../../ui-element.ts`) so it reflects DOM produced by any render/effect
- * still pending at the time it's read - useful when the queried node only appears once `template()`
- * (or a conditional `effect()`) has caught up with a just-written signal.
+ * still pending at the time it's read.
+ *
+ * Needed because signal writes are synchronous but DOM updates are microtask-batched — `@query()`
+ * would see stale DOM if read immediately after a write that changes conditional `template()` markup.
+ * See `./README.md#why-queryasync-exists`.
  *
  * ```ts
  * @queryAsync('.lazy') lazy!: Promise<HTMLElement | null>;

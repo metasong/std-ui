@@ -83,22 +83,44 @@ see additions/removals after the one you first read.
 
 ```ts
 @queryAsync('.lazy') lazy!: Promise<HTMLElement | null>;
+@query('.lazy') lazySync!: Promise<HTMLElement | null>;
 ```
 
-Use this instead of `@query()` when the queried node only exists conditionally in `template()` and
-you're reading the field *immediately* after writing a signal that flips that condition - `@query()`
-would see the DOM from *before* the pending render catches up, since writes are microtask-batched
-(see `../../signal/core/effect.ts`). `@queryAsync()` instead waits for `this.updateComplete`
-(resolves once any pending render/effect re-run has actually applied to the DOM) before running the
-query:
+### Why `@queryAsync()` exists
+
+`UIElement` re-renders when signals change, but those re-runs are **microtask-batched** (see
+`../../signal/core/effect.ts` — `scheduleFlush()` queues one microtask per burst of synchronous
+writes). A `@state()` assignment (or any signal write) takes effect immediately in memory; the DOM
+only catches up after that pending flush runs.
+
+`@query()` always calls `querySelector` at read time against whatever DOM exists **right now**. That
+is correct when markup is already stable, or when you read long after the render has applied. It
+fails in the common pattern “flip a signal, then immediately need a node that only appears because
+of that flip” — especially conditional branches in `template()`:
 
 ```ts
 el.show = true;
-await el.lazy; // sees the node `show`'s new value causes `template()` to render
+el.lazySync; // @query('.lazy') — still null; template() has not re-run yet
 ```
 
-Every read returns a *new* `Promise` (re-running the query once `updateComplete` resolves again) -
-there's no caching option, since the whole point is to reflect whatever render is pending right now.
+`@queryAsync()` returns a `Promise` that waits for `this.updateComplete` on `../../ui-element.ts`
+first — “every render/effect re-run that was already scheduled when I read this field has applied to
+the DOM” — and only then runs `querySelector`:
+
+```ts
+el.show = true;
+await el.lazy; // @queryAsync('.lazy') — sees `<em class="lazy">` after the pending render
+```
+
+| Situation | Use |
+|---|---|
+| Node is stable, or you read after the DOM has caught up | `@query()` / `@queryAll()` |
+| You just wrote a signal and need a node that exists only after the next render | `@queryAsync()` + `await` |
+
+Every read returns a *new* `Promise` (re-running the query once `updateComplete` resolves again) —
+there's no caching option, since the whole point is to reflect whatever render is pending at read
+time. How `updateComplete` aligns with the effect flush (two nested microtasks) is documented in
+[`design.md`](./design.md#queryasync-and-uielementupdatecomplete).
 
 ## Related reading
 
