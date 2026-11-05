@@ -1,7 +1,7 @@
 // `@state()` field decorator: turns a class field on a `UIElement` subclass (see
 // `../component.ts`) into a store-backed property (see `./store.ts`) - no attribute involved at
 // all. Reading/writing the field reads/writes a reactive store (a `signal()` for a
-// primitive/array/class-instance value, or a `SignalTree` for a plain-object value - see
+// primitive/array/class-instance value, or a `SignalTreeState` for a plain-object value - see
 // `./store.ts`), so `this.someField` inside `template()`/`effect()` tracks it transparently, the
 // same way reading any other signal would.
 //
@@ -33,7 +33,7 @@ export interface StateOptions<V = unknown> {
  * class MyPanel extends UIElement {
  *   @state() count = 0; // plain store-backed property
  *   @state() accessor label = 'x'; // `accessor` fields work too
- *   @state() config = { a: 1, b: { c: 2 } }; // plain-object value -> `SignalTree`-backed (see
+ *   @state() config = { a: 1, b: { c: 2 } }; // plain-object value -> `SignalTreeState`-backed (see
  *     // `./store.ts`): each leaf is independently writable/reactive, and writing
  *     // `this.config = { ...this.config, a: 2 }` only notifies readers of the `a` leaf.
  * }

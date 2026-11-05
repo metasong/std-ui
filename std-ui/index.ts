@@ -17,7 +17,7 @@ export {
 	type Computed,
 	type DeepPartial,
 	type OnCleanup,
-	type Signal,
+	type SignalState,
 	type SignalOptions,
-	type SignalTree,
+	type SignalTreeState,
 } from './signal/index.js';

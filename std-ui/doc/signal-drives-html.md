@@ -15,7 +15,7 @@ Wiring them up gives you declarative UI that updates surgically: when state chan
 | **Dependencies** | An `effect` re-runs only when signals it *read* change; branch changes in `computed`/`if` are tracked correctly each run. |
 | **Batching** | Multiple synchronous `.set()` calls in one turn collapse to one effect flush (microtask), then one render pass. |
 | **Authoring** | Markup stays in `html\`...\`` templates with attribute/event bindings; state stays in signals, not scattered DOM queries. |
-| **Components** | `UIElement` already connects a `SignalTree` to `template()` for you; you can still drop to raw `effect` + `render` outside custom elements. |
+| **Components** | `UIElement` already connects a `SignalTreeState` to `template()` for you; you can still drop to raw `effect` + `render` outside custom elements. |
 
 The fireworks app uses this throughout `src/ui/components/` — e.g. `pause-button` swaps icon markup when `appState.paused()` changes, and `controls-bar` toggles layout classes from `appState` while composing child custom elements in one template.
 
@@ -90,11 +90,11 @@ class DemoCounter extends UIElement {
 
 document.body.appendChild(document.createElement('demo-counter'));
 
-shared.counter.value.set(5);           // write a leaf: shared.counter.value is a Signal
+shared.counter.value.set(5);           // write a leaf: shared.counter.value is a SignalState
 shared.counter.set({ max: 20 });     // or set a branch without touching sibling leaves
 ```
 
-Nested objects become branch `Computed`s; leaves like `value` and `max` are writable `Signal`s on the tree (`shared.counter.value.set(...)`) and are also readable as tracked functions (`shared.counter.value()`). Reading any of them inside `template()` registers that leaf as a dependency of the render effect — same tracking rule as any other `effect()`. See [`../signal/tree.md`](../signal/tree.md) for branch `.set(partial)` and `.peek()`.
+Nested objects become branch `Computed`s; leaves like `value` and `max` are writable `SignalState`s on the tree (`shared.counter.value.set(...)`) and are also readable as tracked functions (`shared.counter.value()`). Reading any of them inside `template()` registers that leaf as a dependency of the render effect — same tracking rule as any other `effect()`. See [`../signal/tree.md`](../signal/tree.md) for branch `.set(partial)` and `.peek()`.
 
 What `UIElement` does for you (see `component.ts`):
 
