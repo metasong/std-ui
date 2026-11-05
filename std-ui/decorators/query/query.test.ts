@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
-import { query, queryAll, queryAsync, state, tag, UIElement } from '../ui-element.js';
-import { html } from '../template/html.js';
+import { query, queryAll, queryAsync, state, tag, UIElement } from '../../ui-element.js';
+import { html } from '../../template/html.js';
 
 describe('@query()', () => {
 	it('resolves to the matching element, re-querying on every read by default', () => {

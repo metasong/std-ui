@@ -196,5 +196,6 @@ that merged list. A single `attributeChangedCallback` on `UIElement` handles eve
 - [`README.md`](./README.md) — public API and examples
 - [`field-store.ts`](./field-store.ts) / [`state/state.decorator.ts`](./state/state.decorator.ts) / [`attribute/attribute.decorator.ts`](./attribute/attribute.decorator.ts) / [`attribute/converter.ts`](./attribute/converter.ts) / [`attribute/metadata.ts`](./attribute/metadata.ts) / [`store.ts`](./store.ts) — implementation
 - [`./context/design.md`](./context/design.md) — `@state({ contextKey })` / `@consume()`, built on top of `@state()`'s field wiring described here
+- [`./query/design.md`](./query/design.md) — `@query()` / `@queryAll()` / `@queryAsync()`, which borrow this file's `addInitializer` + `Object.defineProperty` plain-field technique but back no store of their own
 - [`../component.ts`](../component.ts) — `tag()`, `connectedCallback`, `attributeChangedCallback`
 - [`state/state.test.ts`](./state/state.test.ts) / [`attribute/attribute.test.ts`](./attribute/attribute.test.ts) — behavior tests (upgrade seeding, booleans, store-only fields)
