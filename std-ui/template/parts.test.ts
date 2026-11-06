@@ -96,6 +96,32 @@ describe('EventPart', () => {
 		el.dispatchEvent(new Event('click'));
 		expect(handler).not.toHaveBeenCalled();
 	});
+
+	it('passes options (e.g. capture/once/passive) through to add/removeEventListener', () => {
+		const el = document.createElement('button');
+		const addEventListener = vi.spyOn(el, 'addEventListener');
+		const removeEventListener = vi.spyOn(el, 'removeEventListener');
+		const options = { once: true, capture: true, passive: true };
+		const part = new EventPart(el, 'click', options);
+		const first = vi.fn();
+		part.update(first);
+		expect(addEventListener).toHaveBeenCalledWith('click', first, options);
+
+		const second = vi.fn();
+		part.update(second);
+		expect(removeEventListener).toHaveBeenCalledWith('click', first, options);
+		expect(addEventListener).toHaveBeenCalledWith('click', second, options);
+	});
+
+	it('honors the `once` option: handler fires once then self-removes', () => {
+		const el = document.createElement('button');
+		const part = new EventPart(el, 'click', { once: true });
+		const handler = vi.fn();
+		part.update(handler);
+		el.dispatchEvent(new Event('click'));
+		el.dispatchEvent(new Event('click'));
+		expect(handler).toHaveBeenCalledTimes(1);
+	});
 });
 
 describe('ChildPart', () => {

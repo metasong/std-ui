@@ -36,6 +36,23 @@ describe('getTemplate/instantiate', () => {
 		]);
 	});
 
+	it('parses `.modifier`s off an `@`-prefixed event binding into AddEventListenerOptions', () => {
+		const { strings } = html`<button @click.once.capture.passive="${() => {}}"></button>`;
+		const template = getTemplate(strings);
+		expect(template.parts).toHaveLength(1);
+		expect(template.parts[0]).toMatchObject({
+			kind: 'event',
+			name: 'click',
+			options: { once: true, capture: true, passive: true },
+		});
+	});
+
+	it('ignores unknown modifiers on an event binding', () => {
+		const { strings } = html`<button @click.bogus="${() => {}}"></button>`;
+		const template = getTemplate(strings);
+		expect(template.parts[0]).toMatchObject({ kind: 'event', name: 'click', options: {} });
+	});
+
 	it('strips bound attributes from the parsed static markup, leaving unrelated static attributes', () => {
 		const { strings } = html`<div id="static" class="${'x'}" data-x="${1}"></div>`;
 		const { fragment } = instantiate(getTemplate(strings));

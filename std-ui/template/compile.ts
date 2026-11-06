@@ -15,10 +15,12 @@ export type PartKind = 'child' | 'attr' | 'bool' | 'prop' | 'event';
 
 export interface PartDescriptor {
 	kind: PartKind;
-	/** Attribute/property/event name, sans its `.`/`?`/`@` sigil. Unused for `kind: 'child'`. */
+	/** Attribute/property/event name, sans its `.`/`?`/`@` sigil and any `.modifier`s. Unused for `kind: 'child'`. */
 	name: string;
 	/** Position of this part's node among all element/comment nodes in document order; filled in by `walk()`. */
 	nodeIndex: number;
+	/** `kind: 'event'` only: parsed from `.capture`/`.once`/`.passive` modifiers, e.g. `@click.once.capture="${h}"`. */
+	options?: AddEventListenerOptions;
 }
 
 export interface Template {
@@ -40,13 +42,25 @@ function isInsideTag(markup: string): boolean {
 	return markup.lastIndexOf('<') > markup.lastIndexOf('>');
 }
 
-/** Reads the `name="` (optionally `.name=`/`?name=`/`@name=`) immediately before the cursor in `markup`. */
-function readAttrName(markup: string): { kind: PartKind; name: string } {
-	const match = /([.?@]?)([\w-]+)\s*=\s*["']?$/.exec(markup);
+const EVENT_MODIFIERS = ['capture', 'once', 'passive'] as const;
+type EventModifier = (typeof EVENT_MODIFIERS)[number];
+
+/** Reads the `name="` (optionally `.name=`/`?name=`/`@name=`, or `@name.mod1.mod2=` for events)
+ *  immediately before the cursor in `markup`. */
+function readAttrName(markup: string): { kind: PartKind; name: string; options?: AddEventListenerOptions } {
+	const match = /([.?@]?)([\w-]+(?:\.[\w-]+)*)\s*=\s*["']?$/.exec(markup);
 	const sigil = match?.[1] ?? '';
-	const name = match?.[2] ?? '';
+	const raw = match?.[2] ?? '';
 	const kind: PartKind = sigil === '.' ? 'prop' : sigil === '?' ? 'bool' : sigil === '@' ? 'event' : 'attr';
-	return { kind, name };
+
+	if (kind !== 'event') return { kind, name: raw };
+
+	const [name, ...modifiers] = raw.split('.');
+	const options: AddEventListenerOptions = {};
+	for (const mod of modifiers) {
+		if ((EVENT_MODIFIERS as readonly string[]).includes(mod)) options[mod as EventModifier] = true;
+	}
+	return { kind, name, options };
 }
 
 function compile(strings: TemplateStringsArray, type: TemplateType): Template {
@@ -151,6 +165,6 @@ function createPart(descriptor: PartDescriptor, target: Node): import('./parts.j
 		case 'attr': return new AttributePart(target as Element, descriptor.name);
 		case 'bool': return new BooleanAttributePart(target as Element, descriptor.name);
 		case 'prop': return new PropertyPart(target as Element, descriptor.name);
-		case 'event': return new EventPart(target as Element, descriptor.name);
+		case 'event': return new EventPart(target as Element, descriptor.name, descriptor.options);
 	}
 }

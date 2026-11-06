@@ -45,12 +45,18 @@ export class PropertyPart implements Part {
 
 export class EventPart implements Part {
 	#listener: EventListenerOrEventListenerObject | undefined;
-	constructor(private readonly el: Element, private readonly name: string) {}
+	constructor(
+		private readonly el: Element,
+		private readonly name: string,
+		private readonly options?: AddEventListenerOptions,
+	) {}
 	update(value: unknown): void {
 		if (value === this.#listener) return;
-		if (this.#listener) this.el.removeEventListener(this.name, this.#listener);
+		// `removeEventListener` only needs `capture` to match the call that added the listener;
+		// `once`/`passive` are ignored for removal purposes, but passing the same options is harmless.
+		if (this.#listener) this.el.removeEventListener(this.name, this.#listener, this.options);
 		this.#listener = typeof value === 'function' ? (value as EventListener) : undefined;
-		if (this.#listener) this.el.addEventListener(this.name, this.#listener);
+		if (this.#listener) this.el.addEventListener(this.name, this.#listener, this.options);
 	}
 }
 

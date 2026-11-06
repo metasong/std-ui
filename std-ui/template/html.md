@@ -25,6 +25,11 @@ Each `${...}` interpolation is bound based on *where* it appears in the markup:
 | `?`-prefixed attribute | `?hidden="${value}"` | `el.toggleAttribute('hidden', Boolean(value))` |
 | `.`-prefixed attribute | `.value="${value}"` | `el.value = value` (a JS property, not an HTML attribute) |
 | `@`-prefixed attribute | `@click="${handler}"` | `el.addEventListener('click', handler)` |
+| `@`-prefixed attribute with modifiers | `@click.once.capture.passive="${handler}"` | `el.addEventListener('click', handler, { once: true, capture: true, passive: true })` |
+
+Event listeners accept `.capture`, `.once`, and `.passive` modifiers chained onto the event name
+(any order, any subset), mapped straight onto `addEventListener`'s options object - e.g.
+`@click.capture="${h}"` or `@scroll.once.passive="${h}"`. Unknown modifiers are silently ignored.
 
 Child content accepts:
 
