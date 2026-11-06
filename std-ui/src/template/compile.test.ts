@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { getTemplate, instantiate } from './compile.js';
 import { html, svg } from './html.js';
+import { updateParts } from './parts.js';
 
 describe('getTemplate/instantiate', () => {
 	it('compiles a child binding to a comment-anchored ChildPart', () => {
@@ -66,6 +67,57 @@ describe('getTemplate/instantiate', () => {
 		const { strings } = html`<div id="${'a'}">${'b'}<span class="${'c'}"></span></div>`;
 		const template = getTemplate(strings);
 		expect(template.parts.map(p => p.kind)).toEqual(['attr', 'child', 'attr']);
+	});
+
+	it('supports multiple interpolations in one attribute value', () => {
+		const { strings, values } = html`<div class="${'a'}-${'b'}"></div>`;
+		const template = getTemplate(strings);
+		expect(template.parts).toHaveLength(1);
+		expect(template.parts[0]).toMatchObject({ kind: 'attr', name: 'class', valueCount: 2, literals: ['', '-', ''] });
+
+		const { fragment, parts } = instantiate(template);
+		updateParts(parts, values);
+		expect(fragment.querySelector('div')!.getAttribute('class')).toBe('a-b');
+	});
+
+	it('supports mixing static text with a single interpolation in an attribute value', () => {
+		const { strings, values } = html`<div class="static-${'x'}"></div>`;
+		const { fragment, parts } = instantiate(getTemplate(strings));
+		updateParts(parts, values);
+		expect(fragment.querySelector('div')!.getAttribute('class')).toBe('static-x');
+	});
+
+	it('resolves a multi-part attribute followed by another attribute, correctly splitting values', () => {
+		const { strings, values } = html`<div class="${'a'} ${'b'}" id="${'c'}"></div>`;
+		const template = getTemplate(strings);
+		expect(template.parts.map(p => [p.kind, p.name, p.valueCount])).toEqual([
+			['attr', 'class', 2],
+			['attr', 'id', 1],
+		]);
+
+		const { fragment, parts } = instantiate(template);
+		updateParts(parts, values);
+		const div = fragment.querySelector('div')!;
+		expect(div.getAttribute('class')).toBe('a b');
+		expect(div.getAttribute('id')).toBe('c');
+	});
+
+	it('resolves a multi-part attribute followed by child content, correctly splitting values', () => {
+		const { strings, values } = html`<div class="${'a'} ${'b'}">${'c'}</div>`;
+		const { fragment, parts } = instantiate(getTemplate(strings));
+		updateParts(parts, values);
+		const div = fragment.querySelector('div')!;
+		expect(div.getAttribute('class')).toBe('a b');
+		// the ChildPart's text node sits right after its anchor comment
+		expect(div.textContent).toBe('c');
+	});
+
+	it('throws when a `?`/`.`/`@`-prefixed binding has more than one interpolation', () => {
+		expect(() => getTemplate(html`<input ?disabled="${true} ${false}"/>`.strings)).toThrow();
+	});
+
+	it('throws when a `?`/`.`/`@`-prefixed binding mixes in static text', () => {
+		expect(() => getTemplate(html`<input ?disabled="x${true}"/>`.strings)).toThrow();
 	});
 
 	it('caches the compiled template per `strings` identity', () => {

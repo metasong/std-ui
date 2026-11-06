@@ -24,10 +24,12 @@
 //     the DOM (`Part`s no-op on `Object.is`-equal values).
 //
 // What's intentionally left out, vs. real lit-html: keyed list reconciliation (`repeat()`),
-// directives, MathML template handling, and multi-expression attributes (`class="${a} ${b}"`).
-// Bindings must be single interpolations like `attr="${value}"`. SVG is supported via `svg()`
-// below, for the one case plain `html` can't handle: a namespace-less fragment (no `<svg>`
-// wrapper of its own) meant to be interpolated as a child of an existing `<svg>` element.
+// directives, and MathML template handling. Plain attributes (no `?`/`.`/`@` sigil) do support
+// multi-expression/mixed-static values like `class="${a} ${b}"` or `class="static-${x}"`; the
+// `?`/`.`/`@`-prefixed kinds don't, since they bind a real JS value rather than a string - each
+// must be a single bare interpolation, e.g. `?hidden="${v}"`. SVG is supported via `svg()` below,
+// for the one case plain `html` can't handle: a namespace-less fragment (no `<svg>` wrapper of its
+// own) meant to be interpolated as a child of an existing `<svg>` element.
 //
 // This module ties the pieces (compilation, parts, rendering) together; see the sibling files for
 // each concern: `compile.ts`, `parts.ts`, `unsafe-html.ts`, `render.ts`.

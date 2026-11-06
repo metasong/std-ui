@@ -31,6 +31,19 @@ Event listeners accept `.capture`, `.once`, and `.passive` modifiers chained ont
 (any order, any subset), mapped straight onto `addEventListener`'s options object - e.g.
 `@click.capture="${h}"` or `@scroll.once.passive="${h}"`. Unknown modifiers are silently ignored.
 
+A plain attribute's value may mix static text with any number of interpolations - they're joined
+into one string and re-applied via `setAttribute` whenever any piece changes:
+
+```ts
+html`<div class="${a} ${b}">`; // multiple interpolations
+html`<div class="static-${dynamic}">`; // static text + one interpolation
+```
+
+`?`/`.`/`@`-prefixed bindings don't support this - they bind to a real JS value (a boolean, a
+property, a listener), not a string, so each must be exactly one interpolation with no static text
+(e.g. `?hidden="${v}"`, not `?hidden="${a}${b}"` or `?hidden="x${v}"`); mixing either throws at
+compile time.
+
 Child content accepts:
 
 - `string` / `number` → rendered as a text node.
@@ -147,6 +160,10 @@ class HelloBanner extends UIElement {
 
 ## How it works
 
+For a **deeper, illustrated walkthrough** of how plain attributes are compiled (state machine,
+placeholders, `literals` / `valueCount`, and the “rewind” trick for `class="prefix-${x}"`), see
+[compile-attributes.md](./compile-attributes.md).
+
 1. `html` just captures `strings`/`values` — no DOM work happens yet. Tagged template calls reuse
    the *same* `strings` array object across repeated calls at the same call site (guaranteed by the
    JS spec), so it doubles as a cache key.
@@ -169,16 +186,6 @@ class HelloBanner extends UIElement {
   items in place rather than moving DOM nodes - fine for appending/removing at the end, surprising
   for reordering/insertion in the middle.
 - **No directives** (`classMap`, `styleMap`, `ref`, etc.) - just the five binding kinds above.
-- **One interpolation per attribute.** `class="${a} ${b}"` or `class="static ${dynamic}"` are not
-  supported - an attribute's value must be exactly one `${...}`. Combine multiple pieces into a
-  single string yourself before interpolating:
-
-  ```ts
-  html`<div class="${`${a} ${b}`}">`;
-  // or, more readably:
-  const cls = `static-${dynamic}`;
-  html`<div class="${cls}">`;
-  ```
 - **No MathML support.** There's no `mathml` tag function analogous to `svg` below.
 - **SVG needs the `svg` tag for namespace-less fragments.** Markup containing its own top-level
   `<svg>...</svg>` works fine with plain `html` - the parser assigns the SVG namespace as soon as

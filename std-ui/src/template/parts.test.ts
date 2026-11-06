@@ -13,7 +13,7 @@ describe('AttributePart', () => {
 	it('sets the attribute as a string', () => {
 		const el = document.createElement('div');
 		const part = new AttributePart(el, 'id');
-		part.update('x');
+		part.update(['x']);
 		expect(el.getAttribute('id')).toBe('x');
 	});
 
@@ -21,16 +21,39 @@ describe('AttributePart', () => {
 		const el = document.createElement('div');
 		el.setAttribute('id', 'x');
 		const part = new AttributePart(el, 'id');
-		part.update(null);
+		part.update([null]);
 		expect(el.hasAttribute('id')).toBe(false);
 	});
 
 	it('is a no-op (no DOM write) for an Object.is-equal value', () => {
 		const el = document.createElement('div');
 		const part = new AttributePart(el, 'id');
-		part.update('x');
+		part.update(['x']);
 		const setAttribute = vi.spyOn(el, 'setAttribute');
-		part.update('x');
+		part.update(['x']);
+		expect(setAttribute).not.toHaveBeenCalled();
+	});
+
+	it('composes multiple interpolations plus static text into one value', () => {
+		const el = document.createElement('div');
+		const part = new AttributePart(el, 'class', ['a-', '-b-', '']);
+		part.update(['x', 'y']);
+		expect(el.getAttribute('class')).toBe('a-x-b-y');
+	});
+
+	it('treats a nullish value inside a multi-part attribute as empty text, not removal', () => {
+		const el = document.createElement('div');
+		const part = new AttributePart(el, 'class', ['', ' ', '']);
+		part.update(['a', null]);
+		expect(el.getAttribute('class')).toBe('a ');
+	});
+
+	it('is a no-op for an Object.is-equal composed string across multi-part updates', () => {
+		const el = document.createElement('div');
+		const part = new AttributePart(el, 'class', ['', ' ', '']);
+		part.update(['a', 'b']);
+		const setAttribute = vi.spyOn(el, 'setAttribute');
+		part.update(['a', 'b']);
 		expect(setAttribute).not.toHaveBeenCalled();
 	});
 });
@@ -39,18 +62,18 @@ describe('BooleanAttributePart', () => {
 	it('toggles the attribute based on truthiness', () => {
 		const el = document.createElement('div');
 		const part = new BooleanAttributePart(el, 'hidden');
-		part.update(true);
+		part.update([true]);
 		expect(el.hasAttribute('hidden')).toBe(true);
-		part.update(false);
+		part.update([false]);
 		expect(el.hasAttribute('hidden')).toBe(false);
 	});
 
 	it('is a no-op for an Object.is-equal value', () => {
 		const el = document.createElement('div');
 		const part = new BooleanAttributePart(el, 'hidden');
-		part.update(true);
+		part.update([true]);
 		const toggleAttribute = vi.spyOn(el, 'toggleAttribute');
-		part.update(true);
+		part.update([true]);
 		expect(toggleAttribute).not.toHaveBeenCalled();
 	});
 });
@@ -59,7 +82,7 @@ describe('PropertyPart', () => {
 	it('assigns the JS property directly (not an HTML attribute)', () => {
 		const el = document.createElement('input');
 		const part = new PropertyPart(el, 'value');
-		part.update('hello');
+		part.update(['hello']);
 		expect(el.value).toBe('hello');
 		expect(el.hasAttribute('value')).toBe(false);
 	});
@@ -70,7 +93,7 @@ describe('EventPart', () => {
 		const el = document.createElement('button');
 		const part = new EventPart(el, 'click');
 		const handler = vi.fn();
-		part.update(handler);
+		part.update([handler]);
 		el.dispatchEvent(new Event('click'));
 		expect(handler).toHaveBeenCalledTimes(1);
 	});
@@ -80,8 +103,8 @@ describe('EventPart', () => {
 		const part = new EventPart(el, 'click');
 		const first = vi.fn();
 		const second = vi.fn();
-		part.update(first);
-		part.update(second);
+		part.update([first]);
+		part.update([second]);
 		el.dispatchEvent(new Event('click'));
 		expect(first).not.toHaveBeenCalled();
 		expect(second).toHaveBeenCalledTimes(1);
@@ -91,8 +114,8 @@ describe('EventPart', () => {
 		const el = document.createElement('button');
 		const part = new EventPart(el, 'click');
 		const handler = vi.fn();
-		part.update(handler);
-		part.update(undefined);
+		part.update([handler]);
+		part.update([undefined]);
 		el.dispatchEvent(new Event('click'));
 		expect(handler).not.toHaveBeenCalled();
 	});
@@ -104,11 +127,11 @@ describe('EventPart', () => {
 		const options = { once: true, capture: true, passive: true };
 		const part = new EventPart(el, 'click', options);
 		const first = vi.fn();
-		part.update(first);
+		part.update([first]);
 		expect(addEventListener).toHaveBeenCalledWith('click', first, options);
 
 		const second = vi.fn();
-		part.update(second);
+		part.update([second]);
 		expect(removeEventListener).toHaveBeenCalledWith('click', first, options);
 		expect(addEventListener).toHaveBeenCalledWith('click', second, options);
 	});
@@ -117,7 +140,7 @@ describe('EventPart', () => {
 		const el = document.createElement('button');
 		const part = new EventPart(el, 'click', { once: true });
 		const handler = vi.fn();
-		part.update(handler);
+		part.update([handler]);
 		el.dispatchEvent(new Event('click'));
 		el.dispatchEvent(new Event('click'));
 		expect(handler).toHaveBeenCalledTimes(1);
@@ -134,41 +157,41 @@ describe('ChildPart', () => {
 
 	it('renders strings/numbers as text nodes', () => {
 		const { part, container } = makePart();
-		part.update('hello');
+		part.update(['hello']);
 		expect(container.textContent).toBe('hello');
-		part.update(42);
+		part.update([42]);
 		expect(container.textContent).toBe('42');
 	});
 
 	it('renders null/undefined/false as nothing, clearing any previous content', () => {
 		const { part, container } = makePart();
-		part.update('hello');
-		part.update(null);
+		part.update(['hello']);
+		part.update([null]);
 		expect(container.textContent).toBe('');
-		part.update('hello');
-		part.update(undefined);
+		part.update(['hello']);
+		part.update([undefined]);
 		expect(container.textContent).toBe('');
-		part.update('hello');
-		part.update(false);
+		part.update(['hello']);
+		part.update([false]);
 		expect(container.textContent).toBe('');
 	});
 
 	it('renders a nested html() result and patches it in place on same-strings re-updates', () => {
 		const { part, container } = makePart();
 		const view = (name: string) => html`<b>${name}</b>`;
-		part.update(view('Ada'));
+		part.update([view('Ada')]);
 		expect(container.querySelector('b')!.textContent).toBe('Ada');
 
-		part.update(view('Grace'));
+		part.update([view('Grace')]);
 		expect(container.querySelectorAll('b')).toHaveLength(1); // same DOM reused, not rebuilt
 		expect(container.querySelector('b')!.textContent).toBe('Grace');
 	});
 
 	it('tears down and rebuilds when switching to a different template literal', () => {
 		const { part, container } = makePart();
-		part.update(html`<b>${'x'}</b>`);
+		part.update([html`<b>${'x'}</b>`]);
 		const firstB = container.querySelector('b');
-		part.update(html`<i>${'x'}</i>`);
+		part.update([html`<i>${'x'}</i>`]);
 		expect(container.querySelector('b')).toBeNull();
 		expect(container.querySelector('i')).not.toBeNull();
 		expect(container.querySelector('i')).not.toBe(firstB);
@@ -176,29 +199,29 @@ describe('ChildPart', () => {
 
 	it('renders unsafeHTML markup as real parsed nodes', () => {
 		const { part, container } = makePart();
-		part.update(unsafeHTML('<em>hi</em>'));
+		part.update([unsafeHTML('<em>hi</em>')]);
 		expect(container.querySelector('em')!.textContent).toBe('hi');
 	});
 
 	it('renders an array of values as sibling nodes, diffed positionally', () => {
 		const { part, container } = makePart();
-		part.update(['a', 'b', 'c']);
+		part.update([['a', 'b', 'c']]);
 		expect(container.textContent).toBe('abc');
 
-		part.update(['a', 'z']); // shrink: drops the extra trailing item
+		part.update([['a', 'z']]); // shrink: drops the extra trailing item
 		expect(container.textContent).toBe('az');
 
-		part.update(['a', 'z', 'c']); // grow back
+		part.update([['a', 'z', 'c']]); // grow back
 		expect(container.textContent).toBe('azc');
 	});
 
 	it('renders an array of nested templates, each independently diffed', () => {
 		const { part, container } = makePart();
 		const item = (label: string) => html`<li>${label}</li>`;
-		part.update([item('one'), item('two')]);
+		part.update([[item('one'), item('two')]]);
 		expect(Array.from(container.querySelectorAll('li')).map(li => li.textContent)).toEqual(['one', 'two']);
 
-		part.update([item('ONE'), item('two')]);
+		part.update([[item('ONE'), item('two')]]);
 		expect(Array.from(container.querySelectorAll('li')).map(li => li.textContent)).toEqual(['ONE', 'two']);
 	});
 });

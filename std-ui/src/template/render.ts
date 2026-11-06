@@ -1,7 +1,7 @@
 // --- render(): the public entry point, one call per container. ------------------------------------
 
 import type { TemplateResult } from './html.js';
-import type { Part } from './parts.js';
+import { type Part, updateParts } from './parts.js';
 import { getTemplate, instantiate } from './compile.js';
 
 interface RenderedInstance {
@@ -19,7 +19,7 @@ const renderedInstances = new WeakMap<Element | DocumentFragment, RenderedInstan
 export function render(result: TemplateResult, container: Element | DocumentFragment): void {
 	const previous = renderedInstances.get(container);
 	if (previous && previous.strings === result.strings) {
-		for (let i = 0; i < previous.parts.length; i++) previous.parts[i].update(result.values[i]);
+		updateParts(previous.parts, result.values);
 		return;
 	}
 
@@ -27,6 +27,6 @@ export function render(result: TemplateResult, container: Element | DocumentFrag
 	const { fragment, parts } = instantiate(getTemplate(result.strings, result.type));
 	container.appendChild(fragment);
 	// After connect so custom elements are upgraded before `.prop` bindings hit `@state()`/`@attribute()` accessors.
-	for (let i = 0; i < parts.length; i++) parts[i].update(result.values[i]);
+	updateParts(parts, result.values);
 	renderedInstances.set(container, { strings: result.strings, parts });
 }

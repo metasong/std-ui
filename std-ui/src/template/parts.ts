@@ -8,25 +8,71 @@ import { isTemplateResult, type TemplateResult } from './html.js';
 import { isUnsafeHtml } from './unsafe-html.js';
 import { getTemplate, instantiate } from './compile.js';
 
+/**
+ * One dynamic position bound to a live DOM location. `valueCount` tells the caller (see
+ * `updateParts()` below) how many consecutive entries of a template's `values[]` this part
+ * consumes - `1` for every part except `AttributePart`, which may span several when an attribute's
+ * value mixes static text with multiple interpolations, e.g. `class="${a} ${b}"`.
+ */
 export interface Part {
-	update(value: unknown): void;
+	readonly valueCount: number;
+	update(values: readonly unknown[]): void;
 }
 
+/** Feeds `values` to `parts` in document order, giving each part exactly the slice it declared via
+ *  `valueCount`. Centralizing this bookkeeping here (rather than in every call site) is what lets
+ *  `AttributePart` consume more than one value without the rest of the codebase knowing about it. */
+export function updateParts(parts: readonly Part[], values: readonly unknown[]): void {
+	let offset = 0;
+	for (const part of parts) {
+		part.update(values.slice(offset, offset + part.valueCount));
+		offset += part.valueCount;
+	}
+}
+
+/**
+ * Binds an attribute's full value, which may be composed of static text segments (`literals`)
+ * interleaved with any number of interpolations - mirroring how the tagged template itself is
+ * structured: `literals.length === valueCount + 1`. Defaults to `['', '']` (a bare `attr="${v}"`
+ * with no static text), the only shape that supports attribute *removal* via `null`/`undefined`,
+ * since a value sitting next to static text can't be meaningfully "absent".
+ */
 export class AttributePart implements Part {
-	#value: unknown;
-	constructor(private readonly el: Element, private readonly name: string) {}
-	update(value: unknown): void {
-		if (Object.is(value, this.#value)) return;
-		this.#value = value;
-		if (value == null) this.el.removeAttribute(this.name);
-		else this.el.setAttribute(this.name, String(value));
+	readonly valueCount: number;
+	/** Last string written via `setAttribute`, or `null` once removed; `undefined` before any update. */
+	#committed: string | null | undefined;
+	constructor(
+		private readonly el: Element,
+		private readonly name: string,
+		private readonly literals: readonly string[] = ['', ''],
+	) {
+		this.valueCount = literals.length - 1;
+	}
+
+	update(values: readonly unknown[]): void {
+		const isBareSingleValue = this.literals.length === 2 && this.literals[0] === '' && this.literals[1] === '';
+		if (isBareSingleValue && values[0] == null) {
+			if (this.#committed === null) return;
+			this.#committed = null;
+			this.el.removeAttribute(this.name);
+			return;
+		}
+
+		let composed = this.literals[0];
+		for (let i = 0; i < values.length; i++) composed += (values[i] == null ? '' : String(values[i])) + this.literals[i + 1];
+
+		if (composed === this.#committed) return;
+		this.#committed = composed;
+		this.el.setAttribute(this.name, composed);
 	}
 }
 
 export class BooleanAttributePart implements Part {
+	readonly valueCount = 1;
 	#value: unknown;
 	constructor(private readonly el: Element, private readonly name: string) {}
-	update(value: unknown): void {
+	update(values: readonly unknown[]): void {
+		const value = values[0];
 		if (Object.is(value, this.#value)) return;
 		this.#value = value;
 		this.el.toggleAttribute(this.name, Boolean(value));
@@ -34,9 +80,11 @@ export class BooleanAttributePart implements Part {
 }
 
 export class PropertyPart implements Part {
+	readonly valueCount = 1;
 	#value: unknown;
 	constructor(private readonly el: Element, private readonly name: string) {}
-	update(value: unknown): void {
+	update(values: readonly unknown[]): void {
+		const value = values[0];
 		if (Object.is(value, this.#value)) return;
 		this.#value = value;
 		(this.el as unknown as Record<string, unknown>)[this.name] = value;
@@ -44,13 +92,15 @@ export class PropertyPart implements Part {
 }
 
 export class EventPart implements Part {
+	readonly valueCount = 1;
 	#listener: EventListenerOrEventListenerObject | undefined;
 	constructor(
 		private readonly el: Element,
 		private readonly name: string,
 		private readonly options?: AddEventListenerOptions,
 	) {}
-	update(value: unknown): void {
+	update(values: readonly unknown[]): void {
+		const value = values[0];
 		if (value === this.#listener) return;
 		// `removeEventListener` only needs `capture` to match the call that added the listener;
 		// `once`/`passive` are ignored for removal purposes, but passing the same options is harmless.
@@ -70,10 +120,12 @@ type ChildCommit =
 
 /** Binds a child-content position, anchored by a persistent comment node (`anchor`) in the DOM. */
 export class ChildPart implements Part {
+	readonly valueCount = 1;
 	#committed: ChildCommit = { kind: 'none' };
 	constructor(private readonly anchor: Comment) {}
 
-	update(value: unknown): void {
+	update(values: readonly unknown[]): void {
+		const value = values[0];
 		if (Array.isArray(value)) this.#commitList(value);
 		else if (isTemplateResult(value)) this.#commitTemplate(value);
 		else if (isUnsafeHtml(value)) this.#commitUnsafeHtml(value.markup);
@@ -117,14 +169,14 @@ export class ChildPart implements Part {
 
 	#commitTemplate(result: TemplateResult): void {
 		if (this.#committed.kind === 'template' && this.#committed.strings === result.strings) {
-			for (let i = 0; i < this.#committed.parts.length; i++) this.#committed.parts[i].update(result.values[i]);
+			updateParts(this.#committed.parts, result.values);
 			return;
 		}
 		this.#clear();
 		const { fragment, parts } = instantiate(getTemplate(result.strings, result.type));
 		const nodes = Array.from(fragment.childNodes);
 		this.anchor.before(fragment);
-		for (let i = 0; i < parts.length; i++) parts[i].update(result.values[i]);
+		updateParts(parts, result.values);
 		this.#committed = { kind: 'template', strings: result.strings, parts, nodes };
 	}
 
@@ -148,6 +200,6 @@ export class ChildPart implements Part {
 			items.push(new ChildPart(itemAnchor));
 		}
 
-		for (let i = 0; i < values.length; i++) items[i].update(values[i]);
+		for (let i = 0; i < values.length; i++) items[i].update([values[i]]);
 	}
 }
