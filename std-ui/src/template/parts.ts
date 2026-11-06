@@ -6,7 +6,15 @@
 
 import { isTemplateResult, type TemplateResult } from './html.js';
 import { isUnsafeHtml } from './unsafe-html.js';
-import { applyDirective, isDirectiveResult, noChange, PartType, type AttributePartInfo, type Directive } from './directive.js';
+import {
+	applyDirective,
+	isDirectiveResult,
+	noChange,
+	PartType,
+	type AttributePartInfo,
+	type ChildPartInfo,
+	type Directive,
+} from './directive.js';
 import { getTemplate, instantiate } from './compile.js';
 
 /**
@@ -159,10 +167,23 @@ type ChildCommit =
 export class ChildPart implements Part {
 	readonly valueCount = 1;
 	#committed: ChildCommit = { kind: 'none' };
-	constructor(private readonly anchor: Comment) {}
+	/** The `Directive` instance bound here, if a `directive()`-made value (e.g. `unsafeHTML()`) was
+	 *  ever applied to this position; reused across renders - see `directive.ts`. */
+	#directive: Directive | undefined;
+	/** This position's `ChildPartInfo`, built once and handed to directives - see `directive.ts`. */
+	#partInfo: ChildPartInfo;
+	constructor(private readonly anchor: Comment) {
+		this.#partInfo = { type: PartType.CHILD, anchor };
+	}
 
 	update(values: readonly unknown[]): void {
-		const value = values[0];
+		let value = values[0];
+		if (isDirectiveResult(value)) {
+			const { instance, value: resolved } = applyDirective(this.#partInfo, value, this.#directive);
+			this.#directive = instance;
+			if (resolved === noChange) return;
+			value = resolved;
+		}
 		if (Array.isArray(value)) this.#commitList(value);
 		else if (isTemplateResult(value)) this.#commitTemplate(value);
 		else if (isUnsafeHtml(value)) this.#commitUnsafeHtml(value.markup);

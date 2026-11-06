@@ -1,18 +1,34 @@
 import { describe, expect, it } from 'vitest';
+import { AttributePart, ChildPart } from './parts.js';
+import { isDirectiveResult } from './directive.js';
 import { isUnsafeHtml, unsafeHTML } from './unsafe-html.js';
 
 describe('unsafeHTML', () => {
-	it('wraps the markup, retrievable via .markup', () => {
-		const wrapped = unsafeHTML('<b>hi</b>');
-		expect(wrapped.markup).toBe('<b>hi</b>');
+	it('returns an opaque directive result, not the markup wrapper directly', () => {
+		// `unsafeHTML()` is a directive() now - calling it just captures the markup + Ctor into an
+		// inert DirectiveResult; it's not resolved into the real `{ markup, ... }` wrapper until
+		// applied to a real ChildPart. End-to-end rendering is covered by parts.test.ts's "renders
+		// unsafeHTML markup as real parsed nodes".
+		expect(isDirectiveResult(unsafeHTML('<b>hi</b>'))).toBe(true);
+	});
+
+	it('throws if bound to an attribute position instead of a child one', () => {
+		const el = document.createElement('div');
+		const part = new AttributePart(el, 'title');
+		expect(() => part.update([unsafeHTML('<b>hi</b>')])).toThrow();
+	});
+
+	it('renders real parsed nodes when bound to a child position', () => {
+		const container = document.createElement('div');
+		const anchor = document.createComment('');
+		container.append(anchor);
+		const part = new ChildPart(anchor);
+		part.update([unsafeHTML('<em>hi</em>')]);
+		expect(container.querySelector('em')!.textContent).toBe('hi');
 	});
 });
 
 describe('isUnsafeHtml', () => {
-	it('is true for unsafeHTML() results', () => {
-		expect(isUnsafeHtml(unsafeHTML('<b>hi</b>'))).toBe(true);
-	});
-
 	it('is false for plain strings/values, even HTML-looking ones', () => {
 		expect(isUnsafeHtml('<b>hi</b>')).toBe(false);
 		expect(isUnsafeHtml(42)).toBe(false);

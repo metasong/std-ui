@@ -1,4 +1,4 @@
-import { Directive, directive, noChange, PartType, type Part, type PartInfo } from '../template/directive.js';
+import { Directive, directive, noChange, PartType, type AttributePartInfo, type PartInfo } from '../template/directive.js';
 
 /** `fontSize` -> `font-size`; CSS custom properties (`--foo`) and already-kebab/lowercase names
  *  pass through unchanged, matching `CSSStyleDeclaration.setProperty`'s expectations. */
@@ -33,7 +33,7 @@ class StyleMapDirective extends Directive {
 	/** Sets/removes only the properties that changed since last time via `part.element.style`, then
 	 *  signals there's nothing left to commit. `styles`'s type here is what `directive()` infers
 	 *  `styleMap`'s own argument type from - no separate `render()` needed just for that. */
-	override update(part: Part, styles: Readonly<Record<string, string | number | null | undefined>>): typeof noChange {
+	override update(part: AttributePartInfo, styles: Readonly<Record<string, string | number | null | undefined>>): typeof noChange {
 		const style = (part.element as HTMLElement | SVGElement).style;
 		const next = new Set<string>();
 		for (const [key, value] of Object.entries(styles)) {

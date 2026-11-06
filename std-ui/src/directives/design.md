@@ -82,5 +82,6 @@ flowchart LR
 
 - [`README.md`](./README.md) — public API and examples.
 - [`../template/directive.ts`](../template/directive.ts) — the generic `Directive`/`directive()`/`PartType`/`noChange` protocol both directives are built on.
-- [`../template/html.md`](../template/html.md#attribute-directives) — "Attribute directives" section: how to write a custom one.
+- [`../template/html.md`](../template/html.md#directives) — "Directives" section: how to write a custom one (attribute or child).
+- [`../template/unsafe-html.ts`](../template/unsafe-html.ts) — the one built-in **child** directive, `unsafeHTML()`, for comparison with these two attribute directives.
 - [`class-map.test.ts`](./class-map.test.ts) / [`style-map.test.ts`](./style-map.test.ts) / [`directives.test.ts`](./directives.test.ts) — behavior tests.

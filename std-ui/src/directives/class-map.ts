@@ -1,4 +1,4 @@
-import { Directive, directive, noChange, PartType, type Part, type PartInfo } from '../template/directive.js';
+import { Directive, directive, noChange, PartType, type AttributePartInfo, type PartInfo } from '../template/directive.js';
 
 /**
  * Mirrors lit-html's `classMap` directive: toggles individual classes on/off via `classList`,
@@ -27,7 +27,7 @@ class ClassMapDirective extends Directive {
 	 *  leaving classes from elsewhere untouched, then signals there's nothing left to commit.
 	 *  `classes`'s type here is what `directive()` infers `classMap`'s own argument type from -
 	 *  no separate `render()` needed just for that. */
-	override update(part: Part, classes: Readonly<Record<string, unknown>>): typeof noChange {
+	override update(part: AttributePartInfo, classes: Readonly<Record<string, unknown>>): typeof noChange {
 		const next = new Set(Object.keys(classes).filter(key => Boolean(classes[key])));
 		if (this.#previous) for (const cls of this.#previous) if (!next.has(cls)) part.element.classList.remove(cls);
 		for (const cls of next) part.element.classList.add(cls);

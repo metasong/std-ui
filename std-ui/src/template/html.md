@@ -51,13 +51,14 @@ Child content accepts:
 - Another `html` result → rendered as a nested template, diffed independently.
 - `unsafeHTML(markup)` → parses `markup` as HTML and inserts the resulting nodes directly (the one
   escape hatch for already-HTML strings, e.g. an SVG icon loaded via `?raw` - mirrors lit-html's
-  `unsafeHTML` directive). Caller is responsible for the markup being trusted.
+  `unsafeHTML` directive). Caller is responsible for the markup being trusted. Itself a built-in
+  **directive** (see [Directives](#directives) below) bound to the child position.
 - An array of any of the above → rendered as a sibling list (not keyed - see Limitations).
 
-A plain, bare attribute binding (single interpolation, no static text, e.g. `class="${...}"`) also
+A plain, bare attribute binding (single interpolation, no static text, e.g. `class="${...}"`)
 accepts an **attribute directive** - a value that applies itself directly to the element instead of
-being stringified. `classMap()`/`styleMap()` are the two built in; see
-[Attribute directives](#attribute-directives) below.
+being stringified. `classMap()`/`styleMap()` are the two built in. A child-content position accepts
+a **child directive** - `unsafeHTML()` is the one built in. See [Directives](#directives) below.
 
 ```ts
 html`
@@ -68,12 +69,13 @@ html`
 `;
 ```
 
-## Attribute directives
+## Directives
 
-`AttributePart` (in `parts.ts`) has no built-in knowledge of any specific directive. Instead it
-recognizes one generic protocol, defined in `directive.ts` and modeled on lit-html's
-[custom directives](https://lit.dev/docs/templates/custom-directives/) (trimmed to this engine's
-one directive site - a bare attribute binding, with no child-content/async directives):
+Neither `AttributePart` nor `ChildPart` (in `parts.ts`) has built-in knowledge of any specific
+directive. Instead both recognize one generic protocol, defined in `directive.ts` and modeled on
+lit-html's [custom directives](https://lit.dev/docs/templates/custom-directives/) (trimmed to the
+two binding kinds this engine actually produces - a bare attribute binding, or a child-content
+position; no async/`ElementPart`/boolean-attribute/property/event directives):
 
 ```ts
 export const PartType = {
@@ -86,7 +88,11 @@ export interface AttributePartInfo {
 	readonly element: Element;
 	readonly name: string;
 }
-export type Part = AttributePartInfo; // the only Part/PartInfo shape built today
+export interface ChildPartInfo {
+	readonly type: typeof PartType.CHILD;
+	readonly anchor: Comment;
+}
+export type Part = AttributePartInfo | ChildPartInfo; // every Part/PartInfo shape built today
 
 export abstract class Directive {
 	constructor(partInfo: PartInfo) {}
@@ -99,9 +105,17 @@ export function directive<C extends new (partInfo: PartInfo) => Directive>(Ctor:
 ```
 
 `PartType` mirrors lit-html's full split (`ChildPart`/`AttributePart`/`BooleanAttributePart`/
-`EventPart`/`PropertyPart`/`ElementPart`) so a directive can check `partInfo.type`/`part.type`, but
-only `ATTRIBUTE` is actually produced by this engine right now - the union has room to grow if more
-binding kinds gain directive support later.
+`EventPart`/`PropertyPart`/`ElementPart`) so a directive can check `partInfo.type`/`part.type`.
+`ATTRIBUTE` and `CHILD` are the two kinds actually dispatched to directives right now (by
+`AttributePart`/`ChildPart` respectively) - the union has room to grow if more binding kinds gain
+directive support later.
+
+What's committable from `render()`/`update()` depends on which kind of `Part` the directive is
+bound to: a string/`null`/`undefined` for an attribute position (stringified/removed by
+`AttributePart`), or anything a `ChildPart` already knows how to commit (string, nested `html`
+result, array, `null`/`undefined`/`false`, or another directive's own wrapper, e.g.
+`unsafeHTML()`'s) for a child position. `noChange` is the one value both recognize the same way:
+"I already applied my update myself - do nothing further."
 
 Three lifecycle hooks, same roles as lit-html's:
 
@@ -152,12 +166,12 @@ One `Directive` instance is created per *binding position* (the same spot as a p
 the first time a `directive()`-made function's result lands there, and is **reused across
 re-renders at that position** as long as the same directive function keeps being used - so instance
 fields are exactly where to keep "what did I do last time" state, with zero bookkeeping required
-from `AttributePart` itself. All of a directive's logic - including which attribute it's valid on -
-lives in its own module; `AttributePart` only dispatches. See `../directives/class-map.ts` and
-`../directives/style-map.ts` for complete examples - both override `update(part, classes)`/
-`update(part, styles)` for imperative `classList`/`el.style` access and don't implement `render()`
-at all, since their own `update()` signature is already what `directive()` infers `classMap`'s/
-`styleMap`'s argument types from:
+from `AttributePart`/`ChildPart` themselves. All of a directive's logic - including which binding
+kind/name it's valid on - lives in its own module; `AttributePart`/`ChildPart` only dispatch. See
+`../directives/class-map.ts` and `../directives/style-map.ts` for complete attribute-directive
+examples - both override `update(part, classes)`/`update(part, styles)` for imperative
+`classList`/`el.style` access and don't implement `render()` at all, since their own `update()`
+signature is already what `directive()` infers `classMap`'s/`styleMap`'s argument types from:
 
 ```ts
 import { html, render, classMap, styleMap } from './index.js';
@@ -180,6 +194,15 @@ const row = (active: boolean, big: boolean) => html`
   bound to any attribute other than `style`.
 - Each must be the attribute's *only* interpolation, with no surrounding static text - same rule as
   `?`/`.`/`@`-prefixed bindings, since these bind a live object rather than a composed string.
+
+`unsafeHTML()` (see [`./unsafe-html.ts`](./unsafe-html.ts)) is the one built-in **child**
+directive: its constructor requires `partInfo.type === PartType.CHILD` (throws if bound to an
+attribute instead), and it only needs `render(markup)` - no DOM access required, since parsing
+and inserting the markup is handled centrally by `ChildPart` once it recognizes the resolved
+`{ markup, ... }` wrapper `render()` returns, same as it already does for a plain `html` result or
+array. This is the pattern to follow for a child directive that computes a committable value
+declaratively rather than touching the DOM itself: let `ChildPart`'s existing commit logic do the
+work, don't duplicate it.
 
 ## Embedding templates
 

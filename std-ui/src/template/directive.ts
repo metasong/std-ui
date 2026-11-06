@@ -1,11 +1,12 @@
-// --- Attribute directive protocol: lets a bare `name="${...}"` value take over applying itself to
-// the element, instead of being stringified by `AttributePart`. This is the only extension point
-// `AttributePart` knows about - it has no built-in knowledge of any specific directive (`classMap`,
-// `styleMap`, or anything else); all of that lives in each directive's own module under
-// `../directives/`. Mirrors lit-html's `Directive`/`directive()` pair (see
-// https://lit.dev/docs/templates/custom-directives/), trimmed to this engine's one directive site:
-// a bare attribute binding (no child-content/async directives). See `unsafe-html.ts` for the
-// analogous protocol on the child-content side.
+// --- Directive protocol: lets a bare `name="${...}"` attribute value, or a whole child-content
+// value, take over applying itself to the DOM instead of being handled the default way (stringified
+// by `AttributePart`, or text/template/array-diffed by `ChildPart`). This is the only extension
+// point `AttributePart`/`ChildPart` know about - neither has built-in knowledge of any specific
+// directive (`classMap`, `styleMap`, `unsafeHTML`, or anything else); all of that lives in each
+// directive's own module under `../directives/` (or `unsafe-html.ts` for the one built-in
+// child-content directive). Mirrors lit-html's `Directive`/`directive()` pair (see
+// https://lit.dev/docs/templates/custom-directives/), trimmed to the two binding kinds this engine
+// actually produces (no async/`ElementPart`/boolean-attribute/property/event directives).
 
 const directiveTag = Symbol('directiveResult');
 
@@ -14,17 +15,26 @@ const directiveTag = Symbol('directiveResult');
  *  `null`/`undefined`, which still means "remove this attribute". */
 export const noChange: unique symbol = Symbol('noChange');
 
-/** What `render()`/`update()` may return: a value for `AttributePart` to commit via
- *  `setAttribute` (stringified)/`removeAttribute` (`null`/`undefined`), or `noChange`. */
-export type DirectiveReturn = string | number | null | undefined | typeof noChange;
+/**
+ * What `render()`/`update()` may return. Deliberately `unknown`, not a fixed union: what's
+ * actually committable depends on which kind of position the directive is bound to -
+ * `string`/`number`/`null`/`undefined` for an `AttributePart` (stringified/removed), or anything
+ * a `ChildPart` already knows how to commit (a string, `TemplateResult`, array, `null`/`undefined`
+ * /`false`, or another directive's wrapper - see `unsafe-html.ts`) for a `ChildPart`. `noChange` is
+ * the one value both recognize the same way: "I already applied my update myself - leave whatever
+ * I didn't just touch alone."
+ */
+export type DirectiveReturn = unknown;
 
 /**
  * Mirrors lit-html's `PartType` - which *kind* of template expression a directive is bound to, so a
  * directive can check `partInfo.type`/`part.type` (see `Directive`'s constructor and `update()`
  * below) and throw if used somewhere it doesn't support, e.g. `classMap` requiring `ATTRIBUTE` +
- * `name === 'class'`. Only `ATTRIBUTE` is actually produced by this engine today - this stays a
- * full union so the shape has room to grow if `ChildPart`/`BooleanAttributePart`/`EventPart`/
- * `PropertyPart`/`ElementPart` gain directive support later, same as lit-html's.
+ * `name === 'class'`, or `unsafeHTML` requiring `CHILD` (see `unsafe-html.ts`). `ATTRIBUTE` and
+ * `CHILD` are the two kinds this engine actually dispatches to directives (see `AttributePart`/
+ * `ChildPart` in `parts.ts`); this stays a full union so the shape has room to grow if
+ * `BooleanAttributePart`/`EventPart`/`PropertyPart`/`ElementPart` gain directive support later,
+ * same as lit-html's.
  */
 export const PartType = {
 	ATTRIBUTE: 'attribute',
@@ -36,11 +46,11 @@ export const PartType = {
 } as const;
 export type PartType = (typeof PartType)[keyof typeof PartType];
 
-/** Metadata + live DOM access for the one binding kind that currently dispatches to directives:
- *  a plain `name="${...}"` attribute. Passed to a `Directive`'s constructor (as `PartInfo`, for
- *  one-time validation) and to `update()` (as `Part`, for imperative DOM access) - see `Directive`
- *  below. In lit-html these are distinct interfaces (`PartInfo` is metadata-only; `Part` adds live
- *  DOM refs); they're unified here since this engine never needs metadata without the live part. */
+/** Metadata + live DOM access for a plain `name="${...}"` attribute binding. Passed to a
+ *  `Directive`'s constructor (as `PartInfo`, for one-time validation) and to `update()` (as
+ *  `Part`, for imperative DOM access) - see `Directive` below. In lit-html these are distinct
+ *  interfaces (`PartInfo` is metadata-only; `Part` adds live DOM refs); they're unified here since
+ *  this engine never needs metadata without the live part. */
 export interface AttributePartInfo {
 	readonly type: typeof PartType.ATTRIBUTE;
 	/** The element this attribute is on. */
@@ -49,9 +59,22 @@ export interface AttributePartInfo {
 	readonly name: string;
 }
 
-/** The only `Part`/`PartInfo` shape this engine constructs today; see `AttributePartInfo`. */
-export type PartInfo = AttributePartInfo;
-export type Part = AttributePartInfo;
+/** Metadata + live DOM access for a child-content binding - see `ChildPart` in `parts.ts`. Unlike
+ *  `AttributePartInfo`, a child directive isn't expected to mutate `anchor`'s siblings directly;
+ *  it returns a value instead (see `DirectiveReturn`) for `ChildPart` to commit the normal way -
+ *  `anchor` is exposed mainly so a directive can validate/describe where it's bound, same role
+ *  `AttributePartInfo.element`/`.name` play for `classMap`/`styleMap`. */
+export interface ChildPartInfo {
+	readonly type: typeof PartType.CHILD;
+	/** The persistent comment node this child position is rendered before. */
+	readonly anchor: Comment;
+}
+
+/** Every `Part`/`PartInfo` shape this engine constructs; see `AttributePartInfo`/`ChildPartInfo`.
+ *  A directive's constructor/`update()` narrows via `partInfo.type`/`part.type` to find out which
+ *  one it actually got. */
+export type PartInfo = AttributePartInfo | ChildPartInfo;
+export type Part = AttributePartInfo | ChildPartInfo;
 
 /**
  * Base class for a custom attribute directive. One instance is created *per binding position* the
@@ -68,12 +91,13 @@ export type Part = AttributePartInfo;
  *   remove the attribute). Implement this for a directive that just computes a value with no need
  *   to touch the DOM directly.
  * - `update(part, ...args)` - imperative: called on every render instead of `render()`, with
- *   direct access to the live `part` (its `.element`). `args` are the same values `render()` would
- *   receive - as real trailing parameters, not a single bundled array, so you can declare however
- *   many typed parameters the directive actually takes (e.g. `update(part, classes: ClassInfo)`,
- *   or `update(part, a: number, b: string)`). The default implementation just calls and returns
- *   `render(...args)`; override `update()` instead when you need to mutate the DOM yourself -
- *   typically returning `noChange` once you have, so `AttributePart` does nothing further.
+ *   direct access to the live `part` (its `.element` for an `AttributePart`, or `.anchor` for a
+ *   `ChildPart`). `args` are the same values `render()` would receive - as real trailing
+ *   parameters, not a single bundled array, so you can declare however many typed parameters the
+ *   directive actually takes (e.g. `update(part, classes: ClassInfo)`, or `update(part, a: number,
+ *   b: string)`). The default implementation just calls and returns `render(...args)`; override
+ *   `update()` instead when you need to mutate the DOM yourself - typically returning `noChange`
+ *   once you have, so `AttributePart`/`ChildPart` does nothing further.
  *
  * `directive()` infers the callable function's parameters from *whichever* of the two you actually
  * gave a concrete signature - override `update()` alone, with its own typed trailing parameters,
@@ -171,11 +195,12 @@ export interface AppliedDirective {
  * Applies `result` to `part`, reusing `previous`'s `Directive` instance (and thus its state) when
  * `result` was made by the same `directive()` call site as last time, or constructing a fresh one
  * otherwise (first use at this position, or a different directive than last render - this is also
- * when the constructor's one-time `partInfo` validation runs). Called by `AttributePart`; exported
- * so it stays the one place that owns this per-position instance cache.
+ * when the constructor's one-time `partInfo` validation runs). Called by `AttributePart`/
+ * `ChildPart`; exported so it stays the one place that owns this per-position instance cache.
  *
- * @param part - The live attribute position being updated; passed to the constructor (as
- *   `PartInfo`) when a new instance is built, and to `update()`/`render()` on every call.
+ * @param part - The live binding position being updated - an `AttributePartInfo` or
+ *   `ChildPartInfo`; passed to the constructor (as `PartInfo`) when a new instance is built, and
+ *   to `update()`/`render()` on every call.
  * @param result - This render's `directive()`-made value: which `Directive` subclass to use
  *   (`result.Ctor`) and the arguments to call its lifecycle methods with (`result.args`).
  * @param previous - The `Directive` instance bound at this position last render, or `undefined`
