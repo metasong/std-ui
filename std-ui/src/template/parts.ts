@@ -6,6 +6,7 @@
 
 import { isTemplateResult, type TemplateResult } from './html.js';
 import { isUnsafeHtml } from './unsafe-html.js';
+import { applyDirective, isDirectiveResult, noChange, PartType, type AttributePartInfo, type Directive } from './directive.js';
 import { getTemplate, instantiate } from './compile.js';
 
 /**
@@ -41,20 +42,40 @@ export class AttributePart implements Part {
 	readonly valueCount: number;
 	/** Last string written via `setAttribute`, or `null` once removed; `undefined` before any update. */
 	#committed: string | null | undefined;
+	/** The `Directive` instance bound here, if a `directive()`-made value was ever applied to this
+	 *  position; reused across renders (so it can keep its own state) as long as the same directive
+	 *  function keeps being used - see `directive.ts`. */
+	#directive: Directive | undefined;
+	/** This position's `AttributePartInfo`, built once and handed to directives - see `directive.ts`. */
+	#partInfo: AttributePartInfo;
 	constructor(
 		private readonly el: Element,
 		private readonly name: string,
 		private readonly literals: readonly string[] = ['', ''],
 	) {
 		this.valueCount = literals.length - 1;
+		this.#partInfo = { type: PartType.ATTRIBUTE, element: el, name };
 	}
 
 	update(values: readonly unknown[]): void {
 		const isBareSingleValue = this.literals.length === 2 && this.literals[0] === '' && this.literals[1] === '';
+
+		if (isBareSingleValue && isDirectiveResult(values[0])) {
+			const { instance, value } = applyDirective(this.#partInfo, values[0], this.#directive);
+			this.#directive = instance;
+			if (value === noChange) {
+				// The directive applied its own update imperatively (e.g. via classList/el.style), not
+				// via setAttribute - forget any stale #committed string so a later plain value can't be
+				// mistaken for "unchanged" against DOM state that was actually mutated some other way.
+				this.#committed = undefined;
+				return;
+			}
+			this.#commitValue(value);
+			return;
+		}
+
 		if (isBareSingleValue && values[0] == null) {
-			if (this.#committed === null) return;
-			this.#committed = null;
-			this.el.removeAttribute(this.name);
+			this.#commitValue(null);
 			return;
 		}
 
@@ -64,6 +85,22 @@ export class AttributePart implements Part {
 		if (composed === this.#committed) return;
 		this.#committed = composed;
 		this.el.setAttribute(this.name, composed);
+	}
+
+	/** Shared commit path for a bare single value, whether it came straight from `values[0]` or
+	 *  from a directive's `render()`/`update()`: `null`/`undefined` removes the attribute, anything
+	 *  else is stringified and set, no-op'ing when unchanged from last time. */
+	#commitValue(value: unknown): void {
+		if (value == null) {
+			if (this.#committed === null) return;
+			this.#committed = null;
+			this.el.removeAttribute(this.name);
+			return;
+		}
+		const str = String(value);
+		if (str === this.#committed) return;
+		this.#committed = str;
+		this.el.setAttribute(this.name, str);
 	}
 }
 

@@ -7,7 +7,20 @@ export {
 	type AttributeOptions,
 	type AttributeType,
 } from './ui-element.js';
-export { html, svg, render, unsafeHTML, type TemplateResult } from './template/index.js';
+export {
+	html,
+	svg,
+	render,
+	unsafeHTML,
+	Directive,
+	directive,
+	noChange,
+	PartType,
+	type TemplateResult,
+	type Part,
+	type PartInfo,
+} from './template/index.js';
+export { classMap, styleMap } from './directives/index.js';
 export {
 	signalState,
 	computed,

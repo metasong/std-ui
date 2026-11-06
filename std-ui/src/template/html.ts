@@ -24,7 +24,10 @@
 //     the DOM (`Part`s no-op on `Object.is`-equal values).
 //
 // What's intentionally left out, vs. real lit-html: keyed list reconciliation (`repeat()`),
-// directives, and MathML template handling. Plain attributes (no `?`/`.`/`@` sigil) do support
+// most directives (only `classMap`/`styleMap` are built in, see `../directives/index.js`, though
+// `directive.ts`'s `Directive`/`directive()`/`PartType` - modeled on lit-html's own - is a generic
+// extension point for writing more), and MathML template handling. Plain attributes (no
+// `?`/`.`/`@` sigil) do support
 // multi-expression/mixed-static values like `class="${a} ${b}"` or `class="static-${x}"`; the
 // `?`/`.`/`@`-prefixed kinds don't, since they bind a real JS value rather than a string - each
 // must be a single bare interpolation, e.g. `?hidden="${v}"`. SVG is supported via `svg()` below,

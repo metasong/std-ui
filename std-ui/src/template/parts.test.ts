@@ -8,6 +8,9 @@ import {
 } from './parts.js';
 import { html } from './html.js';
 import { unsafeHTML } from './unsafe-html.js';
+import { Directive, directive, noChange } from './directive.js';
+import { classMap } from '../directives/class-map.js';
+import { styleMap } from '../directives/style-map.js';
 
 describe('AttributePart', () => {
 	it('sets the attribute as a string', () => {
@@ -55,6 +58,93 @@ describe('AttributePart', () => {
 		const setAttribute = vi.spyOn(el, 'setAttribute');
 		part.update(['a', 'b']);
 		expect(setAttribute).not.toHaveBeenCalled();
+	});
+
+	it('classMap(): toggles individual classes via classList instead of setAttribute', () => {
+		const el = document.createElement('div');
+		el.className = 'static-class';
+		const part = new AttributePart(el, 'class');
+		part.update([classMap({ active: true, hidden: false })]);
+		expect(el.classList.contains('static-class')).toBe(true); // untouched
+		expect(el.classList.contains('active')).toBe(true);
+		expect(el.classList.contains('hidden')).toBe(false);
+	});
+
+	it('classMap(): removes classes that drop out or turn falsy on a later update', () => {
+		const el = document.createElement('div');
+		const part = new AttributePart(el, 'class');
+		part.update([classMap({ active: true, selected: true })]);
+		part.update([classMap({ active: false })]);
+		expect(el.classList.contains('active')).toBe(false);
+		expect(el.classList.contains('selected')).toBe(false);
+	});
+
+	it('styleMap(): sets individual inline style properties via el.style', () => {
+		const el = document.createElement('div');
+		const part = new AttributePart(el, 'style');
+		part.update([styleMap({ color: 'red', fontSize: '12px' })]);
+		expect(el.style.color).toBe('red');
+		expect(el.style.fontSize).toBe('12px');
+	});
+
+	it('styleMap(): removes properties that drop out or go nullish on a later update', () => {
+		const el = document.createElement('div');
+		const part = new AttributePart(el, 'style');
+		part.update([styleMap({ color: 'red', fontSize: '12px' })]);
+		part.update([styleMap({ color: 'blue', fontSize: null })]);
+		expect(el.style.color).toBe('blue');
+		expect(el.style.fontSize).toBe('');
+	});
+
+	it('Directive protocol: dispatches to any custom directive without hardcoding its behavior, ' +
+		'reusing the same instance (and thus its state) across updates at the same position', () => {
+		class CountDirective extends Directive {
+			#count = 0;
+			override update(part: { element: Element; name: string }): typeof noChange {
+				this.#count++;
+				part.element.setAttribute(part.name, String(this.#count));
+				return noChange;
+			}
+		}
+		const countUpdates = directive(CountDirective);
+
+		const el = document.createElement('div');
+		const part = new AttributePart(el, 'data-count');
+		part.update([countUpdates()]);
+		part.update([countUpdates()]);
+		expect(el.getAttribute('data-count')).toBe('2');
+	});
+
+	it("Directive protocol: constructs a fresh instance (losing prior state) when a different " +
+		'directive function is bound at the same position', () => {
+		class TagDirective extends Directive {
+			override render(label: string): string {
+				return label;
+			}
+		}
+		const tagA = directive(class extends TagDirective {});
+		const tagB = directive(class extends TagDirective {});
+
+		const el = document.createElement('div');
+		const part = new AttributePart(el, 'data-tag');
+		part.update([tagA('a')]);
+		part.update([tagB('b')]);
+		expect(el.getAttribute('data-tag')).toBe('b');
+	});
+
+	it("Directive protocol: gives update() access to the live element/name via the Part argument", () => {
+		class UppercaseDirective extends Directive {
+			override update(part: { element: Element; name: string }, value: string): typeof noChange {
+				part.element.setAttribute(part.name, value.toUpperCase());
+				return noChange;
+			}
+		}
+		const upper = directive(UppercaseDirective);
+
+		const el = document.createElement('div');
+		const part = new AttributePart(el, 'data-label');
+		part.update([upper('hi')]);
+		expect(el.getAttribute('data-label')).toBe('HI');
 	});
 });
 

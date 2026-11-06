@@ -54,6 +54,11 @@ Child content accepts:
   `unsafeHTML` directive). Caller is responsible for the markup being trusted.
 - An array of any of the above → rendered as a sibling list (not keyed - see Limitations).
 
+A plain, bare attribute binding (single interpolation, no static text, e.g. `class="${...}"`) also
+accepts an **attribute directive** - a value that applies itself directly to the element instead of
+being stringified. `classMap()`/`styleMap()` are the two built in; see
+[Attribute directives](#attribute-directives) below.
+
 ```ts
 html`
 	<button ?disabled="${isLoading}" @click="${onSubmit}">
@@ -62,6 +67,119 @@ html`
 	<ul>${items.map(item => html`<li>${item.label}</li>`)}</ul>
 `;
 ```
+
+## Attribute directives
+
+`AttributePart` (in `parts.ts`) has no built-in knowledge of any specific directive. Instead it
+recognizes one generic protocol, defined in `directive.ts` and modeled on lit-html's
+[custom directives](https://lit.dev/docs/templates/custom-directives/) (trimmed to this engine's
+one directive site - a bare attribute binding, with no child-content/async directives):
+
+```ts
+export const PartType = {
+	ATTRIBUTE: 'attribute', BOOLEAN_ATTRIBUTE: 'boolean-attribute', PROPERTY: 'property',
+	EVENT: 'event', CHILD: 'child', ELEMENT: 'element',
+} as const;
+
+export interface AttributePartInfo {
+	readonly type: typeof PartType.ATTRIBUTE;
+	readonly element: Element;
+	readonly name: string;
+}
+export type Part = AttributePartInfo; // the only Part/PartInfo shape built today
+
+export abstract class Directive {
+	constructor(partInfo: PartInfo) {}
+	render(...args: readonly unknown[]): DirectiveReturn { /* implement, or override update() */ }
+	update(part: Part, ...args: readonly unknown[]): DirectiveReturn { return this.render(...args); }
+}
+
+// Infers args from whichever of render()/update() you gave a concrete signature.
+export function directive<C extends new (partInfo: PartInfo) => Directive>(Ctor: C): (...args: DirectiveArgs<C>) => DirectiveResult;
+```
+
+`PartType` mirrors lit-html's full split (`ChildPart`/`AttributePart`/`BooleanAttributePart`/
+`EventPart`/`PropertyPart`/`ElementPart`) so a directive can check `partInfo.type`/`part.type`, but
+only `ATTRIBUTE` is actually produced by this engine right now - the union has room to grow if more
+binding kinds gain directive support later.
+
+Three lifecycle hooks, same roles as lit-html's:
+
+- `constructor(partInfo)` - one-time setup, run only the first time a directive is used at a given
+  position. Validate `partInfo.type`/`partInfo.name` here if the directive only supports certain
+  bindings (e.g. "must be the `class` attribute") - same idea as lit-html's own `classMap`.
+- `render(...args)` - declarative: return the value to commit (a string, or `null`/`undefined` to
+  remove the attribute). Implement this for a directive with no need to touch the DOM directly.
+- `update(part, ...args)` - imperative: called on every render *instead of* `render()`, with
+  direct access to the live `part` (its `.element`/`.name`). `args` are real trailing parameters -
+  declare as many individually-typed ones as the directive actually takes (e.g.
+  `update(part, classes: ClassInfo)`, or `update(part, a: number, b: string)`), not one bundled
+  array to destructure. Defaults to calling and returning `render(...args)`; override `update()`
+  instead to mutate the DOM yourself (e.g. via `classList`/`el.style`) rather than return a value -
+  typically returning `noChange` once you have, telling `AttributePart` there's nothing left to
+  commit.
+
+`directive()` infers the callable function's parameters from *whichever* of `render()`/`update()`
+you actually gave a concrete signature - override `update()` alone, with its own typed trailing
+parameters, and that's all you need; there's no requirement to also implement a `render()` just so
+`directive()` can see the argument types:
+
+```ts
+import { Directive, directive, noChange, type Part } from './directive.js';
+
+// Declarative - only render() needed:
+class HelloDirective extends Directive {
+	render(name: string): string {
+		return `Hello, ${name}!`;
+	}
+}
+export const hello = directive(HelloDirective);
+// html`<div title="${hello('Ada')}"></div>`
+
+// Imperative - only update() needed, no render() required for typing. Real trailing parameters,
+// not an array to destructure - works for any number of them:
+class LogAttributeDirective extends Directive {
+	update(part: Part, level: string, message: string): typeof noChange {
+		console.log(`[${level}] ${part.name}:`, message);
+		return noChange;
+	}
+}
+export const logAttribute = directive(LogAttributeDirective);
+// html`<div title="${logAttribute('info', 'hi')}"></div>`
+```
+
+One `Directive` instance is created per *binding position* (the same spot as a persistent `Part`)
+the first time a `directive()`-made function's result lands there, and is **reused across
+re-renders at that position** as long as the same directive function keeps being used - so instance
+fields are exactly where to keep "what did I do last time" state, with zero bookkeeping required
+from `AttributePart` itself. All of a directive's logic - including which attribute it's valid on -
+lives in its own module; `AttributePart` only dispatches. See `../directives/class-map.ts` and
+`../directives/style-map.ts` for complete examples - both override `update(part, classes)`/
+`update(part, styles)` for imperative `classList`/`el.style` access and don't implement `render()`
+at all, since their own `update()` signature is already what `directive()` infers `classMap`'s/
+`styleMap`'s argument types from:
+
+```ts
+import { html, render, classMap, styleMap } from './index.js';
+
+const row = (active: boolean, big: boolean) => html`
+	<li
+		class="${classMap({ row: true, active })}"
+		style="${styleMap({ color: active ? 'green' : null, fontSize: big ? '20px' : '14px' })}"
+	>Item</li>
+`;
+```
+
+- `classMap({ [className]: truthy })` - keys with a truthy value are added via `classList.add`;
+  falsy or dropped keys are removed via `classList.remove` on the next update. Classes already on
+  the element from static markup or elsewhere are left untouched. Throws if bound to any attribute
+  other than `class`.
+- `styleMap({ [property]: value })` - keys may be camelCase (`fontSize`) or kebab-case/custom
+  properties (`font-size`, `--my-color`); `null`/`undefined` removes that property via
+  `style.removeProperty`, anything else is stringified and set via `style.setProperty`. Throws if
+  bound to any attribute other than `style`.
+- Each must be the attribute's *only* interpolation, with no surrounding static text - same rule as
+  `?`/`.`/`@`-prefixed bindings, since these bind a live object rather than a composed string.
 
 ## Embedding templates
 
@@ -185,7 +303,8 @@ placeholders, `literals` / `valueCount`, and the “rewind” trick for `class="
   positionally: index 0 always updates the first rendered item, etc. Reordering a list re-renders
   items in place rather than moving DOM nodes - fine for appending/removing at the end, surprising
   for reordering/insertion in the middle.
-- **No directives** (`classMap`, `styleMap`, `ref`, etc.) - just the five binding kinds above.
+- **Only two built-in directives** (`classMap`, `styleMap`) - no `ref`, `guard`, `cache`, etc.,
+  though the generic `AttributeDirective` protocol (see above) supports writing your own.
 - **No MathML support.** There's no `mathml` tag function analogous to `svg` below.
 - **SVG needs the `svg` tag for namespace-less fragments.** Markup containing its own top-level
   `<svg>...</svg>` works fine with plain `html` - the parser assigns the SVG namespace as soon as
