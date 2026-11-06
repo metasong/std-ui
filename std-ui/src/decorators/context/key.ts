@@ -12,7 +12,7 @@
 // is inferred/checked automatically from whichever key is passed in. Also deliberately *not* "use
 // the provider's class as the key" (the Angular-DI-token style): that only works when the context
 // value is itself a class instance, and loses the readable `description` used in error messages
-// (see `../../component.ts`'s unresolved-context error).
+// (see `../../ui-element.ts`'s unresolved-context error).
 
 const contextKeyBrand = Symbol('contextKey');
 

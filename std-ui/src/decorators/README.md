@@ -1,6 +1,6 @@
 # `@state()` / `@attribute()` — reactive and attribute-backed component fields
 
-Two field decorators for `UIElement` (see `../component.ts`) subclasses, both backing a field with
+Two field decorators for `UIElement` (see `../ui-element.ts`) subclasses, both backing a field with
 a reactive store (a `SignalTree`, see [`../signal/tree.md`](../signal/tree.md)):
 
 - **`@state()`** — just the reactive store. No attribute involved at all.
@@ -52,7 +52,7 @@ el.setAttribute('count', '9'); // native attributeChangedCallback parses it back
 - Plain fields only (`@state() foo = 0;` / `@attribute() foo = 0;`) - no `accessor`. Both
   decorators throw if applied to an `accessor` field; see ["Plain fields
   only"](#plain-fields-only) below for why.
-- For `@attribute()`, the class must also be decorated with `tag()` (see `../component.ts`). `tag()`
+- For `@attribute()`, the class must also be decorated with `tag()` (see `../ui-element.ts`). `tag()`
   reads the `@attribute()` registrations made while the class body was evaluating and uses them to
   set `observedAttributes` before calling `customElements.define()`. `@state()` fields never
   register anything with `tag()` - they have no attribute concern.
@@ -211,6 +211,6 @@ this relies on instead (and why a plain field needs *some* initializer, which `@
 - [`./design.md`](./design.md) — how registration, stores, and the two sync directions work internally.
 - [`./context/README.md`](./context/README.md) / [`./context/design.md`](./context/design.md) — `@state({ contextKey })` / `@consume()`, passing a `@state()` field down to arbitrarily deep descendants.
 - [`./query/README.md`](./query/README.md) / [`./query/design.md`](./query/design.md) — `@query()` / `@queryAll()` / `@queryAsync()`, read-only fields that query rendered DOM instead of backing a store; [why `@queryAsync()`](./query/README.md#why-queryasync-exists) when you need a node right after a signal write (waits on `UIElement.updateComplete`).
-- [`../component.ts`](../component.ts) / [`../doc/signal-drives-html.md`](../doc/signal-drives-html.md) - `UIElement` lifecycle this plugs into.
+- [`../ui-element.ts`](../ui-element.ts) / [`../doc/signal-drives-html.md`](../doc/signal-drives-html.md) - `UIElement` lifecycle this plugs into.
 - [`../signal/core/signal.md`](../signal/core/signal.md) - the `signal()`/`effect()` primitives backing this.
 - [`../template/html.md`](../template/html.md) - the `?attr`/`.prop` binding conventions `type: Boolean` mirrors.

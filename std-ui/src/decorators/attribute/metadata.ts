@@ -6,7 +6,7 @@
 //
 // Why `context.metadata`, not `ctor[Symbol.metadata]`: the stage-3 decorators spec gives every
 // decorator on a class (member *and* class) the *same* `context.metadata` object, accumulated as
-// each member decorator runs - precisely so a class decorator (`tag()` in `../component.ts`)
+// each member decorator runs - precisely so a class decorator (`tag()` in `../ui-element.ts`)
 // can read what member decorators (`attribute()`) registered, *synchronously, during its own
 // execution*. `ctor[Symbol.metadata]` (that same object installed as a static property) is only
 // assigned "after the class has been fully defined" (tc39/proposal-decorator-metadata) - which

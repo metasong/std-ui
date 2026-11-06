@@ -1,5 +1,5 @@
 // `@consume()` field decorator: links a class field on a `UIElement` subclass (see
-// `../../component.ts`) to a `ContextKey<T>` (`./key.ts`) provided by some ancestor's
+// `../../ui-element.ts`) to a `ContextKey<T>` (`./key.ts`) provided by some ancestor's
 // `@state({ contextKey })` field (`../state/state.decorator.ts`) - the "read" half of this codebase's
 // context protocol; `@state({ contextKey })` is the "write/provide" half.
 //
@@ -8,12 +8,12 @@
 // actual live binding (dispatch a `ContextRequestEvent`, find the nearest provider, subscribe to
 // its value, redefine the field as a reactive accessor) can only happen once the element is
 // connected to a document - the ancestor chain means nothing before then - so it's done by
-// `UIElement.connectedCallback()`, in `../../component.ts`, reading these defs back via
+// `UIElement.connectedCallback()`, in `../../ui-element.ts`, reading these defs back via
 // `getConsumedContextDefs()`.
 //
 // Plain fields only (no `accessor` support): a consumed field has no sensible local initializer
 // (its value only ever comes from the provider) and is never locally written, so there's no
-// `get`/`set` pair to hand back the way `@state()`'s accessor branch does - `../../component.ts`
+// `get`/`set` pair to hand back the way `@state()`'s accessor branch does - `../../ui-element.ts`
 // simply `Object.defineProperty`s the field directly onto the instance once connected, the same
 // way `../field-store.ts` does for a plain (non-`accessor`) `@state()` field.
 

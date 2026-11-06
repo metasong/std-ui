@@ -1,4 +1,4 @@
-// Context, provide side: called by `UIElement.connectedCallback()` (`../../component.ts`) to wire
+// Context, provide side: called by `UIElement.connectedCallback()` (`../../ui-element.ts`) to wire
 // one `context-request` listener per `@state({ contextKey })` field on a just-connected host.
 // `stopPropagation()` on a match gives nearest-provider-wins — see `./request-event.ts`.
 

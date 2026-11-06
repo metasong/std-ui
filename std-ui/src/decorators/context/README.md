@@ -1,6 +1,6 @@
 # `@state({ contextKey })` / `@consume()` — passing state down through descendants
 
-Lets a `UIElement` (see `../../component.ts`) expose part of its own `@state()` to **any**
+Lets a `UIElement` (see `../../ui-element.ts`) expose part of its own `@state()` to **any**
 descendant - not just direct children - without threading it down as attributes/properties
 through every intermediate element, and without those intermediate elements needing to know the
 value even exists. Two halves:
@@ -121,5 +121,5 @@ property/attribute (`@attribute()`/`@state()` on the child, set by the parent in
 
 - [`./design.md`](./design.md) — how resolution, reactivity, and "nearest provider wins" work internally.
 - [`../README.md`](../README.md) / [`../design.md`](../design.md) — `@state()`/`@attribute()`, which this builds on.
-- [`../../component.ts`](../../component.ts) — `UIElement` lifecycle this plugs into.
+- [`../../ui-element.ts`](../../ui-element.ts) — `UIElement` lifecycle this plugs into.
 - [`./consume.test.ts`](./consume.test.ts) — behavior tests.

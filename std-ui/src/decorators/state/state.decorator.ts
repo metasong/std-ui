@@ -1,5 +1,5 @@
 // `@state()` field decorator: turns a class field on a `UIElement` subclass (see
-// `../component.ts`) into a store-backed property (see `./store.ts`) - no attribute involved at
+// `../ui-element.ts`) into a store-backed property (see `./store.ts`) - no attribute involved at
 // all. Reading/writing the field reads/writes a reactive store (a `signal()` for a
 // primitive/array/class-instance value, or a `SignalState` for a plain-object value - see
 // `./store.ts`), so `this.someField` inside `template()`/`effect()` tracks it transparently, the

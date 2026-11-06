@@ -1,7 +1,7 @@
 // Standalone build config for publishing `std-ui` as its own package, separate from the
 // app-wide `tsconfig.json` (which uses `moduleResolution: "bundler"` for Vite/Vitest).
 // This config targets plain Node/ESM consumers: `module`/`moduleResolution: "NodeNext"`
-// requires the explicit `.js` extensions already used throughout this folder's imports,
+// requires the explicit `.js` extensions already used throughout `src/`'s imports,
 // and emits real `.js` + `.d.ts` files to `dist/` via `tsc` (no bundler involved).
 {
 	"compilerOptions": {
@@ -17,9 +17,9 @@
 		"noImplicitOverride": true,
 		"isolatedModules": true,
 		"skipLibCheck": true,
-		"rootDir": ".",
+		"rootDir": "./src",
 		"outDir": "./dist"
 	},
-	"include": ["**/*.ts"],
+	"include": ["src/**/*.ts"],
 	"exclude": ["**/*.test.ts", "dist", "node_modules"]
 }

@@ -1,7 +1,7 @@
-// Context, consume side: called by `UIElement.connectedCallback()` (`../../component.ts`) to
+// Context, consume side: called by `UIElement.connectedCallback()` (`../../ui-element.ts`) to
 // resolve every `@consume(contextKey)` field (`./consume.decorator.ts`) on a just-connected host
 // against the nearest ancestor provider, synchronously. Lives here (rather than inline in
-// `component.ts`) because it's purely about the context protocol - same reasoning as the rest of
+// `ui-element.ts`) because it's purely about the context protocol - same reasoning as the rest of
 // this folder.
 
 import { signalState } from '../../signal/index.js';

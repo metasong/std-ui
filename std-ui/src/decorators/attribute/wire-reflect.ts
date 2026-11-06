@@ -1,4 +1,4 @@
-// Property → attribute: called by `UIElement.connectedCallback()` (`../../component.ts`) to wire
+// Property → attribute: called by `UIElement.connectedCallback()` (`../../ui-element.ts`) to wire
 // one effect per `@attribute({ reflect: true })` field (`./attribute.decorator.ts`) on a
 // just-connected host, mirroring its backing signal onto the host attribute (opt-in; `@state()`
 // fields never appear here).

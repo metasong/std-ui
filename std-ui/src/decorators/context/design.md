@@ -11,7 +11,7 @@ API, see [`README.md`](./README.md).
 | [`metadata.ts`](./metadata.ts) | `ProvidedContextDef`/`ConsumedContextDef`, registering them into `context.metadata`, `getProvidedContextDefs`/`getConsumedContextDefs` — the context-protocol equivalent of `../attribute/metadata.ts`'s `AttributeDef` registry, same mechanism. |
 | [`request-event.ts`](./request-event.ts) | `ContextRequestEvent`, `CONTEXT_REQUEST_EVENT` — the bubbling/composed DOM event both sides use to actually find each other at runtime. |
 | [`consume.decorator.ts`](./consume.decorator.ts) | The `@consume()` decorator itself — registers a `ConsumedContextDef`; does no storage wiring (see below). |
-| [`index.ts`](./index.ts) | Public re-exports, re-exported again from `../index.ts` / `../../component.ts`. |
+| [`index.ts`](./index.ts) | Public re-exports, re-exported again from `../index.ts` / `../../ui-element.ts`. |
 | [`consume.test.ts`](./consume.test.ts) | Behavior tests, through `UIElement`/`tag()`. |
 
 `@state({ contextKey })` itself (the provide side) is *not* in this folder - it's one extra branch
@@ -20,7 +20,7 @@ in [`../state/state.decorator.ts`](../state/state.decorator.ts), since providing
 reuses `@state()`'s own `applyFieldStore()` call unchanged and only adds the registration call.
 
 All the actual provide/consume runtime behavior - listening, dispatching, resolving, tearing down -
-lives in [`../../component.ts`](../../component.ts)'s `connectedCallback`/`disconnectedCallback`,
+lives in [`../../ui-element.ts`](../../ui-element.ts)'s `connectedCallback`/`disconnectedCallback`,
 for the same reason `@attribute()`'s reflection effects do: it needs a connected DOM tree to mean
 anything, so it can't happen at decoration/construction time (see below).
 
@@ -81,7 +81,7 @@ and, on a match, calls `event.stopPropagation()` then `event.callback(value)`.
 
 Registered **before** the optional one-time `connect()` hook runs - not after, and not interleaved
 with the attribute-reflection effects - specifically so that if `connect()` synchronously appends
-descendant markup (a common pattern - see `../../component.ts`'s `connect()` doc), those
+descendant markup (a common pattern - see `../../ui-element.ts`'s `connect()` doc), those
 descendants' own `connectedCallback`s (which may dispatch `ContextRequestEvent`s) run *after* this
 element can already answer them. Getting this ordering wrong is the one subtle failure mode here:
 a descendant injected synchronously from `connect()` must never be able to observe its ancestor as
@@ -201,5 +201,5 @@ the original request.
 - [`key.ts`](./key.ts) / [`metadata.ts`](./metadata.ts) / [`request-event.ts`](./request-event.ts) / [`consume.decorator.ts`](./consume.decorator.ts) — implementation
 - [`../state/state.decorator.ts`](../state/state.decorator.ts) — the provide-side `contextKey` option
 - [`../design.md`](../design.md) — `@state()`/`@attribute()`'s own field mechanics, which `@state({ contextKey })` reuses unchanged
-- [`../../component.ts`](../../component.ts) — `connectedCallback`/`disconnectedCallback` wiring
+- [`../../ui-element.ts`](../../ui-element.ts) — `connectedCallback`/`disconnectedCallback` wiring
 - [`consume.test.ts`](./consume.test.ts) — behavior tests (resolution, reactivity, missing provider, read-only, nearest-provider-wins)

@@ -96,7 +96,7 @@ shared.counter.set({ max: 20 });     // or set a branch without touching sibling
 
 Nested objects become branch `Computed`s; leaves like `value` and `max` are writable `Signal`s on the tree (`shared.counter.value.set(...)`) and are also readable as tracked functions (`shared.counter.value()`). Reading any of them inside `template()` registers that leaf as a dependency of the render effect — same tracking rule as any other `effect()`. See [`../signal/tree.md`](../signal/tree.md) for branch `.set(partial)` and `.peek()`.
 
-What `UIElement` does for you (see `component.ts`):
+What `UIElement` does for you (see `ui-element.ts`):
 
 1. On **connect** (insertion into the document), runs `connect()` once for that connection cycle — **before** the first `template` — for host-only setup (attributes on `this`, timers, `this.effect()`). Do not assume rendered children exist yet.
 2. Registers a render **`effect`** that calls `template()`, and if the result is a `TemplateResult`, passes it to `renderHtml(result, this)`. Whatever signals `template()` reads become that effect's dependencies.

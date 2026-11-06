@@ -17,7 +17,7 @@ see [`README.md`](./README.md).
 | [`index.ts`](./index.ts) | Public re-exports. |
 | [`state/state.test.ts`](./state/state.test.ts) / [`attribute/attribute.test.ts`](./attribute/attribute.test.ts) | Behavior tests, through `UIElement`/`tag()`. |
 
-Outside this folder, [`../component.ts`](../component.ts) owns the custom-element lifecycle hooks
+Outside this folder, [`../ui-element.ts`](../ui-element.ts) owns the custom-element lifecycle hooks
 (`attributeChangedCallback`, the reflection `effect()` in `connectedCallback`) that call into
 `parseAttribute`/`serializeAttribute`/`getAttributeDefs`/`defineObservedAttributes`. Keeping
 conversion logic in `converter.ts` means `UIElement` never branches on `type` itself — it only
@@ -100,7 +100,7 @@ Each `@attribute({ ... })` field pushes an `AttributeDef` onto `context.metadata
 member decorators registered. `@state()` fields never do this - they have nothing for a class
 decorator to read.
 
-When **`@tag(tag)`** runs (see `../component.ts`):
+When **`@tag(tag)`** runs (see `../ui-element.ts`):
 
 1. `defineObservedAttributes(ctor, context)` reads `context.metadata` directly (*not*
    `ctor[Symbol.metadata]` — see below) and walks its prototype chain, which the spec already sets
@@ -197,5 +197,5 @@ that merged list. A single `attributeChangedCallback` on `UIElement` handles eve
 - [`field-store.ts`](./field-store.ts) / [`state/state.decorator.ts`](./state/state.decorator.ts) / [`attribute/attribute.decorator.ts`](./attribute/attribute.decorator.ts) / [`attribute/converter.ts`](./attribute/converter.ts) / [`attribute/metadata.ts`](./attribute/metadata.ts) / [`store.ts`](./store.ts) — implementation
 - [`./context/design.md`](./context/design.md) — `@state({ contextKey })` / `@consume()`, built on top of `@state()`'s field wiring described here
 - [`./query/design.md`](./query/design.md) — `@query()` / `@queryAll()` / `@queryAsync()`, which borrow this file's `addInitializer` + `Object.defineProperty` plain-field technique but back no store of their own
-- [`../component.ts`](../component.ts) — `tag()`, `connectedCallback`, `attributeChangedCallback`
+- [`../ui-element.ts`](../ui-element.ts) — `tag()`, `connectedCallback`, `attributeChangedCallback`
 - [`state/state.test.ts`](./state/state.test.ts) / [`attribute/attribute.test.ts`](./attribute/attribute.test.ts) — behavior tests (upgrade seeding, booleans, store-only fields)

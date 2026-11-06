@@ -2,15 +2,15 @@
 
 Minimal UI on web standards: reactive **signals**, **tagged HTML templates**, and **Custom Elements**—no virtual DOM and no framework runtime.
 
-Guides for the stack in this folder (`signal/`, `template/`, `component.ts`):
+Guides for the library under `src/` (`signal/`, `template/`, `ui-element.ts`):
 
 | Topic | File |
 |---|---|
-| Signals (`signal`, `computed`, `effect`) | [`../signal/core/signal.md`](../signal/core/signal.md) |
-| Reactive state tree | [`../signal/tree.md`](../signal/tree.md) |
-| HTML templates (`html`, `render`) | [`../template/html.md`](../template/html.md) |
-| Component fields (`@state`, `@attribute`) | [`decorators/README.md`](./decorators/README.md) · [design](./decorators/design.md) |
-| Context (`@state({ contextKey })`, `@consume`) | [`decorators/context/README.md`](./decorators/context/README.md) · [design](./decorators/context/design.md) |
-| **Signals driving template render** (end-to-end) | [`signal-drives-html.md`](signal-drives-html.md) |
+| Signals (`signal`, `computed`, `effect`) | [`src/signal/core/signal.md`](./src/signal/core/signal.md) |
+| Reactive state tree | [`src/signal/tree.md`](./src/signal/tree.md) |
+| HTML templates (`html`, `render`) | [`src/template/html.md`](./src/template/html.md) |
+| Component fields (`@state`, `@attribute`) | [`src/decorators/README.md`](./src/decorators/README.md) · [design](./src/decorators/design.md) |
+| Context (`@state({ contextKey })`, `@consume`) | [`src/decorators/context/README.md`](./src/decorators/context/README.md) · [design](./src/decorators/context/design.md) |
+| **Signals driving template render** (end-to-end) | [`src/doc/signal-drives-html.md`](./src/doc/signal-drives-html.md) |
 
-The [`signal-drives-html.example.test.ts`](signal-drives-html.example.test.ts) file is the runnable counterpart to the guide: it exercises the same patterns under Vitest so the examples stay honest as the library evolves.
+The [`src/doc/signal-drives-html.example.test.ts`](./src/doc/signal-drives-html.example.test.ts) file is the runnable counterpart to the guide: it exercises the same patterns under Vitest so the examples stay honest as the library evolves.

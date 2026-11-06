@@ -129,7 +129,7 @@ Switching to a *different* template literal (e.g. a different `if` branch return
 
 ## Using it in a `UIElement`
 
-`../component.ts`'s `UIElement.template()` hook accepts either style: sync the DOM imperatively
+`../ui-element.ts`'s `UIElement.template()` hook accepts either style: sync the DOM imperatively
 and return nothing (as existing components do), or return an `html` result and it's rendered into
 the element automatically - same hook, same schedule, your choice per component. Read whatever
 signal(s) you need directly inside `template()`:
