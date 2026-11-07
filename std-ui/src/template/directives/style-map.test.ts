@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { AttributePart } from '../template/parts.js';
+import { AttributePart } from '../parts.js';
 import { styleMap } from './style-map.js';
 
 describe('styleMap', () => {

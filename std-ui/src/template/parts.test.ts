@@ -7,10 +7,10 @@ import {
 	PropertyPart,
 } from './parts.js';
 import { html } from './html.js';
-import { unsafeHTML } from './unsafe-html.js';
+import { unsafeHTML } from './directives/unsafe-html.js';
 import { Directive, directive, noChange } from './directive.js';
-import { classMap } from '../directives/class-map.js';
-import { styleMap } from '../directives/style-map.js';
+import { classMap } from './directives/class-map.js';
+import { styleMap } from './directives/style-map.js';
 
 describe('AttributePart', () => {
 	it('sets the attribute as a string', () => {

@@ -24,7 +24,7 @@
 //     the DOM (`Part`s no-op on `Object.is`-equal values).
 //
 // What's intentionally left out, vs. real lit-html: keyed list reconciliation (`repeat()`),
-// most directives (only `classMap`/`styleMap` are built in, see `../directives/index.js`, though
+// most directives (only `classMap`/`styleMap` are built in, see `./directives/index.js`, though
 // `directive.ts`'s `Directive`/`directive()`/`PartType` - modeled on lit-html's own - is a generic
 // extension point for writing more), and MathML template handling. Plain attributes (no
 // `?`/`.`/`@` sigil) do support
@@ -35,7 +35,7 @@
 // own) meant to be interpolated as a child of an existing `<svg>` element.
 //
 // This module ties the pieces (compilation, parts, rendering) together; see the sibling files for
-// each concern: `compile.ts`, `parts.ts`, `unsafe-html.ts`, `render.ts`.
+// each concern: `compile.ts`, `parts.ts`, `directives/unsafe-html.ts`, `render.ts`.
 
 /** The result of calling `html`/`svg` - inert until passed to `render()`. */
 export interface TemplateResult {

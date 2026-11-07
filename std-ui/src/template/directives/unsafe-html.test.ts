@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
-import { AttributePart, ChildPart } from './parts.js';
-import { isDirectiveResult } from './directive.js';
+import { AttributePart, ChildPart } from '../parts.js';
+import { isDirectiveResult } from '../directive.js';
 import { isUnsafeHtml, unsafeHTML } from './unsafe-html.js';
 
 describe('unsafeHTML', () => {

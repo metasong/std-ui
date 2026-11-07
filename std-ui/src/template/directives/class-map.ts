@@ -1,4 +1,4 @@
-import { Directive, directive, noChange, PartType, type AttributePartInfo, type PartInfo } from '../template/directive.js';
+import { Directive, directive, noChange, PartType, type AttributePartInfo, type PartInfo } from '../directive.js';
 
 /**
  * Mirrors lit-html's `classMap` directive: toggles individual classes on/off via `classList`,

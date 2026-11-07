@@ -3,8 +3,7 @@
 // by `AttributePart`, or text/template/array-diffed by `ChildPart`). This is the only extension
 // point `AttributePart`/`ChildPart` know about - neither has built-in knowledge of any specific
 // directive (`classMap`, `styleMap`, `unsafeHTML`, or anything else); all of that lives in each
-// directive's own module under `../directives/` (or `unsafe-html.ts` for the one built-in
-// child-content directive). Mirrors lit-html's `Directive`/`directive()` pair (see
+// directive's own module under `./directives/`. Mirrors lit-html's `Directive`/`directive()` pair (see
 // https://lit.dev/docs/templates/custom-directives/), trimmed to the two binding kinds this engine
 // actually produces (no async/`ElementPart`/boolean-attribute/property/event directives).
 
@@ -20,7 +19,7 @@ export const noChange: unique symbol = Symbol('noChange');
  * actually committable depends on which kind of position the directive is bound to -
  * `string`/`number`/`null`/`undefined` for an `AttributePart` (stringified/removed), or anything
  * a `ChildPart` already knows how to commit (a string, `TemplateResult`, array, `null`/`undefined`
- * /`false`, or another directive's wrapper - see `unsafe-html.ts`) for a `ChildPart`. `noChange` is
+ * /`false`, or another directive's wrapper - see `directives/unsafe-html.ts`) for a `ChildPart`. `noChange` is
  * the one value both recognize the same way: "I already applied my update myself - leave whatever
  * I didn't just touch alone."
  */
@@ -30,7 +29,7 @@ export type DirectiveReturn = unknown;
  * Mirrors lit-html's `PartType` - which *kind* of template expression a directive is bound to, so a
  * directive can check `partInfo.type`/`part.type` (see `Directive`'s constructor and `update()`
  * below) and throw if used somewhere it doesn't support, e.g. `classMap` requiring `ATTRIBUTE` +
- * `name === 'class'`, or `unsafeHTML` requiring `CHILD` (see `unsafe-html.ts`). `ATTRIBUTE` and
+ * `name === 'class'`, or `unsafeHTML` requiring `CHILD` (see `directives/unsafe-html.ts`). `ATTRIBUTE` and
  * `CHILD` are the two kinds this engine actually dispatches to directives (see `AttributePart`/
  * `ChildPart` in `parts.ts`); this stays a full union so the shape has room to grow if
  * `BooleanAttributePart`/`EventPart`/`PropertyPart`/`ElementPart` gain directive support later,

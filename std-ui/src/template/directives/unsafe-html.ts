@@ -1,4 +1,4 @@
-import { Directive, directive, PartType, type PartInfo } from './directive.js';
+import { Directive, directive, PartType, type PartInfo } from '../directive.js';
 
 const unsafeHtmlTag = Symbol('unsafeHtml');
 

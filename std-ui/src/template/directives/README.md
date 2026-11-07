@@ -62,15 +62,15 @@ methods for the keys that actually changed.
 ## Writing your own directive
 
 `classMap`/`styleMap` are just two consumers of a generic protocol — `Directive`/`directive()` in
-[`../template/directive.ts`](../template/directive.ts), which also backs the one built-in
-**child** directive, `unsafeHTML()` (see [`../template/unsafe-html.ts`](../template/unsafe-html.ts)).
+[`../directive.ts`](../directive.ts), which also backs the one built-in
+**child** directive, `unsafeHTML()` (see [`./unsafe-html.ts`](./unsafe-html.ts)).
 For the general protocol (lifecycle hooks, `Part`/`PartInfo`, `noChange`, instance reuse, both the
 attribute and child binding kinds) and how to write a custom directive, see the "Directives"
-section of [`../template/html.md`](../template/html.md#directives). [`design.md`](./design.md)
+section of [`../html.md`](../html.md#directives). [`design.md`](./design.md)
 covers how `classMap`/`styleMap` specifically use it.
 
 ## Related reading
 
 - [`design.md`](./design.md) — how `classMap`/`styleMap` are implemented internally.
-- [`../template/directive.ts`](../template/directive.ts) — the generic `Directive`/`directive()` protocol these are built on.
-- [`../template/html.md`](../template/html.md) — binding table and the "Directives" section (how to write a custom one).
+- [`../directive.ts`](../directive.ts) — the generic `Directive`/`directive()` protocol these are built on.
+- [`../html.md`](../html.md) — binding table and the "Directives" section (how to write a custom one).

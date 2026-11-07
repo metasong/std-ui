@@ -5,7 +5,7 @@
 // values. See `html.ts` for the overall design.
 
 import { isTemplateResult, type TemplateResult } from './html.js';
-import { isUnsafeHtml } from './unsafe-html.js';
+import { isUnsafeHtml } from './directives/unsafe-html.js';
 import {
 	applyDirective,
 	isDirectiveResult,

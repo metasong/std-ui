@@ -20,7 +20,7 @@ export {
 	type Part,
 	type PartInfo,
 } from './template/index.js';
-export { classMap, styleMap } from './directives/index.js';
+export { classMap, styleMap } from './template/directives/index.js';
 export {
 	signalState,
 	computed,

@@ -15,14 +15,14 @@ How the two built-in attribute directives are implemented, and how they use the 
 
 All code for one directive lives in one file — the constructor's validation, its `update()`
 implementation, and its exported `directive()`-made function are never split across modules.
-Neither file touches `../template/parts.ts` or `../template/compile.ts`: `AttributePart` has no
+Neither file touches `../parts.ts` or `../compile.ts`: `AttributePart` has no
 built-in knowledge of either directive (or of directives in general beyond the generic dispatch
-protocol) — see [`../template/directive.ts`](../template/directive.ts).
+protocol) — see [`../directive.ts`](../directive.ts).
 
 ## Why `update()`, not `render()`
 
 Both directives override only `update(part, ...)`, not `render(...)` — see
-[`../template/directive.ts`](../template/directive.ts) for the general distinction, but concretely
+[`../directive.ts`](../directive.ts) for the general distinction, but concretely
 here: `render()` would have to return a single string for `AttributePart` to commit via
 `setAttribute`, which means **replacing the whole attribute** every render. That's wrong for both:
 
@@ -81,7 +81,7 @@ flowchart LR
 ## Related reading
 
 - [`README.md`](./README.md) — public API and examples.
-- [`../template/directive.ts`](../template/directive.ts) — the generic `Directive`/`directive()`/`PartType`/`noChange` protocol both directives are built on.
-- [`../template/html.md`](../template/html.md#directives) — "Directives" section: how to write a custom one (attribute or child).
-- [`../template/unsafe-html.ts`](../template/unsafe-html.ts) — the one built-in **child** directive, `unsafeHTML()`, for comparison with these two attribute directives.
+- [`../directive.ts`](../directive.ts) — the generic `Directive`/`directive()`/`PartType`/`noChange` protocol both directives are built on.
+- [`../html.md`](../html.md#directives) — "Directives" section: how to write a custom one (attribute or child).
+- [`./unsafe-html.ts`](./unsafe-html.ts) — the one built-in **child** directive, `unsafeHTML()`, for comparison with these two attribute directives.
 - [`class-map.test.ts`](./class-map.test.ts) / [`style-map.test.ts`](./style-map.test.ts) / [`directives.test.ts`](./directives.test.ts) — behavior tests.
