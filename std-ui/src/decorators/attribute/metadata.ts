@@ -84,6 +84,7 @@ export function getAttributeDefs(ctor: Function): readonly AttributeDef[] {
 export function defineObservedAttributes(ctor: CustomElementConstructor, context: ClassDecoratorContext): void {
 	const defs = collectAttributeDefs(context.metadata);
 	if (defs.length === 0) return;
+
 	const attributes = Array.from(new Set(defs.map(def => def.attribute)));
 	Object.defineProperty(ctor, 'observedAttributes', { value: attributes, configurable: true });
 }

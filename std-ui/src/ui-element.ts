@@ -155,6 +155,7 @@ export abstract class UIElement extends HTMLElement {
 	private attributeChangedCallback(name: string, _oldValue: string | null, newValue: string | null): void {
 		const def = getAttributeDefs(this.constructor).find(def => def.attribute === name);
 		if (!def) return;
+
 		(this as unknown as Record<PropertyKey, unknown>)[def.key] = parseAttribute(newValue, def.converter);
 	}
 }

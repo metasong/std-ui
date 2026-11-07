@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="UTF-8" />
+	<title>std-ui — feature demo</title>
+	<meta name="viewport" content="width=device-width, initial-scale=1" />
+	<style>
+		/* Fixed light theme, independent of OS/browser dark-mode preference: without this, `color-scheme: light dark`
+		   would let the browser auto-darken the page background while these hard-coded light-theme hex colors
+		   (borders, muted text, etc.) stayed as-is, producing a low-contrast, washed-out look under dark mode. */
+		:root { color-scheme: light; }
+		* { box-sizing: border-box; }
+		html, body { background: #ffffff; }
+		body {
+			font-family: system-ui, -apple-system, "Segoe UI", sans-serif;
+			max-width: 860px;
+			margin: 0 auto;
+			padding: 2rem 1.5rem 4rem;
+			line-height: 1.5;
+			color: #111827;
+		}
+		h1 { margin-bottom: 0.25rem; }
+		p.lead { color: #6b7280; margin-top: 0; }
+		section {
+			border: 1px solid #e5e7eb;
+			border-radius: 12px;
+			padding: 1.25rem 1.5rem;
+			margin: 1.5rem 0;
+			background: #ffffff;
+		}
+		section > h2 { margin-top: 0; font-size: 1.1rem; }
+		section > p.desc { color: #6b7280; font-size: 0.9rem; margin-top: -0.25rem; }
+		code { background: #f3f4f6; padding: 0.1rem 0.35rem; border-radius: 4px; font-size: 0.9em; }
+		button {
+			font: inherit;
+			padding: 0.4rem 0.9rem;
+			border-radius: 8px;
+			border: 1px solid #d1d5db;
+			background: #f9fafb;
+			cursor: pointer;
+		}
+		button:hover:not(:disabled) { background: #f3f4f6; }
+		button:disabled { opacity: 0.5; cursor: not-allowed; }
+		button.primary { background: #2563eb; border-color: #2563eb; color: white; }
+		button.primary:hover:not(:disabled) { background: #1d4ed8; }
+	</style>
+</head>
+<body>
+	<h1>std-ui</h1>
+	<p class="lead">Minimal UI on web standards — a tour of every feature, each in its own custom element.</p>
+
+	<demo-counter-section></demo-counter-section>
+	<demo-attribute-section theme="light" count="3"></demo-attribute-section>
+	<demo-context-section></demo-context-section>
+	<demo-query-section></demo-query-section>
+	<demo-directives-section></demo-directives-section>
+	<demo-todo-section></demo-todo-section>
+
+	<script type="module" src="./main.ts"></script>
+</body>
+</html>
