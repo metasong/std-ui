@@ -46,7 +46,7 @@ count.set(3); // effect re-runs → render patches text + disabled, same <p> and
 
 Important details:
 
-- **`view` must keep the same `html` call site** — always `return html\`...\`` from the same tagged template expression. If you switch to a *different* template literal (e.g. alternate `if` branches that each define their own `` html`...` ``), std-ui tears down and rebuilds that container's DOM. Prefer one template with conditional *values* (`?disabled`, ternary in `${...}`) over conditional *templates* when you care about reuse.
+- **`view` must keep the same `html` call site** — always `return html\`...\`` from the same tagged template expression. If you switch to a *different* template literal (e.g. alternate `if` branches that each define their own `` html`...` ``), std-ui tears down and rebuilds that container's DOM. Prefer one template with conditional *values* (`?disabled`, ternary in `${...}`) over conditional *templates* when you care about reuse. See [`saved-ui-rerendering.md`](./saved-ui-rerendering.md) for the full mental model (`strings` vs `values`, nested templates, lists).
 - **`computed` for derived text** — keeps the effect from manually syncing extra fields; only re-read when dependencies change.
 - **Event handlers** — `@click` bindings are re-bound when the handler reference changes; inline arrows are fine for demos, stable references are better in production.
 
@@ -175,6 +175,8 @@ flowchart LR
 
 ## Related reading
 
+- [`saved-ui-rerendering.md`](./saved-ui-rerendering.md) — why signal updates reuse DOM (`strings`
+  identity, `render()` fast path, nested `html` in lists).
 - [`../signal/core/signal.md`](../signal/core/signal.md) — primitives, tracking, batching, `peek`.
 - [`../signal/tree.md`](../signal/tree.md) — `signalState`, branch `.set(partial)`, app-shaped state.
 - [`../template/html.md`](../template/html.md) — binding kinds, limitations, `svg`, `unsafeHTML`.

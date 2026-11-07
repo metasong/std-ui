@@ -320,6 +320,9 @@ placeholders, `literals` / `valueCount`, and the “rewind” trick for `class="
 4. On every later render with the *same* `strings`, steps 2-3 are skipped entirely - just
    `.update(value)` on each already-bound `Part`, which no-ops on `Object.is`-equal values.
 
+For how this interacts with **`UIElement`** (signal-driven `template()` re-runs, nested templates,
+and when the fast path is lost), see [`../doc/saved-ui-rerendering.md`](../doc/saved-ui-rerendering.md).
+
 ## Limitations (vs. real lit-html)
 
 - **No keyed list reconciliation** (no `repeat()`/`map()` with keys). Arrays are diffed

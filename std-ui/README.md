@@ -14,5 +14,6 @@ Guides for the library under `src/` (`signal/`, `template/`, `ui-element.ts`):
 | Component fields (`@state`, `@attribute`) | [`src/decorators/README.md`](./src/decorators/README.md) · [design](./src/decorators/design.md) |
 | Context (`@state({ contextKey })`, `@consume`) | [`src/decorators/context/README.md`](./src/decorators/context/README.md) · [design](./src/decorators/context/design.md) |
 | **Signals driving template render** (end-to-end) | [`src/doc/signal-drives-html.md`](./src/doc/signal-drives-html.md) |
+| **Saved re-rendering** (`strings` identity, `UIElement` updates) | [`src/doc/saved-ui-rerendering.md`](./src/doc/saved-ui-rerendering.md) |
 
 The [`src/doc/signal-drives-html.example.test.ts`](./src/doc/signal-drives-html.example.test.ts) file is the runnable counterpart to the guide: it exercises the same patterns under Vitest so the examples stay honest as the library evolves.
