@@ -15,17 +15,21 @@ export class DemoShadowChip extends UIElement {
 			<style>
 				:host { display: inline-block; }
 				button {
-					padding: 0.45rem 1rem;
-					border-radius: 999px;
-					border: 2px solid #5b21b6;
-					background: linear-gradient(180deg, #a78bfa, #7c3aed);
-					color: #fff;
-					font-weight: 600;
+					font: inherit;
+					font-weight: 500;
+					font-size: 0.875rem;
+					padding: 0.625rem 1.5rem;
+					border-radius: 9999px;
+					border: none;
+					background: var(--md-sys-color-primary, #6750a4);
+					color: var(--md-sys-color-on-primary, #fff);
 					cursor: pointer;
+					box-shadow: 0 1px 2px rgb(0 0 0 / 0.3), 0 1px 3px 1px rgb(0 0 0 / 0.15);
 				}
 				button[data-off] {
-					background: #4b5563;
-					border-color: #374151;
+					background: var(--md-sys-color-surface-container-highest, #e6e0e9);
+					color: var(--md-sys-color-on-surface-variant, #49454f);
+					box-shadow: none;
 				}
 			</style>
 			<button
@@ -33,7 +37,7 @@ export class DemoShadowChip extends UIElement {
 				data-off="${this.on ? null : ''}"
 				@click="${() => (this.on = !this.on)}"
 			>
-				${this.on ? 'Encapsulated (shadow)' : 'Click — purple only inside shadow'}
+				${this.on ? 'Encapsulated (shadow)' : 'Click — themed only inside shadow'}
 			</button>
 		`;
 	}
@@ -54,8 +58,8 @@ export class DemoShadowSection extends UIElement {
 				<code>renderRoot</code>, not the light DOM host.
 			</p>
 			<p>
-				The chip uses shadow-only styles (purple pill). The page-level <code>button</code> rules in
-				<code>index.html</code> do not reach it — compare with the ordinary button beside it.
+				The chip uses shadow-only Material-styled rules. Global <code>button</code> styles from
+				<code>demo-components.css</code> do not reach it — compare with the page button beside it.
 			</p>
 			<p>
 				<demo-shadow-chip></demo-shadow-chip>

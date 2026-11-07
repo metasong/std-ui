@@ -23,7 +23,9 @@ export class DemoContextSection extends UIElement {
 		return html`
 			<h2>Context</h2>
 			<p class="desc"><code>@state({ contextKey })</code> on this element provides <code>ThemeKey</code>; the nested <code>&lt;demo-theme-child&gt;</code> below reads it via <code>@consume()</code> with no attributes/props passed through markup.</p>
-			<button type="button" @click="${() => (this.theme = { mode: this.theme.mode === 'light' ? 'dark' : 'light' })}">toggle (parent)</button>
+			<div class="demo-actions">
+				<button type="button" @click="${() => (this.theme = { mode: this.theme.mode === 'light' ? 'dark' : 'light' })}">toggle (parent)</button>
+			</div>
 			<demo-theme-child></demo-theme-child>
 		`;
 	}

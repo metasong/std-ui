@@ -14,13 +14,15 @@ export class DemoQuerySection extends UIElement {
 		return html`
 			<h2>Queries</h2>
 			<p class="desc"><code>@query()</code> / <code>@queryAll()</code> resolve <code>this.querySelector(All)</code> on demand; <code>firstRendered()</code> + <code>this.effect()</code> patch a node (the <code>.badge</code> span) directly.</p>
-			<input type="text" placeholder="add an item, press Enter" @keydown="${(e: KeyboardEvent) => this.#onKeydown(e)}" />
-			<span class="badge"></span>
+			<input class="demo-outlined-field" type="text" placeholder="add an item, press Enter" @keydown="${(e: KeyboardEvent) => this.#onKeydown(e)}" />
+			<span class="demo-badge badge"></span>
 			<ul>
 				${this.items.map(item => html`<li>${item}</li>`)}
 			</ul>
-			<button type="button" @click="${() => this.input?.focus()}">focus input via @query</button>
-			<button type="button" @click="${() => console.log('@queryAll() <li> count:', this.listItems.length)}">log &lt;li&gt; count (console)</button>
+			<div class="demo-actions">
+				<button type="button" @click="${() => this.input?.focus()}">focus input via @query</button>
+				<button type="button" class="tonal" @click="${() => console.log('@queryAll() <li> count:', this.listItems.length)}">log &lt;li&gt; count (console)</button>
+			</div>
 		`;
 	}
 

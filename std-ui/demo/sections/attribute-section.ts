@@ -20,9 +20,11 @@ export class DemoAttributeSection extends UIElement {
 				theme=<code>${this.theme}</code>,
 				count=<code>${this.count}</code>
 			</p>
-			<button type="button" @click="${() => (this.theme = this.theme === 'light' ? 'dark' : 'light')}">toggle theme attribute</button>
-			<button type="button" @click="${() => (this.count += 1)}">increment count attribute</button>
-			<button type="button" @click="${() => (this.expanded = !this.expanded)}">${this.expanded ? 'hide' : 'show'} internal-only state</button>
+			<div class="demo-actions">
+				<button type="button" @click="${() => (this.theme = this.theme === 'light' ? 'dark' : 'light')}">toggle theme attribute</button>
+				<button type="button" class="tonal" @click="${() => (this.count += 1)}">increment count attribute</button>
+				<button type="button" class="text" @click="${() => (this.expanded = !this.expanded)}">${this.expanded ? 'hide' : 'show'} internal-only state</button>
+			</div>
 			${this.expanded ? html`<p><em>This line comes from <code>@state()</code> — it never appears as an attribute.</em></p>` : ''}
 		`;
 	}

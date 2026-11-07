@@ -13,8 +13,10 @@ export class DemoCounterSection extends UIElement {
 			<h2>Signals + templates</h2>
 			<p class="desc"><code>signalState</code>, <code>computed</code>, <code>html</code>/<code>render</code> — the template re-renders in place whenever a read signal changes.</p>
 			<p><strong>${count()}</strong> ${label()}</p>
-			<button type="button" @click="${() => count.update(n => n + 1)}">+1</button>
-			<button type="button" @click="${() => count.set(0)}" ?disabled="${count() === 0}">reset</button>
+			<div class="demo-actions">
+				<button type="button" @click="${() => count.update(n => n + 1)}">+1</button>
+				<button type="button" class="tonal" @click="${() => count.set(0)}" ?disabled="${count() === 0}">reset</button>
+			</div>
 		`;
 	}
 }

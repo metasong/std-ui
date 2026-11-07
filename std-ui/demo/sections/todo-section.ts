@@ -21,18 +21,18 @@ export class DemoTodoSection extends UIElement {
 			<h2>Putting it together: a tiny todo list</h2>
 			<p class="desc">A realistic composition of <code>@state()</code>, list rendering, and event bindings — no framework, no virtual DOM.</p>
 			<p>${remaining} remaining of ${this.todos.length}</p>
-			<ul style="list-style:none;padding:0;">
+			<ul class="demo-todo-list">
 				${this.todos.map(todo => html`
-					<li style="display:flex;align-items:center;gap:0.5rem;padding:0.25rem 0;">
+					<li class="demo-todo-item">
 						<input type="checkbox" .checked="${todo.done}" @change="${() => this.#toggle(todo.id)}" />
-						<span style="${todo.done ? 'text-decoration:line-through;color:#9ca3af;' : ''}">${todo.text}</span>
-						<button type="button" @click="${() => this.#remove(todo.id)}" style="margin-left:auto;">✕</button>
+						<span class="${todo.done ? 'done' : ''}">${todo.text}</span>
+						<button type="button" class="tonal" style="margin-left:auto;" @click="${() => this.#remove(todo.id)}">✕</button>
 					</li>
 				`)}
 			</ul>
-			<form @submit="${(e: Event) => this.#onSubmit(e)}" style="display:flex;gap:0.5rem;">
-				<input type="text" name="text" placeholder="new todo" style="flex:1;" />
-				<button class="primary" type="submit">add</button>
+			<form class="demo-todo-form" @submit="${(e: Event) => this.#onSubmit(e)}">
+				<input class="demo-outlined-field" type="text" name="text" placeholder="new todo" />
+				<button type="submit">add</button>
 			</form>
 		`;
 	}
