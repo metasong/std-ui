@@ -56,6 +56,24 @@ export interface AttributePartInfo {
 	readonly element: Element;
 	/** The attribute name, e.g. `'class'`. */
 	readonly name: string;
+	/**
+	 * Set only when this directive's attribute mixes static text (and/or other plain-value
+	 * interpolations) alongside it, e.g. `class="${classMap(...)} extra"` or
+	 * `style="${styleMap(...)}border:1px solid red;"` (see `AttributePart` in `../parts.ts`, which
+	 * computes this generically - it has no built-in knowledge of what kind of directive it's
+	 * dealing with). The surrounding literal text, with every *other* value already stringified in
+	 * and this directive's own slot(s) replaced with `''`. `undefined` when this directive is the
+	 * attribute's only interpolation (the common case).
+	 *
+	 * A directive that wants to support being mixed with static text reads this in `update()` (e.g.
+	 * `classMap` tokenizes it the same way it tokenizes its own object argument, then diffs the
+	 * union) and applies the combined result imperatively, returning `noChange` as usual - an
+	 * `AttributePart` can't meaningfully fold an imperative directive's effect back into a single
+	 * composed attribute string. A directive that ignores `staticText` simply doesn't support being
+	 * mixed with static text (`AttributePart` throws if it returns anything other than `noChange`
+	 * while `staticText` is set).
+	 */
+	readonly staticText?: string;
 }
 
 /** Metadata + live DOM access for a child-content binding - see `ChildPart` in `parts.ts`. Unlike

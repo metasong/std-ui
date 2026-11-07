@@ -13,23 +13,15 @@ export class DemoDirectivesSection extends UIElement {
 			padding: this.big ? '1.5rem' : '0.5rem',
 			fontSize: this.big ? '1.25rem' : '1rem',
 			background: this.active ? '#dbeafe' : '#f3f4f6',
-			border: this.active ? '2px solid #2563eb' : '2px solid #d1d5db',
-			borderRadius: '8px',
 			transition: 'all 150ms ease',
 		};
 
 		return html`
 			<h2>Directives</h2>
-			<p class="desc"><code>classMap</code> toggles individual classes via <code>classList</code>; <code>styleMap</code> sets individual inline style properties; <code>unsafeHTML</code> injects raw markup (trusted input only).</p>
-			<!--
-				styleMap()/classMap() must be the attribute's only interpolation, with no surrounding
-				static text (see src/template/directives/style-map.ts): mixing in static text silently
-				breaks the directive - it falls back to stringifying the directive object instead of
-				actually invoking it - so every style/class here comes from the "styles"/"classes"
-				objects below, never from static text appended in the attribute itself.
-			-->
-			<div class="${classMap(classes)}" style="${styleMap(styles)}">
-				classMap + styleMap controlled box
+			<p class="desc"><code>classMap</code> toggles individual classes via <code>classList</code>; <code>styleMap</code> sets individual inline style properties - both can coexist with static text/other classes in the same attribute; <code>unsafeHTML</code> injects raw markup (trusted input only).</p>
+			<style>.demo-box.active { border:2px solid #2563eb; }</style>
+			<div class="${classMap(classes)} static-border" style="${styleMap(styles)}border-radius:8px;">
+				classMap + styleMap controlled box (mixed with static "class"/"style" text)
 			</div>
 			<button type="button" @click="${() => (this.active = !this.active)}">toggle active class</button>
 			<button type="button" @click="${() => (this.big = !this.big)}">toggle size style</button>

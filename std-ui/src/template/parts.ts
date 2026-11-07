@@ -52,8 +52,10 @@ export class AttributePart implements Part {
 	#committed: string | null | undefined;
 	/** The `Directive` instance bound here, if a `directive()`-made value was ever applied to this
 	 *  position; reused across renders (so it can keep its own state) as long as the same directive
-	 *  function keeps being used - see `directive.ts`. */
-	#directive: Directive | undefined;
+	 *  function keeps being used - see `directive.ts`. Keyed by that value's index among this
+	 *  attribute's interpolations, since an attribute mixing static text with a directive (see
+	 *  `#applyWithStaticText` below) may in principle hold more than one. */
+	#directives: Array<Directive | undefined> = [];
 	/** This position's `AttributePartInfo`, built once and handed to directives - see `directive.ts`. */
 	#partInfo: AttributePartInfo;
 	constructor(
@@ -69,8 +71,8 @@ export class AttributePart implements Part {
 		const isBareSingleValue = this.literals.length === 2 && this.literals[0] === '' && this.literals[1] === '';
 
 		if (isBareSingleValue && isDirectiveResult(values[0])) {
-			const { instance, value } = applyDirective(this.#partInfo, values[0], this.#directive);
-			this.#directive = instance;
+			const { instance, value } = applyDirective(this.#partInfo, values[0], this.#directives[0]);
+			this.#directives[0] = instance;
 			if (value === noChange) {
 				// The directive applied its own update imperatively (e.g. via classList/el.style), not
 				// via setAttribute - forget any stale #committed string so a later plain value can't be
@@ -87,12 +89,64 @@ export class AttributePart implements Part {
 			return;
 		}
 
+		// An attribute mixing static text (and/or other plain interpolations) alongside one or more
+		// directive-made values, e.g. `style="${styleMap(styles)}border:1px solid red;"` - see
+		// `#applyWithStaticText()`. This part has no built-in knowledge of what kind of directive is
+		// involved (`classMap`, `styleMap`, or anything else) - that's entirely up to whichever
+		// `Directive` subclass reads `part.staticText` (`./directive.js`).
+		if (values.some(isDirectiveResult)) {
+			this.#applyWithStaticText(values);
+			return;
+		}
+
 		let composed = this.literals[0];
 		for (let i = 0; i < values.length; i++) composed += (values[i] == null ? '' : String(values[i])) + this.literals[i + 1];
 
 		if (composed === this.#committed) return;
 		this.#committed = composed;
 		this.el.setAttribute(this.name, composed);
+	}
+
+	/**
+	 * Handles an attribute that mixes static text (and/or other plain-value interpolations) with
+	 * one or more directive-made values. A plain `setAttribute(name, composed)` - this part's usual
+	 * fallback for mixed values - can't represent a directive that applies itself imperatively
+	 * (`classMap`/`styleMap` via `classList`/`element.style`, say): stringifying its `DirectiveResult`
+	 * object into the composed text would silently produce garbage instead of ever invoking it (the
+	 * bug this method exists to fix). Instead: compute `staticText` - the surrounding literal/plain
+	 * content with every directive's own slot replaced by `''` - then hand each directive value its
+	 * own `part.staticText` (`./directive.js`) so *it* can decide how to combine the two (this part
+	 * has no idea how; see that field's own doc comment). Throws if a directive ignores
+	 * `staticText` and resolves to something other than `noChange` - this part can't fold an
+	 * imperative directive's effect back into one composed attribute string.
+	 */
+	#applyWithStaticText(values: readonly unknown[]): void {
+		let staticText = this.literals[0];
+		for (let i = 0; i < values.length; i++) {
+			const value = values[i];
+			if (!isDirectiveResult(value)) staticText += value == null ? '' : String(value);
+			staticText += this.literals[i + 1];
+		}
+		const partInfo: AttributePartInfo = { ...this.#partInfo, staticText };
+
+		for (let i = 0; i < values.length; i++) {
+			const value = values[i];
+			if (!isDirectiveResult(value)) continue;
+
+			const { instance, value: result } = applyDirective(partInfo, value, this.#directives[i]);
+			this.#directives[i] = instance;
+			if (result !== noChange) {
+				throw new Error(
+					`std-ui html: a directive bound inside a "${this.name}" attribute alongside static text must ` +
+						`apply itself imperatively (return noChange from update(), reading part.staticText) - a ` +
+						`directive that resolves to its own string/value can't be combined with static text in ` +
+						`the same "${this.name}" attribute.`,
+				);
+			}
+		}
+		// Same reasoning as the bare-directive branch above: this part's own DOM mutations weren't
+		// routed through `setAttribute`, so any stale composed-string tracking is no longer valid.
+		this.#committed = undefined;
 	}
 
 	/** Shared commit path for a bare single value, whether it came straight from `values[0]` or

@@ -2,7 +2,7 @@ import { Directive, directive, noChange, PartType, type AttributePartInfo, type 
 
 /** `fontSize` -> `font-size`; CSS custom properties (`--foo`) and already-kebab/lowercase names
  *  pass through unchanged, matching `CSSStyleDeclaration.setProperty`'s expectations. */
-function toCssPropertyName(name: string): string {
+export function toCssPropertyName(name: string): string {
 	if (name.startsWith('--')) return name;
 	return name.replace(/[A-Z]/g, letter => `-${letter.toLowerCase()}`);
 }
@@ -13,10 +13,11 @@ function toCssPropertyName(name: string): string {
  * camelCase (`fontSize`) or kebab-case/custom properties (`font-size`, `--my-color`); values of
  * `null`/`undefined` remove that property, anything else is stringified.
  *
- * Must be the attribute's *only* interpolation, with no surrounding static text - same rule as
- * `?`/`.`/`@`-prefixed bindings, since this binds a live object, not a composed string:
+ * May be used as the attribute's only interpolation, or mixed with static CSS text/other
+ * declarations (see `update()` below) - unlike `?`/`.`/`@`-prefixed bindings, which must be a
+ * single bare interpolation since those bind a live value, not a composed string:
  *
- *   html`<div style="${styleMap({ color: 'red', fontSize: active ? '16px' : null })}"></div>`
+ *   html`<div style="${styleMap({ color: 'red', fontSize: active ? '16px' : null })}border:2px solid #d1d5db;"></div>`
  */
 class StyleMapDirective extends Directive {
 	/** CSS property names this instance set last time, so the next `update()` knows which to remove
@@ -30,27 +31,40 @@ class StyleMapDirective extends Directive {
 		}
 	}
 
-	/** Sets/removes only the properties that changed since last time via `part.element.style`, then
-	 *  signals there's nothing left to commit. */
+	/**
+	 * Sets/removes only the properties that changed since last time via `part.element.style`, then
+	 * signals there's nothing left to commit.
+	 *
+	 * If `part.staticText` is set (`styleMap()` is mixed with static CSS text/other declarations in
+	 * the same `style` attribute - see `AttributePartInfo.staticText` in `../directive.js`), it's
+	 * parsed as `prop:value;` declarations the same way a real `style` attribute would and merged
+	 * with this call's own object (whose entries win on a clashing property name) before diffing,
+	 * so neither contribution clobbers the other.
+	 */
 	override update(part: AttributePartInfo, styles: Readonly<Record<string, string | number | null | undefined>>): typeof noChange {
-		const style = (part.element as HTMLElement | SVGElement).style;
-		const next = new Set<string>();
-
+		// 1. Build the target map: static `style` text first, then this call's object (overrides on clash).
+		const next = new Map<string, string>();
+		if (part.staticText) {
+			for (const declaration of part.staticText.split(';')) {
+				const colonIndex = declaration.indexOf(':');
+				if (colonIndex === -1) continue;
+				const prop = declaration.slice(0, colonIndex).trim();
+				const value = declaration.slice(colonIndex + 1).trim();
+				if (prop && value) next.set(prop, value);
+			}
+		}
 		for (const [key, value] of Object.entries(styles)) {
 			if (value == null) continue;
-
-			const prop = toCssPropertyName(key);
-			next.add(prop);
-			style.setProperty(prop, String(value));
+			next.set(toCssPropertyName(key), String(value));
 		}
-
-		if (this.#previous)
-			for (const prop of this.#previous)
-				if (!next.has(prop))
-					style.removeProperty(prop);
-
-		this.#previous = next;
-
+		const element = part.element as HTMLElement | SVGElement;
+		const previous = this.#previous;
+		// 2. Set every property in `next` on the element.
+		for (const [prop, value] of next) element.style.setProperty(prop, value);
+		// 3. Remove properties this instance set last time but no longer want.
+		if (previous) for (const prop of previous) if (!next.has(prop)) element.style.removeProperty(prop);
+		// 4. Remember property names for the next diff; attribute commit is skipped via `noChange`.
+		this.#previous = new Set(next.keys());
 		return noChange;
 	}
 }

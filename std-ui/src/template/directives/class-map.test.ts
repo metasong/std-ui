@@ -33,4 +33,18 @@ describe('classMap', () => {
 		const part = new AttributePart(el, 'id');
 		expect(() => part.update([classMap({ active: true })])).toThrow();
 	});
+
+	it('coexists with static text in the same "class" attribute', () => {
+		const el = document.createElement('div');
+		const part = new AttributePart(el, 'class', ['base ', ' trailing']);
+		part.update([classMap({ active: true })]);
+		expect(el.classList.contains('base')).toBe(true);
+		expect(el.classList.contains('trailing')).toBe(true);
+		expect(el.classList.contains('active')).toBe(true);
+
+		part.update([classMap({ active: false })]);
+		expect(el.classList.contains('active')).toBe(false);
+		expect(el.classList.contains('base')).toBe(true); // static tokens untouched by the directive toggling
+		expect(el.classList.contains('trailing')).toBe(true);
+	});
 });

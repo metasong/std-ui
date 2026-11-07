@@ -28,7 +28,9 @@ const metadataSymbol: symbol = ((Symbol as unknown as Record<string, symbol>).me
 export function tag(name: string) {
 	return function <T extends CustomElementConstructor>(ctor: T, context: ClassDecoratorContext): T {
 		defineObservedAttributes(ctor, context);
-		(ctor as unknown as Record<symbol, object>)[metadataSymbol] = context.metadata;
+		// `context.metadata` is always populated for a class decorator (TC39 stage-3 decorators) -
+		// the `?? {}` only satisfies this lib's `DecoratorMetadata | undefined` typing.
+		(ctor as unknown as Record<symbol, object>)[metadataSymbol] = context.metadata ?? {};
 		customElements.define(name, ctor);
 		return ctor;
 	};
