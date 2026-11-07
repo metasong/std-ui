@@ -31,19 +31,26 @@ class StyleMapDirective extends Directive {
 	}
 
 	/** Sets/removes only the properties that changed since last time via `part.element.style`, then
-	 *  signals there's nothing left to commit. `styles`'s type here is what `directive()` infers
-	 *  `styleMap`'s own argument type from - no separate `render()` needed just for that. */
+	 *  signals there's nothing left to commit. */
 	override update(part: AttributePartInfo, styles: Readonly<Record<string, string | number | null | undefined>>): typeof noChange {
 		const style = (part.element as HTMLElement | SVGElement).style;
 		const next = new Set<string>();
+
 		for (const [key, value] of Object.entries(styles)) {
 			if (value == null) continue;
+
 			const prop = toCssPropertyName(key);
 			next.add(prop);
 			style.setProperty(prop, String(value));
 		}
-		if (this.#previous) for (const prop of this.#previous) if (!next.has(prop)) style.removeProperty(prop);
+
+		if (this.#previous)
+			for (const prop of this.#previous)
+				if (!next.has(prop))
+					style.removeProperty(prop);
+
 		this.#previous = next;
+
 		return noChange;
 	}
 }

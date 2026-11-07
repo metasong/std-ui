@@ -1,7 +1,7 @@
 import { Directive, directive, noChange, PartType, type AttributePartInfo, type PartInfo } from '../directive.js';
 
 /**
- * Mirrors lit-html's `classMap` directive: toggles individual classes on/off via `classList`,
+ * `classMap` directive: toggles individual classes on/off via `classList`,
  * rather than recomputing the whole `class` attribute as a string. Keys with a truthy value are
  * added; keys with a falsy value are removed (and left alone if never present). Classes already on
  * the element from static markup or elsewhere are never touched.
@@ -24,13 +24,18 @@ class ClassMapDirective extends Directive {
 	}
 
 	/** Toggles only the classes that changed since last time via `part.element`'s `classList`,
-	 *  leaving classes from elsewhere untouched, then signals there's nothing left to commit.
-	 *  `classes`'s type here is what `directive()` infers `classMap`'s own argument type from -
-	 *  no separate `render()` needed just for that. */
+	 *  leaving classes from elsewhere untouched, then signals there's nothing left to commit.*/
 	override update(part: AttributePartInfo, classes: Readonly<Record<string, unknown>>): typeof noChange {
 		const next = new Set(Object.keys(classes).filter(key => Boolean(classes[key])));
-		if (this.#previous) for (const cls of this.#previous) if (!next.has(cls)) part.element.classList.remove(cls);
-		for (const cls of next) part.element.classList.add(cls);
+
+		if (this.#previous)
+			for (const cls of this.#previous)
+				if (!next.has(cls))
+					part.element.classList.remove(cls);
+
+		for (const cls of next)
+			part.element.classList.add(cls);
+
 		this.#previous = next;
 		return noChange;
 	}
