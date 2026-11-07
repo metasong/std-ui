@@ -49,6 +49,7 @@ body {
 	demo-context-section,
 	demo-query-section,
 	demo-shadow-section,
+	demo-css-section,
 	demo-directives-section,
 	demo-todo-section
 ) {
@@ -67,6 +68,7 @@ body {
 	demo-context-section,
 	demo-query-section,
 	demo-shadow-section,
+	demo-css-section,
 	demo-directives-section,
 	demo-todo-section
 ) > h2 {
@@ -83,6 +85,7 @@ body {
 	demo-context-section,
 	demo-query-section,
 	demo-shadow-section,
+	demo-css-section,
 	demo-directives-section,
 	demo-todo-section
 ) > p.desc {
@@ -98,6 +101,7 @@ body {
 	demo-context-section,
 	demo-query-section,
 	demo-shadow-section,
+	demo-css-section,
 	demo-directives-section,
 	demo-todo-section
 ) code {
