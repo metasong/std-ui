@@ -15,11 +15,12 @@ import {
 	wireProvidedContextListeners,
 	wireReflectedAttributes,
 } from './decorators/index.js';
+import { ElementStyles } from './element-styles.js';
 import {
 	effect as createEffect,
 	type OnCleanup,
 } from './signal/index.js';
-import { render, type TemplateResult } from './template/index.js';
+import { render, type CSSResultGroup, type TemplateResult } from './template/index.js';
 
 export {
 	attribute,
@@ -57,6 +58,28 @@ export abstract class UIElement extends HTMLElement {
 	 */
 	static shadowRootOptions?: ShadowRootInit;
 
+	/**
+	 * Styles shared by every instance of this class, written with `css` (see `./template/css.ts`) -
+	 * mirrors lit's `static styles`. `:host` selects the component root either way (the shadow
+	 * host, or - rewritten to `:scope` under the hood - the matched custom element in light DOM).
+	 *
+	 * - Shadow root (`static shadowRootOptions` set): adopted via `adoptedStyleSheets` - cheap,
+	 *   shared by reference across instances, and naturally scoped by the shadow boundary.
+	 * - Light DOM (default): adopted once per *custom element tag* (not per instance - every
+	 *   instance of a class shares one sheet) wrapped in `@scope (tag-name) { ... }`, so it only
+	 *   matches this tag's own elements - never bleeds into unrelated markup - without the cost of
+	 *   re-parsing identical CSS text per instance that a per-instance `<style>` would mean.
+	 *
+	 * ```ts
+	 * @tag('themed-panel')
+	 * class Panel extends UIElement {
+	 *   static override shadowRootOptions = { mode: 'open' } as const;
+	 *   static override styles = css`:host { display: block; } button { color: red; }`;
+	 * }
+	 * ```
+	 */
+	static styles?: CSSResultGroup;
+
 	/** Where `template()` is rendered — the host element (light DOM) or `shadowRoot`. */
 	get renderRoot(): Element | DocumentFragment {
 		return this.#renderRoot ?? this.#ensureRenderRoot();
@@ -69,8 +92,18 @@ export abstract class UIElement extends HTMLElement {
 		return this;
 	}
 
+	/** Applies/tracks `static styles` for this instance's render root - see `./element-styles.ts`. */
+	readonly #elementStyles = new ElementStyles();
+
 	#ensureRenderRoot(): Element | DocumentFragment {
-		if (this.#renderRoot === null) this.#renderRoot = this.createRenderRoot();
+		if (this.#renderRoot === null) {
+			this.#renderRoot = this.createRenderRoot();
+			this.#elementStyles.apply(
+				this.#renderRoot,
+				this.tagName.toLowerCase(),
+				(this.constructor as typeof UIElement).styles,
+			);
+		}
 		return this.#renderRoot;
 	}
 
@@ -128,6 +161,7 @@ export abstract class UIElement extends HTMLElement {
 		this.#effectDisposers.push(createEffect(
 			this.#requestUpdate.bind(this),
 			() => {
+				this.#elementStyles.reinsertIfRemoved(this.#renderRoot!);
 				if (!this.#firstRenderDone) {
 					this.#firstRenderDone = true;
 					this.firstRendered?.();

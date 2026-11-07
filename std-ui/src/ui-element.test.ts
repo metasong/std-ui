@@ -2,6 +2,7 @@ import { describe, expect, it, vi } from 'vitest';
 import { tag, UIElement } from './ui-element.js';
 import { signalState } from './signal/tree.js';
 import { html } from './template/html.js';
+import { css } from './template/css.js';
 
 interface State {
 	count: number;
@@ -134,6 +135,90 @@ describe('UIElement', () => {
 		el.remove();
 	});
 
+	// `adoptedStyleSheets` isn't supported in jsdom, so these assert via the public effect
+	// (`#applyStyles`'s own `Array.isArray` check for support) rather than the exact mechanism -
+	// either the sheet lands in `adoptedStyleSheets` (real browsers) or a `<style>` fallback is
+	// inserted carrying the same CSS (jsdom and other environments without `adoptedStyleSheets`).
+
+	it('adopts static styles onto the shadow root', () => {
+		const styles = css`.el-styled-shadow-marker { display: block; }`;
+
+		@tag('el-styled-shadow')
+		class Foo extends UIElement {
+			static override shadowRootOptions = { mode: 'open' } as const;
+			static override styles = styles;
+
+			protected override template() {
+				return html`<span>hi</span>`;
+			}
+		}
+
+		const el = document.createElement('el-styled-shadow') as Foo;
+		document.body.appendChild(el);
+		expect(stylesAppliedTo(el.shadowRoot!, styles)).toBe(true);
+		el.remove();
+	});
+
+	it('flattens an array of static styles, applied in order', () => {
+		const a = css`.el-styled-shadow-array-a {}`;
+		const b = css`.el-styled-shadow-array-b {}`;
+
+		@tag('el-styled-shadow-array')
+		class Foo extends UIElement {
+			static override shadowRootOptions = { mode: 'open' } as const;
+			static override styles = [a, b];
+		}
+
+		const el = document.createElement('el-styled-shadow-array') as Foo;
+		document.body.appendChild(el);
+		expect(stylesAppliedTo(el.shadowRoot!, a)).toBe(true);
+		expect(stylesAppliedTo(el.shadowRoot!, b)).toBe(true);
+		el.remove();
+	});
+
+	it('adopts static styles onto document, scoped to the tag name, when rendering into light DOM', () => {
+		const styles = css`:host { color: red; }`;
+
+		@tag('el-styled-light')
+		class Foo extends UIElement {
+			static override styles = styles;
+
+			protected override template() {
+				return html`<span>hi</span>`;
+			}
+		}
+
+		const el = document.createElement('el-styled-light') as Foo;
+		document.body.appendChild(el);
+
+		// Never inserted into this element's own subtree - no `<style>` child of the host.
+		expect(el.querySelector('style')).toBeNull();
+
+		const cssText = documentStylesFor('el-styled-light');
+		expect(cssText).toContain('@scope (el-styled-light)');
+		// `:host` reads the same way in light DOM as in shadow DOM - rewritten to `:scope` under the `@scope` block.
+		expect(cssText).toContain(':scope');
+		expect(cssText).not.toContain(':host');
+		el.remove();
+	});
+
+	it('shares one stylesheet across every instance of a light-DOM class, not one per instance', () => {
+		const styles = css`.el-styled-light-shared {}`;
+
+		@tag('el-styled-light-shared')
+		class Foo extends UIElement {
+			static override styles = styles;
+		}
+
+		const a = document.createElement('el-styled-light-shared') as Foo;
+		const b = document.createElement('el-styled-light-shared') as Foo;
+		document.body.append(a, b);
+
+		expect(occurrencesOfDocumentStyle('el-styled-light-shared')).toBe(1);
+		a.remove();
+		b.remove();
+	});
+
 	it('disposes effect()-registered reactions on disconnect', async () => {
 		const tree = signalState<State>({ count: 0 });
 		const effectSpy = vi.fn();
@@ -161,4 +246,43 @@ describe('UIElement', () => {
 
 function flush(): Promise<void> {
 	return new Promise(resolve => queueMicrotask(() => queueMicrotask(resolve)));
+}
+
+/** Concatenated CSS text of every document-level sheet/`<style>` adopted for `tagName`'s light-DOM `static styles`
+ *  (whether via `document.adoptedStyleSheets` or the `<style>` fallback), joined for substring assertions. */
+function documentStylesFor(tagName: string): string {
+	const adopted = (document as unknown as { adoptedStyleSheets?: CSSStyleSheet[] }).adoptedStyleSheets;
+	const fromSheets = Array.isArray(adopted)
+		? adopted
+			.flatMap(sheet => Array.from(sheet.cssRules))
+			.filter(rule => rule.cssText.includes(tagName))
+			.map(rule => rule.cssText)
+		: [];
+	const fromStyleTags = Array.from(document.head.querySelectorAll('style'))
+		.map(style => style.textContent ?? '')
+		.filter(text => text.includes(tagName));
+	return [...fromSheets, ...fromStyleTags].join('\n');
+}
+
+/** How many separate document-level sheets/`<style>` tags mention `tagName` - used to assert sharing (one per tag,
+ *  not one per instance) rather than relying on exact insertion mechanics. */
+function occurrencesOfDocumentStyle(tagName: string): number {
+	const adopted = (document as unknown as { adoptedStyleSheets?: CSSStyleSheet[] }).adoptedStyleSheets;
+	const sheetCount = Array.isArray(adopted)
+		? adopted.filter(sheet => Array.from(sheet.cssRules).some(rule => rule.cssText.includes(tagName))).length
+		: 0;
+	const styleTagCount = Array.from(document.head.querySelectorAll('style'))
+		.filter(style => style.textContent?.includes(tagName)).length;
+	return sheetCount + styleTagCount;
+}
+
+/** True if `styles` (a `css` result) landed on `shadowRoot`, whether via `adoptedStyleSheets` or the `<style>` fallback. */
+function stylesAppliedTo(shadowRoot: ShadowRoot, styles: ReturnType<typeof css>): boolean {
+	const adopted = (shadowRoot as unknown as { adoptedStyleSheets?: CSSStyleSheet[] }).adoptedStyleSheets;
+	if (Array.isArray(adopted) && adopted.includes(styles.styleSheet)) return true;
+
+	// Fallback `<style>` cssText is re-serialized by the CSSOM, so compare on a stable marker
+	// substring (the selector) rather than the exact original literal text.
+	const marker = styles.cssText.match(/[.\w-]+/)?.[0] ?? styles.cssText;
+	return Array.from(shadowRoot.querySelectorAll('style')).some(style => style.textContent?.includes(marker));
 }
