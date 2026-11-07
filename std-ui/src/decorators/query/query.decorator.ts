@@ -1,5 +1,5 @@
-// `@query()` field decorator — read-only accessor over `this.querySelector` (light DOM here;
-// `UIElement` renders into the element itself, not a shadow root, see `../../ui-element.ts`).
+// `@query()` field decorator — read-only accessor over `this.renderRoot.querySelector`
+// (see `../../ui-element.ts` — light DOM by default, or shadow when `shadowRootOptions` is set).
 //
 // Like `@state()`/`@attribute()` (`../field-store.ts`), this decorates a *plain* field only (no
 // `accessor`) and wires up via the same `addInitializer` + `Object.defineProperty` technique - but
@@ -14,7 +14,7 @@ import type { UIElement } from '../../ui-element.js';
 import { assertPlainField } from './assert-plain-field.js';
 
 /**
- * Read-only field that resolves to `this.querySelector(selector)` every time it's read, or - with
+ * Read-only field that resolves to `this.renderRoot.querySelector(selector)` every time it's read, or - with
  * `cache: true` - only once, the first time it's read (safe only for a node that's never replaced).
  *
  * ```ts
@@ -31,10 +31,10 @@ export function query<T extends Element = HTMLElement>(selector: string, cache =
 			Object.defineProperty(this, key, {
 				get(this: UIElement): T | null {
 					if (cache) {
-						if (cached === undefined) cached = this.querySelector<T>(selector);
+						if (cached === undefined) cached = this.renderRoot.querySelector<T>(selector);
 						return cached;
 					}
-					return this.querySelector<T>(selector);
+					return this.renderRoot.querySelector<T>(selector);
 				},
 				enumerable: true,
 				configurable: true,

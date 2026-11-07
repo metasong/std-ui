@@ -113,6 +113,27 @@ describe('UIElement', () => {
 		expect(renderSpy).not.toHaveBeenCalled();
 	});
 
+	it('renders template() into a shadow root when shadowRootOptions is set', () => {
+		const tree = signalState<State>({ count: 2 });
+
+		@tag('el-shadow')
+		class Foo extends UIElement {
+			static override shadowRootOptions = { mode: 'open' } as const;
+
+			protected override template() {
+				return html`<strong>${tree.count()}</strong>`;
+			}
+		}
+
+		const el = document.createElement('el-shadow') as Foo;
+		document.body.appendChild(el);
+		expect(el.shadowRoot).toBeTruthy();
+		expect(el.querySelector('strong')).toBeNull();
+		expect(el.shadowRoot!.querySelector('strong')!.textContent).toBe('2');
+		expect(el.renderRoot).toBe(el.shadowRoot);
+		el.remove();
+	});
+
 	it('disposes effect()-registered reactions on disconnect', async () => {
 		const tree = signalState<State>({ count: 0 });
 		const effectSpy = vi.fn();

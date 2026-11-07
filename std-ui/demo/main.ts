@@ -5,5 +5,6 @@ import './sections/counter-section.js';
 import './sections/attribute-section.js';
 import './sections/context-section.js';
 import './sections/query-section.js';
+import './sections/shadow-section.js';
 import './sections/directives-section.js';
 import './sections/todo-section.js';

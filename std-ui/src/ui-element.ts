@@ -42,6 +42,37 @@ export abstract class UIElement extends HTMLElement {
 	#firstRenderDone = false;
 	#effectDisposers: Array<() => void> = [];
 	#contextListenerDisposers: Array<() => void> = [];
+	#renderRoot: Element | DocumentFragment | null = null;
+
+	/**
+	 * When set on a subclass, `template()` renders into a shadow root (`attachShadow`) instead of
+	 * the host's light DOM. Omit or leave unset for light DOM (default).
+	 *
+	 * ```ts
+	 * @tag('encapsulated-panel')
+	 * class Panel extends UIElement {
+	 *   static override shadowRootOptions = { mode: 'open' } as const;
+	 * }
+	 * ```
+	 */
+	static shadowRootOptions?: ShadowRootInit;
+
+	/** Where `template()` is rendered — the host element (light DOM) or `shadowRoot`. */
+	get renderRoot(): Element | DocumentFragment {
+		return this.#renderRoot ?? this.#ensureRenderRoot();
+	}
+
+	/** Creates the DOM container for `template()`. Default: shadow root when `shadowRootOptions` is set, else `this`. */
+	protected createRenderRoot(): Element | DocumentFragment {
+		const opts = (this.constructor as typeof UIElement).shadowRootOptions;
+		if (opts) return this.attachShadow(opts);
+		return this;
+	}
+
+	#ensureRenderRoot(): Element | DocumentFragment {
+		if (this.#renderRoot === null) this.#renderRoot = this.createRenderRoot();
+		return this.#renderRoot;
+	}
 
 	/**
 	 * Resolves once any render/effect re-run currently pending (microtask-batched, see
@@ -108,7 +139,7 @@ export abstract class UIElement extends HTMLElement {
 
 	#requestUpdate() {
 		const result = this.template?.();
-		if (result) render(result, this);
+		if (result) render(result, this.renderRoot);
 	}
 
 	// Browser lifecycle entry points — `private` so TS subclasses cannot override; extend `connect` / `disconnect` / `template` / `firstRendered` / `rendered` instead.
@@ -123,6 +154,7 @@ export abstract class UIElement extends HTMLElement {
 		// Runs after the listeners above so descendants appended here(in `connect()`) can `@consume()` synchronously.
 		if (!this.#connected) {
 			this.#connected = true;
+			this.#ensureRenderRoot();
 			this.connect?.();
 		}
 

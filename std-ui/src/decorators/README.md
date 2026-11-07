@@ -210,7 +210,7 @@ this relies on instead (and why a plain field needs *some* initializer, which `@
 
 - [`./design.md`](./design.md) — how registration, stores, and the two sync directions work internally.
 - [`./context/README.md`](./context/README.md) / [`./context/design.md`](./context/design.md) — `@state({ contextKey })` / `@consume()`, passing a `@state()` field down to arbitrarily deep descendants.
-- [`./query/README.md`](./query/README.md) / [`./query/design.md`](./query/design.md) — `@query()` / `@queryAll()` / `@queryAsync()`, read-only fields that query rendered DOM instead of backing a store; [why `@queryAsync()`](./query/README.md#why-queryasync-exists) when you need a node right after a signal write (waits on `UIElement.updateComplete`).
+- [`./query/README.md`](./query/README.md) / [`./query/design.md`](./query/design.md) — `@query()` / `@queryAll()` / `@queryAsync()`, read-only fields that query `renderRoot` (light DOM or shadow when `shadowRootOptions` is set); [why `@queryAsync()`](./query/README.md#why-queryasync-exists) when you need a node right after a signal write (waits on `UIElement.updateComplete`); [light vs shadow](./query/README.md#light-dom-vs-shadow-renderroot).
 - [`../ui-element.ts`](../ui-element.ts) / [`../doc/signal-drives-html.md`](../doc/signal-drives-html.md) - `UIElement` lifecycle this plugs into.
 - [`../signal/core/signal.md`](../signal/core/signal.md) - the `signal()`/`effect()` primitives backing this.
 - [`../template/html.md`](../template/html.md) - the `?attr`/`.prop` binding conventions `type: Boolean` mirrors.

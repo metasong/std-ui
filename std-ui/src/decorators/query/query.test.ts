@@ -50,6 +50,25 @@ describe('@query()', () => {
 		expect(el.span!.textContent).toBe('first');
 		el.remove();
 	});
+
+	it('queries nodes inside shadowRoot when shadowRootOptions is set', () => {
+		@tag('query-shadow')
+		class Foo extends UIElement {
+			static override shadowRootOptions = { mode: 'open' } as const;
+
+			@query('.inner') inner!: HTMLElement | null;
+
+			protected override template() {
+				return html`<span class="inner">shadow</span>`;
+			}
+		}
+
+		const el = document.createElement('query-shadow') as Foo;
+		document.body.appendChild(el);
+		expect(el.querySelector('.inner')).toBeNull();
+		expect(el.inner!.textContent).toBe('shadow');
+		el.remove();
+	});
 });
 
 describe('@queryAll()', () => {

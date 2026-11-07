@@ -2,15 +2,15 @@
 
 Three read-only field decorators for `UIElement` (see `../../ui-element.ts`) subclasses, mirroring
 `lit`'s decorators of the same names: each turns a field into a live `querySelector`/
-`querySelectorAll` lookup against the element itself (light DOM here - `UIElement` renders into
-the element, not a shadow root, so there's no `renderRoot` indirection like `lit`'s version has).
+`querySelectorAll` lookup against **`this.renderRoot`** — the host element for light-DOM components
+(default), or `shadowRoot` when the subclass sets `static shadowRootOptions`.
 
-- **`@query(selector, cache?)`** — resolves to `this.querySelector(selector)`, re-run on every
-  read by default, or resolved once and cached if `cache: true`.
-- **`@queryAll(selector)`** — resolves to `this.querySelectorAll(selector)`, always a fresh,
-  live-at-read-time `NodeList`.
-- **`@queryAsync(selector)`** — resolves to a `Promise` of `this.querySelector(selector)` that
-  waits for `this.updateComplete` (see `../../ui-element.ts`) first, so it reflects DOM produced
+- **`@query(selector, cache?)`** — resolves to `this.renderRoot.querySelector(selector)`, re-run on
+  every read by default, or resolved once and cached if `cache: true`.
+- **`@queryAll(selector)`** — resolves to `this.renderRoot.querySelectorAll(selector)`, always a
+  fresh, live-at-read-time `NodeList`.
+- **`@queryAsync(selector)`** — resolves to a `Promise` of `this.renderRoot.querySelector(selector)`
+  that waits for `this.updateComplete` (see `../../ui-element.ts`) first, so it reflects DOM produced
   by a render/effect that's still pending at the time it's read.
 
 ```ts
@@ -37,6 +37,36 @@ class TodoList extends UIElement {
 ```
 
 For implementation details, see [`design.md`](./design.md).
+
+## Light DOM vs shadow (`renderRoot`)
+
+By default, `UIElement` renders `template()` into the custom element itself (light DOM). Set
+**`static shadowRootOptions`** on the subclass to render into a shadow root instead:
+
+```ts
+@tag('encapsulated-chip')
+class EncapsulatedChip extends UIElement {
+	static override shadowRootOptions = { mode: 'open' } as const;
+
+	@query('button') btn!: HTMLButtonElement | null;
+
+	protected override template() {
+		return html`<button type="button">inside shadow</button>`;
+	}
+}
+```
+
+All three query decorators always search **`this.renderRoot`**, so the same `@query('button')`
+field works in either mode without branching. Code that uses **`this.querySelector`** directly (for
+example imperative patches in `firstRendered()`) must query **`this.renderRoot`** when the component
+uses a shadow root — otherwise it will not see nodes created by `template()`.
+
+Override **`createRenderRoot()`** on `UIElement` when you need custom `attachShadow` options beyond
+what `shadowRootOptions` provides. The render root is created once, before `connect()` runs on first
+connect.
+
+See [`../../ui-element.ts`](../../ui-element.ts) (`shadowRootOptions`, `renderRoot`,
+`createRenderRoot`) and the demo [`../../../demo/sections/shadow-section.ts`](../../../demo/sections/shadow-section.ts).
 
 ## Requirements
 
@@ -93,7 +123,7 @@ see additions/removals after the one you first read.
 writes). A `@state()` assignment (or any signal write) takes effect immediately in memory; the DOM
 only catches up after that pending flush runs.
 
-`@query()` always calls `querySelector` at read time against whatever DOM exists **right now**. That
+`@query()` always calls `renderRoot.querySelector` at read time against whatever DOM exists **right now**. That
 is correct when markup is already stable, or when you read long after the render has applied. It
 fails in the common pattern “flip a signal, then immediately need a node that only appears because
 of that flip” — especially conditional branches in `template()`:
@@ -105,7 +135,7 @@ el.lazySync; // @query('.lazy') — still null; template() has not re-run yet
 
 `@queryAsync()` returns a `Promise` that waits for `this.updateComplete` on `../../ui-element.ts`
 first — “every render/effect re-run that was already scheduled when I read this field has applied to
-the DOM” — and only then runs `querySelector`:
+the DOM” — and only then runs `renderRoot.querySelector`:
 
 ```ts
 el.show = true;

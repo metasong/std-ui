@@ -2,7 +2,7 @@ import type { UIElement } from '../../ui-element.js';
 import { assertPlainField } from './assert-plain-field.js';
 
 /**
- * Read-only field that resolves to `this.querySelectorAll(selector)` every time it's read - always
+ * Read-only field that resolves to `this.renderRoot.querySelectorAll(selector)` every time it's read - always
  * a fresh, live-at-read-time `NodeList`, never cached (matching `lit`'s `@queryAll()`).
  *
  * ```ts
@@ -16,7 +16,7 @@ export function queryAll<T extends Element = HTMLElement>(selector: string) {
 		context.addInitializer(function (this: UIElement): void {
 			Object.defineProperty(this, key, {
 				get(this: UIElement): NodeListOf<T> {
-					return this.querySelectorAll<T>(selector);
+					return this.renderRoot.querySelectorAll<T>(selector);
 				},
 				enumerable: true,
 				configurable: true,

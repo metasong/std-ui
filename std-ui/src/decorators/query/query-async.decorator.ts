@@ -2,7 +2,7 @@ import type { UIElement } from '../../ui-element.js';
 import { assertPlainField } from './assert-plain-field.js';
 
 /**
- * Read-only field that resolves to a `Promise` of `this.querySelector(selector)`, waiting first for
+ * Read-only field that resolves to a `Promise` of `this.renderRoot.querySelector(selector)`, waiting first for
  * `this.updateComplete` (see `../../ui-element.ts`) so it reflects DOM produced by any render/effect
  * still pending at the time it's read.
  *
@@ -21,7 +21,7 @@ export function queryAsync<T extends Element = HTMLElement>(selector: string) {
 		context.addInitializer(function (this: UIElement): void {
 			Object.defineProperty(this, key, {
 				get(this: UIElement): Promise<T | null> {
-					return this.updateComplete.then(() => this.querySelector<T>(selector));
+					return this.updateComplete.then(() => this.renderRoot.querySelector<T>(selector));
 				},
 				enumerable: true,
 				configurable: true,

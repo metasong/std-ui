@@ -22,8 +22,8 @@ than a module.
 ## Why a plain field decorator, not an accessor one
 
 Every field decorated by one of these three never holds a value of its own - reading it always
-runs a fresh `querySelector`/`querySelectorAll` (or, for `@query(selector, true)`, returns a
-closed-over cache variable) against `this`. An `accessor` decorator's whole purpose is handing
+runs a fresh `renderRoot.querySelector`/`querySelectorAll` (or, for `@query(selector, true)`, returns a
+closed-over cache variable) against `this.renderRoot`. An `accessor` decorator's whole purpose is handing
 back a replacement `get`/`set`/`init` triple backed by a *per-field storage slot* the `accessor`
 keyword allocates - exactly what `@state()`/`@attribute()` need (see
 [`../design.md`](../design.md)) and exactly what these three don't: there's no slot to back,
@@ -40,7 +40,7 @@ the exact same technique `../field-store.ts` uses for a plain (non-`accessor`) `
 ```ts
 context.addInitializer(function (this: UIElement): void {
 	Object.defineProperty(this, key, {
-		get(this: UIElement): T | null { return this.querySelector<T>(selector); },
+		get(this: UIElement): T | null { return this.renderRoot.querySelector<T>(selector); },
 		enumerable: true,
 		configurable: true,
 	});
@@ -133,7 +133,7 @@ queued, a second to run *after* that flush's own body (which is itself synchrono
 
 ```ts
 get(this: UIElement): Promise<T | null> {
-	return this.updateComplete.then(() => this.querySelector<T>(selector));
+	return this.updateComplete.then(() => this.renderRoot.querySelector<T>(selector));
 }
 ```
 
