@@ -1,5 +1,4 @@
 import { isTemplateResult } from '../html.js';
-import { isUnsafeHtml } from '../directives/unsafe-html.js';
 import {
 	applyDirective,
 	isDirectiveResult,
@@ -14,7 +13,6 @@ import {
 	ListCommitter,
 	TemplateCommitter,
 	TextCommitter,
-	UnsafeHtmlCommitter,
 	type Committer,
 	type CommitterClass,
 } from './committers/index.js';
@@ -25,7 +23,6 @@ function pickCommitter(value: unknown): { Ctor: CommitterClass; value: unknown }
 	if (isCommitWith(value)) return { Ctor: value.Ctor, value: value.value };
 	if (Array.isArray(value)) return { Ctor: ListCommitter, value };
 	if (isTemplateResult(value)) return { Ctor: TemplateCommitter, value };
-	if (isUnsafeHtml(value)) return { Ctor: UnsafeHtmlCommitter, value: value.markup };
 	if (value == null || value === false) return undefined;
 	return { Ctor: TextCommitter, value: String(value) };
 }

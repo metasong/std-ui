@@ -1,26 +1,29 @@
 import { Directive, directive, PartType, type PartInfo } from '../directive.js';
+import { Committer, commitWith } from '../parts/committers/index.js';
 
-const unsafeHtmlTag = Symbol('unsafeHtml');
-
-/** Wrapper `UnsafeHtmlDirective.render()` returns; recognized by `ChildPart` as markup to parse,
- *  not escape, once resolved via `applyDirective()`. Consumers never see this directly - calling
- *  `unsafeHTML()` yourself gives back an opaque `DirectiveResult` (checked via
- *  `isDirectiveResult()`), not this wrapper; see `directive.ts`. */
-export interface UnsafeHtml {
-	readonly markup: string;
-	readonly [unsafeHtmlTag]: true;
+/** Parses markup and inserts the resulting nodes before the part's anchor; re-parses only when
+ *  the markup string changes. */
+class UnsafeHtmlCommitter extends Committer<string> {
+	#markup: string | undefined;
+	#nodes: ChildNode[] = [];
+	update(markup: string): boolean {
+		if (this.#markup === markup) return true;
+		this.dispose();
+		const container = document.createElement('template');
+		container.innerHTML = markup;
+		this.#nodes = Array.from(container.content.childNodes);
+		this.anchor.before(container.content);
+		this.#markup = markup;
+		return true;
+	}
+	dispose(): void {
+		for (const n of this.#nodes) n.remove();
+		this.#nodes = [];
+	}
 }
 
-/** `ChildPart`'s check, after dispatching to a directive, for whether the *resolved* value is this
- *  wrapper (as opposed to text/a template/an array/etc). Not useful on `unsafeHTML()`'s own
- *  return value - that's an inert `DirectiveResult`, not yet this wrapper. */
-export function isUnsafeHtml(value: unknown): value is UnsafeHtml {
-	return typeof value === 'object' && value !== null && unsafeHtmlTag in value;
-}
-
-/** Validates + wraps markup for `ChildPart`; see `unsafeHTML()` below for the public API. Only
- *  `render()` is needed - `markup` is purely declarative (no DOM access required), so the default
- *  `update()` (just calls `render(...args)`) is fine as-is. */
+/** Validates the binding position and hands the markup to `UnsafeHtmlCommitter` via
+ *  `commitWith()` - `ChildPart` has no built-in knowledge of this directive. */
 class UnsafeHtmlDirective extends Directive {
 	constructor(partInfo: PartInfo) {
 		super(partInfo);
@@ -29,8 +32,8 @@ class UnsafeHtmlDirective extends Directive {
 		}
 	}
 
-	override render(markup: string): UnsafeHtml {
-		return { markup, [unsafeHtmlTag]: true } as UnsafeHtml;
+	override render(markup: string) {
+		return commitWith(UnsafeHtmlCommitter, markup);
 	}
 }
 

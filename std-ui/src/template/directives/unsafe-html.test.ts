@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { AttributePart, ChildPart } from '../parts/index.js';
 import { isDirectiveResult } from '../directive.js';
-import { isUnsafeHtml, unsafeHTML } from './unsafe-html.js';
+import { unsafeHTML } from './unsafe-html.js';
 
 describe('unsafeHTML', () => {
 	it('returns an opaque directive result, not the markup wrapper directly', () => {
@@ -25,16 +25,5 @@ describe('unsafeHTML', () => {
 		const part = new ChildPart(anchor);
 		part.update([unsafeHTML('<em>hi</em>')]);
 		expect(container.querySelector('em')!.textContent).toBe('hi');
-	});
-});
-
-describe('isUnsafeHtml', () => {
-	it('is false for plain strings/values, even HTML-looking ones', () => {
-		expect(isUnsafeHtml('<b>hi</b>')).toBe(false);
-		expect(isUnsafeHtml(42)).toBe(false);
-		expect(isUnsafeHtml(null)).toBe(false);
-		expect(isUnsafeHtml(undefined)).toBe(false);
-		expect(isUnsafeHtml({})).toBe(false);
-		expect(isUnsafeHtml({ markup: '<b>hi</b>' })).toBe(false);
 	});
 });
