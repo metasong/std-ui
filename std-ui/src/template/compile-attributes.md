@@ -1,6 +1,6 @@
 # How attribute compilation works
 
-This doc focuses on **plain attributes** (no `?`/`.`/`@` prefix): values that end up as strings via `setAttribute`. The implementation lives in `compile.ts` (`AttributePart` and `updateParts` in `parts.ts` apply the compiled result at runtime).
+This doc focuses on **plain attributes** (no `?`/`.`/`@` prefix): values that end up as strings via `setAttribute`. The implementation lives in `compile.ts` (`AttributePart` and `updateParts` in `parts/` apply the compiled result at runtime).
 
 If you only read one diagram, use [the state machine](#scanner-two-states) and [the end-to-end pipeline](#end-to-end-pipeline).
 
@@ -194,7 +194,7 @@ flowchart LR
 | File | Role |
 |------|------|
 | `compile.ts` | Scan `strings`, build synthetic markup, `getTemplate`, `instantiate` |
-| `parts.ts` | `AttributePart`, `updateParts` |
+| `parts/core.ts` | `AttributePart`, `updateParts` |
 | `render.ts` | Root `render()` calling `updateParts` |
 
 ---

@@ -71,7 +71,7 @@ html`
 
 ## Directives
 
-Neither `AttributePart` nor `ChildPart` (in `parts.ts`) has built-in knowledge of any specific
+Neither `AttributePart` nor `ChildPart` (in `parts/`) has built-in knowledge of any specific
 directive. Instead both recognize one generic protocol, defined in `directive.ts` and modeled on
 lit-html's [custom directives](https://lit.dev/docs/templates/custom-directives/) (trimmed to the
 two binding kinds this engine actually produces - a bare attribute binding, or a child-content

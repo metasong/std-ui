@@ -1,7 +1,7 @@
 // --- render(): the public entry point, one call per container. ------------------------------------
 
 import type { TemplateResult } from './html.js';
-import { type Part, updateParts } from './parts.js';
+import { type Part, updateParts } from './parts/index.js';
 import { getTemplate, instantiate } from './compile.js';
 
 interface RenderedInstance {

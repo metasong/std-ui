@@ -15,7 +15,7 @@ How the two built-in attribute directives are implemented, and how they use the 
 
 All code for one directive lives in one file — the constructor's validation, its `update()`
 implementation, and its exported `directive()`-made function are never split across modules.
-Neither file touches `../parts.ts` or `../compile.ts`: `AttributePart` has no
+Neither file touches `../parts/` or `../compile.ts`: `AttributePart` has no
 built-in knowledge of either directive (or of directives in general beyond the generic dispatch
 protocol) — see [`../directive.ts`](../directive.ts).
 

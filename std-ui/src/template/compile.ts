@@ -277,7 +277,7 @@ export function getTemplate(strings: TemplateStringsArray, type: TemplateType = 
 }
 
 /** Clones `template`'s content and creates a fresh `Part` per recorded descriptor, bound to the clone. */
-export function instantiate(template: Template): { fragment: DocumentFragment; parts: import('./parts.js').Part[] } {
+export function instantiate(template: Template): { fragment: DocumentFragment; parts: import('./parts/index.js').Part[] } {
 	const fragment = template.element.content.cloneNode(true) as DocumentFragment;
 
 	const nodesByIndex: Node[] = [];
@@ -286,7 +286,7 @@ export function instantiate(template: Template): { fragment: DocumentFragment; p
 	let i = 0;
 	while ((node = walker.nextNode())) nodesByIndex[i++] = node;
 
-	const parts = template.parts.map((descriptor): import('./parts.js').Part => {
+	const parts = template.parts.map((descriptor): import('./parts/index.js').Part => {
 		const target = nodesByIndex[descriptor.nodeIndex];
 		return createPart(descriptor, target);
 	});
@@ -295,10 +295,10 @@ export function instantiate(template: Template): { fragment: DocumentFragment; p
 }
 
 // Deferred import kept local to avoid a circular top-level import cycle between `compile.ts` and
-// `parts.ts` (parts only need `instantiate` for nested templates inside `ChildPart`).
-import { AttributePart, BooleanAttributePart, EventPart, PropertyPart, ChildPart } from './parts.js';
+// `parts/` (parts only need `instantiate` for nested templates inside `ChildPart`).
+import { AttributePart, BooleanAttributePart, EventPart, PropertyPart, ChildPart } from './parts/index.js';
 
-function createPart(descriptor: PartDescriptor, target: Node): import('./parts.js').Part {
+function createPart(descriptor: PartDescriptor, target: Node): import('./parts/index.js').Part {
 	switch (descriptor.kind) {
 		case 'child': return new ChildPart(target as Comment);
 		case 'attr': return new AttributePart(target as Element, descriptor.name, descriptor.literals);

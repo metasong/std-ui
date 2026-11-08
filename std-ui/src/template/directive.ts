@@ -31,7 +31,7 @@ export type DirectiveReturn = unknown;
  * below) and throw if used somewhere it doesn't support, e.g. `classMap` requiring `ATTRIBUTE` +
  * `name === 'class'`, or `unsafeHTML` requiring `CHILD` (see `directives/unsafe-html.ts`). `ATTRIBUTE` and
  * `CHILD` are the two kinds this engine actually dispatches to directives (see `AttributePart`/
- * `ChildPart` in `parts.ts`); this stays a full union so the shape has room to grow if
+ * `ChildPart` in `parts/`); this stays a full union so the shape has room to grow if
  * `BooleanAttributePart`/`EventPart`/`PropertyPart`/`ElementPart` gain directive support later,
  * same as lit-html's.
  */
@@ -59,7 +59,7 @@ export interface AttributePartInfo {
 	/**
 	 * Set only when this directive's attribute mixes static text (and/or other plain-value
 	 * interpolations) alongside it, e.g. `class="${classMap(...)} extra"` or
-	 * `style="${styleMap(...)}border:1px solid red;"` (see `AttributePart` in `../parts.ts`, which
+	 * `style="${styleMap(...)}border:1px solid red;"` (see `AttributePart` in `../parts/`, which
 	 * computes this generically - it has no built-in knowledge of what kind of directive it's
 	 * dealing with). The surrounding literal text, with every *other* value already stringified in
 	 * and this directive's own slot(s) replaced with `''`. `undefined` when this directive is the
@@ -76,7 +76,7 @@ export interface AttributePartInfo {
 	readonly staticText?: string;
 }
 
-/** Metadata + live DOM access for a child-content binding - see `ChildPart` in `parts.ts`. Unlike
+/** Metadata + live DOM access for a child-content binding - see `ChildPart` in `parts/`. Unlike
  *  `AttributePartInfo`, a child directive isn't expected to mutate `anchor`'s siblings directly;
  *  it returns a value instead (see `DirectiveReturn`) for `ChildPart` to commit the normal way -
  *  `anchor` is exposed mainly so a directive can validate/describe where it's bound, same role

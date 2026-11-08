@@ -4,8 +4,8 @@
 // patch just that position when `update()` is called with a new value, no-op'ing on `Object.is`-equal
 // values. See `html.ts` for the overall design.
 
-import { isTemplateResult, type TemplateResult } from './html.js';
-import { isUnsafeHtml } from './directives/unsafe-html.js';
+import { isTemplateResult, type TemplateResult } from '../html.js';
+import { isUnsafeHtml } from '../directives/unsafe-html.js';
 import {
 	applyDirective,
 	isDirectiveResult,
@@ -14,8 +14,8 @@ import {
 	type AttributePartInfo,
 	type ChildPartInfo,
 	type Directive,
-} from './directive.js';
-import { getTemplate, instantiate } from './compile.js';
+} from '../directive.js';
+import { getTemplate, instantiate } from '../compile.js';
 
 /**
  * One dynamic position bound to a live DOM location. `valueCount` tells the caller (see

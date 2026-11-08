@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { AttributePart, ChildPart } from '../parts.js';
+import { AttributePart, ChildPart } from '../parts/index.js';
 import { isDirectiveResult } from '../directive.js';
 import { isUnsafeHtml, unsafeHTML } from './unsafe-html.js';
 
@@ -7,7 +7,7 @@ describe('unsafeHTML', () => {
 	it('returns an opaque directive result, not the markup wrapper directly', () => {
 		// `unsafeHTML()` is a directive() now - calling it just captures the markup + Ctor into an
 		// inert DirectiveResult; it's not resolved into the real `{ markup, ... }` wrapper until
-		// applied to a real ChildPart. End-to-end rendering is covered by parts.test.ts's "renders
+		// applied to a real ChildPart. End-to-end rendering is covered by parts/parts.test.ts's "renders
 		// unsafeHTML markup as real parsed nodes".
 		expect(isDirectiveResult(unsafeHTML('<b>hi</b>'))).toBe(true);
 	});
