@@ -128,6 +128,56 @@ describe('bind()', () => {
 		expect(value).toBe('y');
 	});
 
+	it('uses the latest accessor on re-render (no stale closures)', () => {
+		const container = document.createElement('div');
+		const a = signalState({ v: 'a' });
+		const b = signalState({ v: 'b' });
+		const view = (s: typeof a) => html`<input .value="${bind(s.v)}" />`;
+		render(view(a), container);
+		const input = container.querySelector('input')! as HTMLInputElement;
+		render(view(b), container);
+		expect(input.value).toBe('b');
+		input.value = 'typed';
+		input.dispatchEvent(new Event('input', { bubbles: true }));
+		expect(b.v()).toBe('typed');
+		expect(a.v()).toBe('a');
+	});
+
+	it('kebab-cases camelCase properties for the default event', () => {
+		const container = document.createElement('div');
+		const state = signalState({ minValue: 1 });
+		render(html`<div .minValue="${bind(state.minValue)}"></div>`, container);
+		const div = container.querySelector('div')! as HTMLDivElement & { minValue: number };
+		div.minValue = 9;
+		div.dispatchEvent(new Event('min-value-change', { bubbles: true }));
+		expect(state.minValue()).toBe(9);
+	});
+
+	it('re-syncs sibling radios in the same group', () => {
+		const container = document.createElement('div');
+		const state = signalState({ a: true, b: false });
+		const view = () =>
+			html`<input type="radio" name="g" .checked="${bind(state.a)}" /><input type="radio" name="g" .checked="${bind(state.b)}" />`;
+		render(view(), container);
+		const [ra, rb] = Array.from(container.querySelectorAll('input')) as HTMLInputElement[];
+		rb.checked = true;
+		rb.dispatchEvent(new Event('change', { bubbles: true }));
+		expect(state.b()).toBe(true);
+		expect(state.a()).toBe(false);
+		expect(ra.checked).toBe(false);
+	});
+
+	it('stops listening after the template is torn down', () => {
+		const container = document.createElement('div');
+		const state = signalState({ query: 'x' });
+		render(html`<input .value="${bind(state.query)}" />`, container);
+		const input = container.querySelector('input')! as HTMLInputElement;
+		render(html`<p>gone</p>`, container);
+		input.value = 'late';
+		input.dispatchEvent(new Event('input', { bubbles: true }));
+		expect(state.query()).toBe('x');
+	});
+
 	it('rejects values that are neither a signal nor an accessor', () => {
 		expect(() => bind({} as never)).toThrow(/signal/);
 	});

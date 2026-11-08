@@ -1,91 +1,81 @@
 # `bind()` — internal design
 
-Two-way property binding via a **property directive** on `PropertyPart`. For usage and API, see [`README.md`](./README.md).
+Two-way property binding via a **property directive**. Usage and API: [`README.md`](./README.md).
 
-## Module split
+## Mental model
+
+A binding connects a **model** (a signal or `{ get, set }`) to one **property of one element**, in two directions:
+
+| Direction | Trigger | Step | Skipped when |
+|-----------|---------|------|--------------|
+| model → view | every render | `syncToView()`: `write(el, prop, model)` | `equals(model, read(el, prop))` |
+| view → model | the binding's DOM `event` | `syncToModel()`: `set(coerce(read(el, prop)))` | `equals(model, read(el, prop))` |
+
+Everything else is defaulting: given `(element, property)`, which `event`, `equals`, `read`, `write` apply.
+
+## Files
 
 | File | Owns |
 |------|------|
-| [`core.ts`](./core.ts) | `BindDirective`, `bind()`, `BindOptions`, resolution / defaults. |
-| [`index.ts`](./index.ts) | Public re-export. |
-| [`bind.test.ts`](./bind.test.ts) | Unit tests through `html()` / `render()`. |
-| [`../parts/core.ts`](../../parts/core.ts) | `PropertyPart` directive dispatch (peer to `AttributePart`). |
-| [`../../directive.ts`](../../directive.ts) | `PropertyPartInfo`, `PartType.PROPERTY`. |
+| [`types.ts`](./types.ts) | Public types (`BindOptions`, `BindSource`, `WritableSignal`) and the internal `Binding`. |
+| [`defaults.ts`](./defaults.ts) | Element-aware defaults: event, equals, coerce, `.checked` target validation. Pure functions. |
+| [`resolve.ts`](./resolve.ts) | `bind()` arguments → one `Binding` (`options ?? default`). |
+| [`radio-group.ts`](./radio-group.ts) | Keeps same-named radio bindings consistent. |
+| [`core.ts`](./core.ts) | `BindDirective` (DOM wiring + lifecycle) and the `bind()` function. |
+| [`index.ts`](./index.ts) | Public exports. |
+| [`bind.test.ts`](./bind.test.ts) | Tests through `html()` / `render()`. |
+
+Related: [`../../parts/core.ts`](../../parts/core.ts) (`PropertyPart` directive dispatch), [`../../directive.ts`](../../directive.ts) (`PropertyPartInfo`).
 
 ## Why a property directive
 
-Two-way binding needs the **same element** for both:
+Both directions need the **same element**: imperative property writes on render, and one stable event listener. Only `PropertyPart` is a single binding site on the element (`AttributePart`/`EventPart` are separate), so `bind()` is a `Directive` whose `update()` does its own work and returns `noChange` (same imperative style as `classMap`).
 
-- imperative property writes on render (model → view), and
-- one stable event listener (view → model).
+## Lifecycle
 
-`AttributePart` and `EventPart` are separate parts; only `PropertyPart` is a single binding site on the element. `bind()` therefore implements `Directive` + `update()` returning `noChange` after doing its own work (same imperative style as `classMap`).
-
-## Data flow
-
-```mermaid
-flowchart TB
-  subgraph down [Model to view]
-    T["template() re-run"] --> U["BindDirective.update()"]
-    U --> G["accessor.get()"]
-    U --> R["read(el, prop)"]
-    G --> E{"equals(committed, live)?"}
-    R --> E
-    E -->|no| W["write(el, prop, committed)"]
-    E -->|yes| NC["noChange"]
-  end
-  subgraph up [View to model]
-    EV["event (input / change / prop-change)"] --> L["listener"]
-    L --> R2["read(el, prop)"]
-    R2 --> S{"equals(get(), live)?"}
-    S -->|no| SET["accessor.set(live)"]
-    S -->|yes| skip["no-op"]
-  end
-```
-
-Listener is registered once per binding position (first `update()`), stored on the directive instance, removed in `disconnected()`.
+- **Every render** (`update()`): re-resolve the `Binding` (so `get`/`set`/hooks are never stale), make sure the listener is wired, then `syncToView()`.
+- **Wiring** (`Wiring`: element + event + listener) is rebuilt only if the element or event name changes.
+- **`disconnected()`** (template removed or position reused by something else): remove the listener, drop the binding. The part drops the instance, so a later render builds a fresh one.
 
 ## Live semantics
 
-Default `equals` depends on property + element:
+Default `equals`:
 
-- Native checkbox/radio `.checked` → boolean compare on live `.checked`.
-- Native `.value` on `<input>` / `<textarea>` / `<select>` → string compare on live `.value`.
-- Everything else → `Object.is` (so missing expando vs initial model still triggers a write).
+- Native checkbox/radio `.checked` → boolean compare.
+- Native `.value` on `<input>` / `<textarea>` / `<select>` → string compare.
+- Everything else → `Object.is`.
 
-This mirrors Lit’s `live` on the **down** path only; the **up** path always goes through the configured event.
+This is Lit's `live` on the **down** path; the **up** path is driven by the event.
 
-## Event resolution (`defaultEvent`)
+## Defaults by element
 
-1. Explicit `options.event` wins.
-2. Native shortcuts (with element-type checks for `.checked` / `.value`).
-3. Fallback `` `${property}-change` ``.
+| Concern | Rule |
+|---------|------|
+| Event | explicit `event` → native (`input`, or `change` for `<select>` / checkbox / radio) → `${kebab-property}-change` |
+| Coercion | a numeric model bound to a native `.value` control stays numeric; otherwise identity |
+| Validation | `.checked` on a non-checkbox/radio `<input>` throws in the constructor |
 
-`validateCheckedBindTarget` runs in the directive **constructor**: `.checked` on an `<input>` that is not `checkbox` or `radio` throws; custom elements and non-inputs use `checked-change` instead.
+Custom conversions go through `read` / `write` (both directions), not a separate option.
+
+## Special cases
+
+- **Radio groups**: selecting a radio unchecks its siblings without events. Each bound radio registers a pull callback (`radio-group.ts`); the changed radio asks same-named siblings to `syncToModel()`, so their models become `false`.
+- **`<select>`**: `.value` only applies once its `<option>`s exist, possibly after this part runs, so `update()` schedules one extra `syncToView()` in a microtask.
 
 ## `PropertyPart` integration
 
-On each `update(values)`:
+On each `update(values)`: a `DirectiveResult` goes through `applyDirective` (a `noChange` return stops further work); any other value `disconnect()`s the previous directive and falls back to plain `el[prop] = value`. `disconnectRendered()` / `unmount()` call `PropertyPart.disconnect()` → `BindDirective.disconnected()`.
 
-- If `values[0]` is a `DirectiveResult` → `applyDirective` with `PropertyPartInfo`; on `noChange`, return.
-- Otherwise → `disconnect()` any previous directive and fall back to plain `el[prop] = value` (`Object.is` on last committed).
-
-`disconnectRendered()` / `unmount()` call `PropertyPart.disconnect()` → `BindDirective.disconnected()` removes the listener.
-
-## Configuration locking
-
-The first `update()` at a position resolves `event` / `read` / `write` / `equals` and wires the listener; later renders reuse `#resolved` for the listener closure. Changing `event` or hooks mid-lifetime at the same template position is not supported (same as reusing one position with a different directive).
-
-## Comparison with manual `.value` + `@event`
+## Manual `.value` + `@event` vs `bind()`
 
 | Concern | Manual | `bind()` |
 |---------|--------|----------|
-| Listener identity | `EventPart` may replace listener when handler reference changes | one internal listener |
-| Property write | `PropertyPart` every time bound value changes | skip when `equals(committed, live)` |
+| Listener identity | `EventPart` may replace the listener when the handler changes | one internal listener |
+| Property write | every time the bound value changes | skipped when `equals(model, view)` |
 | Boilerplate | two bindings | one |
 
 ## Related reading
 
 - [`README.md`](./README.md) — public API and event table.
-- [`../directives/design.md`](../design.md) — general directive layout.
+- [`../design.md`](../design.md) — general directive layout.
 - [`../../html.md`](../../html.md#directives) — binding kinds and extension points.

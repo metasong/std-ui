@@ -1,1 +1,2 @@
-export { bind, type BindAccessor, type BindOptions, type BindSource, type WritableSignal } from './core.js';
+export { bind } from './core.js';
+export type { BindAccessor, BindOptions, BindSource, WritableSignal } from './types.js';
