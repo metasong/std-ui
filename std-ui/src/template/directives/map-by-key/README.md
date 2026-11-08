@@ -20,6 +20,55 @@ html`<ul>${mapByKey(todos, (t) => t.id, (t) => html`<li>${t.text}</li>`)}</ul>`;
 For positional lists (fixed order, append/shrink only), use `items.map(...)` instead — index keys
 do not buy DOM reuse (see [`design.md`](./design.md)).
 
+## Example — sortable list with stable rows
+
+Lit’s `repeat()` demo sorts todos and keeps each row’s checkbox with its item. The same idea in
+std-ui: a `UIElement` with `@state()`, `mapByKey` keyed by `id`, and a sort that assigns a **new**
+array (in-place `.sort()` does not notify `@state()`).
+
+```ts
+import { html, mapByKey, state, tag, UIElement } from 'std-ui';
+
+type Chore = { id: string; label: string };
+
+@tag('sortable-chores')
+class SortableChores extends UIElement {
+  @state() chores: Chore[] = [
+    { id: 'wash', label: 'Wash dishes' },
+    { id: 'mail', label: 'Check mail' },
+    { id: 'walk', label: 'Walk the dog' },
+    { id: 'read', label: 'Read a chapter' },
+  ];
+
+  protected override template() {
+    return html`
+      <p>Chore list — sort and the rows move; keyed rows keep their controls.</p>
+      <button type="button" @click="${() => this.sortByLabel(1)}">A → Z</button>
+      <button type="button" @click="${() => this.sortByLabel(-1)}">Z → A</button>
+      <ul>
+        ${mapByKey(
+          this.chores,
+          (c) => c.id,
+          (c) => html`
+            <li data-id="${c.id}">
+              <label><input type="checkbox" /> ${c.id}) ${c.label}</label>
+            </li>
+          `,
+        )}
+      </ul>
+    `;
+  }
+
+  private sortByLabel(dir: 1 | -1) {
+    this.chores = [...this.chores].sort((a, b) => a.label.localeCompare(b.label) * dir);
+  }
+}
+```
+
+With `${this.chores.map(...)}` instead, the same sort would reorder labels but leave each checkbox
+on its *index*, not its chore. **Run it:** browser demo — [`../../../../demo/README.md`](../../../../demo/README.md) (`npm run demo`, section **Keyed lists**).
+Vitest walkthrough — [`../../../doc/map-by-key-sort.example.test.ts`](../../../doc/map-by-key-sort.example.test.ts) (`npm test -- map-by-key-sort.example`).
+
 ## When to use `mapByKey` vs a plain array
 
 Binding `${items.map(...)}` or `${rows}` uses `ListCommitter`: index `i` always patches the *i*th
@@ -45,3 +94,5 @@ Use a **plain array** when the list only grows or shrinks at the end and order i
 - [`../directive.ts`](../directive.ts) — generic `Directive` / `directive()` protocol.
 - [`../html.md`](../html.md#directives) — writing custom directives.
 - [`map-by-key.test.ts`](./map-by-key.test.ts) / [`../directives.test.ts`](../directives.test.ts) — tests.
+- [`../../../../demo/README.md`](../../../../demo/README.md) — interactive demo (`npm run demo`).
+- [`../../../doc/map-by-key-sort.example.test.ts`](../../../doc/map-by-key-sort.example.test.ts) — sortable chore list (Vitest).

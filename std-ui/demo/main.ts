@@ -9,3 +9,4 @@ import './sections/shadow-section.js';
 import './sections/css-section.js';
 import './sections/directives-section.js';
 import './sections/todo-section.js';
+import './sections/map-by-key-section.js';
