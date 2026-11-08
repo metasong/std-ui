@@ -1,8 +1,9 @@
 import type { Scroller } from './axis.js';
 
 function isScrollable(el: Element): boolean {
-	const o = getComputedStyle(el).overflowY;
-	return o === 'auto' || o === 'scroll' || o === 'overlay';
+	const s = getComputedStyle(el);
+	// Either axis: horizontal lists often set `overflow-y: hidden`.
+	return [s.overflowY, s.overflowX].some((o) => o === 'auto' || o === 'scroll' || o === 'overlay');
 }
 
 /** Nearest scrollable ancestor (crossing shadow roots), else the page. */

@@ -26,6 +26,25 @@ npx vite build
 npx vite preview
 ```
 
+## `virtualize` demo (dedicated page)
+
+Large-list examples live on a separate page so the main tour stays short:
+
+```bash
+npm run demo
+```
+
+Then open [http://localhost:5174/virtualize.html](http://localhost:5174/virtualize.html) (or use the link on the home page). Sources: [`virtualize.html`](./virtualize.html), [`sections/virtualize/`](./sections/virtualize/).
+
+| Block | Module | What it shows |
+|-------|--------|----------------|
+| Vertical | [`sections/virtualize/vertical-section.ts`](./sections/virtualize/vertical-section.ts) | 10k fixed-height rows, `VirtualizeController` / `scrollToIndex` |
+| Headers | [`sections/virtualize/headers-section.ts`](./sections/virtualize/headers-section.ts) | Variable heights, `isHeader` sticky sections |
+| Grid | [`sections/virtualize/grid-section.ts`](./sections/virtualize/grid-section.ts) | `lanes: 4` grid |
+| Horizontal | [`sections/virtualize/horizontal-section.ts`](./sections/virtualize/horizontal-section.ts) | `direction: 'horizontal'` |
+
+API notes: [`../src/template/directives/virtualize/README.md`](../src/template/directives/virtualize/README.md).
+
 ## Sections
 
 | Tag | Module | What it shows |

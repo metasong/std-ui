@@ -15,6 +15,14 @@ const dirname = fileURLToPath(new URL('.', import.meta.url));
 export default defineConfig({
 	root: dirname,
 	base: './',
+	build: {
+		rollupOptions: {
+			input: {
+				main: `${dirname}/index.html`,
+				virtualize: `${dirname}/virtualize.html`,
+			},
+		},
+	},
 	esbuild: {
 		target: 'es2022',
 	},
