@@ -26,6 +26,18 @@ export class KeyedRows {
 		return this.#rows.has(key);
 	}
 
+	/** Elements rendered for `key` (between its delimiter comments), in document order. */
+	elements(key: unknown): Element[] {
+		const row = this.#rows.get(key);
+		const out: Element[] = [];
+		if (!row) return out;
+		for (let n: Node | null = row.start; n; n = n.nextSibling) {
+			if (n.nodeType === 1) out.push(n as Element);
+			if (n === row.part.endNode) break;
+		}
+		return out;
+	}
+
 	/**
 	 * Reconcile to `entries` (in order). If `shouldUpdate` is given, rows for which it returns false
 	 * are placed but their value is not re-applied (used by `virtualize` on scroll).

@@ -36,10 +36,15 @@ one `gap` separates it from its neighbour: height for `n` hidden rows is `n * (i
 
 ## Window math (`layout.ts`)
 
-Row-based: `rows = ceil(count / columns)`, `stride = itemHeight + gap`. For list-relative scroll
-`offset` and `viewport`: first row `floor(offset / stride)`, last (exclusive) `ceil((offset + viewport) / stride)`,
-each widened by `overscan` and clamped. Items are `[startRow*columns, min(count, endRow*columns))`, so
-grid rows are always whole except the final one. `columns` may be a function of container width.
+`RowModel` maps rows to offsets. Each row has an estimated height until measured (`rows = ceil(count / columns)`, gap between rows). With no measurements (fixed mode) offsets are arithmetic (`row * (h + gap)`); after the first measurement a lazily rebuilt prefix-sum array is used, with `rowAt(offset)` by binary search. `computeWindow` takes the first/last row under the viewport, widens by `overscan` and clamps. Items are `[startRow*columns, min(count, endRow*columns))`, so grid rows are whole except the last. `columns` may be a function of container width.
+
+## Variable heights
+
+- `itemHeight` set: fixed mode, no measuring. Otherwise unmeasured rows use `estimatedItemHeight` if given, else a running mean of measured rows (40px before any; updated right after measuring so scroll anchoring accounts for it).
+- After each render, `#measureRows` reads each windowed row's elements (an item's extent is min top to max bottom of its elements; a row is its tallest item) and calls `RowModel.setHeight`. A second `ResizeObserver` on the row elements triggers a forced refresh when content resizes later.
+- If heights changed, spacers are re-applied from the model, `listTop` is re-measured, and the refresh loops (max 4 passes).
+- **Scroll anchoring:** at the start of each pass the first visible row and its model offset are recorded. If its offset moved after measuring, `scrollTop` is adjusted by the difference.
+- `scrollToIndex` iterates: scroll, refresh (measure), recompute target, until the target stops moving and anchoring leaves `scrollTop` on it (max 6 passes).
 
 ## Measuring
 
@@ -67,7 +72,7 @@ Unchanged window signature (`start:end:columns:count:height:gap`) skips the reco
 `target = scrollTarget(...) + listTop` where `align` is `start | center | end | nearest`, computed on
 the item's row. Instant: set `scrollTop` (or `window.scrollTo({behavior:'instant'})`) then refresh
 synchronously, so the target row exists on return. Smooth: `scrollTo({behavior:'smooth'})` and the
-window follows scroll events. Because heights are fixed the target is exact (no correction loop).
+window follows scroll events. Exact in fixed mode; in variable mode smooth scrolling aims at the current estimate.
 Calls before the scroller is attached are queued (in the committer and in the controller).
 
 ## Lifecycle
@@ -79,6 +84,4 @@ Calls before the scroller is attached are queued (in the committer and in the co
 
 ## Non-goals / future
 
-- Variable item heights: would need an estimate + `ResizeObserver` measurement + prefix-sum offsets
-  (replace `layout.ts` row math) and a correction loop in `scrollToIndex`.
 - Horizontal virtualization, sticky headers, and window-height changes from `renderItem` output.

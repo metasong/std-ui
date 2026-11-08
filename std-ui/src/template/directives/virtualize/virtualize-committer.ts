@@ -4,18 +4,20 @@ import type { ControllerTarget, ScrollToIndexOptions, VirtualizeController } fro
 import {
 	computeWindow,
 	rowCount,
-	rowOffset,
+	RowModel,
 	scrollTarget,
 	spacerHeight,
-	type GridMetrics,
 	type Window as ItemWindow,
 } from './layout.js';
 
 export interface VirtualizeOptions<T = unknown> {
 	/** Render one item. Called only for items inside the window. */
 	renderItem: (item: T, index: number) => unknown;
-	/** Height in px of one row of items. Items must actually be this tall. */
-	itemHeight: number;
+	/** Fixed height in px of one row of items (exact mode, no measuring). Items must be this tall. */
+	itemHeight?: number;
+	/** Optional hint for variable-height mode (used when `itemHeight` is not set): assumed height
+	 *  for unmeasured rows. Without it, the mean of measured rows is used (40px before any). */
+	estimatedItemHeight?: number;
 	/** Stable key per item; defaults to the index. */
 	keyFn?: (item: T, index: number) => unknown;
 	/** Items per row. A function receives the container's `clientWidth` (re-evaluated on resize). Default 1. */
@@ -67,6 +69,11 @@ export class VirtualizeCommitter extends Committer<VirtualizeValue> implements C
 	#raf: number | undefined;
 	#disposed = false;
 	#listTop = 0;
+	#model = new RowModel(1, 0);
+	/** Estimate used in variable mode when stimatedItemHeight isn't given: mean of measured rows. */
+	#autoEstimate = 40;
+	#rowObserver: ResizeObserver | undefined;
+	#observed = new Set<Element>();
 	#signature = '';
 	#pendingScroll: [number, ScrollToIndexOptions] | undefined;
 	#onScroll = () => {
@@ -110,18 +117,29 @@ export class VirtualizeCommitter extends Committer<VirtualizeValue> implements C
 			this.#pendingScroll = [index, options];
 			return;
 		}
-		const m = this.#metrics();
-		const offset = this.#scrollTop() - this.#listTop;
-		const rel = scrollTarget(m, index, options.align ?? 'start', offset, this.#viewport());
-		const top = Math.max(0, rel + this.#listTop);
 		const scroller = this.#scroller;
+		const target = (): number => {
+			const g = this.#sync();
+			const offset = this.#scrollTop() - this.#listTop;
+			const rel = scrollTarget(this.#model, g.count, g.columns, index, options.align ?? 'start', offset, this.#viewport());
+			return Math.max(0, rel + this.#listTop);
+		};
 		if (options.behavior === 'smooth') {
-			scroller.scrollTo({ top, behavior: 'smooth' }); // window follows via scroll events
+			scroller.scrollTo({ top: target(), behavior: 'smooth' }); // window follows via scroll events
 			return;
 		}
-		if (scroller instanceof Element) scroller.scrollTop = top;
-		else scroller.scrollTo({ top, behavior: 'instant' as ScrollBehavior });
-		this.#refresh(false);
+		// Instant. In variable-height mode, rendering the target region measures real heights and
+		// moves the target, so iterate until it settles (one pass in fixed mode).
+		let top = target();
+		for (let pass = 0; pass < 6; pass++) {
+			if (scroller instanceof Element) scroller.scrollTop = top;
+			else scroller.scrollTo({ top, behavior: 'instant' as ScrollBehavior });
+			this.#refresh(false, true);
+			const next = target();
+			// Settled only if the target stopped moving AND anchoring didn't push scroll off it.
+			if (Math.abs(next - top) < 1 && Math.abs(this.#scrollTop() - next) < 1) break;
+			top = next;
+		}
 	}
 
 	override disconnect(): void {
@@ -148,6 +166,7 @@ export class VirtualizeCommitter extends Committer<VirtualizeValue> implements C
 		scroller.addEventListener('scroll', this.#onScroll, { passive: true });
 		if (typeof ResizeObserver !== 'undefined') {
 			this.#resizeObserver = new ResizeObserver(() => this.#refresh(false));
+			this.#rowObserver = new ResizeObserver(() => this.#refresh(false, true));
 			this.#resizeObserver.observe(scroller instanceof Element ? scroller : document.documentElement);
 			const parent = this.anchor.parentElement;
 			if (parent && parent !== scroller) this.#resizeObserver.observe(parent);
@@ -160,6 +179,9 @@ export class VirtualizeCommitter extends Committer<VirtualizeValue> implements C
 		this.#scroller = undefined;
 		this.#resizeObserver?.disconnect();
 		this.#resizeObserver = undefined;
+		this.#rowObserver?.disconnect();
+		this.#rowObserver = undefined;
+		this.#observed.clear();
 		if (this.#raf !== undefined) cancelAnimationFrame(this.#raf);
 		this.#raf = undefined;
 	}
@@ -182,18 +204,73 @@ export class VirtualizeCommitter extends Committer<VirtualizeValue> implements C
 		return Math.max(1, Math.floor(n) || 1);
 	}
 
-	#metrics(): GridMetrics {
+	#dynamic(): boolean {
+		return this.#value.options.itemHeight === undefined;
+	}
+
+	/** Push current options/data into the row model; returns the grid shape. */
+	#sync(): { count: number; columns: number } {
 		const { options, items } = this.#value;
-		return {
-			count: items.length,
-			columns: this.#columns(),
-			itemHeight: options.itemHeight,
-			gap: options.gap ?? 0,
-		};
+		const columns = this.#columns();
+		const estimate = options.itemHeight ?? options.estimatedItemHeight ?? this.#autoEstimate;
+		this.#model.configure(estimate, options.gap ?? 0, rowCount(items.length, columns));
+		return { count: items.length, columns };
+	}
+
+	/** Measure rendered rows (variable-height mode). Returns true if any row height changed. */
+	#measureRows(win: ItemWindow, columns: number): boolean {
+		const { items, options } = this.#value;
+		const keyFn = options.keyFn;
+		let changed = false;
+		const seenEls = new Set<Element>();
+		for (let r = win.startRow; r < win.endRow; r++) {
+			let top = Infinity;
+			let bottom = -Infinity;
+			let rowHeight = 0;
+			for (let i = r * columns; i < Math.min(items.length, (r + 1) * columns); i++) {
+				const els = this.#rows.elements(keyFn ? keyFn(items[i], i) : i);
+				let itemTop = Infinity;
+				let itemBottom = -Infinity;
+				for (const el of els) {
+					seenEls.add(el);
+					const rect = el.getBoundingClientRect();
+					itemTop = Math.min(itemTop, rect.top);
+					itemBottom = Math.max(itemBottom, rect.top + rect.height);
+				}
+				if (itemBottom > itemTop) rowHeight = Math.max(rowHeight, itemBottom - itemTop);
+				top = Math.min(top, itemTop);
+				bottom = Math.max(bottom, itemBottom);
+			}
+			if (rowHeight > 0 && this.#model.setHeight(r, rowHeight)) changed = true;
+		}
+		if (this.#rowObserver) {
+			for (const el of this.#observed) {
+				if (!seenEls.has(el)) {
+					this.#rowObserver.unobserve(el);
+					this.#observed.delete(el);
+				}
+			}
+			for (const el of seenEls) {
+				if (!this.#observed.has(el)) {
+					this.#rowObserver.observe(el);
+					this.#observed.add(el);
+				}
+			}
+		}
+		// No explicit estimate: unmeasured rows assume the mean of the measured ones.
+		if (options.estimatedItemHeight === undefined) {
+			const avg = this.#model.measuredAverage();
+			if (avg !== undefined && Math.abs(avg - this.#autoEstimate) >= 0.5) {
+				this.#autoEstimate = avg;
+				this.#model.configure(avg, this.#model.gap, this.#model.rows);
+				changed = true;
+			}
+		}
+		return changed;
 	}
 
 	/** Re-derive the list's top edge (in scroller content coordinates) from the first rendered row. */
-	#measureListTop(win: ItemWindow, m: GridMetrics): void {
+	#measureListTop(win: ItemWindow): void {
 		const scroller = this.#scroller;
 		if (!scroller || win.end === win.start) return;
 		let first: Element | null = this.#top.nextElementSibling;
@@ -201,39 +278,62 @@ export class VirtualizeCommitter extends Committer<VirtualizeValue> implements C
 		if (!first) return;
 		const scrollerTop = scroller instanceof Element ? scroller.getBoundingClientRect().top : 0;
 		const rel = first.getBoundingClientRect().top - scrollerTop + this.#scrollTop();
-		this.#listTop = rel - rowOffset(m, win.startRow);
+		this.#listTop = rel - this.#model.offset(win.startRow);
 	}
 
 	// --- rendering -----------------------------------------------------------------------------
 
-	#window(m: GridMetrics): ItemWindow {
+	#window(g: { count: number; columns: number }): ItemWindow {
 		const overscan = this.#value.options.overscan ?? 3;
 		const viewport = this.#viewport();
 		if (!this.#scroller || viewport <= 0) {
-			const rows = Math.ceil((this.#value.options.initialCount ?? 20) / m.columns);
-			return computeWindow(m, 0, rows * (m.itemHeight + m.gap), 0);
+			const rows = Math.ceil((this.#value.options.initialCount ?? 20) / g.columns);
+			return computeWindow(this.#model, g.count, g.columns, 0, this.#model.offset(rows) - 1, 0);
 		}
-		return computeWindow(m, this.#scrollTop() - this.#listTop, viewport, overscan);
+		return computeWindow(this.#model, g.count, g.columns, this.#scrollTop() - this.#listTop, viewport, overscan);
 	}
 
-	/** `full`: parent re-rendered, so re-run `renderItem` for every windowed item. */
-	#refresh(full: boolean): void {
+	/**
+	 * `full`: parent re-rendered, so re-run `renderItem` for every windowed item.
+	 * `force`: reconcile/measure even if the window is unchanged (row sizes may have changed).
+	 */
+	#refresh(full: boolean, force = false): void {
 		if (this.#disposed || !this.#rows || !this.#value) return;
-		for (let pass = 0; pass < 2; pass++) {
-			const m = this.#metrics();
-			const win = this.#window(m);
-			const sig = `${win.start}:${win.end}:${m.columns}:${m.count}:${m.itemHeight}:${m.gap}`;
-			if (!full && sig === this.#signature) return;
+		for (let pass = 0; pass < 4; pass++) {
+			const g = this.#sync();
+			// Anchor on the first visible row so measuring rows above it doesn't make content jump.
+			const anchorRow = this.#scroller ? this.#model.rowAt(this.#scrollTop() - this.#listTop) : 0;
+			const anchorOffset = this.#model.offset(anchorRow);
+			const win = this.#window(g);
+			const sig = `${win.start}:${win.end}:${g.columns}:${g.count}:${this.#model.estimate}:${this.#model.gap}`;
+			if (!full && !force && sig === this.#signature) return;
 			this.#signature = sig;
-			this.#render(m, win, full);
+			this.#render(g, win, full);
+			const measured = this.#dynamic() && this.#measureRows(win, g.columns);
+			if (measured) this.#applySpacers(win);
 			const before = this.#listTop;
-			this.#measureListTop(win, m);
-			if (Math.abs(this.#listTop - before) < 0.5) return;
-			full = false; // top edge moved (e.g. first measurement): settle once more
+			this.#measureListTop(win);
+			let moved = Math.abs(this.#listTop - before) >= 0.5;
+			if (measured && this.#scroller) {
+				const delta = this.#model.offset(anchorRow) - anchorOffset;
+				if (Math.abs(delta) >= 0.5) {
+					this.#scrollBy(delta);
+					moved = true;
+				}
+			}
+			if (!moved && !measured) return;
+			full = false; // settle again against the corrected layout
+			force = true;
 		}
 	}
 
-	#render(m: GridMetrics, win: ItemWindow, full: boolean): void {
+	#scrollBy(delta: number): void {
+		const s = this.#scroller;
+		if (s instanceof Element) s.scrollTop += delta;
+		else s?.scrollBy({ top: delta, behavior: 'instant' as ScrollBehavior });
+	}
+
+	#render(g: { count: number; columns: number }, win: ItemWindow, full: boolean): void {
 		const { items, options } = this.#value;
 		const keyFn = options.keyFn;
 		const seen = new Set<unknown>();
@@ -247,10 +347,13 @@ export class VirtualizeCommitter extends Committer<VirtualizeValue> implements C
 			entries.push({ key, value: full || !rows.has(key) ? options.renderItem(item, i) : undefined });
 		}
 		rows.update(entries as KeyedEntries, () => full);
-		this.#setSpacer(this.#top, spacerHeight(m, win.startRow));
-		this.#setSpacer(this.#bottom, spacerHeight(m, rowCount(m) - win.endRow));
+		this.#applySpacers(win);
 	}
 
+	#applySpacers(win: ItemWindow): void {
+		this.#setSpacer(this.#top, spacerHeight(this.#model, 0, win.startRow));
+		this.#setSpacer(this.#bottom, spacerHeight(this.#model, win.endRow, this.#model.rows));
+	}
 	#makeSpacer(tag: string): HTMLElement {
 		const el = document.createElement(tag);
 		el.setAttribute('aria-hidden', 'true');

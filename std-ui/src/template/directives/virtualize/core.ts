@@ -11,14 +11,17 @@ class VirtualizeDirective extends Directive {
 	}
 
 	override render(items: ArrayLike<unknown>, options: VirtualizeOptions<any>) {
-		if (!(options.itemHeight > 0)) throw new Error('std-ui virtualize(): itemHeight must be > 0.');
+		for (const [name, h] of [['itemHeight', options.itemHeight], ['estimatedItemHeight', options.estimatedItemHeight]] as const) {
+			if (h !== undefined && !(h > 0)) throw new Error(`std-ui virtualize(): ${name} must be > 0.`);
+		}
 		return commitWith(VirtualizeCommitter, { items, options });
 	}
 }
 
 /**
  * Windowed rendering for large lists and grids. Only the rows near the viewport exist in the DOM;
- * two spacer elements stand in for the rest. Items must have a fixed height (`itemHeight`).
+ * two spacer elements stand in for the rest. Pass `itemHeight` for fixed-height items, or
+ * `estimatedItemHeight` to let items be any height (rows are measured after render).
  *
  *   html`<div class="list">${virtualize(rows, {
  *     itemHeight: 32,

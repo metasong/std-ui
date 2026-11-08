@@ -3,54 +3,71 @@ import { html } from '../../html.js';
 import { AttributePart, ChildPart } from '../../parts/index.js';
 import { virtualize } from './core.js';
 import { VirtualizeController } from './controller.js';
-import { computeWindow, scrollTarget, spacerHeight, totalHeight, type GridMetrics } from './layout.js';
+import { computeWindow, RowModel, scrollTarget, spacerHeight } from './layout.js';
 
 describe('layout math', () => {
-	const m: GridMetrics = { count: 100, columns: 1, itemHeight: 10, gap: 0 };
+	const model = (est: number, gap: number, rows: number) => {
+		const m = new RowModel(est, gap);
+		m.configure(est, gap, rows);
+		return m;
+	};
 
 	it('computes total height with gaps', () => {
-		expect(totalHeight({ ...m, gap: 2 })).toBe(100 * 12 - 2);
-		expect(totalHeight({ ...m, count: 0 })).toBe(0);
-		expect(totalHeight({ ...m, columns: 4, count: 10 })).toBe(3 * 10);
+		expect(model(10, 2, 100).total()).toBe(100 * 12 - 2);
+		expect(model(10, 0, 0).total()).toBe(0);
 	});
 
 	it('windows rows with overscan, clamped', () => {
-		expect(computeWindow(m, 0, 50, 0)).toMatchObject({ start: 0, end: 5 });
-		expect(computeWindow(m, 500, 50, 2)).toMatchObject({ start: 48, end: 57 });
-		expect(computeWindow(m, 10_000, 50, 2)).toMatchObject({ end: 100 });
+		const m = model(10, 0, 100);
+		expect(computeWindow(m, 100, 1, 0, 50, 0)).toMatchObject({ start: 0, end: 5 });
+		expect(computeWindow(m, 100, 1, 500, 50, 2)).toMatchObject({ start: 48, end: 57 });
+		expect(computeWindow(m, 100, 1, 10_000, 50, 2)).toMatchObject({ end: 100 });
 	});
 
 	it('windows whole rows in a grid', () => {
-		const g = { ...m, columns: 3, count: 10 };
-		const w = computeWindow(g, 10, 10, 0); // row 1 only
-		expect(w).toMatchObject({ start: 3, end: 6, startRow: 1, endRow: 2 });
-		expect(computeWindow(g, 1000, 10, 0).end).toBe(10); // last partial row
+		const m = model(10, 0, 4); // 10 items, 3 columns
+		expect(computeWindow(m, 10, 3, 10, 5, 0)).toMatchObject({ start: 3, end: 6, startRow: 1, endRow: 2 });
+		expect(computeWindow(m, 10, 3, 1000, 10, 0).end).toBe(10); // last partial row
 	});
 
 	it('spacer accounts for the gap that separates it from its neighbour', () => {
-		expect(spacerHeight({ ...m, gap: 4 }, 3)).toBe(3 * 14 - 4);
-		expect(spacerHeight(m, 0)).toBe(0);
+		const m = model(10, 4, 10);
+		expect(spacerHeight(m, 0, 3)).toBe(3 * 14 - 4);
+		expect(spacerHeight(m, 3, 3)).toBe(0);
+	});
+
+	it('uses measured heights for offsets and lookup', () => {
+		const m = model(10, 0, 5);
+		expect(m.setHeight(1, 30)).toBe(true);
+		expect(m.setHeight(1, 30)).toBe(false);
+		expect(m.offset(2)).toBe(40);
+		expect(m.total()).toBe(10 + 30 + 30);
+		expect(m.rowAt(39)).toBe(1);
+		expect(m.rowAt(40)).toBe(2);
+		expect(m.rowAt(9999)).toBe(4);
 	});
 
 	it('scrollTarget aligns', () => {
-		expect(scrollTarget(m, 20, 'start', 0, 50)).toBe(200);
-		expect(scrollTarget(m, 20, 'end', 0, 50)).toBe(160);
-		expect(scrollTarget(m, 20, 'center', 0, 50)).toBe(180);
-		expect(scrollTarget(m, 20, 'nearest', 190, 50)).toBe(190);
-		expect(scrollTarget(m, 20, 'nearest', 300, 50)).toBe(200);
-		expect(scrollTarget({ ...m, columns: 4 }, 9, 'start', 0, 50)).toBe(20); // row 2
+		const m = model(10, 0, 100);
+		expect(scrollTarget(m, 100, 1, 20, 'start', 0, 50)).toBe(200);
+		expect(scrollTarget(m, 100, 1, 20, 'end', 0, 50)).toBe(160);
+		expect(scrollTarget(m, 100, 1, 20, 'center', 0, 50)).toBe(180);
+		expect(scrollTarget(m, 100, 1, 20, 'nearest', 190, 50)).toBe(190);
+		expect(scrollTarget(m, 100, 1, 20, 'nearest', 300, 50)).toBe(200);
+		expect(scrollTarget(model(10, 0, 25), 100, 4, 9, 'start', 0, 50)).toBe(20); // row 2
 	});
 });
-
 describe('virtualize', () => {
 	const ITEM = 10;
 	let scroller: HTMLElement;
 	let list: HTMLElement;
 	let part: ChildPart;
 	let scrollTop = 0;
+	let rowHeight: (row: number) => number = () => ITEM;
 
 	beforeEach(() => {
 		scrollTop = 0;
+		rowHeight = () => ITEM;
 		scroller = document.createElement('div');
 		scroller.style.overflowY = 'auto';
 		Object.defineProperty(scroller, 'clientHeight', { value: 100, configurable: true });
@@ -70,8 +87,18 @@ describe('virtualize', () => {
 		vi.spyOn(Element.prototype, 'getBoundingClientRect').mockImplementation(function (this: Element) {
 			const i = (this as HTMLElement).dataset?.i;
 			const cols = Number((this as HTMLElement).dataset?.cols ?? 1);
-			const top = i === undefined ? 0 : Math.floor(Number(i) / cols) * ITEM - scrollTop;
-			return { top, bottom: top, left: 0, right: 0, width: 0, height: 0, x: 0, y: top, toJSON() {} };
+			let top = 0;
+			let height = 0;
+			if (i !== undefined) {
+				const row = Math.floor(Number(i) / cols);
+				const topSpacer = list.querySelector<HTMLElement>('[data-std-ui-spacer]')!;
+				const spacerH = topSpacer.style.display === 'none' ? 0 : parseFloat(topSpacer.style.height);
+				const firstRow = Math.floor(Number(list.querySelector<HTMLElement>('[data-i]')!.dataset.i) / cols);
+				top = spacerH - scrollTop;
+				for (let r = firstRow; r < row; r++) top += rowHeight(r);
+				height = rowHeight(row);
+			}
+			return { top, bottom: top + height, left: 0, right: 0, width: 0, height, x: 0, y: top, toJSON() {} };
 		});
 	});
 
@@ -199,4 +226,86 @@ describe('virtualize', () => {
 		await frame();
 		expect(render).not.toHaveBeenCalled();
 	});
-});
+
+	describe('variable heights', () => {
+		const heightOf = (r: number) => 10 + (r % 3) * 10; // 10, 20, 30, ...
+		const offsetOf = (r: number) => {
+			let t = 0;
+			for (let i = 0; i < r; i++) t += heightOf(i);
+			return t;
+		};
+
+		it('measures rows and sizes the spacers from real heights', () => {
+			rowHeight = heightOf;
+			mount({ itemHeight: undefined, estimatedItemHeight: 10 });
+			const idx = rendered();
+			expect(idx[0]).toBe(0);
+			// The window covers 100px of real content plus overscan, so fewer rows than the estimate implies.
+			expect(idx.length).toBeLessThan(11);
+			const last = idx[idx.length - 1];
+			const [, bottom] = spacers();
+			const knownTail = 1000 - 1 - last; // unmeasured rows use the estimate
+			expect(parseFloat(bottom.style.height)).toBeGreaterThan(knownTail * 10 - 1);
+		});
+
+		it('scrollToIndex converges so the target row lands at the viewport top', () => {
+			rowHeight = heightOf;
+			const controller = new VirtualizeController();
+			mount({ itemHeight: undefined, estimatedItemHeight: 10, controller });
+			controller.scrollToIndex(300);
+			const el = list.querySelector<HTMLElement>('[data-i="300"]')!;
+			expect(el).not.toBeNull();
+			expect(Math.abs(el.getBoundingClientRect().top)).toBeLessThan(1);
+		});
+
+		it('keeps content anchored when a row above the viewport grows', async () => {
+			const callbacks: Array<() => void> = [];
+			vi.stubGlobal(
+				'ResizeObserver',
+				class {
+					constructor(cb: () => void) {
+						callbacks.push(cb);
+					}
+					observe() {}
+					unobserve() {}
+					disconnect() {}
+				},
+			);
+			try {
+				rowHeight = heightOf;
+				mount({ itemHeight: undefined, estimatedItemHeight: 10 });
+				scrollTop = 2000;
+				scroller.dispatchEvent(new Event('scroll'));
+				await frame();
+				const el = [...list.querySelectorAll<HTMLElement>('[data-i]')].find((e) => {
+					const r = e.getBoundingClientRect();
+					return r.top <= 0 && r.bottom > 0; // the row at the viewport top
+				})!;
+				expect(el).toBeDefined();
+				const row = Number(el.dataset.i);
+				const before = el.getBoundingClientRect().top;
+				const scrollBefore = scrollTop;
+				rowHeight = (r) => heightOf(r) + (r === row - 1 ? 50 : 0); // e.g. an image loaded
+				callbacks.forEach((cb) => cb());
+				expect(el.getBoundingClientRect().top).toBeCloseTo(before, 0);
+				expect(scrollTop).toBe(scrollBefore + 50);
+			} finally {
+				vi.unstubAllGlobals();
+			}
+		});
+		it('works with neither itemHeight nor estimatedItemHeight', () => {
+			rowHeight = heightOf;
+			const controller = new VirtualizeController();
+			mount({ itemHeight: undefined, controller });
+			expect(rendered()[0]).toBe(0);
+			controller.scrollToIndex(300);
+			const el = list.querySelector<HTMLElement>('[data-i="300"]')!;
+			expect(el).not.toBeNull();
+			expect(Math.abs(el.getBoundingClientRect().top)).toBeLessThan(1);
+		});
+
+		it('rejects non-positive heights', () => {
+			expect(() => part.update([virtualize([], { itemHeight: 0, renderItem: () => '' })])).toThrow(/itemHeight/);
+			expect(() => part.update([virtualize([], { estimatedItemHeight: -1, renderItem: () => '' })])).toThrow(/estimatedItemHeight/);
+		});
+	});});
