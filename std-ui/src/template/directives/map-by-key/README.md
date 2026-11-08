@@ -7,7 +7,6 @@ reordering, updates, and removals reuse existing nodes instead of positional dif
 import { html, mapByKey } from 'std-ui';
 
 html`<ul>${mapByKey(todos, (t) => t.id, (t) => html`<li>${t.text}</li>`)}</ul>`;
-html`<ul>${mapByKey(names, (n) => html`<li>${n}</li>`)}</ul>`; // keyed by index
 ```
 
 ## API
@@ -18,10 +17,8 @@ html`<ul>${mapByKey(names, (n) => html`<li>${n}</li>`)}</ul>`; // keyed by index
 - **`keyFn`** — `(item, index) => key`. Keys must be unique within one render; duplicates throw.
 - **`template`** — `(item, index) => value` passed to the child renderer (string, nested `html`, another directive, …).
 
-### `mapByKey(items, template)`
-
-Same as above with **keys defaulting to `index`**. Fine for append-only lists; reordering with
-index keys updates content in place at each index rather than moving DOM (see [`design.md`](./design.md)).
+For positional lists (fixed order, append/shrink only), use `items.map(...)` instead — index keys
+do not buy DOM reuse (see [`design.md`](./design.md)).
 
 ## When to use `mapByKey` vs a plain array
 

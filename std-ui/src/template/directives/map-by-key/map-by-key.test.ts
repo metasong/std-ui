@@ -15,7 +15,9 @@ describe('mapByKey', () => {
 	it('throws if bound to an attribute position instead of a child one', () => {
 		const el = document.createElement('div');
 		const part = new AttributePart(el, 'title');
-		expect(() => part.update([mapByKey(['a'], (x) => html`<span>${x}</span>`)])).toThrow(/child position/);
+		expect(() =>
+			part.update([mapByKey(['a'], (_x, i) => i, (x) => html`<span>${x}</span>`)]),
+		).toThrow(/child position/);
 	});
 
 	it('throws on duplicate keys in one render', () => {
@@ -104,12 +106,6 @@ describe('mapByKey', () => {
 		]);
 		expect(container.querySelectorAll('p')).toHaveLength(1);
 		expect(container.querySelector('p')!.getAttribute('data-id')).toBe('stay');
-	});
-
-	it('two-arg overload keys by index', () => {
-		const { part, container } = makeChildPart();
-		part.update([mapByKey(['x', 'y'], (s) => html`<i>${s}</i>`)]);
-		expect(container.textContent).toBe('xy');
 	});
 
 	it('MapByKeyCommitter removes stale keys on direct update', () => {
