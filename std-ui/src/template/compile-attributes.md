@@ -194,7 +194,8 @@ flowchart LR
 | File | Role |
 |------|------|
 | `compile.ts` | Scan `strings`, build synthetic markup, `getTemplate`, `instantiate` |
-| `parts/core.ts` | `AttributePart`, `updateParts` |
+| `parts/attribute-part.ts` | `AttributePart` |
+| `parts/core.ts` | `updateParts` |
 | `render.ts` | Root `render()` calling `updateParts` |
 
 ---
