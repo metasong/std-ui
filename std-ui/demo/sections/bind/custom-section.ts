@@ -1,10 +1,10 @@
 // Custom element property + default `level-change` event.
-import { bind, html, state, tag, UIElement } from '../../../src/index.js';
+import { bind, html, signalState, tag, UIElement } from '../../../src/index.js';
 import './knob-control.js';
 
 @tag('demo-bind-custom-section')
 export class DemoBindCustomSection extends UIElement {
-	@state() level = 2;
+	level = signalState(2);
 
 	protected override template() {
 		return html`
@@ -14,11 +14,11 @@ export class DemoBindCustomSection extends UIElement {
 					<code>&lt;demo-bind-knob&gt;</code> updates <code>.level</code> and bubbles
 					<code>level-change</code> (the default for a property named <code>level</code>).
 				</p>
-				<demo-bind-knob .level="${bind(this, 'level')}"></demo-bind-knob>
-				<p class="demo-bind-mirror">Parent <code>@state()</code> level: <code>${this.level}</code></p>
+				<demo-bind-knob .level="${bind(this.level)}"></demo-bind-knob>
+				<p class="demo-bind-mirror">Parent <code>signalState()</code> level: <code>${this.level()}</code></p>
 				<div class="demo-actions">
-					<button type="button" @click="${() => (this.level = 0)}">set parent level to 0</button>
-					<button type="button" class="tonal" @click="${() => (this.level += 5)}">parent +5</button>
+					<button type="button" @click="${() => this.level.set(0)}">set parent level to 0</button>
+					<button type="button" class="tonal" @click="${() => this.level.update(n => n + 5)}">parent +5</button>
 				</div>
 			</section>
 		`;

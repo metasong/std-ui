@@ -8,7 +8,7 @@ import {
 	type PropertyPartInfo,
 } from '../../directive.js';
 
-/** Read/write pair for `bind()` when not using `(host, key)`. */
+/** Read/write pair for `bind({ get, set })` when you don't have a signal. */
 export interface BindAccessor {
 	get: () => unknown;
 	set: (value: unknown) => void;
@@ -127,8 +127,14 @@ function defaultEvent(element: Element, property: string): string {
 	return `${kebab(property)}-change`;
 }
 
-function isHostKey(args: readonly unknown[]): args is [object, string, BindOptions?] {
-	return typeof args[0] === 'object' && args[0] !== null && typeof args[1] === 'string';
+/** Anything callable to read with a `.set()` to write: `signal()`, or a `signalState()` leaf/branch. */
+export interface WritableSignal<T = unknown> {
+	(): T;
+	set(value: never): void;
+}
+
+function isWritableSignal(value: unknown): value is { (): unknown; set(v: unknown): void } {
+	return typeof value === 'function' && typeof (value as { set?: unknown }).set === 'function';
 }
 
 function resolveBindArgs(
@@ -139,21 +145,15 @@ function resolveBindArgs(
 	let accessor: BindAccessor;
 	let options: BindOptions = {};
 
-	if (isHostKey(args)) {
-		const host = args[0] as Record<string, unknown>;
-		const key = args[1];
-		accessor = {
-			get: () => host[key],
-			set: v => {
-				host[key] = v;
-			},
-		};
-		if (typeof args[2] === 'object' && args[2] !== null) options = args[2];
+	if (isWritableSignal(args[0])) {
+		const sig = args[0];
+		accessor = { get: () => sig(), set: v => sig.set(v) };
+		if (typeof args[1] === 'object' && args[1] !== null) options = args[1] as BindOptions;
 	} else {
 		const source = args[0] as BindSource | undefined;
 		if (typeof source?.get !== 'function' || typeof source?.set !== 'function') {
 			throw new Error(
-				`std-ui bind() on ${describe(element, property)}: pass (host, key[, options]), or ({ get, set, ... }).`,
+				`std-ui bind() on ${describe(element, property)}: pass a signal (\`bind(sig[, options])\`) or \`bind({ get, set, ... })\`.`,
 			);
 		}
 		const { get, set, ...rest } = source;
@@ -188,8 +188,8 @@ function syncRadioSiblings(radio: HTMLInputElement): void {
  * Two-way property bind: live compare on model → view, plus a DOM event for view → model.
  *
  * ```ts
- * html`<input .value="${bind(this, 'query')}" />`
- * html`<my-slider .level="${bind(this, 'level', { event: 'level-change' })}" />`
+ * html`<input .value="${bind(this.query)}" />`
+ * html`<my-slider .level="${bind(this.level, { event: 'level-change' })}" />`
  * ```
  */
 class BindDirective extends Directive {
@@ -271,21 +271,15 @@ class BindDirective extends Directive {
 
 const bindDirective = directive(BindDirective);
 
+export function bind(state: WritableSignal, options?: BindOptions): DirectiveResult;
 export function bind(source: BindSource): DirectiveResult;
-export function bind(host: object, key: string, options?: BindOptions): DirectiveResult;
-export function bind(
-	hostOrSource: object | BindSource,
-	key?: string,
-	options?: BindOptions,
-): DirectiveResult {
-	if (typeof key === 'string') return bindDirective(hostOrSource, key, options);
+export function bind(first: object, options?: BindOptions): DirectiveResult {
+	if (isWritableSignal(first)) return bindDirective(first, options);
 	if (
-		typeof hostOrSource === 'object' &&
-		hostOrSource !== null &&
-		typeof (hostOrSource as BindSource).get === 'function' &&
-		typeof (hostOrSource as BindSource).set === 'function'
+		typeof (first as BindSource).get === 'function' &&
+		typeof (first as BindSource).set === 'function'
 	) {
-		return bindDirective(hostOrSource);
+		return bindDirective(first);
 	}
-	throw new Error('std-ui bind(): pass (host, key[, options]), or ({ get, set, ... }).');
+	throw new Error('std-ui bind(): pass a signal (`bind(sig[, options])`) or `bind({ get, set, ... })`.');
 }

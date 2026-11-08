@@ -8,16 +8,16 @@ Built-in **property directive** for `.name="${bind(...)}"` bindings. Combines:
 Roughly “Angular two-way on one property,” with Lit-style `live` on the down direction only.
 
 ```ts
-import { html, bind, state, tag, UIElement } from 'std-ui';
+import { html, bind, signalState, tag, UIElement } from 'std-ui';
 
 @tag('search-field')
 class SearchField extends UIElement {
-	@state() query = '';
+	query = signalState('');
 
 	protected override template() {
 		return html`
-			<input .value="${bind(this, 'query')}" placeholder="Search…" />
-			<p>You typed: ${this.query}</p>
+			<input .value="${bind(this.query)}" placeholder="Search…" />
+			<p>You typed: ${this.query()}</p>
 		`;
 	}
 }
@@ -27,29 +27,31 @@ Design notes: [`design.md`](./design.md).
 
 ## API
 
-### `bind(host, key[, options])`
+### `bind(signal[, options])`
 
-Reads/writes `host[key]` (works with `@state()` fields on `UIElement`).
+Binds a `signal()` or `signalState()` node directly — the model is the signal itself, no key strings. Any callable with a `.set()` works. The read happens during render, so model changes re-render the template.
 
 ```ts
-html`<input .value="${bind(this, 'query')}" />`
-html`<input type="checkbox" .checked="${bind(this, 'agreed')}" />`
+const form = signalState({ query: '', agreed: false });
+
+html`<input .value="${bind(form.query)}" />`
+html`<input type="checkbox" .checked="${bind(form.agreed)}" />`
 ```
 
 Override just the event (property on the element is still `.level` → default would be `level-change`):
 
 ```ts
-@state() level = 0;
+const level = signalState(0);
 
-html`<legacy-dial .level="${bind(this, 'level', { event: 'levelinput' })}" />`
+html`<legacy-dial .level="${bind(level, { event: 'levelinput' })}" />`
 ```
 
-Pass `read` / `write` / `equals` without a custom accessor — options are the third argument:
+Pass `read` / `write` / `equals` in the same options object:
 
 ```ts
 html`
 	<my-date
-		.iso="${bind(this, 'dateIso', {
+		.iso="${bind(dateIso, {
 			event: 'date-change',
 			read: (el, _prop) => (el as MyDate).iso,
 			write: (el, _prop, v) => {
@@ -62,29 +64,18 @@ html`
 
 ### `bind({ get, set, ...options })`
 
-Use when the model is not a plain field on `host` (computed value, external store, coercion):
+Escape hatch when the model is not a signal (computed value, external store, coercion):
 
 ```ts
-import { html, bind, signalState, tag, UIElement } from 'std-ui';
-
-const store = signalState({ count: 0 });
-
-@tag('counter-bind')
-class CounterBind extends UIElement {
-	protected override template() {
-		return html`
-			<input
-				type="number"
-				.value="${bind({
-					get: () => String(store.count),
-					set: (v) => {
-						store.count = Number(v);
-					},
-				})}"
-			/>
-		`;
-	}
-}
+html`
+	<input
+		type="number"
+		.value="${bind({
+			get: () => String(store.count()),
+			set: (v) => store.count.set(Number(v)),
+		})}"
+	/>
+`
 ```
 
 Same shape with extra hooks in one object:
@@ -123,7 +114,7 @@ Do **not** bind `@input` / `@change` on the same property when using `bind()` �
 
 ## Default events
 
-Resolved from the **property name** on the bound element (`PropertyPart.name`), not from `host` key:
+Resolved from the **property name** on the bound element (`PropertyPart.name`):
 
 | Binding | Element | Default event |
 |---------|-----------|---------------|
@@ -141,7 +132,7 @@ Resolved from the **property name** on the bound element (`PropertyPart.name`), 
 Parent:
 
 ```ts
-html`<my-editor .document="${bind(this, 'document')}"></my-editor>`;
+html`<my-editor .document="${bind(doc)}"></my-editor>`;
 ```
 
 Child contract (default event `document-change`):
@@ -157,7 +148,7 @@ set document(v: Doc) {
 }
 ```
 
-Override the event when your component uses a different name: `bind(this, 'x', { event: 'doc-updated' })`.
+Override the event when your component uses a different name: `bind(doc, { event: 'doc-updated' })`.
 
 ## Compared to manual two-way
 
