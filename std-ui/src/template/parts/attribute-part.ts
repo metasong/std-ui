@@ -36,7 +36,14 @@ export class AttributePart implements Part {
 		this.#partInfo = { type: PartType.ATTRIBUTE, element: el, name };
 	}
 
+	/** Runs `disconnected()` on every bound directive and forgets them. */
+	disconnect(): void {
+		for (const d of this.#directives) d?.disconnected();
+		this.#directives = [];
+	}
+
 	update(values: readonly unknown[]): void {
+		if (!values.some(isDirectiveResult)) this.disconnect();
 		const isBareSingleValue = this.literals.length === 2 && this.literals[0] === '' && this.literals[1] === '';
 
 		if (isBareSingleValue && isDirectiveResult(values[0])) {

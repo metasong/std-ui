@@ -12,6 +12,27 @@ interface RenderedInstance {
 const renderedInstances = new WeakMap<Element | DocumentFragment, RenderedInstance>();
 
 /**
+ * Runs every bound directive's `disconnected()` for what `render()` last put in `container`,
+ * leaving the DOM as-is. Used when the container's owner is detached (e.g. an element removed from
+ * the document) and may be re-rendered later; directives are re-created on the next render.
+ */
+export function disconnectRendered(container: Element | DocumentFragment): void {
+	const previous = renderedInstances.get(container);
+	if (previous) for (const part of previous.parts) part.disconnect?.();
+}
+
+/**
+ * Tears down whatever `render()` last put in `container`: runs every bound directive's
+ * `disconnected()` and empties the container. Call this before discarding a container (e.g. when a
+ * component is removed); `render()` also calls it when a different template replaces the old one.
+ */
+export function unmount(container: Element | DocumentFragment): void {
+	disconnectRendered(container);
+	renderedInstances.delete(container);
+	container.textContent = '';
+}
+
+/**
  * Renders `result` into `container`, reusing the previous render's DOM/parts whenever `result` comes
  * from the same tagged-template call site (same `strings` identity) - matching lit-html's contract
  * that only *values* need to be diffed, not structure.
@@ -23,7 +44,7 @@ export function render(result: TemplateResult, container: Element | DocumentFrag
 		return;
 	}
 
-	container.textContent = '';
+	unmount(container);
 	const { fragment, parts } = instantiate(getTemplate(result.strings, result.type));
 	container.appendChild(fragment);
 	// After connect so custom elements are upgraded before `.prop` bindings hit `@state()`/`@attribute()` accessors.

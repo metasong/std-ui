@@ -13,6 +13,9 @@
 export interface Part {
 	readonly valueCount: number;
 	update(values: readonly unknown[]): void;
+	/** Optional: called when the part's content is torn down, so any bound directive's
+	 *  `disconnected()` runs. */
+	disconnect?(): void;
 }
 
 /** Feeds `values` to `parts` in document order, giving each part exactly the slice it declared via

@@ -1,4 +1,4 @@
-import { isTemplateResult, type TemplateResult } from '../html.js';
+import { isTemplateResult } from '../html.js';
 import { isUnsafeHtml } from '../directives/unsafe-html.js';
 import {
 	applyDirective,
@@ -8,21 +8,32 @@ import {
 	type ChildPartInfo,
 	type Directive,
 } from '../directive.js';
-import { getTemplate, instantiate } from '../compile.js';
-import { type Part, updateParts } from './core.js';
+import type { Part } from './core.js';
+import {
+	isCommitWith,
+	ListCommitter,
+	TemplateCommitter,
+	TextCommitter,
+	UnsafeHtmlCommitter,
+	type Committer,
+	type CommitterClass,
+} from './committers/index.js';
 
-/** Everything a `ChildPart` may currently hold, so it knows how to diff the next value against it. */
-type ChildCommit =
-	| { kind: 'none' }
-	| { kind: 'text'; node: Text }
-	| { kind: 'template'; strings: TemplateStringsArray; parts: Part[]; nodes: ChildNode[] }
-	| { kind: 'unsafeHtml'; markup: string; nodes: ChildNode[] }
-	| { kind: 'list'; items: ChildPart[] };
+/** Maps a resolved (post-directive) value to the committer class that handles it, plus the value
+ *  that committer expects; `undefined` means "render nothing". */
+function pickCommitter(value: unknown): { Ctor: CommitterClass; value: unknown } | undefined {
+	if (isCommitWith(value)) return { Ctor: value.Ctor, value: value.value };
+	if (Array.isArray(value)) return { Ctor: ListCommitter, value };
+	if (isTemplateResult(value)) return { Ctor: TemplateCommitter, value };
+	if (isUnsafeHtml(value)) return { Ctor: UnsafeHtmlCommitter, value: value.markup };
+	if (value == null || value === false) return undefined;
+	return { Ctor: TextCommitter, value: String(value) };
+}
 
 /** Binds a child-content position, anchored by a persistent comment node (`anchor`) in the DOM. */
 export class ChildPart implements Part {
 	readonly valueCount = 1;
-	#committed: ChildCommit = { kind: 'none' };
+	#committer: Committer<any> | undefined;
 	/** The `Directive` instance bound here, if a `directive()`-made value (e.g. `unsafeHTML()`) was
 	 *  ever applied to this position; reused across renders - see `directive.ts`. */
 	#directive: Directive | undefined;
@@ -32,88 +43,52 @@ export class ChildPart implements Part {
 		this.#partInfo = { type: PartType.CHILD, anchor };
 	}
 
+	/** The comment marking the end of this part's content. @internal */
+	get endNode(): Comment {
+		return this.anchor;
+	}
+
 	update(values: readonly unknown[]): void {
 		let value = values[0];
-		if (isDirectiveResult(value)) {
+		if (!isDirectiveResult(value)) this.#disconnectDirective();
+		else {
 			const { instance, value: resolved } = applyDirective(this.#partInfo, value, this.#directive);
 			this.#directive = instance;
 			if (resolved === noChange) return;
 			value = resolved;
 		}
-		if (Array.isArray(value)) this.#commitList(value);
-		else if (isTemplateResult(value)) this.#commitTemplate(value);
-		else if (isUnsafeHtml(value)) this.#commitUnsafeHtml(value.markup);
-		else if (value == null || value === false) this.#clear();
-		else this.#commitText(String(value));
+		const picked = pickCommitter(value);
+		if (!picked) {
+			this.#clear();
+			return;
+		}
+		if (this.#committer?.constructor === picked.Ctor && this.#committer.update(picked.value)) return;
+		this.#clear();
+		this.#committer = new picked.Ctor(this.anchor);
+		this.#committer.update(picked.value);
 	}
 
 	#clear(): void {
-		if (this.#committed.kind === 'text') this.#committed.node.remove();
-		else if (this.#committed.kind === 'template') for (const n of this.#committed.nodes) n.remove();
-		else if (this.#committed.kind === 'unsafeHtml') for (const n of this.#committed.nodes) n.remove();
-		else if (this.#committed.kind === 'list') {
-			for (const part of this.#committed.items) {
-				part.#clear();
-				part.anchor.remove();
-			}
-		}
-		this.#committed = { kind: 'none' };
+		this.#committer?.dispose();
+		this.#committer = undefined;
 	}
 
-	#commitText(text: string): void {
-		if (this.#committed.kind === 'text') {
-			if (this.#committed.node.data !== text) this.#committed.node.data = text;
-			return;
-		}
+	#disconnectDirective(): void {
+		this.#directive?.disconnected();
+		this.#directive = undefined;
+	}
+
+	/** Runs `disconnected()` on this part's directive and on directives in its nested content,
+	 *  leaving the DOM untouched (so a detached element keeps its last rendered output). */
+	disconnect(): void {
+		this.#disconnectDirective();
+		this.#committer?.disconnect();
+	}
+
+	/** Removes this part's content and its anchor. @internal */
+	dispose(): void {
+		this.#disconnectDirective();
 		this.#clear();
-		const node = document.createTextNode(text);
-		this.anchor.before(node);
-		this.#committed = { kind: 'text', node };
-	}
-
-	#commitUnsafeHtml(markup: string): void {
-		if (this.#committed.kind === 'unsafeHtml' && this.#committed.markup === markup) return;
-		this.#clear();
-		const container = document.createElement('template');
-		container.innerHTML = markup;
-		const nodes = Array.from(container.content.childNodes);
-		this.anchor.before(container.content);
-		this.#committed = { kind: 'unsafeHtml', markup, nodes };
-	}
-
-	#commitTemplate(result: TemplateResult): void {
-		if (this.#committed.kind === 'template' && this.#committed.strings === result.strings) {
-			updateParts(this.#committed.parts, result.values);
-			return;
-		}
-		this.#clear();
-		const { fragment, parts } = instantiate(getTemplate(result.strings, result.type));
-		const nodes = Array.from(fragment.childNodes);
-		this.anchor.before(fragment);
-		updateParts(parts, result.values);
-		this.#committed = { kind: 'template', strings: result.strings, parts, nodes };
-	}
-
-	#commitList(values: readonly unknown[]): void {
-		if (this.#committed.kind !== 'list') {
-			this.#clear();
-			this.#committed = { kind: 'list', items: [] };
-		}
-		const { items } = this.#committed;
-
-		// Shrink: drop (and clean up) any items left over from a previously-longer list.
-		while (items.length > values.length) {
-			const extra = items.pop()!;
-			extra.#clear();
-			extra.anchor.remove();
-		}
-		// Grow: each item gets its own anchor comment, inserted in order right before this part's anchor.
-		while (items.length < values.length) {
-			const itemAnchor = document.createComment('std-ui-part');
-			this.anchor.before(itemAnchor);
-			items.push(new ChildPart(itemAnchor));
-		}
-
-		for (let i = 0; i < values.length; i++) items[i].update([values[i]]);
+		this.anchor.remove();
 	}
 }

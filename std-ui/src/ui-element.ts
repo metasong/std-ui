@@ -20,7 +20,7 @@ import {
 	effect as createEffect,
 	type OnCleanup,
 } from './signal/index.js';
-import { render, type CSSResultGroup, type TemplateResult } from './template/index.js';
+import { render, disconnectRendered, type CSSResultGroup, type TemplateResult } from './template/index.js';
 
 export {
 	attribute,
@@ -200,6 +200,8 @@ export abstract class UIElement extends HTMLElement {
 	/** Removed from the document; disposes the render effect and any `effect()`s set up in `connect()`. */
 	private disconnectedCallback(): void {
 		this.disconnect?.();
+		// Runs bound directives' `disconnected()`; DOM is kept, directives are re-created on reconnect.
+		if (this.#renderRoot) disconnectRendered(this.#renderRoot);
 		this.#connected = false;
 		this.#firstRenderDone = false;
 		this.#effectDisposers.forEach(dispose => dispose());

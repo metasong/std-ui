@@ -144,6 +144,12 @@ export abstract class Directive {
 	update(part: Part, ...args: readonly unknown[]): DirectiveReturn {
 		return this.render(...args);
 	}
+
+	/** Optional cleanup hook (default: no-op). Called once when this instance stops being used at
+	 *  its position: the position is later given a plain value or a different directive, or its
+	 *  content is torn down (e.g. the enclosing template is removed). Release timers, observers,
+	 *  listeners or DOM you created in `update()` here. */
+	disconnected(): void {}
 }
 
 type DirectiveClass = new (partInfo: PartInfo) => Directive;
@@ -227,7 +233,12 @@ export interface AppliedDirective {
  *   `update()` returned, for `AttributePart` to commit (or skip, on `noChange`).
  */
 export function applyDirective(part: Part, result: DirectiveResult, previous: Directive | undefined): AppliedDirective {
-	const instance = previous?.constructor === result.Ctor ? previous : new result.Ctor(part);
+	let instance: Directive;
+	if (previous?.constructor === result.Ctor) instance = previous;
+	else {
+		previous?.disconnected();
+		instance = new result.Ctor(part);
+	}
 	const value = instance.update(part, ...result.args);
 	return { instance, value };
 }
