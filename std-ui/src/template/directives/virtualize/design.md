@@ -5,14 +5,25 @@ Windowed rendering for large lists/grids as a `commitWith()` child directive, li
 
 ## Module split
 
-| File | Owns |
-|---|---|
-| [`core.ts`](./core.ts) | `VirtualizeDirective`, arg validation, `commitWith(VirtualizeCommitter, { items, options })`. |
-| [`virtualize-committer.ts`](./virtualize-committer.ts) | DOM, scroller wiring, measuring, windowing, `scrollToIndex`. |
-| [`layout.ts`](./layout.ts) | Pure fixed-grid math (window, spacer heights, scroll targets). |
-| [`controller.ts`](./controller.ts) | `VirtualizeController` handle (+ pre-attach pending call). |
-| [`../keyed-rows.ts`](../keyed-rows.ts) | `KeyedRows`: keyed range reconciliation, shared with `mapByKey`. |
+```
+virtualize/
+  core.ts                 VirtualizeDirective: arg validation, commitWith(VirtualizeCommitter, …)
+  options.ts              VirtualizeOptions, VirtualizeValue (public types)
+  controller.ts           VirtualizeController handle (+ pre-attach pending call)
+  layout.ts               RowModel + pure window / scroll-target math (no DOM)
+  committer/
+    virtualize-committer.ts   orchestration: lifecycle, refresh loop, scrollToIndex
+    axis.ts                   vertical-vs-horizontal DOM reads/writes (the only direction switch)
+    scroller-binding.ts       scroll listener, ResizeObservers, scroller lookup
+    spacers.ts                the two hidden stand-in elements
+    measure.ts                DOM -> RowModel: row sizes, pinned size, list top, auto estimate
+    sticky-headers.ts         header index cache, active header, pinned row
+../keyed-rows.ts            KeyedRows: keyed range reconciliation, shared with mapByKey
+```
 
+Dependencies flow one way: `virtualize-committer` uses the others; `measure`, `sticky-headers`,
+`spacers` and `scroller-binding` don't know about each other (they share `Axis`, `RowModel` and
+`KeyedRows` through parameters).
 ## Why a committer owns the window
 
 `render()` runs when the *parent* re-renders; scrolling doesn't re-render the parent. So the
@@ -48,7 +59,7 @@ one `gap` separates it from its neighbour: height for `n` hidden rows is `n * (i
 
 ## Horizontal direction
 
-One code path, axis-switched (`#h()`). `RowModel` already works in *main-axis* sizes, so both directions share it, with `lanes` items per row. Only the DOM reads/writes differ: `scrollLeft`/`scrollX` vs `scrollTop`/`scrollY`, `clientWidth`/`innerWidth` vs `clientHeight`/`innerHeight`, `rect.left`/`width` vs `rect.top`/`height`, spacer `width` vs `height`. A `lanes` function receives the cross-axis container size. Spacers use `grid-row: 1 / -1` (horizontal) instead of `grid-column: 1 / -1`. Direction is read per call, but spacer styling is fixed at creation, so changing it later is unsupported.
+One code path, axis-switched (`Axis` in `committer/axis.ts`). `RowModel` already works in *main-axis* sizes, so both directions share it, with `lanes` items per row. Only the DOM reads/writes differ: `scrollLeft`/`scrollX` vs `scrollTop`/`scrollY`, `clientWidth`/`innerWidth` vs `clientHeight`/`innerHeight`, `rect.left`/`width` vs `rect.top`/`height`, spacer `width` vs `height`. A `lanes` function receives the cross-axis container size. Spacers use `grid-row: 1 / -1` (horizontal) instead of `grid-column: 1 / -1`. Direction is read per call, but spacer styling is fixed at creation, so changing it later is unsupported.
 
 ## Measuring
 

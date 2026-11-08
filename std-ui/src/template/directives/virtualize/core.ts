@@ -1,6 +1,7 @@
 import { Directive, directive, PartType, type PartInfo } from '../../directive.js';
 import { commitWith } from '../../parts/committers/index.js';
-import { VirtualizeCommitter, type VirtualizeOptions } from './virtualize-committer.js';
+import { VirtualizeCommitter } from './committer/index.js';
+import type { VirtualizeOptions } from './options.js';
 
 class VirtualizeDirective extends Directive {
 	constructor(partInfo: PartInfo) {
@@ -14,6 +15,9 @@ class VirtualizeDirective extends Directive {
 		for (const name of ['itemSize', 'estimatedItemSize'] as const) {
 			const h = options[name];
 			if (h !== undefined && !(h > 0)) throw new Error(`std-ui virtualize(): ${name} must be > 0.`);
+		}
+		if (options.isHeader && typeof options.lanes === 'number' && options.lanes > 1) {
+			throw new Error('std-ui virtualize(): isHeader requires lanes = 1.');
 		}
 		return commitWith(VirtualizeCommitter, { items, options });
 	}

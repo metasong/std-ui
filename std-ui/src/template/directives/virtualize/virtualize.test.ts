@@ -102,14 +102,24 @@ describe('virtualize', () => {
 			let height = 0;
 			if (i !== undefined) {
 				const row = Math.floor(Number(i) / cols);
-				const topSpacer = list.querySelector<HTMLElement>('[data-std-ui-spacer]')!;
-				const spacerH = topSpacer.style.display === 'none' ? 0 : parseFloat(horizontal ? topSpacer.style.width : topSpacer.style.height);
-				const firstRow = Math.floor(Number(list.querySelector<HTMLElement>('[data-i]')!.dataset.i) / cols);
-				top = spacerH - (horizontal ? scrollLeft : scrollTop);
-				for (let r = firstRow; r < row; r++) top += rowHeight(r);
+				// Block layout: sum the sizes of everything before this row's first element.
+				const size = (el: HTMLElement) => (el.style.display === 'none' ? 0 : parseFloat(horizontal ? el.style.width : el.style.height));
+				const done = new Set<number>();
+				for (const child of list.children) {
+					if (child === this) break;
+					const c = child as HTMLElement;
+					if (c.dataset.stdUiSpacer !== undefined) top += size(c);
+					else if (c.dataset.i !== undefined) {
+						const r = Math.floor(Number(c.dataset.i) / cols);
+						if (r < row && !done.has(r)) {
+							done.add(r);
+							top += rowHeight(r);
+						}
+					}
+				}
+				top -= horizontal ? scrollLeft : scrollTop;
 				height = rowHeight(row);
-			}
-			return { top, bottom: top + height, left: top, right: top + height, width: height, height, x: top, y: top, toJSON() {} };
+			}			return { top, bottom: top + height, left: top, right: top + height, width: height, height, x: top, y: top, toJSON() {} };
 		});
 	});
 
@@ -360,6 +370,75 @@ describe('virtualize', () => {
 			controller.scrollToIndex(300);
 			const el = list.querySelector<HTMLElement>('[data-i="300"]')!;
 			expect(Math.abs(el.getBoundingClientRect().left)).toBeLessThan(1);
+		});
+	});
+
+	describe('sticky headers', () => {
+		const isHeader = (d: { i: number }) => d.i % 10 === 0;
+		const scrollTo = async (v: number) => {
+			scrollTop = v;
+			scroller.dispatchEvent(new Event('scroll'));
+			await frame();
+		};
+		const els = (i: number) => list.querySelectorAll<HTMLElement>(`[data-i="${i}"]`);
+
+		it('pins the active header before the top spacer when it is outside the window', async () => {
+			mount({ isHeader });
+			await scrollTo(255); // first visible row 25 -> header 20; window starts at 24
+			expect(rendered().slice(0, 2)).toEqual([20, 24]); // pinned header, then the window
+			const pinned = els(20);
+			expect(pinned.length).toBe(1);
+			expect(list.firstElementChild).toBe(pinned[0]);
+			expect(pinned[0].style.position).toBe('sticky');
+			expect(pinned[0].style.top).toBe('0px');
+			// Pinned header (10) + spacer fill the space of rows 0..23.
+			expect(spacers()[0].style.height).toBe(`${24 * ITEM - ITEM}px`);
+			// Layout stays consistent: row 25 sits where the model says.
+			expect(els(25)[0].getBoundingClientRect().top).toBe(25 * ITEM - 255);
+		});
+
+		it('does not duplicate a header that is inside the window', async () => {
+			mount({ isHeader });
+			await scrollTo(205); // header 20 is the first visible row
+			expect(els(20).length).toBe(1);
+			expect(els(20)[0].style.position).toBe('sticky');
+			expect(list.firstElementChild).toBe(spacers()[0]);
+		});
+
+		it('switches the pinned header as sections change and removes it at the top', async () => {
+			mount({ isHeader });
+			await scrollTo(255);
+			expect(els(20).length).toBe(1);
+			await scrollTo(355);
+			expect(els(20).length).toBe(0);
+			expect(els(30).length).toBe(1);
+			expect(list.firstElementChild).toBe(els(30)[0]);
+			await scrollTo(0);
+			expect(list.firstElementChild).toBe(spacers()[0]);
+			expect(els(30).length).toBe(0);
+		});
+
+		it('keeps scroll-to-index exact with a pinned header (variable sizes)', () => {
+			rowHeight = (r) => (r % 10 === 0 ? 20 : 10);
+			const controller = new VirtualizeController();
+			mount({ isHeader, itemSize: undefined, estimatedItemSize: 10, controller });
+			controller.scrollToIndex(257);
+			expect(els(257).length).toBe(1);
+			expect(Math.abs(els(257)[0].getBoundingClientRect().top)).toBeLessThan(1);
+		});
+
+		it('requires lanes = 1', () => {
+			expect(() => mount({ isHeader, lanes: 2 })).toThrow(/lanes = 1/);
+		});
+
+		it('sticks to the left when horizontal', async () => {
+			horizontal = true;
+			mount({ isHeader, direction: 'horizontal' });
+			scrollLeft = 255;
+			scroller.dispatchEvent(new Event('scroll'));
+			await frame();
+			expect(els(20)[0].style.left).toBe('0px');
+			expect(list.firstElementChild).toBe(els(20)[0]);
 		});
 	});
 });
