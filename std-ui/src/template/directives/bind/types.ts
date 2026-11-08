@@ -14,7 +14,15 @@ export interface BindOptions {
 	 * `change`, otherwise `${kebab-case property}-change` (`.minValue` → `min-value-change`).
 	 */
 	event?: string;
-	/** Is the model already what the element shows? Used to skip redundant writes (live semantics). */
+	/**
+	 * Compares the value from the model (`get()`) with the value read from the element
+	 * (`read(element, property)`); return `true` when they already match.
+	 * Used in both directions to skip redundant writes (live semantics):
+	 * - model → view (every render): if equal, the element is not written.
+	 * - view → model (on `event`): if equal, `set()` is not called.
+	 * Defaults: boolean compare for checkbox/radio `.checked`, string compare for native `.value`
+	 * (so `5` equals `'5'`), `Object.is` otherwise.
+	 */
 	equals?: (model: unknown, view: unknown) => boolean;
 	/** Read the element's current value. Also the view → model converter: return model-typed values. */
 	read?: (element: Element, property: string) => unknown;
