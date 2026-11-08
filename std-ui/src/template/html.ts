@@ -23,8 +23,8 @@
 //     `.update(value)` on each already-bound `Part` - only the values that actually changed touch
 //     the DOM (`Part`s no-op on `Object.is`-equal values).
 //
-// What's intentionally left out, vs. real lit-html: keyed list reconciliation (`repeat()`),
-// most directives (only `classMap`/`styleMap` are built in, see `./directives/index.js`, though
+// What's intentionally left out, vs. real lit-html: most lit directives (only `classMap`/`styleMap`,
+// `mapByKey`, `unsafeHTML`, etc. are built in, see `./directives/index.js`, though
 // `directive.ts`'s `Directive`/`directive()`/`PartType` - modeled on lit-html's own - is a generic
 // extension point for writing more), and MathML template handling. Plain attributes (no
 // `?`/`.`/`@` sigil) do support

@@ -25,7 +25,7 @@ export {
 	type PartInfo,
 	type CSSResultGroup,
 } from './template/index.js';
-export { classMap, styleMap } from './template/directives/index.js';
+export { classMap, styleMap, mapByKey } from './template/directives/index.js';
 export {
 	signalState,
 	computed,

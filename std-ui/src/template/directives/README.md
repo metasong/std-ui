@@ -69,6 +69,9 @@ attribute and child binding kinds) and how to write a custom directive, see the 
 section of [`../html.md`](../html.md#directives). [`design.md`](./design.md)
 covers how `classMap`/`styleMap` specifically use it.
 
+Other built-in child directives: [`unsafe-html.ts`](./unsafe-html.ts) (`unsafeHTML`), and
+[`map-by-key/`](./map-by-key/) (`mapByKey` — keyed lists; see [`map-by-key/README.md`](./map-by-key/README.md)).
+
 ## Related reading
 
 - [`design.md`](./design.md) — how `classMap`/`styleMap` are implemented internally.

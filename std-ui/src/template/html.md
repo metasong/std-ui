@@ -249,19 +249,18 @@ Each branch returns a different `` html`...` `` (different call sites). The nest
 swaps them by tearing down the old subtree and mounting the new one. The outer `<section>` wrapper
 is unchanged if `alert` / `alertFromIf` always uses the same parent literal.
 
-**Lists (`.map()` or a `for` loop):**
+**Lists (plain array vs `mapByKey`):**
 
 ```ts
 const row = (label: string) => html`<li>${label}</li>`;
 
-html`<ul>${items.map(item => row(item.label))}</ul>`;
+html`<ul>${items.map(item => row(item.label))}</ul>`; // positional (by index)
 
-const rows = [];
-for (const item of items) rows.push(row(item.label));
-html`<ul>${rows}</ul>`;
+html`<ul>${mapByKey(items, (item) => item.id, (item) => row(item.label))}</ul>`; // keyed
 ```
 
-Arrays are diffed by index (not keyed)—see Limitations.
+Plain arrays are diffed by index. Use `mapByKey` when order or stable row identity matters — see
+[`directives/map-by-key/README.md`](./directives/map-by-key/README.md).
 
 ## `render(result, container)`
 
@@ -325,11 +324,9 @@ and when the fast path is lost), see [`../doc/saved-ui-rerendering.md`](../doc/s
 
 ## Limitations (vs. real lit-html)
 
-- **No keyed list reconciliation** (no `repeat()`/`map()` with keys). Arrays are diffed
-  positionally: index 0 always updates the first rendered item, etc. Reordering a list re-renders
-  items in place rather than moving DOM nodes - fine for appending/removing at the end, surprising
-  for reordering/insertion in the middle.
-- **Only two built-in directives** (`classMap`, `styleMap`) - no `ref`, `guard`, `cache`, etc.,
+- **Plain arrays are positional** (not keyed). For keyed lists use the built-in `mapByKey()` directive.
+- **Small built-in directive set** (`classMap`, `styleMap`, `mapByKey`, `unsafeHTML`, …) - no `ref`,
+  `guard`, `cache`, etc.,
   though the generic `AttributeDirective` protocol (see above) supports writing your own.
 - **No MathML support.** There's no `mathml` tag function analogous to `svg` below.
 - **SVG needs the `svg` tag for namespace-less fragments.** Markup containing its own top-level
