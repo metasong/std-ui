@@ -26,6 +26,18 @@ npx vite build
 npx vite preview
 ```
 
+## `bind()` demo (dedicated page)
+
+Two-way property binding — native form fields and a custom element with `level-change`:
+
+```bash
+npm run demo
+```
+
+Open [http://localhost:5174/bind.html](http://localhost:5174/bind.html). Sources: [`bind.html`](./bind.html), [`sections/bind/`](./sections/bind/).
+
+API notes: [`../src/template/directives/bind/README.md`](../src/template/directives/bind/README.md).
+
 ## `virtualize` demo (dedicated page)
 
 Large-list examples live on a separate page so the main tour stays short:

@@ -76,6 +76,15 @@ export interface AttributePartInfo {
 	readonly staticText?: string;
 }
 
+/** Metadata + live DOM access for a `.name="${...}"` property binding - see `PropertyPart` in
+ *  `parts/`. */
+export interface PropertyPartInfo {
+	readonly type: typeof PartType.PROPERTY;
+	readonly element: Element;
+	/** Property name without the `.` sigil, e.g. `'value'`. */
+	readonly name: string;
+}
+
 /** Metadata + live DOM access for a child-content binding - see `ChildPart` in `parts/`. Unlike
  *  `AttributePartInfo`, a child directive isn't expected to mutate `anchor`'s siblings directly;
  *  it returns a value instead (see `DirectiveReturn`) for `ChildPart` to commit the normal way -
@@ -90,8 +99,8 @@ export interface ChildPartInfo {
 /** Every `Part`/`PartInfo` shape this engine constructs; see `AttributePartInfo`/`ChildPartInfo`.
  *  A directive's constructor/`update()` narrows via `partInfo.type`/`part.type` to find out which
  *  one it actually got. */
-export type PartInfo = AttributePartInfo | ChildPartInfo;
-export type Part = AttributePartInfo | ChildPartInfo;
+export type PartInfo = AttributePartInfo | ChildPartInfo | PropertyPartInfo;
+export type Part = AttributePartInfo | ChildPartInfo | PropertyPartInfo;
 
 /**
  * Base class for a custom attribute directive. One instance is created *per binding position* the

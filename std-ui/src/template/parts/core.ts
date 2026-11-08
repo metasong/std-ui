@@ -4,6 +4,15 @@
 // patch just that position when `update()` is called with a new value, no-op'ing on `Object.is`-equal
 // values. See `html.ts` for the overall design.
 
+import {
+	applyDirective,
+	isDirectiveResult,
+	noChange,
+	PartType,
+	type Directive,
+	type PropertyPartInfo,
+} from '../directive.js';
+
 /**
  * One dynamic position bound to a live DOM location. `valueCount` tells the caller (see
  * `updateParts()` below) how many consecutive entries of a template's `values[]` this part
@@ -44,9 +53,32 @@ export class BooleanAttributePart implements Part {
 export class PropertyPart implements Part {
 	readonly valueCount = 1;
 	#value: unknown;
-	constructor(private readonly el: Element, private readonly name: string) {}
+	#directive: Directive | undefined;
+	readonly #partInfo: PropertyPartInfo;
+	constructor(
+		private readonly el: Element,
+		private readonly name: string,
+	) {
+		this.#partInfo = { type: PartType.PROPERTY, element: el, name };
+	}
+
+	disconnect(): void {
+		this.#directive?.disconnected();
+		this.#directive = undefined;
+	}
+
 	update(values: readonly unknown[]): void {
 		const value = values[0];
+		if (isDirectiveResult(value)) {
+			const { instance, value: result } = applyDirective(this.#partInfo, value, this.#directive);
+			this.#directive = instance;
+			if (result === noChange) return;
+			if (Object.is(result, this.#value)) return;
+			this.#value = result;
+			(this.el as unknown as Record<string, unknown>)[this.name] = result;
+			return;
+		}
+		this.disconnect();
 		if (Object.is(value, this.#value)) return;
 		this.#value = value;
 		(this.el as unknown as Record<string, unknown>)[this.name] = value;
