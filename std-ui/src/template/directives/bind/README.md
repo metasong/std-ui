@@ -117,6 +117,8 @@ html`
 | `read` | `(element, property) => unknown` — live value from the DOM/node. |
 | `write` | `(element, property, committed) => void` — push model to the element. |
 
+`read` / `write` are also the converter pair: `read` may return model-typed values (e.g. `el => Number(el.value)`), and `write` converts the model back for the element. On native `.value` controls, a numeric model is kept numeric automatically.
+
 Do **not** bind `@input` / `@change` on the same property when using `bind()` — the directive installs its own listener.
 
 ## Default events
@@ -130,7 +132,7 @@ Resolved from the **property name** on the bound element (`PropertyPart.name`), 
 | `.value` | `<input>`, `<textarea>` | `input` |
 | `.value` | `<select>` | `change` |
 | `.value` | other (e.g. custom element) | `value-change` |
-| `.anythingElse` | any | `anythingElse-change` |
+| `.anythingElse` | any | `anything-else-change` (kebab-case) |
 
 `.checked` on a non-checkable `<input>` (e.g. `type="text"`) **throws** at directive construction time.
 
