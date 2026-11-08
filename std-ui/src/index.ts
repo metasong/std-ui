@@ -25,7 +25,8 @@ export {
 	type PartInfo,
 	type CSSResultGroup,
 } from './template/index.js';
-export { classMap, styleMap, mapByKey } from './template/directives/index.js';
+export { classMap, styleMap, mapByKey, virtualize, VirtualizeController } from './template/directives/index.js';
+export type { VirtualizeOptions, ScrollToIndexOptions, ScrollAlign } from './template/directives/index.js';
 export {
 	signalState,
 	computed,
