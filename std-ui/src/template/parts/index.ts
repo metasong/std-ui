@@ -5,5 +5,5 @@ export {
 	BooleanAttributePart,
 	PropertyPart,
 	EventPart,
-	ChildPart,
 } from './core.js';
+export { ChildPart } from './child-part.js';

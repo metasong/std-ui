@@ -107,7 +107,7 @@ sites (`Part`s) created the first time that `strings` was rendered into that con
 Each `` html`...` `` expression is its own call site with its own saved re-render.
 
 **Nested child template** (one `${...}` slot holds another `html` result): `ChildPart` applies the
-same `strings ===` rule for the subtree it owns (`parts/core.ts` `#commitTemplate`). Parent outer
+same `strings ===` rule for the subtree it owns (`parts/child-part.ts` `#commitTemplate`). Parent outer
 `strings` stay the same; the nested slot updates its inner template independently.
 
 **Arrays in child position** (`${items.map(...)}`): the parent part sees an array `value` and
