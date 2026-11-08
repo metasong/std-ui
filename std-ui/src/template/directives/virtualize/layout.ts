@@ -125,7 +125,7 @@ export class RowModel {
 }
 
 export interface Window {
-	/** First rendered item index (inclusive), always a multiple of `columns`. */
+	/** First rendered item index (inclusive), always a multiple of `lanes`. */
 	start: number;
 	/** Last rendered item index (exclusive). */
 	end: number;
@@ -134,14 +134,14 @@ export interface Window {
 	endRow: number;
 }
 
-export const rowCount = (count: number, columns: number): number => Math.ceil(count / columns);
+export const rowCount = (count: number, lanes: number): number => Math.ceil(count / lanes);
 
 /** Items to render for a viewport covering `[offset, offset + viewport)` (relative to list top),
  *  widened by `overscan` rows on each side. */
 export function computeWindow(
 	model: RowModel,
 	count: number,
-	columns: number,
+	lanes: number,
 	offset: number,
 	viewport: number,
 	overscan: number,
@@ -153,12 +153,12 @@ export function computeWindow(
 	const last = model.rowAt(off + Math.max(0, viewport - 1e-6)); // inclusive; viewport end is exclusive
 	const startRow = Math.min(rows - 1, Math.max(0, first - overscan));
 	const endRow = Math.min(rows, Math.max(startRow + 1, last + 1 + overscan));
-	return { start: startRow * columns, end: Math.min(count, endRow * columns), startRow, endRow };
+	return { start: startRow * lanes, end: Math.min(count, endRow * lanes), startRow, endRow };
 }
 
 /** Height of the spacer standing in for rows `[from, to)` next to a visible neighbour (one `gap`
  *  already separates the spacer from it). 0 means no spacer needed. */
-export function spacerHeight(model: RowModel, from: number, to: number): number {
+export function spacerSize(model: RowModel, from: number, to: number): number {
 	if (to <= from) return 0;
 	return Math.max(0, model.offset(to) - model.offset(from) - model.gap);
 }
@@ -169,14 +169,14 @@ export type ScrollAlign = 'start' | 'center' | 'end' | 'nearest';
 export function scrollTarget(
 	model: RowModel,
 	count: number,
-	columns: number,
+	lanes: number,
 	index: number,
 	align: ScrollAlign,
 	currentOffset: number,
 	viewport: number,
 ): number {
 	const i = Math.min(Math.max(0, index), Math.max(0, count - 1));
-	const row = Math.floor(i / columns);
+	const row = Math.floor(i / lanes);
 	const top = model.offset(row);
 	const height = model.height(row);
 	const bottom = top + height;

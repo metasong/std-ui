@@ -6,23 +6,28 @@ import {
 	rowCount,
 	RowModel,
 	scrollTarget,
-	spacerHeight,
+	spacerSize,
 	type Window as ItemWindow,
 } from './layout.js';
 
 export interface VirtualizeOptions<T = unknown> {
 	/** Render one item. Called only for items inside the window. */
 	renderItem: (item: T, index: number) => unknown;
-	/** Fixed height in px of one row of items (exact mode, no measuring). Items must be this tall. */
-	itemHeight?: number;
-	/** Optional hint for variable-height mode (used when `itemHeight` is not set): assumed height
-	 *  for unmeasured rows. Without it, the mean of measured rows is used (40px before any). */
-	estimatedItemHeight?: number;
+	/** Scroll direction: `vertical` (default) or `horizontal`. "Size" below means the extent along it
+	 *  (height when vertical, width when horizontal). */
+	direction?: 'vertical' | 'horizontal';
+	/** Fixed size in px of one row of items (exact mode, no measuring). Items must be this size. */
+	itemSize?: number;
+	/** Optional hint for variable-size mode (used when `itemSize` is not set): assumed size for
+	 *  unmeasured rows. Without it, the mean of measured rows is used (40px before any). */
+	estimatedItemSize?: number;
 	/** Stable key per item; defaults to the index. */
 	keyFn?: (item: T, index: number) => unknown;
-	/** Items per row. A function receives the container's `clientWidth` (re-evaluated on resize). Default 1. */
-	columns?: number | ((containerWidth: number) => number);
-	/** Row gap in px; must match the container's CSS `gap`/`row-gap`. Default 0. */
+	/** Items per row across the scroll direction (grid lanes when vertical, grid rows when
+	 *  horizontal). A function receives the container's cross-axis size (width when vertical,
+	 *  height when horizontal) and is re-evaluated on resize. Default 1. */
+	lanes?: number | ((containerCrossSize: number) => number);
+	/** Gap in px between rows; must match the container's CSS `gap`. Default 0. */
 	gap?: number;
 	/** Extra rows rendered beyond each edge of the viewport. Default 3. */
 	overscan?: number;
@@ -70,7 +75,7 @@ export class VirtualizeCommitter extends Committer<VirtualizeValue> implements C
 	#disposed = false;
 	#listTop = 0;
 	#model = new RowModel(1, 0);
-	/** Estimate used in variable mode when stimatedItemHeight isn't given: mean of measured rows. */
+	/** Estimate used in variable mode when estimatedItemSize isn't given: mean of measured rows. */
 	#autoEstimate = 40;
 	#rowObserver: ResizeObserver | undefined;
 	#observed = new Set<Element>();
@@ -85,6 +90,7 @@ export class VirtualizeCommitter extends Committer<VirtualizeValue> implements C
 	};
 
 	update(value: VirtualizeValue): boolean {
+		this.#value = value;
 		if (!this.#rows) {
 			const parent = this.anchor.parentNode!;
 			const tag = value.options.spacerTag ?? 'div';
@@ -121,19 +127,18 @@ export class VirtualizeCommitter extends Committer<VirtualizeValue> implements C
 		const target = (): number => {
 			const g = this.#sync();
 			const offset = this.#scrollTop() - this.#listTop;
-			const rel = scrollTarget(this.#model, g.count, g.columns, index, options.align ?? 'start', offset, this.#viewport());
+			const rel = scrollTarget(this.#model, g.count, g.lanes, index, options.align ?? 'start', offset, this.#viewport());
 			return Math.max(0, rel + this.#listTop);
 		};
 		if (options.behavior === 'smooth') {
-			scroller.scrollTo({ top: target(), behavior: 'smooth' }); // window follows via scroll events
+			scroller.scrollTo({ [this.#h() ? 'left' : 'top']: target(), behavior: 'smooth' }); // window follows via scroll events
 			return;
 		}
 		// Instant. In variable-height mode, rendering the target region measures real heights and
 		// moves the target, so iterate until it settles (one pass in fixed mode).
 		let top = target();
 		for (let pass = 0; pass < 6; pass++) {
-			if (scroller instanceof Element) scroller.scrollTop = top;
-			else scroller.scrollTo({ top, behavior: 'instant' as ScrollBehavior });
+			this.#setScroll(top);
 			this.#refresh(false, true);
 			const next = target();
 			// Settled only if the target stopped moving AND anchoring didn't push scroll off it.
@@ -188,37 +193,70 @@ export class VirtualizeCommitter extends Committer<VirtualizeValue> implements C
 
 	// --- measuring -----------------------------------------------------------------------------
 
+	#h(): boolean {
+		return this.#value.options.direction === 'horizontal';
+	}
+
+	/** Scroll position along the list's main axis. */
 	#scrollTop(): number {
 		const s = this.#scroller;
+		if (this.#h()) return s instanceof Element ? s.scrollLeft : (s?.scrollX ?? 0);
 		return s instanceof Element ? s.scrollTop : (s?.scrollY ?? 0);
+	}
+
+	#setScroll(pos: number): void {
+		const s = this.#scroller;
+		if (!s) return;
+		if (s instanceof Element) {
+			if (this.#h()) s.scrollLeft = pos;
+			else s.scrollTop = pos;
+		} else {
+			s.scrollTo({ [this.#h() ? 'left' : 'top']: pos, behavior: 'instant' as ScrollBehavior });
+		}
 	}
 
 	#viewport(): number {
 		const s = this.#scroller;
+		if (this.#h()) return s instanceof Element ? s.clientWidth : (s?.innerWidth ?? 0);
 		return s instanceof Element ? s.clientHeight : (s?.innerHeight ?? 0);
 	}
 
-	#columns(): number {
-		const c = this.#value.options.columns ?? 1;
-		const n = typeof c === 'function' ? c(this.anchor.parentElement?.clientWidth ?? 0) : c;
+	#lanes(): number {
+		const o = this.#value.options;
+		const parent = this.anchor.parentElement;
+		const c = o.lanes ?? 1;
+		const cross = (this.#h() ? parent?.clientHeight : parent?.clientWidth) ?? 0;
+		const n = typeof c === 'function' ? c(cross) : c;
 		return Math.max(1, Math.floor(n) || 1);
 	}
 
 	#dynamic(): boolean {
-		return this.#value.options.itemHeight === undefined;
+		return this.#fixed() === undefined;
+	}
+
+	/** Fixed main-axis size, if given. */
+	#fixed(): number | undefined {
+		const o = this.#value.options;
+		return o.itemSize;
+	}
+
+	/** Optional main-axis size hint for variable mode. */
+	#hint(): number | undefined {
+		const o = this.#value.options;
+		return o.estimatedItemSize;
 	}
 
 	/** Push current options/data into the row model; returns the grid shape. */
-	#sync(): { count: number; columns: number } {
+	#sync(): { count: number; lanes: number } {
 		const { options, items } = this.#value;
-		const columns = this.#columns();
-		const estimate = options.itemHeight ?? options.estimatedItemHeight ?? this.#autoEstimate;
-		this.#model.configure(estimate, options.gap ?? 0, rowCount(items.length, columns));
-		return { count: items.length, columns };
+		const lanes = this.#lanes();
+		const estimate = this.#fixed() ?? this.#hint() ?? this.#autoEstimate;
+		this.#model.configure(estimate, options.gap ?? 0, rowCount(items.length, lanes));
+		return { count: items.length, lanes };
 	}
 
 	/** Measure rendered rows (variable-height mode). Returns true if any row height changed. */
-	#measureRows(win: ItemWindow, columns: number): boolean {
+	#measureRows(win: ItemWindow, lanes: number): boolean {
 		const { items, options } = this.#value;
 		const keyFn = options.keyFn;
 		let changed = false;
@@ -227,15 +265,16 @@ export class VirtualizeCommitter extends Committer<VirtualizeValue> implements C
 			let top = Infinity;
 			let bottom = -Infinity;
 			let rowHeight = 0;
-			for (let i = r * columns; i < Math.min(items.length, (r + 1) * columns); i++) {
+			for (let i = r * lanes; i < Math.min(items.length, (r + 1) * lanes); i++) {
 				const els = this.#rows.elements(keyFn ? keyFn(items[i], i) : i);
 				let itemTop = Infinity;
 				let itemBottom = -Infinity;
 				for (const el of els) {
 					seenEls.add(el);
 					const rect = el.getBoundingClientRect();
-					itemTop = Math.min(itemTop, rect.top);
-					itemBottom = Math.max(itemBottom, rect.top + rect.height);
+					const start = this.#h() ? rect.left : rect.top;
+					itemTop = Math.min(itemTop, start);
+					itemBottom = Math.max(itemBottom, start + (this.#h() ? rect.width : rect.height));
 				}
 				if (itemBottom > itemTop) rowHeight = Math.max(rowHeight, itemBottom - itemTop);
 				top = Math.min(top, itemTop);
@@ -258,7 +297,7 @@ export class VirtualizeCommitter extends Committer<VirtualizeValue> implements C
 			}
 		}
 		// No explicit estimate: unmeasured rows assume the mean of the measured ones.
-		if (options.estimatedItemHeight === undefined) {
+		if (this.#hint() === undefined) {
 			const avg = this.#model.measuredAverage();
 			if (avg !== undefined && Math.abs(avg - this.#autoEstimate) >= 0.5) {
 				this.#autoEstimate = avg;
@@ -276,21 +315,22 @@ export class VirtualizeCommitter extends Committer<VirtualizeValue> implements C
 		let first: Element | null = this.#top.nextElementSibling;
 		if (first === this.#bottom) first = null;
 		if (!first) return;
-		const scrollerTop = scroller instanceof Element ? scroller.getBoundingClientRect().top : 0;
-		const rel = first.getBoundingClientRect().top - scrollerTop + this.#scrollTop();
+		const side = this.#h() ? 'left' : 'top';
+		const scrollerTop = scroller instanceof Element ? scroller.getBoundingClientRect()[side] : 0;
+		const rel = first.getBoundingClientRect()[side] - scrollerTop + this.#scrollTop();
 		this.#listTop = rel - this.#model.offset(win.startRow);
 	}
 
 	// --- rendering -----------------------------------------------------------------------------
 
-	#window(g: { count: number; columns: number }): ItemWindow {
+	#window(g: { count: number; lanes: number }): ItemWindow {
 		const overscan = this.#value.options.overscan ?? 3;
 		const viewport = this.#viewport();
 		if (!this.#scroller || viewport <= 0) {
-			const rows = Math.ceil((this.#value.options.initialCount ?? 20) / g.columns);
-			return computeWindow(this.#model, g.count, g.columns, 0, this.#model.offset(rows) - 1, 0);
+			const rows = Math.ceil((this.#value.options.initialCount ?? 20) / g.lanes);
+			return computeWindow(this.#model, g.count, g.lanes, 0, this.#model.offset(rows) - 1, 0);
 		}
-		return computeWindow(this.#model, g.count, g.columns, this.#scrollTop() - this.#listTop, viewport, overscan);
+		return computeWindow(this.#model, g.count, g.lanes, this.#scrollTop() - this.#listTop, viewport, overscan);
 	}
 
 	/**
@@ -305,11 +345,11 @@ export class VirtualizeCommitter extends Committer<VirtualizeValue> implements C
 			const anchorRow = this.#scroller ? this.#model.rowAt(this.#scrollTop() - this.#listTop) : 0;
 			const anchorOffset = this.#model.offset(anchorRow);
 			const win = this.#window(g);
-			const sig = `${win.start}:${win.end}:${g.columns}:${g.count}:${this.#model.estimate}:${this.#model.gap}`;
+			const sig = `${win.start}:${win.end}:${g.lanes}:${g.count}:${this.#model.estimate}:${this.#model.gap}`;
 			if (!full && !force && sig === this.#signature) return;
 			this.#signature = sig;
 			this.#render(g, win, full);
-			const measured = this.#dynamic() && this.#measureRows(win, g.columns);
+			const measured = this.#dynamic() && this.#measureRows(win, g.lanes);
 			if (measured) this.#applySpacers(win);
 			const before = this.#listTop;
 			this.#measureListTop(win);
@@ -329,11 +369,10 @@ export class VirtualizeCommitter extends Committer<VirtualizeValue> implements C
 
 	#scrollBy(delta: number): void {
 		const s = this.#scroller;
-		if (s instanceof Element) s.scrollTop += delta;
-		else s?.scrollBy({ top: delta, behavior: 'instant' as ScrollBehavior });
+		if (s) this.#setScroll(this.#scrollTop() + delta);
 	}
 
-	#render(g: { count: number; columns: number }, win: ItemWindow, full: boolean): void {
+	#render(g: { count: number; lanes: number }, win: ItemWindow, full: boolean): void {
 		const { items, options } = this.#value;
 		const keyFn = options.keyFn;
 		const seen = new Set<unknown>();
@@ -351,23 +390,24 @@ export class VirtualizeCommitter extends Committer<VirtualizeValue> implements C
 	}
 
 	#applySpacers(win: ItemWindow): void {
-		this.#setSpacer(this.#top, spacerHeight(this.#model, 0, win.startRow));
-		this.#setSpacer(this.#bottom, spacerHeight(this.#model, win.endRow, this.#model.rows));
+		this.#setSpacer(this.#top, spacerSize(this.#model, 0, win.startRow));
+		this.#setSpacer(this.#bottom, spacerSize(this.#model, win.endRow, this.#model.rows));
 	}
 	#makeSpacer(tag: string): HTMLElement {
 		const el = document.createElement(tag);
 		el.setAttribute('aria-hidden', 'true');
 		el.dataset.stdUiSpacer = '';
-		el.style.cssText = 'display:none;grid-column:1/-1;flex:none;margin:0;padding:0;border:0;visibility:hidden;pointer-events:none';
+		const span = this.#h() ? 'grid-row:1/-1;align-self:stretch' : 'grid-column:1/-1';
+		el.style.cssText = `display:none;${span};flex:none;margin:0;padding:0;border:0;visibility:hidden;pointer-events:none`;
 		return el;
 	}
 
-	#setSpacer(el: HTMLElement, height: number): void {
-		if (height <= 0) {
+	#setSpacer(el: HTMLElement, size: number): void {
+		if (size <= 0) {
 			el.style.display = 'none';
 		} else {
 			el.style.display = 'block';
-			el.style.height = `${height}px`;
+			el.style[this.#h() ? 'width' : 'height'] = `${size}px`;
 		}
 	}
 }

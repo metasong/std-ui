@@ -11,7 +11,8 @@ class VirtualizeDirective extends Directive {
 	}
 
 	override render(items: ArrayLike<unknown>, options: VirtualizeOptions<any>) {
-		for (const [name, h] of [['itemHeight', options.itemHeight], ['estimatedItemHeight', options.estimatedItemHeight]] as const) {
+		for (const name of ['itemSize', 'estimatedItemSize'] as const) {
+			const h = options[name];
 			if (h !== undefined && !(h > 0)) throw new Error(`std-ui virtualize(): ${name} must be > 0.`);
 		}
 		return commitWith(VirtualizeCommitter, { items, options });
@@ -20,15 +21,15 @@ class VirtualizeDirective extends Directive {
 
 /**
  * Windowed rendering for large lists and grids. Only the rows near the viewport exist in the DOM;
- * two spacer elements stand in for the rest. Pass `itemHeight` for fixed-height items, or
- * `estimatedItemHeight` to let items be any height (rows are measured after render).
+ * two spacer elements stand in for the rest. Pass `itemSize` for fixed-size items, or
+ * `estimatedItemSize` to let items be any size (rows are measured after render). Set\r\n * `direction: 'horizontal'` to scroll along x.
  *
  *   html`<div class="list">${virtualize(rows, {
- *     itemHeight: 32,
+ *     itemSize: 32,
  *     renderItem: (r) => html`<div class="row">${r.name}</div>`,
  *   })}</div>`
  *
- * For a grid, set `columns` and give the container `display: grid` with matching columns/gap.
+ * For a grid, set `lanes` and give the container `display: grid` with matching columns/gap.
  */
 export const virtualize = directive(VirtualizeDirective) as <T>(
 	items: ArrayLike<T>,

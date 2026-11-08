@@ -32,19 +32,23 @@ it can recompute the window and call `renderItem` for newly visible items withou
 ```
 
 Spacers are `grid-column: 1 / -1; visibility: hidden; aria-hidden`. A spacer is a grid/flex item, so
-one `gap` separates it from its neighbour: height for `n` hidden rows is `n * (itemHeight + gap) - gap`.
+one `gap` separates it from its neighbour: height for `n` hidden rows is `n * (itemSize + gap) - gap`.
 
 ## Window math (`layout.ts`)
 
-`RowModel` maps rows to offsets. Each row has an estimated height until measured (`rows = ceil(count / columns)`, gap between rows). With no measurements (fixed mode) offsets are arithmetic (`row * (h + gap)`); after the first measurement a lazily rebuilt prefix-sum array is used, with `rowAt(offset)` by binary search. `computeWindow` takes the first/last row under the viewport, widens by `overscan` and clamps. Items are `[startRow*columns, min(count, endRow*columns))`, so grid rows are whole except the last. `columns` may be a function of container width.
+`RowModel` maps rows to offsets. Each row has an estimated height until measured (`rows = ceil(count / lanes)`, gap between rows). With no measurements (fixed mode) offsets are arithmetic (`row * (h + gap)`); after the first measurement a lazily rebuilt prefix-sum array is used, with `rowAt(offset)` by binary search. `computeWindow` takes the first/last row under the viewport, widens by `overscan` and clamps. Items are `[startRow*lanes, min(count, endRow*lanes))`, so grid rows are whole except the last. ``lanes` may be a function of container width.
 
 ## Variable heights
 
-- `itemHeight` set: fixed mode, no measuring. Otherwise unmeasured rows use `estimatedItemHeight` if given, else a running mean of measured rows (40px before any; updated right after measuring so scroll anchoring accounts for it).
+- `itemSize` set: fixed mode, no measuring. Otherwise unmeasured rows use `estimatedItemSize` if given, else a running mean of measured rows (40px before any; updated right after measuring so scroll anchoring accounts for it).
 - After each render, `#measureRows` reads each windowed row's elements (an item's extent is min top to max bottom of its elements; a row is its tallest item) and calls `RowModel.setHeight`. A second `ResizeObserver` on the row elements triggers a forced refresh when content resizes later.
 - If heights changed, spacers are re-applied from the model, `listTop` is re-measured, and the refresh loops (max 4 passes).
 - **Scroll anchoring:** at the start of each pass the first visible row and its model offset are recorded. If its offset moved after measuring, `scrollTop` is adjusted by the difference.
 - `scrollToIndex` iterates: scroll, refresh (measure), recompute target, until the target stops moving and anchoring leaves `scrollTop` on it (max 6 passes).
+
+## Horizontal direction
+
+One code path, axis-switched (`#h()`). `RowModel` already works in *main-axis* sizes, so both directions share it, with `lanes` items per row. Only the DOM reads/writes differ: `scrollLeft`/`scrollX` vs `scrollTop`/`scrollY`, `clientWidth`/`innerWidth` vs `clientHeight`/`innerHeight`, `rect.left`/`width` vs `rect.top`/`height`, spacer `width` vs `height`. A `lanes` function receives the cross-axis container size. Spacers use `grid-row: 1 / -1` (horizontal) instead of `grid-column: 1 / -1`. Direction is read per call, but spacer styling is fixed at creation, so changing it later is unsupported.
 
 ## Measuring
 
@@ -63,9 +67,9 @@ one `gap` separates it from its neighbour: height for `n` hidden rows is `n * (i
 |---|---|---|
 | Parent re-render → `update()` | every windowed item (`full`) | data may have changed |
 | `scroll` (rAF-throttled) | only newly entered keys | existing rows keep DOM/state |
-| `ResizeObserver` (scroller, parent) | only new keys | `columns` may change |
+| `ResizeObserver` (scroller, parent) | only new keys | ``lanes` may change |
 
-Unchanged window signature (`start:end:columns:count:height:gap`) skips the reconcile.
+Unchanged window signature (`start:end:lanes:count:height:gap`) skips the reconcile.
 
 ## `scrollToIndex`
 
@@ -84,4 +88,4 @@ Calls before the scroller is attached are queued (in the committer and in the co
 
 ## Non-goals / future
 
-- Horizontal virtualization, sticky headers, and window-height changes from `renderItem` output.
+- Right-to-left horizontal lists, sticky headers, and a different direction after the first render.
