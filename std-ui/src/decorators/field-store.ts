@@ -98,7 +98,7 @@ export function applyFieldStore<T, V>(context: ClassFieldDecoratorContext<T, V>,
 		const initial = (this as unknown as Record<PropertyKey, V>)[key];
 		onInitialValue?.(initial);
 		const store = createStore(initial);
-		Object.defineProperty(this, key, {
+		Object.defineProperty(this, key, { // we replaced the instance’s own data property for that key with a getter that returns the store
 			// Read-only accessor returning the store itself: `this.count()` reads, `this.count.set(v)` writes.
 			get() {
 				return store;
