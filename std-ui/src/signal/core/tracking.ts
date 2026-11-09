@@ -119,6 +119,9 @@ export class Watcher implements IWatcher {
 	/** Called by a watched dependency's `notify()`. Per spec, fires once then goes inert - clears
 	 * all subscriptions so `getPending()`/further changes are silent until re-`watch()`ed. */
 	run(): void {
+		// Self-write guard: a write to a dependency while this watcher is the one running must not
+		// re-trigger it (otherwise `effect(() => { a(); a.set(...) })` loops forever).
+		if (activeWatcher === this) return;
 		// break the 2-way link between the watcher and its dependencies,
 		// so no further notifications are sent to this watcher from the dependencies.
 		clearDeps(this);

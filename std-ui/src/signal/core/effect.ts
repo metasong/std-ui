@@ -2,6 +2,7 @@
 // `./tracking.ts` - the low-level primitive modeled on `Signal.subtle.Watcher` in the proposed
 // standard signals API.
 
+import { CycleGuard } from './cycle-guard.js';
 import { clearDeps, runTracked, Watcher } from './tracking.js';
 
 /** Call inside an `effect()` body to register cleanup that runs before the next re-run, and on dispose. */
@@ -19,12 +20,20 @@ function scheduleFlush(): void {
 	queueMicrotask(flush);
 }
 
+/** Max re-runs of one effect within a single chain of consecutive flushes before we assume a cycle. */
+const MAX_RERUNS_PER_CHAIN = 100;
+const cycleGuard = new CycleGuard(MAX_RERUNS_PER_CHAIN, () => pendingWatchers.clear());
+
 function flush(): void {
 	flushScheduled = false;
 	// Snapshot first: an effect re-running may schedule more effects, which should run next flush.
 	const watchers = Array.from(pendingWatchers);
 	pendingWatchers.clear();
-	for (const watcher of watchers) effectBodies.get(watcher)?.();
+	for (const watcher of watchers) {
+		cycleGuard.count(watcher);
+		effectBodies.get(watcher)?.();
+	}
+	if (pendingWatchers.size === 0) cycleGuard.reset();
 }
 
 /**
@@ -71,6 +80,7 @@ export function effect(
 		scheduleFlush();
 	});
 	effectBodies.set(watcher, rerun);
+	cycleGuard.register(watcher);
 
 	// First run happens synchronously, so initial DOM sync isn't deferred a tick.
 	rerun();
@@ -79,6 +89,7 @@ export function effect(
 		disposed = true;
 		pendingWatchers.delete(watcher);
 		effectBodies.delete(watcher);
+		cycleGuard.unregister(watcher);
 		clearDeps(watcher);
 		runCleanup();
 	};
