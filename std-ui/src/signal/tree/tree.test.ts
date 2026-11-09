@@ -173,6 +173,16 @@ describe('signalState', () => {
 		tree.set(7);
 		expect(tree()).toBe(7);
 	});
+
+	it('.set() throws with known keys when partial includes a key not in the tree', () => {
+		const tree = signalState(makeState());
+		expect(() => tree.set({ extra: 1 } as State)).toThrow(
+			/cannot \.set\(\) unknown key "extra".*count, user, tags/,
+		);
+		expect(() => tree.user.set({ zip: 1 } as State['user'])).toThrow(
+			/cannot \.set\(\) unknown key "zip".*label, age/,
+		);
+	});
 });
 
 function flush(): Promise<void> {

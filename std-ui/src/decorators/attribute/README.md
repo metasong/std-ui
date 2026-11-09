@@ -100,7 +100,7 @@ skips `.set`).
 
 ## Complex-object fields
 
-Same [`SignalTree`](../../signal/tree/tree.md) backing as `@state()` — use `type: Object` when the
+Same [`SignalTree`](../../signal/tree/README.md) backing as `@state()` — use `type: Object` when the
 attribute should mirror JSON:
 
 ```ts

@@ -16,7 +16,7 @@ import { signalState, type SignalState } from '../signal/index.js';
  * a plain `signal()` internally - so a `number`/`string`/`boolean` field behaves exactly as
  * before, just reached through `SignalState`'s identical `()`/`.peek()`/`.set()`/`.update()` surface.
  * For a *plain-object* initial value, it instead builds a tree of signals/computeds mirroring that
- * object's shape (see `../signal/tree/tree.md`): each leaf becomes an independently-writable `Signal`,
+ * object's shape (see `../signal/tree/README.md`): each leaf becomes an independently-writable `Signal`,
  * and reading the field goes through the root `Computed`, which only recomputes (and so only
  * re-triggers `template()`/effects reading the whole property) when a leaf actually touched by that
  * write changes - `this.config.set({ ...this.config(), count: 1 })` doesn't spuriously dirty

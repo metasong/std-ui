@@ -92,7 +92,14 @@ export function signalState<T>(value: T, signalOptions?: SignalOptions<T>): Sign
 		);
 	}
 
+	// True while the branch itself has been `.set(undefined)`; it then reads as `undefined`.
+	// Children are kept so a later object `.set()` can restore the branch.
+	// Holds which empty value (`undefined` or `null`) the branch reads as, or `false` when intact.
+	const cleared = signal<false | { value: undefined | null }>(false);
+
 	const node = computed(() => {
+		const c = cleared();
+		if (c) return c.value;
 		const result: PlainObject = {};
 		for (const key of Object.keys(children)) {
 			result[key] = children[key]();
@@ -104,6 +111,8 @@ export function signalState<T>(value: T, signalOptions?: SignalOptions<T>): Sign
 	// *tracked* `()` reads internally, leaking dependencies on the whole subtree. This version
 	// recurses via each child's `.peek()` instead, for a true deep-untracked snapshot.
 	node.peek = (): T => {
+		const c = cleared.peek();
+		if (c) return c.value as T;
 		const result: PlainObject = {};
 		for (const key of Object.keys(children)) {
 			result[key] = children[key].peek();
@@ -111,9 +120,13 @@ export function signalState<T>(value: T, signalOptions?: SignalOptions<T>): Sign
 		return result as T;
 	};
 	node.set = (partial: DeepPartial<T>): void => {
+		if (partial === undefined || partial === null) {
+			cleared.set({ value: partial as undefined | null });
+			return;
+		}
+		cleared.set(false);
 		for (const key of Object.keys(partial as object)) {
 			const value = (partial as Record<string, unknown>)[key];
-			if (value === undefined) continue;
 			const child = children[key];
 			if (child === undefined) {
 				const known = Object.keys(children);

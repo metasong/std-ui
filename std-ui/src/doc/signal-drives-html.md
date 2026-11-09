@@ -94,7 +94,7 @@ shared.counter.value.set(5);           // write a leaf: shared.counter.value is 
 shared.counter.set({ max: 20 });     // or set a branch without touching sibling leaves
 ```
 
-Nested objects become branch `Computed`s; leaves like `value` and `max` are writable `Signal`s on the tree (`shared.counter.value.set(...)`) and are also readable as tracked functions (`shared.counter.value()`). Reading any of them inside `template()` registers that leaf as a dependency of the render effect — same tracking rule as any other `effect()`. See [`../signal/tree/tree.md`](../signal/tree/tree.md) for branch `.set(partial)` and `.peek()`.
+Nested objects become branch `Computed`s; leaves like `value` and `max` are writable `Signal`s on the tree (`shared.counter.value.set(...)`) and are also readable as tracked functions (`shared.counter.value()`). Reading any of them inside `template()` registers that leaf as a dependency of the render effect — same tracking rule as any other `effect()`. See [`../signal/tree/README.md`](../signal/tree/README.md) for branch `.set(partial)` and `.peek()`.
 
 What `UIElement` does for you (see `ui-element.ts`):
 
@@ -178,6 +178,6 @@ flowchart LR
 - [`saved-ui-rerendering.md`](./saved-ui-rerendering.md) — why signal updates reuse DOM (`strings`
   identity, `render()` fast path, nested `t` in lists).
 - [`../signal/core/signal.md`](../signal/core/signal.md) — primitives, tracking, batching, `peek`.
-- [`../signal/tree/tree.md`](../signal/tree/tree.md) — `signalState`, branch `.set(partial)`, app-shaped state.
+- [`../signal/tree/README.md`](../signal/tree/README.md) — `signalState`, branch `.set(partial)`, app-shaped state.
 - [`../template/html.md`](../template/html.md) — binding kinds, limitations, `svg`, `html` (raw markup directive).
 - [`signal-drives-html.example.test.ts`](signal-drives-html.example.test.ts) — executable walkthrough of Patterns A, B, and C.

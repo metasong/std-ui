@@ -1,7 +1,7 @@
 # `@state()` / `@attribute()` — reactive and attribute-backed component fields
 
 Two field decorators for `UIElement` (see `../ui-element.ts`) subclasses, both backing a field with
-a reactive store (see [`../signal/tree/tree.md`](../signal/tree/tree.md)):
+a reactive store (see [`../signal/tree/README.md`](../signal/tree/README.md)):
 
 | Decorator | Doc |
 |---|---|

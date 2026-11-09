@@ -2,7 +2,7 @@
 // `../ui-element.ts`) into a store accessor (see `../field-store.ts`) - no attribute involved at
 // all. The field becomes that store (`this.someField()` / `this.someField.set(...)`) — a `signal()`
 // for a primitive/array/class-instance value, or a `SignalState` for a plain-object value (see
-// `../field-store.ts` and `../../signal/tree/tree.md`) — so reads inside `template()`/`effect()` track
+// `../field-store.ts` and `../../signal/tree/README.md`) — so reads inside `template()`/`effect()` track
 // it transparently, the same way as
 // any other signal.
 //
@@ -34,7 +34,7 @@ export interface StateOptions<V = unknown> {
  * class MyPanel extends UIElement {
  *   @state() count = 0; // `this.count()` / `this.count.set(n)`
  *   @state() config = { a: 1, b: { c: 2 } }; // plain-object value -> `SignalState`-backed (see
- *     // `../field-store.ts` / `../../signal/tree/tree.md`): each leaf is independently writable/reactive, and
+ *     // `../field-store.ts` / `../../signal/tree/README.md`): each leaf is independently writable/reactive, and
  *     // `this.config.set({ ...this.config(), a: 2 })` only notifies readers of the `a` leaf.
  * }
  * ```
