@@ -1,5 +1,5 @@
 export { t, svg, type TemplateResult } from './html.js';
-export { html } from './directives/unsafe-html/index.js';
+export { html } from './directives/html/index.js';
 export { render, unmount, disconnectRendered } from './render.js';
 export { Directive, directive, noChange, PartType, type Part, type PartInfo } from './directive.js';
 export {
