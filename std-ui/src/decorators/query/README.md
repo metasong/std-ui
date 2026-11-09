@@ -30,7 +30,7 @@ class TodoList extends UIElement {
 		return t`
 			<h2 class="title">To-dos</h2>
 			<form><input /></form>
-			<ul>${this.items.map(item => t`<li>${item}</li>`)}</ul>
+			<ul>${this.items().map(item => t`<li>${item}</li>`)}</ul>
 		`;
 	}
 }
@@ -120,7 +120,7 @@ see additions/removals after the one you first read.
 
 `UIElement` re-renders when signals change, but those re-runs are **microtask-batched** (see
 `../../signal/core/effect.ts` — `scheduleFlush()` queues one microtask per burst of synchronous
-writes). A `@state()` assignment (or any signal write) takes effect immediately in memory; the DOM
+writes). A `@state()` `.set()` (or any signal write) takes effect immediately in memory; the DOM
 only catches up after that pending flush runs.
 
 `@query()` always calls `renderRoot.querySelector` at read time against whatever DOM exists **right now**. That
@@ -129,7 +129,7 @@ fails in the common pattern “flip a signal, then immediately need a node that 
 of that flip” — especially conditional branches in `template()`:
 
 ```ts
-el.show = true;
+el.show.set(true);
 el.lazySync; // @query('.lazy') — still null; template() has not re-run yet
 ```
 
@@ -138,7 +138,7 @@ first — “every render/effect re-run that was already scheduled when I read t
 the DOM” — and only then runs `renderRoot.querySelector`:
 
 ```ts
-el.show = true;
+el.show.set(true);
 await el.lazy; // @queryAsync('.lazy') — sees `<em class="lazy">` after the pending render
 ```
 

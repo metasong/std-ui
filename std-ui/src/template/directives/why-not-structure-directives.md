@@ -13,6 +13,10 @@ is enough.
 For how child bindings treat `null` / `false` / `undefined`, nested `` t`...` ``, and list diffing, see
 [`../html.md`](../html.md#logic-conditionals-and-lists).
 
+`@state()` / `@attribute()` fields are their backing stores: read with `this.field()` inside
+`template()` (so the render effect tracks changes), write with `this.field.set(...)` or
+`.update(...)` in handlers — see [`../../decorators/README.md`](../../decorators/README.md).
+
 ## `if` / `else`
 
 **Why not:** A dedicated `if` directive would mostly wrap a ternary or an `if` in `template()`. The
@@ -32,11 +36,11 @@ class DemoGreeting extends UIElement {
   protected override template() {
     return t`
       <section>
-        ${this.loggedIn ? t`<p>Welcome, ${this.name}</p>` : null}
-        ${this.loggedIn
+        ${this.loggedIn() ? t`<p>Welcome, ${this.name()}</p>` : null}
+        ${this.loggedIn()
           ? t`<p class="ok">You are signed in.</p>`
           : t`<p class="hint">Please sign in.</p>`}
-        <p ?hidden="${!this.loggedIn}">Account settings and extra details live here.</p>
+        <p ?hidden="${!this.loggedIn()}">Account settings and extra details live here.</p>
       </section>
     `;
   }
@@ -58,9 +62,9 @@ class DemoRoleBanner extends UIElement {
   protected override template() {
     return t`
       <section class="role-banner">
-        ${this.role === 'admin'
+        ${this.role() === 'admin'
           ? t`<p class="banner admin">Full admin console</p>`
-          : this.role === 'member'
+          : this.role() === 'member'
             ? t`<p class="banner member">Member dashboard</p>`
             : t`<p class="banner guest">Sign up to get access</p>`}
       </section>
@@ -161,10 +165,10 @@ class DemoStatusPanel extends UIElement {
   protected override template() {
     return t`
       <header>
-        ${this.loadState === 'loading'
+        ${this.loadState() === 'loading'
           ? t`<p class="loading">Working…</p>`
-          : this.loadState === 'error'
-            ? t`<p class="err">${this.errorMessage}</p>`
+          : this.loadState() === 'error'
+            ? t`<p class="err">${this.errorMessage()}</p>`
             : null}
       </header>
     `;
@@ -193,8 +197,8 @@ class DemoTabs extends UIElement {
 }
 ```
 
-When each case is a different inner `` t`...` `` literal, changing `tab` or `loadState` swaps the
-mounted subtree (same rules as `if` / `else` above).
+When each case is a different inner `` t`...` `` literal, changing `tab()` / `loadState()` (via
+`.set` on the field store) swaps the mounted subtree (same rules as `if` / `else` above).
 
 ## What we add instead of structure directives
 

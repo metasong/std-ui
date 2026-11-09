@@ -13,9 +13,9 @@
 //
 // Plain fields only (no `accessor` support): a consumed field has no sensible local initializer
 // (its value only ever comes from the provider) and is never locally written, so there's no
-// `get`/`set` pair to hand back the way `@state()`'s accessor branch does - `../../ui-element.ts`
-// simply `Object.defineProperty`s the field directly onto the instance once connected, the same
-// way `../field-store.ts` does for a plain (non-`accessor`) `@state()` field.
+// `get`/`set` pair at decoration time. `../../ui-element.ts` instead `Object.defineProperty`s the
+// field onto the instance once connected (value + set/get accessor), like `../field-store.ts` does
+// for `@state()` — except the consumer field holds a plain reactive value, not a store reference.
 
 import type { ContextKey } from './key.js';
 import { registerConsumedContextDef } from './metadata.js';

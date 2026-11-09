@@ -25,11 +25,41 @@ class SearchField extends UIElement {
 
 Design notes: [`design.md`](./design.md).
 
+## `@state()` / `@attribute()`
+
+Decorator fields **are** writable stores — pass the field itself to `bind()`, not a read (`this.query()`). Display and logic still use `()` / `.set()` everywhere else.
+
+```ts
+import { t, bind, state, tag, UIElement } from 'std-ui';
+
+@tag('signup-field')
+class SignupField extends UIElement {
+	@state() email = '';
+	@state() agreed = false;
+
+	protected override template() {
+		return t`
+			<input type="email" .value="${bind(this.email)}" placeholder="you@example.com" />
+			<label>
+				<input type="checkbox" .checked="${bind(this.agreed)}" />
+				I agree
+			</label>
+			<p>${this.email()} — agreed: ${this.agreed()}</p>
+		`;
+	}
+}
+```
+
+`@attribute()` fields work the same (`bind(this.age)` on an `@attribute()` number field). Browser demo:
+[`demo/sections/bind/form-section.ts`](../../../../demo/sections/bind/form-section.ts).
+
 ## API
 
 ### `bind(signal[, options])`
 
-Binds a `signal()` or `signalState()` node directly — the model is the signal itself, no key strings. Any callable with a `.set()` works. The read happens during render, so model changes re-render the template.
+Binds a `signal()`, `signalState()` node, or `@state()` / `@attribute()` field directly — the model
+is that store, not a separate signal variable. Any callable with `.set()` works. The read happens
+during render, so model changes re-render the template.
 
 ```ts
 const form = signalState({ query: '', agreed: false });
