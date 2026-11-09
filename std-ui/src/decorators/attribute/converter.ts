@@ -24,8 +24,11 @@ export type AttributeType =
 export interface AttributeConverter<V = unknown> {
 	/** Converts the HTML attribute string (or `null` if absent/removed) into the property value. */
 	fromAttribute(value: string | null): V;
-	/** Converts the property value into attribute text, or `null` to remove the attribute. */
-	toAttribute(value: V): string | null;
+	/**
+	 * Converts the property value into attribute text, `null` to remove the attribute, or
+	 * `undefined` to leave the host attribute unchanged (property → attribute reflection only).
+	 */
+	toAttribute(value: V): string | null | undefined;
 }
 
 const stringConverter: AttributeConverter<string> = {
@@ -105,8 +108,11 @@ export function parseAttribute(value: string | null, converter: AttributeConvert
 	return converter.fromAttribute(value);
 }
 
-/** Serializes a property value back into attribute text, or `null` to remove the attribute, via `converter`. */
-export function serializeAttribute(value: unknown, converter: AttributeConverter): string | null {
+/**
+ * Serializes a property value back into attribute text via `converter`: `null` removes the
+ * attribute; `undefined` means do not touch the attribute.
+ */
+export function serializeAttribute(value: unknown, converter: AttributeConverter): string | null | undefined {
 	return converter.toAttribute(value);
 }
 

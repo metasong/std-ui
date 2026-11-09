@@ -90,7 +90,8 @@ The browser invokes this for `setAttribute` / `removeAttribute`, and for every a
 **upgrade** (typically before `connectedCallback`) — static markup can override field defaults (see
 [`attribute.test.ts`](./attribute.test.ts)).
 
-Custom `fromAttribute` may return `undefined` to leave the store untouched.
+Custom `fromAttribute` may return `undefined` to leave the store untouched; custom `toAttribute`
+may return `undefined` to leave the host attribute untouched (reflection effect no-ops).
 
 ## Property → attribute: connect-time effects
 
@@ -98,7 +99,8 @@ Reflection is opt-in (`reflect: true`), set up at **connect** time. `UIElement.c
 delegates to [`wire-reflect.ts`](./wire-reflect.ts):
 
 - Loop `getAttributeDefs`, skip `reflect: false`.
-- One `effect()` per def: read store, `serializeAttribute`, `setAttribute` / `removeAttribute`.
+- One `effect()` per def: read store, `serializeAttribute`, then `setAttribute` / `removeAttribute`
+  (skipping when serialization is `undefined`).
 - Disposers on the same list as the render effect; torn down on `disconnectedCallback`.
 
 The effect runs synchronously on first subscribe, so the host attribute matches the current store

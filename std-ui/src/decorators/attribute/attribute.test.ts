@@ -262,4 +262,33 @@ describe('@attribute()', () => {
 		expect(el.getAttribute('config')).toBe('{"theme":"light"}');
 		el.remove();
 	});
+
+	it('leaves the host attribute unchanged when toAttribute returns undefined', async () => {
+		@tag('attr-toattr-skip')
+		class Foo extends UIElement {
+			@attribute({
+				reflect: true,
+				converter: {
+					fromAttribute: (value: string | null) => value ?? '',
+					toAttribute: (value: unknown) => (value === 'skip' ? undefined : String(value)),
+				},
+			})
+			label = 'hi';
+		}
+
+		const el = document.createElement('attr-toattr-skip') as Foo;
+		el.setAttribute('label', 'from-markup');
+		document.body.appendChild(el);
+		expect(el.getAttribute('label')).toBe('from-markup');
+
+		el.label.set('skip');
+		await flush();
+		expect(el.getAttribute('label')).toBe('from-markup');
+		expect(el.label()).toBe('skip');
+
+		el.label.set('updated');
+		await flush();
+		expect(el.getAttribute('label')).toBe('updated');
+		el.remove();
+	});
 });

@@ -96,7 +96,8 @@ config = { theme: 'dark' };
 `type` alongside `converter` is a readability hint only (no runtime effect once `converter` is set).
 
 `fromAttribute` may return `undefined` to mean "leave the store unchanged" (`attributeChangedCallback`
-skips `.set`).
+skips `.set`). `toAttribute` may return `undefined` to mean "leave the host attribute unchanged"
+(reflection skips `setAttribute` / `removeAttribute`).
 
 ## Complex-object fields
 
