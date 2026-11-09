@@ -35,6 +35,9 @@ export interface ToSignalOptions<T, U = undefined> {
 	onCleanup?: (cleanup: () => void) => void;
 }
 
+/** Options for `toSignalFrom` (same as `toSignal`). */
+export type ToSignalFromOptions<T, U = undefined> = ToSignalOptions<T, U>;
+
 /** The signal returned by `toSignal`: callable read + `peek()` + `dispose()`. */
 export type ToSignal<V> = Computed<V> & {
 	/** Stops listening: unsubscribes (observable) or ignores the late result (promise). Keeps the last value. */

@@ -51,7 +51,7 @@ export class DemoTodoSection extends UIElement {
 		const input = form.elements.namedItem('text') as HTMLInputElement;
 		const text = input.value.trim();
 		if (!text) return;
-		this.todos = [...this.todos, { id: nextId++, text, done: false }];
+		this.todos = [...this.todos, { id: nextId++, text, done: false }]; // update state
 		form.reset();
 	}
 }

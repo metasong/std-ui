@@ -77,5 +77,6 @@ On each `update(values)`: a `DirectiveResult` goes through `applyDirective` (a `
 ## Related reading
 
 - [`README.md`](./README.md) — public API and event table.
-- [`../design.md`](../design.md) — general directive layout.
+- [`../README.md`](../README.md) — index of built-in directives.
+- [`../class-map/design.md`](../class-map/design.md) / [`../style-map/design.md`](../style-map/design.md) — attribute directive pattern.
 - [`../../html.md`](../../html.md#directives) — binding kinds and extension points.

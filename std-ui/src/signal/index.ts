@@ -8,6 +8,8 @@ export {
 
 export {
 	toSignal,
+	toSignalFrom,
+	type ToSignalFromOptions,
 	type InteropObservable,
 	type PartialObserver,
 	type Subscribable,

@@ -72,9 +72,22 @@ protected override connect(): void {
 
 Passing `onCleanup` ties disposal to the same rules as other component `effect()`s (auto-dispose on disconnect).
 
-## Re-active sources
+## Reactive sources: `toSignalFrom(factory[, options])`
 
-`toSignal` does **not** re-subscribe when other signals change. For `fetch` that depends on `id()`, use an `effect` that creates the `toSignal` inside `subtle.untrack` and passes `onCleanup` (so each re-run disposes the previous one), or call `.then` + `signal.set` yourself until a dedicated `toSignalFrom(factory)` helper exists (see [`design.md`](./design.md)).
+Use it when the source depends on signals. `factory` runs in a tracked context; when a signal it reads changes, the previous subscription is disposed and the factory re-runs.
+
+```ts
+const user = toSignalFrom(() => fetch(`/users/${this.id()}`).then(r => r.json()), { initialValue: null });
+```
+
+- Returning `null`/`undefined` means "no source right now".
+- The last good value is kept while the new source is pending; a previous error is cleared on re-run.
+- If `factory` throws, reads throw that error until the next re-run.
+- Same options and return type as `toSignal`; `dispose()` stops the effect and the current subscription.
+- Like `toSignal`, it throws inside a reactive context (create it once).
+
+Without `toSignalFrom`, 
+use an `effect` that creates the `toSignal` inside `subtle.untrack` and passes `onCleanup` (so each re-run disposes the previous one), or call `.then` + `signal.set` yourself until a dedicated `toSignalFrom(factory)` helper exists (see [`design.md`](./design.md)).
 
 ## Files
 

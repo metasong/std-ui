@@ -11,7 +11,8 @@ Guides for the library under `src/` (`signal/`, `template/`, `ui-element.ts`):
 | Async → signal (`toSignal`) | [`src/signal/to-signal/README.md`](./src/signal/to-signal/README.md) · [design](./src/signal/to-signal/design.md) |
 | HTML templates (`t`, `render`) | [`src/template/html.md`](./src/template/html.md) |
 | CSS templates (`css`, `static styles`) | [`src/template/css.md`](./src/template/css.md) |
-| Attribute directives (`classMap`, `styleMap`) | [`src/template/directives/README.md`](./src/template/directives/README.md) · [design](./src/template/directives/design.md) |
+| `classMap` | [`src/template/directives/class-map/README.md`](./src/template/directives/class-map/README.md) · [design](./src/template/directives/class-map/design.md) |
+| `styleMap` | [`src/template/directives/style-map/README.md`](./src/template/directives/style-map/README.md) · [design](./src/template/directives/style-map/design.md) |
 | Component fields (`@state`, `@attribute`) | [`src/decorators/README.md`](./src/decorators/README.md) · [design](./src/decorators/design.md) |
 | Context (`@state({ contextKey })`, `@consume`) | [`src/decorators/context/README.md`](./src/decorators/context/README.md) · [design](./src/decorators/context/design.md) |
 | **Signals driving template render** (end-to-end) | [`src/doc/signal-drives-html.md`](./src/doc/signal-drives-html.md) |

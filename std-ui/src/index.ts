@@ -31,6 +31,7 @@ export type { VirtualizeOptions, ScrollToIndexOptions, ScrollAlign } from './tem
 export {
 	signalState,
 	toSignal,
+	toSignalFrom,
 	computed,
 	effect,
 	subtle,
@@ -41,4 +42,5 @@ export {
 	type Subscribable,
 	type ToSignal,
 	type ToSignalOptions,
+	type ToSignalFromOptions,
 } from './signal/index.js';

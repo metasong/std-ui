@@ -106,6 +106,6 @@ When async work **depends on signals**, use **`toSignalFrom(factory)`** (future)
 
 ## Differences from Angular
 
-- **No equireSync.** Observables that emit synchronously during subscribe already work (the value is kept), but there is no option to enforce it and no "guaranteed sync, `T` only" overload. For promises it is a poor fit anyway: native promises always settle on a microtask.
+- **No equireSync.** Observables that emit synchronously during subscribe already work (the value is kept), but there is no option to enforce it and no "guaranteed sync, `T` only" overload. For promises it is a poor fit anyway: native promises always settle on a microtask.
 - **`assertNotInReactiveContext`** runs on every `toSignal()` call (not dev-only), same intent as Angular. It is also exposed on `subtle` for other one-shot subscribe helpers.
 - **No signal-dependent sources.** There is no `toSignalFrom(() => fetch(...))`. Wrap `toSignal` in an `effect` with `subtle.untrack` and `onCleanup` instead.
