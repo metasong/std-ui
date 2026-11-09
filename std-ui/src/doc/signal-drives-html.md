@@ -3,7 +3,7 @@
 std-ui pairs two ideas that stay useful on their own but work especially well together:
 
 1. **Signals** — fine-grained reactivity (`signalState`, `computed`, `effect`, or app-shaped state like `appState`).
-2. **`html` + `render`** — lit-html-style tagged templates that patch the DOM in place instead of rebuilding it.
+2. **`t` + `render`** — lit-html-style tagged templates that patch the DOM in place instead of rebuilding it.
 
 Wiring them up gives you declarative UI that updates surgically: when state changes, only the DOM nodes and attributes whose bound values actually changed are touched. No virtual DOM, no full `innerHTML` refresh on every tick.
 
@@ -14,7 +14,7 @@ Wiring them up gives you declarative UI that updates surgically: when state chan
 | **Updates** | `render()` reuses the same DOM nodes; `Part.update()` no-ops on `Object.is`-equal values (same rule as `signal.set`). |
 | **Dependencies** | An `effect` re-runs only when signals it *read* change; branch changes in `computed`/`if` are tracked correctly each run. |
 | **Batching** | Multiple synchronous `.set()` calls in one turn collapse to one effect flush (microtask), then one render pass. |
-| **Authoring** | Markup stays in `html\`...\`` templates with attribute/event bindings; state stays in signals, not scattered DOM queries. |
+| **Authoring** | Markup stays in `t\`...\`` templates with attribute/event bindings; state stays in signals, not scattered DOM queries. |
 | **Components** | `UIElement` already connects a `SignalState` to `template()` for you; you can still drop to raw `effect` + `render` outside custom elements. |
 
 The fireworks app uses this throughout `src/ui/components/` — e.g. `pause-button` swaps icon markup when `appState.paused()` changes, and `controls-bar` toggles layout classes from `appState` while composing child custom elements in one template.
@@ -24,13 +24,13 @@ The fireworks app uses this throughout `src/ui/components/` — e.g. `pause-butt
 Use this for a widget, panel, or one-off view that is not a custom element. The effect is the "render loop": read signals, build a template result, pass it to `render`.
 
 ```ts
-import { signalState, computed, effect, html, render } from '../index.js';
+import { signalState, computed, effect, t, render } from '../index.js';
 
 const count = signalState(0);
 const label = computed(() => (count() === 1 ? 'click' : 'clicks'));
 
 const container = document.getElementById('app')!;
-const view = () => html`
+const view = () => t`
 	<p>You have <strong>${count()}</strong> ${label()}.</p>
 	<button ?disabled="${count() >= 10}" @click="${() => count.update(n => n + 1)}">
 		Increment
@@ -46,16 +46,16 @@ count.set(3); // effect re-runs → render patches text + disabled, same <p> and
 
 Important details:
 
-- **`view` must keep the same `html` call site** — always `return html\`...\`` from the same tagged template expression. If you switch to a *different* template literal (e.g. alternate `if` branches that each define their own `` html`...` ``), std-ui tears down and rebuilds that container's DOM. Prefer one template with conditional *values* (`?disabled`, ternary in `${...}`) over conditional *templates* when you care about reuse. See [`saved-ui-rerendering.md`](./saved-ui-rerendering.md) for the full mental model (`strings` vs `values`, nested templates, lists).
+- **`view` must keep the same `t` call site** — always `return t\`...\`` from the same tagged template expression. If you switch to a *different* template literal (e.g. alternate `if` branches that each define their own `` t`...` ``), std-ui tears down and rebuilds that container's DOM. Prefer one template with conditional *values* (`?disabled`, ternary in `${...}`) over conditional *templates* when you care about reuse. See [`saved-ui-rerendering.md`](./saved-ui-rerendering.md) for the full mental model (`strings` vs `values`, nested templates, lists).
 - **`computed` for derived text** — keeps the effect from manually syncing extra fields; only re-read when dependencies change.
 - **Event handlers** — `@click` bindings are re-bound when the handler reference changes; inline arrows are fine for demos, stable references are better in production.
 
 ## Pattern B — `UIElement`: `template()` reads signals directly → automatic `render`
 
-For custom elements, you usually don't call `effect` + `render` yourself. Subclass `UIElement` and return `html` from `template()`, reading whatever signals you need directly inside it (module-level signals, a shared `signalState()` tree, or app-wide state like `appState` - `UIElement` itself has no notion of "the" state). `connect()` runs **before** the first `template`, so markup from your template is not in the DOM yet — put bindings and structure in `template`, and use `firstRendered` / `rendered` when you need to touch rendered nodes.
+For custom elements, you usually don't call `effect` + `render` yourself. Subclass `UIElement` and return `t` from `template()`, reading whatever signals you need directly inside it (module-level signals, a shared `signalState()` tree, or app-wide state like `appState` - `UIElement` itself has no notion of "the" state). `connect()` runs **before** the first `template`, so markup from your template is not in the DOM yet — put bindings and structure in `template`, and use `firstRendered` / `rendered` when you need to touch rendered nodes.
 
 ```ts
-import { signalState, tag, html, UIElement } from '../index.js';
+import { signalState, tag, t, UIElement } from '../index.js';
 
 interface DemoState {
 	counter: {
@@ -72,7 +72,7 @@ const shared = signalState<DemoState>({
 class DemoCounter extends UIElement {
 	protected override template() {
 		const { value, max } = shared.counter;
-		return html`
+		return t`
 			<span>${value()}</span> / ${max()}
 			<button
 				type="button"
@@ -109,7 +109,7 @@ What `UIElement` does for you (see `ui-element.ts`):
 |---|---|---|
 | 1 | `connect()` | Before first `template`; one-time setup per connect cycle |
 | 2 | `template()` | Whenever a signal it read changes (and once immediately after connect) |
-| 3 | DOM patch | Only if `template` returned `html\`...\`` |
+| 3 | DOM patch | Only if `template` returned `t\`...\`` |
 | 4 | `firstRendered()` | Once, right after the first successful render pass in step 2 |
 | 5 | `rendered()` | After every render pass, including the first (always after step 4 on the first pass) |
 
@@ -147,7 +147,7 @@ flowchart LR
     E[effect]
   end
   subgraph dom
-    V["view() → html`...`"]
+    V["view() → t`...`"]
     R[render container]
     P[Parts patch in place]
   end
@@ -166,7 +166,7 @@ flowchart LR
 
 - **Text and attributes** — `${count()}`, `class="${cls}"`, `?disabled="${bool}"`.
 - **Properties and events** — `.value`, `@click` (see `html.md` binding table).
-- **Nested templates** — `html` inside `${...}` for conditional fragments without a second top-level template.
+- **Nested templates** — `t` inside `${...}` for conditional fragments without a second top-level template.
 - **No-op updates** — `count.set(5)` when already `5` does not notify; DOM is not touched.
 - **Derived state** — `computed(() => count() * 2)` inside the template or passed into `${...}`.
 - **Fine-grained DOM** — `this.effect()` in `firstRendered` to update a node omitted from `template` (Pattern C).
@@ -176,7 +176,7 @@ flowchart LR
 ## Related reading
 
 - [`saved-ui-rerendering.md`](./saved-ui-rerendering.md) — why signal updates reuse DOM (`strings`
-  identity, `render()` fast path, nested `html` in lists).
+  identity, `render()` fast path, nested `t` in lists).
 - [`../signal/core/signal.md`](../signal/core/signal.md) — primitives, tracking, batching, `peek`.
 - [`../signal/tree.md`](../signal/tree.md) — `signalState`, branch `.set(partial)`, app-shaped state.
 - [`../template/html.md`](../template/html.md) — binding kinds, limitations, `svg`, `unsafeHTML`.

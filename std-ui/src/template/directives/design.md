@@ -11,7 +11,7 @@ How the two built-in attribute directives are implemented, and how they use the 
 | [`style-map/`](./style-map/) | `toCssPropertyName()` (camelCase → kebab-case) + `StyleMapDirective` + `export const styleMap = directive(StyleMapDirective)`. |
 | [`index.ts`](./index.ts) | Public re-exports. |
 | [`class-map/class-map.test.ts`](./class-map/class-map.test.ts) / [`style-map/style-map.test.ts`](./style-map/style-map.test.ts) | Behavior tests through `AttributePart` directly. |
-| [`directives.test.ts`](./directives.test.ts) | End-to-end tests through `html()`/`render()`. |
+| [`directives.test.ts`](./directives.test.ts) | End-to-end tests through `t()`/`render()`. |
 
 All code for one directive lives in one file — the constructor's validation, its `update()`
 implementation, and its exported `directive()`-made function are never split across modules.

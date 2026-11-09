@@ -1,5 +1,5 @@
 // Fixed-height vertical list (~10k rows) + scrollToIndex.
-import { tag, html, UIElement, state, virtualize, VirtualizeController } from '../../../src/index.js';
+import { tag, t, UIElement, state, virtualize, VirtualizeController } from '../../../src/index.js';
 
 type Row = { i: number };
 
@@ -11,7 +11,7 @@ export class DemoVirtualizeVertical extends UIElement {
 	@state() private scrollHint = '—';
 
 	protected override template() {
-		return html`
+		return t`
 			<h2 id="vertical">Vertical list (fixed <code>itemSize</code>)</h2>
 			<p class="desc">
 				10,000 rows; only the viewport window exists in the DOM. Jump by index or scroll — render count stays small.
@@ -32,7 +32,7 @@ export class DemoVirtualizeVertical extends UIElement {
 						overscan: 4,
 						controller: this.#list,
 						keyFn: (r: Row) => r.i,
-						renderItem: (r: Row) => html`
+						renderItem: (r: Row) => t`
 							<div
 								class="demo-v-row ${r.i % 2 === 0 ? 'demo-v-row-even' : ''}"
 								style="height: 36px; box-sizing: border-box"

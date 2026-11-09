@@ -4,7 +4,7 @@
 // any particular app's state shape baked into the base class.
 //
 // Custom elements auto-connect the instant they're inserted into the document - whether that's
-// static markup in `index.html` or another component injecting them while assembling its own
+// static markup in `index.t` or another component injecting them while assembling its own
 // markup. So parents can freely compose child tags without any manual connect ordering/registration
 // anywhere.
 
@@ -132,7 +132,7 @@ export abstract class UIElement extends HTMLElement {
 	/**
 	 * lifecycle hook: Called with the latest state (and once immediately on connect) to sync DOM to
 	 * `state`. Either sync the DOM imperatively (`querySelector`/`textContent`/... and return
-	 * nothing), or return an `html` (see `./template/html.js`) tagged-template result describing the
+	 * nothing), or return an `t` (see `./template/html.js`) tagged-template result describing the
 	 * component's full markup - the diffing in `./template/html.js` will patch only what changed
 	 * since last time.
 	 */

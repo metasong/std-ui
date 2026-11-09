@@ -1,5 +1,5 @@
 // Custom element property + default `level-change` event.
-import { bind, html, signalState, tag, UIElement } from '../../../src/index.js';
+import { bind, t, signalState, tag, UIElement } from '../../../src/index.js';
 import './knob-control.js';
 
 @tag('demo-bind-custom-section')
@@ -7,7 +7,7 @@ export class DemoBindCustomSection extends UIElement {
 	level = signalState(2);
 
 	protected override template() {
-		return html`
+		return t`
 			<section class="demo-bind-block" id="custom">
 				<h2>Custom <code>.level</code></h2>
 				<p class="desc">

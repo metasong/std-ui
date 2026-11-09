@@ -1,5 +1,5 @@
 // Two-way bind on native form controls: .value, .checked, programmatic reset, re-render while typing.
-import { bind, html, signalState, state, tag, UIElement } from '../../../src/index.js';
+import { bind, t, signalState, state, tag, UIElement } from '../../../src/index.js';
 
 @tag('demo-bind-form-section')
 export class DemoBindFormSection extends UIElement {
@@ -9,7 +9,7 @@ export class DemoBindFormSection extends UIElement {
 
 	protected override template() {
 		this.renderPasses;
-		return html`
+		return t`
 			<section class="demo-bind-block" id="form">
 				<h2>Native form controls</h2>
 				<p class="desc">

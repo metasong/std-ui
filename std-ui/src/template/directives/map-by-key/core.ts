@@ -33,6 +33,6 @@ class MapByKeyDirective extends Directive {
  * Keyed list rendering. Items with the same key keep their DOM (and state) when reordered.
  * For fixed-order lists, use `items.map(...)` instead.
  *
- *   html`<ul>${mapByKey(todos, (t) => t.id, (t) => html`<li>${t.text}</li>`)}</ul>`
+ *   t`<ul>${mapByKey(todos, (t) => t.id, (t) => t`<li>${t.text}</li>`)}</ul>`
  */
 export const mapByKey = directive(MapByKeyDirective);

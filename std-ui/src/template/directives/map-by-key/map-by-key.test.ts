@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { html } from '../../html.js';
+import { t } from '../../html.js';
 import { AttributePart, ChildPart } from '../../parts/index.js';
 import { MapByKeyCommitter } from './map-by-key-committer.js';
 import { mapByKey } from './core.js';
@@ -16,7 +16,7 @@ describe('mapByKey', () => {
 		const el = document.createElement('div');
 		const part = new AttributePart(el, 'title');
 		expect(() =>
-			part.update([mapByKey(['a'], (_x, i) => i, (x) => html`<span>${x}</span>`)]),
+			part.update([mapByKey(['a'], (_x, i) => i, (x) => t`<span>${x}</span>`)]),
 		).toThrow(/child position/);
 	});
 
@@ -30,7 +30,7 @@ describe('mapByKey', () => {
 						{ id: 'x', label: '2' },
 					],
 					(i) => i.id,
-					(i) => html`<li>${i.label}</li>`,
+					(i) => t`<li>${i.label}</li>`,
 				),
 			]),
 		).toThrow(/duplicate key/);
@@ -46,7 +46,7 @@ describe('mapByKey', () => {
 			mapByKey(
 				items,
 				(i) => i.id,
-				(i) => html`<li>${i.label}</li>`,
+				(i) => t`<li>${i.label}</li>`,
 			),
 		]);
 		expect(Array.from(container.querySelectorAll('li')).map((li) => li.textContent)).toEqual([
@@ -62,7 +62,7 @@ describe('mapByKey', () => {
 			mapByKey(
 				[row('a', 'A'), row('b', 'B')],
 				(i) => i.id,
-				(i) => html`<li data-id="${i.id}">${i.label}</li>`,
+				(i) => t`<li data-id="${i.id}">${i.label}</li>`,
 			),
 		]);
 
@@ -70,7 +70,7 @@ describe('mapByKey', () => {
 			mapByKey(
 				[row('b', 'B'), row('a', 'A')],
 				(i) => i.id,
-				(i) => html`<li data-id="${i.id}">${i.label}</li>`,
+				(i) => t`<li data-id="${i.id}">${i.label}</li>`,
 			),
 		]);
 
@@ -96,13 +96,13 @@ describe('mapByKey', () => {
 					{ id: 'go', t: '2' },
 				],
 				(i) => i.id,
-				(i) => html`<p data-id="${i.id}">${i.t}</p>`,
+				(i) => t`<p data-id="${i.id}">${i.t}</p>`,
 			),
 		]);
 		expect(container.querySelectorAll('p')).toHaveLength(2);
 
 		part.update([
-			mapByKey([{ id: 'stay', t: '1' }], (i) => i.id, (i) => html`<p data-id="${i.id}">${i.t}</p>`),
+			mapByKey([{ id: 'stay', t: '1' }], (i) => i.id, (i) => t`<p data-id="${i.id}">${i.t}</p>`),
 		]);
 		expect(container.querySelectorAll('p')).toHaveLength(1);
 		expect(container.querySelector('p')!.getAttribute('data-id')).toBe('stay');

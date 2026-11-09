@@ -7,9 +7,9 @@ text — same rule as `?`/`.`/`@`-prefixed bindings, since they bind a live obje
 string.
 
 ```ts
-import { html, classMap, styleMap } from 'std-ui';
+import { t, classMap, styleMap } from 'std-ui';
 
-html`
+t`
 	<div
 		class="${classMap({ active: isActive, hidden: !visible })}"
 		style="${styleMap({ color: 'red', fontSize: active ? '16px' : null })}"
@@ -29,7 +29,7 @@ attribute as a string.
 - Must be bound to the `class` attribute — the directive throws otherwise.
 
 ```ts
-html`<div class="${classMap({ active: isActive, hidden: !visible })}"></div>`;
+t`<div class="${classMap({ active: isActive, hidden: !visible })}"></div>`;
 ```
 
 ## `styleMap(styles)`
@@ -42,7 +42,7 @@ Sets/removes individual inline style properties via `el.style`, rather than reco
 - Must be bound to the `style` attribute — the directive throws otherwise.
 
 ```ts
-html`<div style="${styleMap({ color: 'red', fontSize: active ? '16px' : null })}"></div>`;
+t`<div style="${styleMap({ color: 'red', fontSize: active ? '16px' : null })}"></div>`;
 ```
 
 ## Why not just a string?

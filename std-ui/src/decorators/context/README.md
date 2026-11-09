@@ -35,7 +35,7 @@ class ThemedButton extends UIElement {
 	@consume(ThemeKey) theme!: Theme; // `Theme` inferred from `ThemeKey` - no generic needed here
 
 	protected override template() {
-		return html`<button class=${this.theme.mode}>Click</button>`;
+		return t`<button class=${this.theme.mode}>Click</button>`;
 	}
 }
 ```

@@ -1,7 +1,7 @@
 import { describe, expect, it, vi } from 'vitest';
 import { tag, UIElement } from './ui-element.js';
 import { signalState } from './signal/tree.js';
-import { html } from './template/html.js';
+import { t } from './template/html.js';
 import { css } from './template/css.js';
 
 interface State {
@@ -74,13 +74,13 @@ describe('UIElement', () => {
 		el.remove();
 	});
 
-	it('renders an html() result returned from template() into the element', () => {
+	it('renders an t() result returned from template() into the element', () => {
 		const tree = signalState<State>({ count: 7 });
 
 		@tag('el-html')
 		class Foo extends UIElement {
 			protected override template() {
-				return html`<em>${tree.count()}</em>`;
+				return t`<em>${tree.count()}</em>`;
 			}
 		}
 
@@ -122,7 +122,7 @@ describe('UIElement', () => {
 			static override shadowRootOptions = { mode: 'open' } as const;
 
 			protected override template() {
-				return html`<strong>${tree.count()}</strong>`;
+				return t`<strong>${tree.count()}</strong>`;
 			}
 		}
 
@@ -149,7 +149,7 @@ describe('UIElement', () => {
 			static override styles = styles;
 
 			protected override template() {
-				return html`<span>hi</span>`;
+				return t`<span>hi</span>`;
 			}
 		}
 
@@ -184,7 +184,7 @@ describe('UIElement', () => {
 			static override styles = styles;
 
 			protected override template() {
-				return html`<span>hi</span>`;
+				return t`<span>hi</span>`;
 			}
 		}
 

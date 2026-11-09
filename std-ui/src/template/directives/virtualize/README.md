@@ -5,11 +5,11 @@ Supports grids (`lanes`), fixed or measured item sizes, vertical or horizontal s
 `scrollToIndex()`. Internals: [`design.md`](./design.md).
 
 ```ts
-import { html, virtualize, VirtualizeController } from 'std-ui';
+import { t, virtualize, VirtualizeController } from 'std-ui';
 
 const list = new VirtualizeController();
 
-html`
+t`
 	<div class="scroller" style="height: 400px; overflow-y: auto">
 		<div class="grid" style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px">
 			${virtualize(photos, {
@@ -18,7 +18,7 @@ html`
 				lanes: 4,
 				keyFn: (p) => p.id,
 				controller: list,
-				renderItem: (p) => html`<img src="${p.url}" style="height: 120px" />`,
+				renderItem: (p) => t`<img src="${p.url}" style="height: 120px" />`,
 			})}
 		</div>
 	</div>
@@ -84,13 +84,13 @@ re-aims until the target row is stable; with `behavior: 'smooth'` it aims at the
 so the landing can be off for far, unmeasured targets.
 
 ```ts
-html`<div style="overflow-x: auto; width: 600px">
+t`<div style="overflow-x: auto; width: 600px">
 	<div style="display: flex; gap: 8px">
 		${virtualize(cards, {
 			direction: 'horizontal',
 			itemSize: 160,
 			gap: 8,
-			renderItem: (c) => html`<div style="width: 160px">${c.title}</div>`,
+			renderItem: (c) => t`<div style="width: 160px">${c.title}</div>`,
 		})}
 	</div>
 </div>`;

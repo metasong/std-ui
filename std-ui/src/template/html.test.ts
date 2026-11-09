@@ -1,30 +1,30 @@
 import { describe, expect, it } from 'vitest';
-import { html, isTemplateResult, svg } from './html.js';
+import { t, isTemplateResult, svg } from './html.js';
 
-describe('html', () => {
+describe('t', () => {
 	it('captures strings/values without doing any DOM work', () => {
-		const result = html`<p>Hello, ${'Ada'}!</p>`;
+		const result = t`<p>Hello, ${'Ada'}!</p>`;
 		expect(result.values).toEqual(['Ada']);
 		expect(Array.from(result.strings)).toEqual(['<p>Hello, ', '!</p>']);
 		expect(result.type).toBeUndefined();
 	});
 
 	it('reuses the same `strings` identity across calls at the same call site', () => {
-		const view = (name: string) => html`<p>${name}</p>`;
+		const view = (name: string) => t`<p>${name}</p>`;
 		const a = view('Ada');
 		const b = view('Grace');
 		expect(a.strings).toBe(b.strings);
 	});
 
 	it('gives different call sites different `strings` identities', () => {
-		const a = html`<p>${1}</p>`;
-		const b = html`<p>${1}</p>`;
+		const a = t`<p>${1}</p>`;
+		const b = t`<p>${1}</p>`;
 		expect(a.strings).not.toBe(b.strings);
 	});
 
-	it('captures nested html() results in values when embedding a template part', () => {
-		const badge = html`<span>${'new'}</span>`;
-		const outer = html`<div class="row">${badge}</div>`;
+	it('captures nested t() results in values when embedding a template part', () => {
+		const badge = t`<span>${'new'}</span>`;
+		const outer = t`<div class="row">${badge}</div>`;
 		expect(outer.values).toEqual([badge]);
 		expect(isTemplateResult(outer.values[0])).toBe(true);
 	});
@@ -39,8 +39,8 @@ describe('svg', () => {
 });
 
 describe('isTemplateResult', () => {
-	it('is true for html()/svg() results', () => {
-		expect(isTemplateResult(html`<p></p>`)).toBe(true);
+	it('is true for t()/svg() results', () => {
+		expect(isTemplateResult(t`<p></p>`)).toBe(true);
 		expect(isTemplateResult(svg`<circle />`)).toBe(true);
 	});
 

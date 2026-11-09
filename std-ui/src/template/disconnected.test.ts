@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { Directive, directive } from './directive.js';
 import { AttributePart, ChildPart } from './parts/index.js';
-import { html } from './html.js';
+import { t } from './html.js';
 
 let log: string[] = [];
 class Probe extends Directive {
@@ -42,8 +42,8 @@ describe('Directive.disconnected', () => {
 	it('runs when the enclosing template is replaced', () => {
 		log = [];
 		const { part } = child();
-		part.update([html`<p>${probe('a')}</p>`]);
-		part.update([html`<b>${'z'}</b>`]);
+		part.update([t`<p>${probe('a')}</p>`]);
+		part.update([t`<b>${'z'}</b>`]);
 		expect(log).toEqual(['disconnected']);
 	});
 });

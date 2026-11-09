@@ -3,14 +3,14 @@
 //
 // Usage mirrors lit-html:
 //
-//   const result = html`<div class="${cls}">${label}</div>`;
+//   const result = t`<div class="${cls}">${label}</div>`;
 //   render(result, container);
 //
 // How it works (same core trick as lit-html):
-//  1. `html` just captures `strings`/`values` - no DOM work happens yet. Tagged template calls
+//  1. `t` just captures `strings`/`values` - no DOM work happens yet. Tagged template calls
 //     reuse the *same* `strings` array object across repeated calls at the same call site (this is
 //     guaranteed by the JS spec), so it doubles as a cache key.
-//  2. The first time `getTemplate()` needs a given `strings` (+ `html` vs `svg` type), we compile
+//  2. The first time `getTemplate()` needs a given `strings` (+ `'html'` vs `'svg'` type), we compile
 //     once: scan/join the strings with marker text, parse via a `<template>`, then walk elements and
 //     child-marker comments to record where each dynamic part landed (`nodeIndex` among those
 //     nodes only). The compiled `Template` is cached in a `WeakMap` keyed by `strings` (per type).
@@ -29,35 +29,35 @@
 // `?`/`.`/`@` sigil) do support multi-expression/mixed-static values like `class="${a} ${b}"` or `class="static-${x}"`; the
 // `?`/`.`/`@`-prefixed kinds don't, since they bind a real JS value rather than a string - each
 // must be a single bare interpolation, e.g. `?hidden="${v}"`. SVG is supported via `svg()` below,
-// for the one case plain `html` can't handle: a namespace-less fragment (no `<svg>` wrapper of its
+// for the one case plain `t` can't handle: a namespace-less fragment (no `<svg>` wrapper of its
 // own) meant to be interpolated as a child of an existing `<svg>` element.
 //
 // This module ties the pieces (compilation, parts, rendering) together; see the sibling files for
 // each concern: `compile.ts`, `parts/`, `render.ts`, `directive.ts`.
 
-/** The result of calling `html`/`svg` - inert until passed to `render()`. */
+/** The result of calling `t`/`svg` - inert until passed to `render()`. */
 export interface TemplateResult {
 	readonly strings: TemplateStringsArray;
 	readonly values: readonly unknown[];
 	/** `'svg'` for results from `svg\`...\``; tells `compile.ts` to parse the markup inside a
 	 *  temporary `<svg>` wrapper so its elements land in the SVG namespace. Absent (`undefined`)
-	 *  for plain `html` results. */
+	 *  for plain `t` results. */
 	readonly type?: 'svg';
 }
 
 /** Tags a template literal as HTML to be rendered via `render()`. Does no DOM work itself. */
-export function html(strings: TemplateStringsArray, ...values: unknown[]): TemplateResult {
+export function t(strings: TemplateStringsArray, ...values: unknown[]): TemplateResult {
 	return { strings, values };
 }
 
 /**
- * Like `html`, but for markup that's pure SVG content with no `<svg>` wrapper of its own - e.g. a
+ * Like `t`, but for markup that's pure SVG content with no `<svg>` wrapper of its own - e.g. a
  * reusable snippet meant to be interpolated as a child of an existing `<svg>` element:
  *
  *   const dot = (r: number) => svg`<circle r="${r}" />`;
- *   html`<svg viewBox="0 0 10 10">${dot(3)}</svg>`;
+ *   t`<svg viewBox="0 0 10 10">${dot(3)}</svg>`;
  *
- * If your markup already includes its own top-level `<svg>...</svg>`, plain `html` works fine -
+ * If your markup already includes its own top-level `<svg>...</svg>`, plain `t` works fine -
  * the parser assigns the SVG namespace as soon as it sees the `<svg>` tag, even inside a
  * `<template>`. `svg` is only needed for namespace-less fragments like the `<circle>` above.
  */

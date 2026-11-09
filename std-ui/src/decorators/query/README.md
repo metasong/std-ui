@@ -15,7 +15,7 @@ Three read-only field decorators for `UIElement` (see `../../ui-element.ts`) sub
 
 ```ts
 import { tag, state, query, queryAll, queryAsync, UIElement } from '../../index.js';
-import { html } from '../../template/index.js';
+import { t } from '../../template/index.js';
 
 @tag('todo-list')
 class TodoList extends UIElement {
@@ -27,10 +27,10 @@ class TodoList extends UIElement {
 	@queryAsync('.new-row') newRow!: Promise<HTMLElement | null>; // waits for a pending render
 
 	protected override template() {
-		return html`
+		return t`
 			<h2 class="title">To-dos</h2>
 			<form><input /></form>
-			<ul>${this.items.map(item => html`<li>${item}</li>`)}</ul>
+			<ul>${this.items.map(item => t`<li>${item}</li>`)}</ul>
 		`;
 	}
 }
@@ -51,7 +51,7 @@ class EncapsulatedChip extends UIElement {
 	@query('button') btn!: HTMLButtonElement | null;
 
 	protected override template() {
-		return html`<button type="button">inside shadow</button>`;
+		return t`<button type="button">inside shadow</button>`;
 	}
 }
 ```

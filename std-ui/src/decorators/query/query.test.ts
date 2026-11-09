@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { query, queryAll, queryAsync, state, tag, UIElement } from '../../ui-element.js';
-import { html } from '../../template/html.js';
+import { t } from '../../template/html.js';
 
 describe('@query()', () => {
 	it('resolves to the matching element, re-querying on every read by default', () => {
@@ -59,7 +59,7 @@ describe('@query()', () => {
 			@query('.inner') inner!: HTMLElement | null;
 
 			protected override template() {
-				return html`<span class="inner">shadow</span>`;
+				return t`<span class="inner">shadow</span>`;
 			}
 		}
 
@@ -98,7 +98,7 @@ describe('@queryAsync()', () => {
 			@state() show = false;
 			@queryAsync('.lazy') lazy!: Promise<HTMLElement | null>;
 			protected override template() {
-				return this.show ? html`<em class="lazy">here</em>` : html``;
+				return this.show ? t`<em class="lazy">here</em>` : t``;
 			}
 		}
 

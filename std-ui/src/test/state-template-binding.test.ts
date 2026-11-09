@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { state, tag, UIElement } from '../ui-element.js';
 import { signalState } from '../signal/tree.js';
-import { html } from '../template/html.js';
+import { t } from '../template/html.js';
 
 interface ParentState {
 	count: number;
@@ -18,7 +18,7 @@ describe('template `.prop` bindings with @state()', () => {
 			@state() count = 0;
 
 			protected override template() {
-				return html`<span class="count">${this.count}</span>`;
+				return t`<span class="count">${this.count}</span>`;
 			}
 		}
 
@@ -27,7 +27,7 @@ describe('template `.prop` bindings with @state()', () => {
 			readonly tree = signalState<ParentState>({ count: 3 });
 
 			protected override template() {
-				return html`<bind-child .count="${this.tree.count()}"></bind-child>`;
+				return t`<bind-child .count="${this.tree.count()}"></bind-child>`;
 			}
 		}
 

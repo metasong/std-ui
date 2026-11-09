@@ -5,7 +5,7 @@
 import { describe, expect, it, vi } from 'vitest';
 import { tag, UIElement } from '../ui-element.js';
 import { signalState, computed, effect } from '../signal/index.js';
-import { html } from '../template/html.js';
+import { t } from '../template/html.js';
 import { render } from '../template/render.js';
 
 describe('doc: signals drive html render', () => {
@@ -14,7 +14,7 @@ describe('doc: signals drive html render', () => {
 		const label = computed(() => (count() === 1 ? 'click' : 'clicks'));
 		const container = document.createElement('div');
 
-		const view = () => html`
+		const view = () => t`
 			<p><strong>${count()}</strong> ${label()}</p>
 			<button ?disabled="${count() >= 10}">+</button>
 		`;
@@ -59,7 +59,7 @@ describe('doc: signals drive html render', () => {
 		class DocCounter extends UIElement {
 			protected override template() {
 				const { value, max } = shared.counter;
-				return html`
+				return t`
 					<span>${value()}</span> / ${max()}
 					<button
 						type="button"
@@ -114,7 +114,7 @@ describe('doc: signals drive html render', () => {
 		@tag('demo-badge')
 		class DocInboxBadge extends UIElement {
 			protected override template() {
-				return html`
+				return t`
 					<h1>${shared.title()}</h1>
 					<span class="badge"></span>
 				`;

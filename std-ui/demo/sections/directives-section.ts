@@ -1,5 +1,5 @@
 // Demonstrates: `classMap` / `styleMap` attribute directives, and `unsafeHTML`.
-import { tag, html, UIElement, state, unsafeHTML } from '../../src/index.js';
+import { tag, t, UIElement, state, unsafeHTML } from '../../src/index.js';
 import { classMap, styleMap } from '../../src/template/directives/index.js';
 
 @tag('demo-directives-section')
@@ -15,7 +15,7 @@ export class DemoDirectivesSection extends UIElement {
 			transition: 'all 150ms ease',
 		};
 
-		return html`
+		return t`
 			<h2>Directives</h2>
 			<p class="desc"><code>classMap</code> toggles individual classes via <code>classList</code>; <code>styleMap</code> sets individual inline style properties - both can coexist with static text/other classes in the same attribute; <code>unsafeHTML</code> injects raw markup (trusted input only).</p>
 			<div class="${classMap(classes)} demo-box" style="${styleMap(styles)}">

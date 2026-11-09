@@ -1,6 +1,6 @@
 // Pulls several features together in one realistic component: `@state()` with a plain-object
 // value (tree-backed, per-leaf reactivity), list rendering, `computed`, and event handlers.
-import { tag, html, UIElement, state } from '../../src/index.js';
+import { tag, t, UIElement, state } from '../../src/index.js';
 import { computed } from '../../src/signal/index.js';
 
 interface Todo { id: number; text: string; done: boolean; }
@@ -17,12 +17,12 @@ export class DemoTodoSection extends UIElement {
 	protected override template() {
 		const remaining = computed(() => this.todos.filter(t => !t.done).length)();
 
-		return html`
+		return t`
 			<h2>Putting it together: a tiny todo list</h2>
 			<p class="desc">A realistic composition of <code>@state()</code>, list rendering, and event bindings — no framework, no virtual DOM.</p>
 			<p>${remaining} remaining of ${this.todos.length}</p>
 			<ul class="demo-todo-list">
-				${this.todos.map(todo => html`
+				${this.todos.map(todo => t`
 					<li class="demo-todo-item">
 						<input type="checkbox" .checked="${todo.done}" @change="${() => this.#toggle(todo.id)}" />
 						<span class="${todo.done ? 'done' : ''}">${todo.text}</span>

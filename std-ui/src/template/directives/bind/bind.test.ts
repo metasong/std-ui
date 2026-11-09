@@ -1,5 +1,5 @@
 import { describe, expect, it, vi } from 'vitest';
-import { html } from '../../html.js';
+import { t } from '../../html.js';
 import { render } from '../../render.js';
 import { signalState } from '../../../signal/index.js';
 import { bind } from './index.js';
@@ -9,7 +9,7 @@ describe('bind()', () => {
 		const container = document.createElement('div');
 		const form = signalState({ query: 'hi', age: 3 });
 		const view = () =>
-			html`<input .value="${bind(form.query)}" /><input type="number" .value="${bind(form.age)}" />`;
+			t`<input .value="${bind(form.query)}" /><input type="number" .value="${bind(form.age)}" />`;
 		render(view(), container);
 		const [a, b] = Array.from(container.querySelectorAll('input')) as HTMLInputElement[];
 		expect(a.value).toBe('hi');
@@ -27,7 +27,7 @@ describe('bind()', () => {
 	it('syncs .value both ways with live skip on redundant render', () => {
 		const container = document.createElement('div');
 		const state = signalState({ query: 'hi' });
-		const view = () => html`<input .value="${bind(state.query)}" />`;
+		const view = () => t`<input .value="${bind(state.query)}" />`;
 
 		render(view(), container);
 		const input = container.querySelector('input')! as HTMLInputElement;
@@ -49,7 +49,7 @@ describe('bind()', () => {
 	it('syncs .checked via change', () => {
 		const container = document.createElement('div');
 		const state = signalState({ on: false });
-		const view = () => html`<input type="checkbox" .checked="${bind(state.on)}" />`;
+		const view = () => t`<input type="checkbox" .checked="${bind(state.on)}" />`;
 
 		render(view(), container);
 		const input = container.querySelector('input')! as HTMLInputElement;
@@ -67,7 +67,7 @@ describe('bind()', () => {
 	it('binds arbitrary properties with default `${property}-change` event', () => {
 		const container = document.createElement('div');
 		const state = signalState({ level: 1 });
-		const view = () => html`<div .level="${bind(state.level)}"></div>`;
+		const view = () => t`<div .level="${bind(state.level)}"></div>`;
 
 		render(view(), container);
 		const div = container.querySelector('div')! as HTMLDivElement & { level: number };
@@ -86,14 +86,14 @@ describe('bind()', () => {
 		const container = document.createElement('div');
 		const state = signalState({ on: false });
 		expect(() =>
-			render(html`<input type="text" .checked="${bind(state.on)}" />`, container),
+			render(t`<input type="text" .checked="${bind(state.on)}" />`, container),
 		).toThrow(/type="checkbox"/i);
 	});
 
 	it('uses checked-change on non-input elements', () => {
 		const container = document.createElement('div');
 		const state = signalState({ on: false });
-		const view = () => html`<div .checked="${bind(state.on)}"></div>`;
+		const view = () => t`<div .checked="${bind(state.on)}"></div>`;
 
 		render(view(), container);
 		const div = container.querySelector('div')! as HTMLDivElement & { checked: boolean };
@@ -107,7 +107,7 @@ describe('bind()', () => {
 	it('uses property name for default event (`.document` → `document-change`)', () => {
 		const container = document.createElement('div');
 		const state = signalState({ payload: { title: 'a' } });
-		const view = () => html`<div .document="${bind(state.payload)}"></div>`;
+		const view = () => t`<div .document="${bind(state.payload)}"></div>`;
 
 		render(view(), container);
 		const div = container.querySelector('div')! as HTMLDivElement & { document: unknown };
@@ -121,7 +121,7 @@ describe('bind()', () => {
 	it('supports { get, set } accessors', () => {
 		const container = document.createElement('div');
 		let value = 'x';
-		render(html`<input .value="${bind({ get: () => value, set: v => (value = v as string) })}" />`, container);
+		render(t`<input .value="${bind({ get: () => value, set: v => (value = v as string) })}" />`, container);
 		const input = container.querySelector('input')! as HTMLInputElement;
 		input.value = 'y';
 		input.dispatchEvent(new Event('input', { bubbles: true }));
@@ -132,7 +132,7 @@ describe('bind()', () => {
 		const container = document.createElement('div');
 		const a = signalState({ v: 'a' });
 		const b = signalState({ v: 'b' });
-		const view = (s: typeof a) => html`<input .value="${bind(s.v)}" />`;
+		const view = (s: typeof a) => t`<input .value="${bind(s.v)}" />`;
 		render(view(a), container);
 		const input = container.querySelector('input')! as HTMLInputElement;
 		render(view(b), container);
@@ -146,7 +146,7 @@ describe('bind()', () => {
 	it('kebab-cases camelCase properties for the default event', () => {
 		const container = document.createElement('div');
 		const state = signalState({ minValue: 1 });
-		render(html`<div .minValue="${bind(state.minValue)}"></div>`, container);
+		render(t`<div .minValue="${bind(state.minValue)}"></div>`, container);
 		const div = container.querySelector('div')! as HTMLDivElement & { minValue: number };
 		div.minValue = 9;
 		div.dispatchEvent(new Event('min-value-change', { bubbles: true }));
@@ -157,7 +157,7 @@ describe('bind()', () => {
 		const container = document.createElement('div');
 		const state = signalState({ a: true, b: false });
 		const view = () =>
-			html`<input type="radio" name="g" .checked="${bind(state.a)}" /><input type="radio" name="g" .checked="${bind(state.b)}" />`;
+			t`<input type="radio" name="g" .checked="${bind(state.a)}" /><input type="radio" name="g" .checked="${bind(state.b)}" />`;
 		render(view(), container);
 		const [ra, rb] = Array.from(container.querySelectorAll('input')) as HTMLInputElement[];
 		rb.checked = true;
@@ -170,9 +170,9 @@ describe('bind()', () => {
 	it('stops listening after the template is torn down', () => {
 		const container = document.createElement('div');
 		const state = signalState({ query: 'x' });
-		render(html`<input .value="${bind(state.query)}" />`, container);
+		render(t`<input .value="${bind(state.query)}" />`, container);
 		const input = container.querySelector('input')! as HTMLInputElement;
-		render(html`<p>gone</p>`, container);
+		render(t`<p>gone</p>`, container);
 		input.value = 'late';
 		input.dispatchEvent(new Event('input', { bubbles: true }));
 		expect(state.query()).toBe('x');

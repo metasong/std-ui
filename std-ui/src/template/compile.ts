@@ -44,7 +44,7 @@ export interface Template {
 export type TemplateType = 'html' | 'svg';
 
 /** Keyed by `strings` then by `type`, since the same `strings` identity is never reused across
- *  `html`/`svg` call sites in practice, but this keeps the cache correct either way. */
+ *  `t`/`svg` call sites in practice, but this keeps the cache correct either way. */
 const templateCache = new WeakMap<TemplateStringsArray, Partial<Record<TemplateType, Template>>>();
 
 /** True if `markup` (built so far) currently sits inside an unclosed tag, i.e. in attribute position. */

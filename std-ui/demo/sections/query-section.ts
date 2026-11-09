@@ -1,6 +1,6 @@
 // Demonstrates: `@query()`/`@queryAll()` (light-DOM selector accessors) and `firstRendered()` +
 // `this.effect()` for imperatively patching a node outside the template's own re-render.
-import { tag, html, UIElement, state } from '../../src/index.js';
+import { tag, t, UIElement, state } from '../../src/index.js';
 import { query, queryAll } from '../../src/ui-element.js';
 
 @tag('demo-query-section')
@@ -11,13 +11,13 @@ export class DemoQuerySection extends UIElement {
 	@queryAll('li') listItems!: NodeListOf<HTMLLIElement>;
 
 	protected override template() {
-		return html`
+		return t`
 			<h2>Queries</h2>
 			<p class="desc"><code>@query()</code> / <code>@queryAll()</code> resolve <code>this.querySelector(All)</code> on demand; <code>firstRendered()</code> + <code>this.effect()</code> patch a node (the <code>.badge</code> span) directly.</p>
 			<input class="demo-outlined-field" type="text" placeholder="add an item, press Enter" @keydown="${(e: KeyboardEvent) => this.#onKeydown(e)}" />
 			<span class="demo-badge badge"></span>
 			<ul>
-				${this.items.map(item => html`<li>${item}</li>`)}
+				${this.items.map(item => t`<li>${item}</li>`)}
 			</ul>
 			<div class="demo-actions">
 				<button type="button" @click="${() => this.input?.focus()}">focus input via @query</button>

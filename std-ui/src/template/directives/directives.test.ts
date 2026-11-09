@@ -1,14 +1,14 @@
 import { describe, expect, it } from 'vitest';
-import { html } from '../html.js';
+import { t } from '../html.js';
 import { render } from '../render.js';
 import { classMap } from './class-map/index.js';
 import { mapByKey } from './map-by-key/index.js';
 import { styleMap } from './style-map/index.js';
 
 describe('classMap end-to-end', () => {
-	it('toggles classes through html()/render()', () => {
+	it('toggles classes through t()/render()', () => {
 		const container = document.createElement('div');
-		const view = (active: boolean) => html`<div class="${classMap({ active, base: true })}"></div>`;
+		const view = (active: boolean) => t`<div class="${classMap({ active, base: true })}"></div>`;
 
 		render(view(true), container);
 		const div = container.querySelector('div')!;
@@ -23,11 +23,11 @@ describe('classMap end-to-end', () => {
 });
 
 describe('mapByKey end-to-end', () => {
-	it('reorders list rows through html()/render() while reusing keyed DOM', () => {
+	it('reorders list rows through t()/render() while reusing keyed DOM', () => {
 		const container = document.createElement('div');
 		type Row = { id: string; label: string };
 		const view = (rows: Row[]) =>
-			html`<ul>${mapByKey(rows, (r) => r.id, (r) => html`<li data-id="${r.id}">${r.label}</li>`)}</ul>`;
+			t`<ul>${mapByKey(rows, (r) => r.id, (r) => t`<li data-id="${r.id}">${r.label}</li>`)}</ul>`;
 
 		render(view([{ id: 'a', label: 'A' }, { id: 'b', label: 'B' }]), container);
 		const liA = container.querySelector('li[data-id="a"]')!;
@@ -44,9 +44,9 @@ describe('mapByKey end-to-end', () => {
 });
 
 describe('styleMap end-to-end', () => {
-	it('sets/removes inline styles through html()/render()', () => {
+	it('sets/removes inline styles through t()/render()', () => {
 		const container = document.createElement('div');
-		const view = (big: boolean) => html`<div style="${styleMap({ color: 'red', fontSize: big ? '20px' : null })}"></div>`;
+		const view = (big: boolean) => t`<div style="${styleMap({ color: 'red', fontSize: big ? '20px' : null })}"></div>`;
 
 		render(view(true), container);
 		const div = container.querySelector('div')!;

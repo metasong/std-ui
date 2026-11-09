@@ -6,12 +6,12 @@ and only patches **values** that changed. This document explains that contract �
 [lit-html](https://lit.dev/docs/templates/expressions/) calls out, wired through std-ui's
 `UIElement` and `render()`.
 
-If you already use signals + `html` from [`signal-drives-html.md`](./signal-drives-html.md), you
+If you already use signals + `t` from [`signal-drives-html.md`](./signal-drives-html.md), you
 get this behavior for free. This page zooms in on **why** it works and **when** it does not.
 
 ## Two objects, two meanings of "template"
 
-Every `html\`...\`` call produces a plain object:
+Every `t\`...\`` call produces a plain object:
 
 ```ts
 { strings: TemplateStringsArray, values: readonly unknown[] }
@@ -20,7 +20,7 @@ Every `html\`...\`` call produces a plain object:
 | Piece | What it describes | Stable across signal updates? |
 |---|---|---|
 | **`strings`** | Static markup shape: tags, attribute names, how many `${...}` slots exist | **Yes** — same *call site* → same array **reference** |
-| **`values`** | Current dynamic data: text, classes, handlers, nested `html` results | **No** — new array every `template()` run |
+| **`values`** | Current dynamic data: text, classes, handlers, nested `t` results | **No** — new array every `template()` run |
 
 `template()` returning again does **not** mean the browser parsed your HTML again. It means you
 built a fresh result bag with new `values`. The **shape key** is `strings`, not the outer object
@@ -28,30 +28,30 @@ identity.
 
 ## JavaScript guarantees the cache key (`strings` identity)
 
-For a given tagged-template **call site** in source (one `` html`...` `` expression at a fixed
+For a given tagged-template **call site** in source (one `` t`...` `` expression at a fixed
 location), the engine passes the **same** `TemplateStringsArray` object on every invocation. That
 is specified behavior — not a std-ui trick.
 
 ```ts
-const view = (name: string) => html`<p>${name}</p>`;
+const view = (name: string) => t`<p>${name}</p>`;
 view('Ada').strings === view('Grace').strings; // true — same call site
 ```
 
 Different call sites — even with identical-looking markup — get **different** `strings`:
 
 ```ts
-html`<p>${1}</p>`.strings === html`<p>${1}</p>`.strings; // false
+t`<p>${1}</p>`.strings === t`<p>${1}</p>`.strings; // false
 ```
 
 So in a component:
 
 ```ts
 protected override template() {
-	return html`<span>${this.count()}</span>`;
+	return t`<span>${this.count()}</span>`;
 }
 ```
 
-Every signal-driven re-entry of `template()` yields a new `TemplateResult`, but the `return html\`...\``
+Every signal-driven re-entry of `template()` yields a new `TemplateResult`, but the `return t\`...\``
 line is always the **same call site**, so `result.strings` is unchanged. That is what enables saved
 re-rendering.
 
@@ -87,7 +87,7 @@ On connect, `UIElement` registers a render `effect` that:
 2. If the return value is a `TemplateResult`, calls `render(result, this.renderRoot)`.
 
 When any signal `template()` **read** changes, step 1–2 run again. You always allocate a new
-`TemplateResult`; `render()` still sees the same `strings` for a stable `return html\`...\`` and
+`TemplateResult`; `render()` still sees the same `strings` for a stable `return t\`...\`` and
 takes the patch path.
 
 ```
@@ -104,28 +104,28 @@ sites (`Part`s) created the first time that `strings` was rendered into that con
 
 ## Nested templates and lists (same rule, smaller scopes)
 
-Each `` html`...` `` expression is its own call site with its own saved re-render.
+Each `` t`...` `` expression is its own call site with its own saved re-render.
 
-**Nested child template** (one `${...}` slot holds another `html` result): `ChildPart` applies the
+**Nested child template** (one `${...}` slot holds another `t` result): `ChildPart` applies the
 same `strings ===` rule for the subtree it owns (`parts/child-part.ts` `#commitTemplate`). Parent outer
 `strings` stay the same; the nested slot updates its inner template independently.
 
 **Arrays in child position** (`${items.map(...)}`): the parent part sees an array `value` and
-manages a **positional** list of child parts (grow/shrink by length). Each mapped `` html`...` `` is
+manages a **positional** list of child parts (grow/shrink by length). Each mapped `` t`...` `` is
 still one call site reused for every row — not one `strings` per row.
 
 ```ts
-html`
+t`
   <ul>
-    ${this.todos.map(todo => html`
+    ${this.todos.map(todo => t`
       <li>${todo.text}</li>
     `)}
   </ul>
 `;
 ```
 
-- Outer `` html`...` `` → one `strings` for the whole component shell.
-- Inner `` html`...` `` inside `.map` → one `strings` for every `<li>...</li>`, shared across
+- Outer `` t`...` `` → one `strings` for the whole component shell.
+- Inner `` t`...` `` inside `.map` → one `strings` for every `<li>...</li>`, shared across
   iterations.
 - List changes (add/remove/reorder) update rows **by index** — no keyed reconciliation (see
   [`../template/html.md`](../template/html.md#limitations-vs-real-lit-html)).
@@ -135,18 +135,18 @@ keep a single call site:
 
 ```ts
 // Good for reuse — one call site, class/text change
-html`<div class="${open ? 'open' : ''}">${label}</div>`;
+t`<div class="${open ? 'open' : ''}">${label}</div>`;
 
 // Full rebuild when branch changes — different call sites
-open ? html`<div class="open">${label}</div>` : html`<div>${label}</div>`;
+open ? t`<div class="open">${label}</div>` : t`<div>${label}</div>`;
 ```
 
-For conditional **fragments** without switching the outer template, nest `html` in `${...}`:
+For conditional **fragments** without switching the outer template, nest `t` in `${...}`:
 
 ```ts
-html`
+t`
   <button>
-    ${loading ? html`<spinner-icon></spinner-icon>` : 'Submit'}
+    ${loading ? t`<spinner-icon></spinner-icon>` : 'Submit'}
   </button>
 `;
 ```
@@ -161,18 +161,18 @@ part may rebuild if the inner `strings` identity changes between branches).
 | Situation | Why |
 |---|---|
 | First render into this container | No stored `previous` yet |
-| `result.strings !== previous.strings` | Different call site or different `` html`...` `` branch |
+| `result.strings !== previous.strings` | Different call site or different `` t`...` `` branch |
 | Different container | `WeakMap` is per `Element` / `DocumentFragment` |
 
 Common author mistakes:
 
-- **`if` / `else` each return their own `` html`...` ``** — toggling the condition swaps `strings`
+- **`if` / `else` each return their own `` t`...` ``** — toggling the condition swaps `strings`
   and tears down the tree under `renderRoot`.
 - **Factory that returns a template from a *different* literal per call** — same idea.
 - **Manually constructing `{ strings, values }`** without using the real call-site array — unless
   you reuse the true `TemplateStringsArray`, identity will not match.
 
-Switching **`svg` vs `html`** for the same literal text still uses the same `strings` identity, but
+Switching **`svg` vs `t`** for the same literal text still uses the same `strings` identity, but
 compile cache keys also include `type`; stick to one tag function per call site.
 
 ## Mental model

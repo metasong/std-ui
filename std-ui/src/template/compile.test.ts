@@ -1,11 +1,11 @@
 import { describe, expect, it } from 'vitest';
 import { getTemplate, instantiate } from './compile.js';
-import { html, svg } from './html.js';
+import { t, svg } from './html.js';
 import { updateParts } from './parts/index.js';
 
 describe('getTemplate/instantiate', () => {
 	it('compiles a child binding to a comment-anchored ChildPart', () => {
-		const { strings } = html`<p>Hello, ${'Ada'}!</p>`;
+		const { strings } = t`<p>Hello, ${'Ada'}!</p>`;
 		const template = getTemplate(strings);
 		expect(template.parts).toHaveLength(1);
 		expect(template.parts[0].kind).toBe('child');
@@ -18,7 +18,7 @@ describe('getTemplate/instantiate', () => {
 	});
 
 	it('compiles a plain attribute binding', () => {
-		const { strings } = html`<div id="${'x'}"></div>`;
+		const { strings } = t`<div id="${'x'}"></div>`;
 		const template = getTemplate(strings);
 		expect(template.parts).toHaveLength(1);
 		expect(template.parts[0]).toMatchObject({ kind: 'attr', name: 'id' });
@@ -28,7 +28,7 @@ describe('getTemplate/instantiate', () => {
 	});
 
 	it('recognizes ?/./@-prefixed bindings as bool/prop/event kinds', () => {
-		const { strings } = html`<input ?disabled="${true}" .value="${'v'}" @click="${() => {}}" />`;
+		const { strings } = t`<input ?disabled="${true}" .value="${'v'}" @click="${() => {}}" />`;
 		const template = getTemplate(strings);
 		expect(template.parts.map(p => [p.kind, p.name])).toEqual([
 			['bool', 'disabled'],
@@ -38,7 +38,7 @@ describe('getTemplate/instantiate', () => {
 	});
 
 	it('parses `.modifier`s off an `@`-prefixed event binding into AddEventListenerOptions', () => {
-		const { strings } = html`<button @click.once.capture.passive="${() => {}}"></button>`;
+		const { strings } = t`<button @click.once.capture.passive="${() => {}}"></button>`;
 		const template = getTemplate(strings);
 		expect(template.parts).toHaveLength(1);
 		expect(template.parts[0]).toMatchObject({
@@ -49,13 +49,13 @@ describe('getTemplate/instantiate', () => {
 	});
 
 	it('ignores unknown modifiers on an event binding', () => {
-		const { strings } = html`<button @click.bogus="${() => {}}"></button>`;
+		const { strings } = t`<button @click.bogus="${() => {}}"></button>`;
 		const template = getTemplate(strings);
 		expect(template.parts[0]).toMatchObject({ kind: 'event', name: 'click', options: {} });
 	});
 
 	it('strips bound attributes from the parsed static markup, leaving unrelated static attributes', () => {
-		const { strings } = html`<div id="static" class="${'x'}" data-x="${1}"></div>`;
+		const { strings } = t`<div id="static" class="${'x'}" data-x="${1}"></div>`;
 		const { fragment } = instantiate(getTemplate(strings));
 		const div = fragment.querySelector('div')!;
 		expect(div.getAttribute('id')).toBe('static');
@@ -64,13 +64,13 @@ describe('getTemplate/instantiate', () => {
 	});
 
 	it('resolves descriptor order to match source order across mixed child/attribute bindings', () => {
-		const { strings } = html`<div id="${'a'}">${'b'}<span class="${'c'}"></span></div>`;
+		const { strings } = t`<div id="${'a'}">${'b'}<span class="${'c'}"></span></div>`;
 		const template = getTemplate(strings);
 		expect(template.parts.map(p => p.kind)).toEqual(['attr', 'child', 'attr']);
 	});
 
 	it('supports multiple interpolations in one attribute value', () => {
-		const { strings, values } = html`<div class="${'a'}-${'b'}"></div>`;
+		const { strings, values } = t`<div class="${'a'}-${'b'}"></div>`;
 		const template = getTemplate(strings);
 		expect(template.parts).toHaveLength(1);
 		expect(template.parts[0]).toMatchObject({ kind: 'attr', name: 'class', valueCount: 2, literals: ['', '-', ''] });
@@ -81,14 +81,14 @@ describe('getTemplate/instantiate', () => {
 	});
 
 	it('supports mixing static text with a single interpolation in an attribute value', () => {
-		const { strings, values } = html`<div class="static-${'x'}"></div>`;
+		const { strings, values } = t`<div class="static-${'x'}"></div>`;
 		const { fragment, parts } = instantiate(getTemplate(strings));
 		updateParts(parts, values);
 		expect(fragment.querySelector('div')!.getAttribute('class')).toBe('static-x');
 	});
 
 	it('resolves a multi-part attribute followed by another attribute, correctly splitting values', () => {
-		const { strings, values } = html`<div class="${'a'} ${'b'}" id="${'c'}"></div>`;
+		const { strings, values } = t`<div class="${'a'} ${'b'}" id="${'c'}"></div>`;
 		const template = getTemplate(strings);
 		expect(template.parts.map(p => [p.kind, p.name, p.valueCount])).toEqual([
 			['attr', 'class', 2],
@@ -103,7 +103,7 @@ describe('getTemplate/instantiate', () => {
 	});
 
 	it('resolves a multi-part attribute followed by child content, correctly splitting values', () => {
-		const { strings, values } = html`<div class="${'a'} ${'b'}">${'c'}</div>`;
+		const { strings, values } = t`<div class="${'a'} ${'b'}">${'c'}</div>`;
 		const { fragment, parts } = instantiate(getTemplate(strings));
 		updateParts(parts, values);
 		const div = fragment.querySelector('div')!;
@@ -113,20 +113,20 @@ describe('getTemplate/instantiate', () => {
 	});
 
 	it('throws when a `?`/`.`/`@`-prefixed binding has more than one interpolation', () => {
-		expect(() => getTemplate(html`<input ?disabled="${true} ${false}"/>`.strings)).toThrow();
+		expect(() => getTemplate(t`<input ?disabled="${true} ${false}"/>`.strings)).toThrow();
 	});
 
 	it('throws when a `?`/`.`/`@`-prefixed binding mixes in static text', () => {
-		expect(() => getTemplate(html`<input ?disabled="x${true}"/>`.strings)).toThrow();
+		expect(() => getTemplate(t`<input ?disabled="x${true}"/>`.strings)).toThrow();
 	});
 
 	it('caches the compiled template per `strings` identity', () => {
-		const { strings } = html`<p>${'x'}</p>`;
+		const { strings } = t`<p>${'x'}</p>`;
 		expect(getTemplate(strings)).toBe(getTemplate(strings));
 	});
 
 	it('caches separately per template type (html vs svg) even for the same `strings`', () => {
-		const { strings } = html`<x>${'x'}</x>`;
+		const { strings } = t`<x>${'x'}</x>`;
 		expect(getTemplate(strings, 'html')).not.toBe(getTemplate(strings, 'svg'));
 	});
 
@@ -139,7 +139,7 @@ describe('getTemplate/instantiate', () => {
 	});
 
 	it('instantiate() clones fresh, independent fragments/parts from the same compiled template', () => {
-		const { strings } = html`<p>${'x'}</p>`;
+		const { strings } = t`<p>${'x'}</p>`;
 		const template = getTemplate(strings);
 		const first = instantiate(template);
 		const second = instantiate(template);

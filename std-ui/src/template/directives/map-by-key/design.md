@@ -11,7 +11,7 @@ usage and API, see [`README.md`](./README.md).
 | [`map-by-key-committer.ts`](./map-by-key-committer.ts) | `MapByKeyCommitter`, keyed DOM create / move / remove. |
 | [`index.ts`](./index.ts) | Public re-export of `mapByKey`. |
 | [`map-by-key.test.ts`](./map-by-key.test.ts) | Behavior through `ChildPart` (and committer edge cases). |
-| [`../directives.test.ts`](../directives.test.ts) | End-to-end through `html()` / `render()`. |
+| [`../directives.test.ts`](../directives.test.ts) | End-to-end through `t()` / `render()`. |
 
 `mapByKey` does not live in `../parts/`: `ChildPart` only knows the generic `commitWith()` protocol
 from [`../../parts/committers/committer.ts`](../../parts/committers/committer.ts). The directive

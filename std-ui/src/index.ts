@@ -8,7 +8,7 @@ export {
 	type AttributeType,
 } from './ui-element.js';
 export {
-	html,
+	t,
 	svg,
 	render,
 	unsafeHTML,

@@ -136,7 +136,7 @@ export type Part = AttributePartInfo | ChildPartInfo | PropertyPartInfo;
  *   	}
  *   }
  *   export const hello = directive(HelloDirective);
- *   // html`<div title="${hello('Ada')}"></div>`
+ *   // t`<div title="${hello('Ada')}"></div>`
  */
 export abstract class Directive {
 	constructor(_partInfo: PartInfo) {}
@@ -201,7 +201,7 @@ export function isDirectiveResult(value: unknown): value is DirectiveResult {
 
 /**
  * Turns a `Directive` subclass into the callable directive function consumers actually use in a
- * template, e.g. `directive(HelloDirective)` -> `hello`, used as `` html`...${hello('Ada')}...` ``.
+ * template, e.g. `directive(HelloDirective)` -> `hello`, used as `` t`...${hello('Ada')}...` ``.
  * The returned function's parameters are inferred from whichever of `render()`/`update()` the
  * subclass gave a concrete signature (see `DirectiveArgs`) - mirrors lit-html's rule that "the
  * parameters defined for the render() method determine the signature of the directive function",

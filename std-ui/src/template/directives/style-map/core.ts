@@ -17,7 +17,7 @@ export function toCssPropertyName(name: string): string {
  * declarations (see `update()` below) - unlike `?`/`.`/`@`-prefixed bindings, which must be a
  * single bare interpolation since those bind a live value, not a composed string:
  *
- *   html`<div style="${styleMap({ color: 'red', fontSize: active ? '16px' : null })}border:2px solid #d1d5db;"></div>`
+ *   t`<div style="${styleMap({ color: 'red', fontSize: active ? '16px' : null })}border:2px solid #d1d5db;"></div>`
  */
 class StyleMapDirective extends Directive {
 	/** CSS property names this instance set last time, so the next `update()` knows which to remove

@@ -1,5 +1,5 @@
 // Variable row heights + sticky section headers (`isHeader`).
-import { tag, html, UIElement, virtualize, VirtualizeController } from '../../../src/index.js';
+import { tag, t, UIElement, virtualize, VirtualizeController } from '../../../src/index.js';
 
 type Entry = { i: number; section: number };
 
@@ -23,7 +23,7 @@ export class DemoVirtualizeHeaders extends UIElement {
 	readonly #list = new VirtualizeController();
 
 	protected override template() {
-		return html`
+		return t`
 			<h2 id="headers">Sticky headers (variable size)</h2>
 			<p class="desc">
 				<code>isHeader</code> pins the current section title. Row sizes differ; no <code>itemSize</code> — sizes are measured. Give headers an opaque background (here
@@ -46,11 +46,11 @@ export class DemoVirtualizeHeaders extends UIElement {
 							const h = rowSize(e);
 							if (isHeader(e)) {
 								const title = SECTIONS[e.section] ?? `Section ${e.section}`;
-								return html`
+								return t`
 									<div class="demo-v-header" style="height: ${String(h)}px; box-sizing: border-box">${title} · row ${e.i}</div>
 								`;
 							}
-							return html`
+							return t`
 								<div class="demo-v-row" style="height: ${String(h)}px; box-sizing: border-box">
 									<span>Item ${e.i}</span>
 								</div>

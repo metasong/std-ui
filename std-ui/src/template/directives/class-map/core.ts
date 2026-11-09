@@ -10,7 +10,7 @@ import { Directive, directive, noChange, PartType, type AttributePartInfo, type 
  * `update()` below) - unlike `?`/`.`/`@`-prefixed bindings, which must be a single bare
  * interpolation since those bind a live value, not a composed string:
  *
- *   html`<div class="${classMap({ active: isActive, hidden: !visible })} static-class"></div>`
+ *   t`<div class="${classMap({ active: isActive, hidden: !visible })} static-class"></div>`
  */
 class ClassMapDirective extends Directive {
 	/** Classes this instance added last time, so the next `update()` knows which to remove if they

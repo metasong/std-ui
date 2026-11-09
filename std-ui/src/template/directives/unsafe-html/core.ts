@@ -43,6 +43,6 @@ class UnsafeHtmlDirective extends Directive {
  * text-node-only handling. Caller is responsible for the markup being trusted/sanitized; this
  * does no escaping.
  *
- *   html`<button>${unsafeHTML(iconSvg)}</button>`
+ *   t`<button>${unsafeHTML(iconSvg)}</button>`
  */
 export const unsafeHTML = directive(UnsafeHtmlDirective);

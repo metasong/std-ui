@@ -23,7 +23,7 @@ Everything else is defaulting: given `(element, property)`, which `event`, `equa
 | [`radio-group.ts`](./radio-group.ts) | Keeps same-named radio bindings consistent. |
 | [`core.ts`](./core.ts) | `BindDirective` (DOM wiring + lifecycle) and the `bind()` function. |
 | [`index.ts`](./index.ts) | Public exports. |
-| [`bind.test.ts`](./bind.test.ts) | Tests through `html()` / `render()`. |
+| [`bind.test.ts`](./bind.test.ts) | Tests through `t()` / `render()`. |
 
 Related: [`../../parts/core.ts`](../../parts/core.ts) (`PropertyPart` directive dispatch), [`../../directive.ts`](../../directive.ts) (`PropertyPartInfo`).
 

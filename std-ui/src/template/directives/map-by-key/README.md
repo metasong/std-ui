@@ -4,9 +4,9 @@ Built-in **child directive**: renders an iterable as sibling DOM subtrees, recon
 reordering, updates, and removals reuse existing nodes instead of positional diffing.
 
 ```ts
-import { html, mapByKey } from 'std-ui';
+import { t, mapByKey } from 'std-ui';
 
-html`<ul>${mapByKey(todos, (t) => t.id, (t) => html`<li>${t.text}</li>`)}</ul>`;
+t`<ul>${mapByKey(todos, (todo) => todo.id, (todo) => t`<li>${todo.text}</li>`)}</ul>`;
 ```
 
 ## API
@@ -15,7 +15,7 @@ html`<ul>${mapByKey(todos, (t) => t.id, (t) => html`<li>${t.text}</li>`)}</ul>`;
 
 - **`items`** — any `Iterable<T>` (array, generator, etc.).
 - **`keyFn`** — `(item, index) => key`. Keys must be unique within one render; duplicates throw.
-- **`template`** — `(item, index) => value` passed to the child renderer (string, nested `html`, another directive, …).
+- **`template`** — `(item, index) => value` passed to the child renderer (string, nested `t`, another directive, …).
 
 For positional lists (fixed order, append/shrink only), use `items.map(...)` instead — index keys
 do not buy DOM reuse (see [`design.md`](./design.md)).
@@ -27,7 +27,7 @@ std-ui: a `UIElement` with `@state()`, `mapByKey` keyed by `id`, and a sort that
 array (in-place `.sort()` does not notify `@state()`).
 
 ```ts
-import { html, mapByKey, state, tag, UIElement } from 'std-ui';
+import { t, mapByKey, state, tag, UIElement } from 'std-ui';
 
 type Chore = { id: string; label: string };
 
@@ -41,7 +41,7 @@ class SortableChores extends UIElement {
   ];
 
   protected override template() {
-    return html`
+    return t`
       <p>Chore list — sort and the rows move; keyed rows keep their controls.</p>
       <button type="button" @click="${() => this.sortByLabel(1)}">A → Z</button>
       <button type="button" @click="${() => this.sortByLabel(-1)}">Z → A</button>
@@ -49,7 +49,7 @@ class SortableChores extends UIElement {
         ${mapByKey(
           this.chores,
           (c) => c.id,
-          (c) => html`
+          (c) => t`
             <li data-id="${c.id}">
               <label><input type="checkbox" /> ${c.id}) ${c.label}</label>
             </li>

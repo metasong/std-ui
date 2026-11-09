@@ -1,5 +1,5 @@
 // Multi-lane grid (4 columns).
-import { tag, html, UIElement, virtualize } from '../../../src/index.js';
+import { tag, t, UIElement, virtualize } from '../../../src/index.js';
 
 type Cell = { i: number };
 
@@ -8,7 +8,7 @@ export class DemoVirtualizeGrid extends UIElement {
 	readonly #items: Cell[] = Array.from({ length: 4_000 }, (_, i) => ({ i }));
 
 	protected override template() {
-		return html`
+		return t`
 			<h2 id="grid">Grid (<code>lanes: 4</code>)</h2>
 			<p class="desc">4,000 cells in a 4-column grid. Each virtualized row is one grid row (4 items).</p>
 			<div class="demo-v-scroller demo-v-scroller-y">
@@ -19,7 +19,7 @@ export class DemoVirtualizeGrid extends UIElement {
 						lanes: 4,
 						overscan: 2,
 						keyFn: (c: Cell) => c.i,
-						renderItem: (c: Cell) => html`
+						renderItem: (c: Cell) => t`
 							<div class="demo-v-tile" style="height: 72px">${c.i}</div>
 						`,
 					})}

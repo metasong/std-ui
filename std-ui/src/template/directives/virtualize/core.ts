@@ -28,9 +28,9 @@ class VirtualizeDirective extends Directive {
  * two spacer elements stand in for the rest. Pass `itemSize` for fixed-size items, or
  * `estimatedItemSize` to let items be any size (rows are measured after render). Set\r\n * `direction: 'horizontal'` to scroll along x.
  *
- *   html`<div class="list">${virtualize(rows, {
+ *   t`<div class="list">${virtualize(rows, {
  *     itemSize: 32,
- *     renderItem: (r) => html`<div class="row">${r.name}</div>`,
+ *     renderItem: (r) => t`<div class="row">${r.name}</div>`,
  *   })}</div>`
  *
  * For a grid, set `lanes` and give the container `display: grid` with matching columns/gap.

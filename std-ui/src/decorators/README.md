@@ -31,7 +31,7 @@ class UserBadge extends UIElement {
 	@state() internal = 'x'; // store-backed only, no attribute at all
 
 	protected override template() {
-		return html`<span>${this.label}: ${this.count}</span>`;
+		return t`<span>${this.label}: ${this.count}</span>`;
 	}
 }
 ```
@@ -148,7 +148,7 @@ class ConfigPanel extends UIElement {
 	@state() config = { theme: 'dark', limits: { max: 10 } };
 
 	protected override template() {
-		return html`<span>${this.config.theme} / ${this.config.limits.max}</span>`;
+		return t`<span>${this.config.theme} / ${this.config.limits.max}</span>`;
 	}
 }
 

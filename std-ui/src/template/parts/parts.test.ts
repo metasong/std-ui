@@ -6,7 +6,7 @@ import {
 	EventPart,
 	PropertyPart,
 } from './index.js';
-import { html } from '../html.js';
+import { t } from '../html.js';
 import { unsafeHTML } from '../directives/unsafe-html/index.js';
 import { Directive, directive, noChange } from '../directive.js';
 import { classMap } from '../directives/class-map/index.js';
@@ -266,9 +266,9 @@ describe('ChildPart', () => {
 		expect(container.textContent).toBe('');
 	});
 
-	it('renders a nested html() result and patches it in place on same-strings re-updates', () => {
+	it('renders a nested t() result and patches it in place on same-strings re-updates', () => {
 		const { part, container } = makePart();
-		const view = (name: string) => html`<b>${name}</b>`;
+		const view = (name: string) => t`<b>${name}</b>`;
 		part.update([view('Ada')]);
 		expect(container.querySelector('b')!.textContent).toBe('Ada');
 
@@ -279,9 +279,9 @@ describe('ChildPart', () => {
 
 	it('tears down and rebuilds when switching to a different template literal', () => {
 		const { part, container } = makePart();
-		part.update([html`<b>${'x'}</b>`]);
+		part.update([t`<b>${'x'}</b>`]);
 		const firstB = container.querySelector('b');
-		part.update([html`<i>${'x'}</i>`]);
+		part.update([t`<i>${'x'}</i>`]);
 		expect(container.querySelector('b')).toBeNull();
 		expect(container.querySelector('i')).not.toBeNull();
 		expect(container.querySelector('i')).not.toBe(firstB);
@@ -307,7 +307,7 @@ describe('ChildPart', () => {
 
 	it('renders an array of nested templates, each independently diffed', () => {
 		const { part, container } = makePart();
-		const item = (label: string) => html`<li>${label}</li>`;
+		const item = (label: string) => t`<li>${label}</li>`;
 		part.update([[item('one'), item('two')]]);
 		expect(Array.from(container.querySelectorAll('li')).map(li => li.textContent)).toEqual(['one', 'two']);
 

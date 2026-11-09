@@ -1,5 +1,5 @@
 // Demonstrates: `static shadowRootOptions`, encapsulated styles, `@query()` against `renderRoot`.
-import { tag, html, UIElement, state } from '../../src/index.js';
+import { tag, t, UIElement, state } from '../../src/index.js';
 import { query } from '../../src/ui-element.js';
 
 @tag('demo-shadow-chip')
@@ -11,7 +11,7 @@ export class DemoShadowChip extends UIElement {
 	@query('button') toggle!: HTMLButtonElement | null;
 
 	protected override template() {
-		return html`
+		return t`
 			<style>
 				:host { display: inline-block; }
 				button {
@@ -50,7 +50,7 @@ export class DemoShadowChip extends UIElement {
 @tag('demo-shadow-section')
 export class DemoShadowSection extends UIElement {
 	protected override template() {
-		return html`
+		return t`
 			<h2>Shadow DOM</h2>
 			<p class="desc">
 				Set <code>static shadowRootOptions</code> on a <code>UIElement</code> subclass —

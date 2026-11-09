@@ -1,6 +1,6 @@
 // Demonstrates: `css` tagged templates + `static styles` — shadow-DOM `adoptedStyleSheets` vs.
 // light-DOM `@scope (tag-name)` (shared once across every instance, not re-parsed per instance).
-import { css, tag, html, UIElement, state } from '../../src/index.js';
+import { css, tag, t, UIElement, state } from '../../src/index.js';
 
 // Shared by every `demo-css-chip` instance via `adoptedStyleSheets` — one `CSSStyleSheet`, never
 // re-parsed, and naturally scoped by the shadow boundary, so `:host` is used as-is.
@@ -27,7 +27,7 @@ export class DemoCssChip extends UIElement {
 	@state() count = 0;
 
 	protected override template() {
-		return html`<button type="button" @click="${() => this.count++}">clicked ${this.count}×</button>`;
+		return t`<button type="button" @click="${() => this.count++}">clicked ${this.count}×</button>`;
 	}
 }
 
@@ -56,7 +56,7 @@ export class DemoCssBadge extends UIElement {
 @tag('demo-css-section')
 export class DemoCssSection extends UIElement {
 	protected override template() {
-		return html`
+		return t`
 			<h2>CSS templates</h2>
 			<p class="desc">
 				<code>css\`...\`</code> tags a literal as CSS (cached, composable, rejects raw strings —
@@ -78,7 +78,7 @@ export class DemoCssSection extends UIElement {
 				in <code>&lt;head&gt;</code>) for exactly one entry mentioning <code>demo-css-badge</code>.
 			</p>
 			<p>
-				${[1, 2, 3, 4, 5].map(n => html`<demo-css-badge>badge ${n}</demo-css-badge>`)}
+				${[1, 2, 3, 4, 5].map(n => t`<demo-css-badge>badge ${n}</demo-css-badge>`)}
 			</p>
 		`;
 	}

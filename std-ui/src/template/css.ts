@@ -13,7 +13,7 @@
 //     static override styles = buttonStyles; // or [sharedStyles, buttonStyles]
 //   }
 //
-// `css` values can be composed/nested like lit-html's `html`:
+// `css` values can be composed/nested like lit-html's `t`:
 //
 //   const base = css`:host { display: block; }`;
 //   const theme = css`${base} button { color: var(--accent); }`;

@@ -1,5 +1,5 @@
 // Horizontal scroll.
-import { tag, html, UIElement, virtualize, VirtualizeController } from '../../../src/index.js';
+import { tag, t, UIElement, virtualize, VirtualizeController } from '../../../src/index.js';
 
 type Card = { i: number };
 
@@ -9,7 +9,7 @@ export class DemoVirtualizeHorizontal extends UIElement {
 	readonly #list = new VirtualizeController();
 
 	protected override template() {
-		return html`
+		return t`
 			<h2 id="horizontal">Horizontal list</h2>
 			<p class="desc"><code>direction: 'horizontal'</code> — window follows <code>scrollLeft</code>. Fixed card width via <code>itemSize</code>.</p>
 			<div class="demo-actions">
@@ -26,7 +26,7 @@ export class DemoVirtualizeHorizontal extends UIElement {
 						overscan: 3,
 						controller: this.#list,
 						keyFn: (c: Card) => c.i,
-						renderItem: (c: Card) => html`
+						renderItem: (c: Card) => t`
 							<div class="demo-v-card" style="width: 140px">Card ${c.i}</div>
 						`,
 					})}

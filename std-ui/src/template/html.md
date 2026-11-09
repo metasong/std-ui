@@ -6,9 +6,9 @@ re-parsing or re-rendering the whole subtree on every update - only the values t
 changed touch the DOM.
 
 ```ts
-import { html, render } from './index.js';
+import { t, render } from './index.js';
 
-const greeting = (name: string) => html`<p>Hello, <strong>${name}</strong>!</p>`;
+const greeting = (name: string) => t`<p>Hello, <strong>${name}</strong>!</p>`;
 
 render(greeting('Ada'), document.body); // creates the DOM once
 render(greeting('Grace'), document.body); // reuses it, only patches the text node
@@ -35,8 +35,8 @@ A plain attribute's value may mix static text with any number of interpolations 
 into one string and re-applied via `setAttribute` whenever any piece changes:
 
 ```ts
-html`<div class="${a} ${b}">`; // multiple interpolations
-html`<div class="static-${dynamic}">`; // static text + one interpolation
+t`<div class="${a} ${b}">`; // multiple interpolations
+t`<div class="static-${dynamic}">`; // static text + one interpolation
 ```
 
 `?`/`.`/`@`-prefixed bindings don't support this - they bind to a real JS value (a boolean, a
@@ -48,7 +48,7 @@ Child content accepts:
 
 - `string` / `number` → rendered as a text node.
 - `null` / `undefined` / `false` → renders nothing (clears any previous content).
-- Another `html` result → rendered as a nested template, diffed independently.
+- Another `t` result → rendered as a nested template, diffed independently.
 - `unsafeHTML(markup)` → parses `markup` as HTML and inserts the resulting nodes directly (the one
   escape hatch for already-HTML strings, e.g. an SVG icon loaded via `?raw` - mirrors lit-html's
   `unsafeHTML` directive). Caller is responsible for the markup being trusted. Itself a built-in
@@ -61,11 +61,11 @@ being stringified. `classMap()`/`styleMap()` are the two built in. A child-conte
 a **child directive** - `unsafeHTML()` is the one built in. See [Directives](#directives) below.
 
 ```ts
-html`
+t`
 	<button ?disabled="${isLoading}" @click="${onSubmit}">
-		${isLoading ? html`<spinner-icon></spinner-icon>` : 'Submit'}
+		${isLoading ? t`<spinner-icon></spinner-icon>` : 'Submit'}
 	</button>
-	<ul>${items.map(item => html`<li>${item.label}</li>`)}</ul>
+	<ul>${items.map(item => t`<li>${item.label}</li>`)}</ul>
 `;
 ```
 
@@ -112,7 +112,7 @@ directive support later.
 
 What's committable from `render()`/`update()` depends on which kind of `Part` the directive is
 bound to: a string/`null`/`undefined` for an attribute position (stringified/removed by
-`AttributePart`), or anything a `ChildPart` already knows how to commit (string, nested `html`
+`AttributePart`), or anything a `ChildPart` already knows how to commit (string, nested `t`
 result, array, `null`/`undefined`/`false`, or another directive's own wrapper, e.g.
 `unsafeHTML()`'s) for a child position. `noChange` is the one value both recognize the same way:
 "I already applied my update myself - do nothing further."
@@ -148,7 +148,7 @@ class HelloDirective extends Directive {
 	}
 }
 export const hello = directive(HelloDirective);
-// html`<div title="${hello('Ada')}"></div>`
+// t`<div title="${hello('Ada')}"></div>`
 
 // Imperative - only update() needed, no render() required for typing. Real trailing parameters,
 // not an array to destructure - works for any number of them:
@@ -159,7 +159,7 @@ class LogAttributeDirective extends Directive {
 	}
 }
 export const logAttribute = directive(LogAttributeDirective);
-// html`<div title="${logAttribute('info', 'hi')}"></div>`
+// t`<div title="${logAttribute('info', 'hi')}"></div>`
 ```
 
 One `Directive` instance is created per *binding position* (the same spot as a persistent `Part`)
@@ -174,9 +174,9 @@ examples - both override `update(part, classes)`/`update(part, styles)` for impe
 signature is already what `directive()` infers `classMap`'s/`styleMap`'s argument types from:
 
 ```ts
-import { html, render, classMap, styleMap } from './index.js';
+import { t, render, classMap, styleMap } from './index.js';
 
-const row = (active: boolean, big: boolean) => html`
+const row = (active: boolean, big: boolean) => t`
 	<li
 		class="${classMap({ row: true, active })}"
 		style="${styleMap({ color: active ? 'green' : null, fontSize: big ? '20px' : '14px' })}"
@@ -199,22 +199,22 @@ const row = (active: boolean, big: boolean) => html`
 directive: its constructor requires `partInfo.type === PartType.CHILD` (throws if bound to an
 attribute instead), and it only needs `render(markup)` - no DOM access required, since parsing
 and inserting the markup is handled centrally by `ChildPart` once it recognizes the resolved
-`{ markup, ... }` wrapper `render()` returns, same as it already does for a plain `html` result or
+`{ markup, ... }` wrapper `render()` returns, same as it already does for a plain `t` result or
 array. This is the pattern to follow for a child directive that computes a committable value
 declaratively rather than touching the DOM itself: let `ChildPart`'s existing commit logic do the
 work, don't duplicate it.
 
 ## Embedding templates
 
-Build reusable markup as functions (or variables) that return `html` results, then interpolate them
+Build reusable markup as functions (or variables) that return `t` results, then interpolate them
 as child content in a parent template. The nested part keeps its own compiled template and updates
 in place when you re-render with the same inner call site:
 
 ```ts
-import { html, render } from './index.js';
+import { t, render } from './index.js';
 
-const badge = (label: string) => html`<span class="badge">${label}</span>`;
-const statusRow = (label: string) => html`<p>Status: ${badge(label)}</p>`;
+const badge = (label: string) => t`<span class="badge">${label}</span>`;
+const statusRow = (label: string) => t`<p>Status: ${badge(label)}</p>`;
 
 const container = document.createElement('div');
 render(statusRow('ok'), container);
@@ -225,38 +225,38 @@ There is no separate “include” API—composition is just `${nestedHtmlResult
 
 ## Logic: conditionals and lists
 
-Use ordinary JavaScript in `${...}` to pick or build child content. The parent `` html`...` ``
+Use ordinary JavaScript in `${...}` to pick or build child content. The parent `` t`...` ``
 call site stays the same; only the bound values change between renders.
 
 **If / else (different template parts):**
 
 ```ts
-const success = (msg: string) => html`<p class="ok">${msg}</p>`;
-const error = (msg: string) => html`<p class="err">${msg}</p>`;
+const success = (msg: string) => t`<p class="ok">${msg}</p>`;
+const error = (msg: string) => t`<p class="err">${msg}</p>`;
 
 const alert = (ok: boolean, msg: string) =>
-	html`<section>${ok ? success(msg) : error(msg)}</section>`;
+	t`<section>${ok ? success(msg) : error(msg)}</section>`;
 
 // or with an if statement before the parent template:
 function alertBody(ok: boolean, msg: string) {
 	if (ok) return success(msg);
 	return error(msg);
 }
-const alertFromIf = (ok: boolean, msg: string) => html`<section>${alertBody(ok, msg)}</section>`;
+const alertFromIf = (ok: boolean, msg: string) => t`<section>${alertBody(ok, msg)}</section>`;
 ```
 
-Each branch returns a different `` html`...` `` (different call sites). The nested `ChildPart`
+Each branch returns a different `` t`...` `` (different call sites). The nested `ChildPart`
 swaps them by tearing down the old subtree and mounting the new one. The outer `<section>` wrapper
 is unchanged if `alert` / `alertFromIf` always uses the same parent literal.
 
 **Lists (plain array vs `mapByKey`):**
 
 ```ts
-const row = (label: string) => html`<li>${label}</li>`;
+const row = (label: string) => t`<li>${label}</li>`;
 
-html`<ul>${items.map(item => row(item.label))}</ul>`; // positional (by index)
+t`<ul>${items.map(item => row(item.label))}</ul>`; // positional (by index)
 
-html`<ul>${mapByKey(items, (item) => item.id, (item) => row(item.label))}</ul>`; // keyed
+t`<ul>${mapByKey(items, (item) => item.id, (item) => row(item.label))}</ul>`; // keyed
 ```
 
 Plain arrays are diffed by index. Use `mapByKey` when order or stable row identity matters — see
@@ -265,12 +265,12 @@ Plain arrays are diffed by index. Use `mapByKey` when order or stable row identi
 ## `render(result, container)`
 
 Renders `result` into `container`. Call it again with a new `result` from the *same* tagged-template
-call site (literally the same `html\`...\`` expression in source, evaluated with new values) and it
+call site (literally the same `t\`...\`` expression in source, evaluated with new values) and it
 reuses the previous DOM, updating only the parts whose value changed:
 
 ```ts
 function view(state: State) {
-	return html`<div class="${state.open ? 'open' : ''}">${state.label}</div>`;
+	return t`<div class="${state.open ? 'open' : ''}">${state.label}</div>`;
 }
 
 render(view(a), container); // builds DOM
@@ -278,22 +278,22 @@ render(view(b), container); // same call site -> patches class + text in place
 ```
 
 Switching to a *different* template literal (e.g. a different `if` branch returning a different
-`html\`...\`` string) tears down the old DOM and builds fresh - there's no cross-template diffing.
+`t\`...\`` string) tears down the old DOM and builds fresh - there's no cross-template diffing.
 
 ## Using it in a `UIElement`
 
 `../ui-element.ts`'s `UIElement.template()` hook accepts either style: sync the DOM imperatively
-and return nothing (as existing components do), or return an `html` result and it's rendered into
+and return nothing (as existing components do), or return an `t` result and it's rendered into
 the element automatically - same hook, same schedule, your choice per component. Read whatever
 signal(s) you need directly inside `template()`:
 
 ```ts
-import { tag, html, UIElement } from '../index.js';
+import { tag, t, UIElement } from '../index.js';
 
 @tag('hello-banner')
 class HelloBanner extends UIElement {
 	override template() {
-		return html`<p>Hello, ${userName()}!</p>`;
+		return t`<p>Hello, ${userName()}!</p>`;
 	}
 }
 ```
@@ -304,7 +304,7 @@ For a **deeper, illustrated walkthrough** of how plain attributes are compiled (
 placeholders, `literals` / `valueCount`, and the “rewind” trick for `class="prefix-${x}"`), see
 [compile-attributes.md](./compile-attributes.md).
 
-1. `html` just captures `strings`/`values` — no DOM work happens yet. Tagged template calls reuse
+1. `t` just captures `strings`/`values` — no DOM work happens yet. Tagged template calls reuse
    the *same* `strings` array object across repeated calls at the same call site (guaranteed by the
    JS spec), so it doubles as a cache key.
 2. The first time a given `strings` array is rendered, it's compiled once: the strings are joined
@@ -330,14 +330,14 @@ and when the fast path is lost), see [`../doc/saved-ui-rerendering.md`](../doc/s
   though the generic `AttributeDirective` protocol (see above) supports writing your own.
 - **No MathML support.** There's no `mathml` tag function analogous to `svg` below.
 - **SVG needs the `svg` tag for namespace-less fragments.** Markup containing its own top-level
-  `<svg>...</svg>` works fine with plain `html` - the parser assigns the SVG namespace as soon as
+  `<svg>...</svg>` works fine with plain `t` - the parser assigns the SVG namespace as soon as
   it sees the `<svg>` tag, even inside a `<template>`. But a reusable snippet meant to be
-  interpolated as a *child* of an existing `<svg>` (e.g. `html`<circle r="${r}" />`` with no
+  interpolated as a *child* of an existing `<svg>` (e.g. `t`<circle r="${r}" />`` with no
   wrapping `<svg>`) would parse as an unnamespaced, non-rendering element - use `svg` instead:
 
   ```ts
-  import { html, svg, render } from './index.js';
+  import { t, svg, render } from './index.js';
 
   const dot = (r: number) => svg`<circle r="${r}" />`;
-  render(html`<svg viewBox="0 0 10 10">${dot(3)}</svg>`, container);
+  render(t`<svg viewBox="0 0 10 10">${dot(3)}</svg>`, container);
   ```

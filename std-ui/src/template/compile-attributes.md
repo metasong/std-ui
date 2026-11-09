@@ -11,10 +11,10 @@ If you only read one diagram, use [the state machine](#scanner-two-states) and [
 When you write:
 
 ```ts
-html`<div class="${a} ${b}" id="x">${label}</div>`;
+t`<div class="${a} ${b}" id="x">${label}</div>`;
 ```
 
-the engine gives `html()` two parallel arrays:
+the engine gives `t()` two parallel arrays:
 
 | | |
 |---|---|
@@ -108,7 +108,7 @@ So compilation answers: **which element**, **which attribute name**, **which lit
 Template:
 
 ```ts
-html`<div class="${a} ${b}"></div>`;
+t`<div class="${a} ${b}"></div>`;
 ```
 
 **Literals** recorded for `class` mirror the static pieces between values: roughly `['', ' ', '']` (empty before first value, space between, empty after second). **valueCount** = 2.
@@ -133,7 +133,7 @@ At runtime, `AttributePart` computes:
 Template:
 
 ```ts
-html`<div class="static-${x}"></div>`;
+t`<div class="static-${x}"></div>`;
 ```
 
 The characters `static-` appear in `strings` **before** the first gap. The scanner stores them in `literals[0]` for composition, but they must **not** stay in the synthetic markup string, or you would get **duplication** when the real value is applied. So when opening the attribute, the compiler **rewinds** the last few characters of the accumulated markup (the length of that prefix) before continuing. That “rewind” is the subtle bit: one copy in `literals`, one placeholder in the parse tree, no double `static-` in the fragment.

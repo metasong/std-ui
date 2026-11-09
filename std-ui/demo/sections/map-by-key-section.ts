@@ -1,5 +1,5 @@
 // Demonstrates: `mapByKey` — keyed list reconciliation when `@state()` order changes.
-import { tag, html, UIElement, state, mapByKey } from '../../src/index.js';
+import { tag, t, UIElement, state, mapByKey } from '../../src/index.js';
 
 type Chore = { id: string; label: string };
 
@@ -13,7 +13,7 @@ export class DemoMapByKeySection extends UIElement {
 	];
 
 	protected override template() {
-		return html`
+		return t`
 			<h2>Keyed lists (<code>mapByKey</code>)</h2>
 			<p class="desc">
 				Sort the chores, then check a box and sort again — the checkbox stays with the same chore because rows are keyed by <code>id</code>, not list index. The todo section above uses a plain <code>.map()</code> (positional).
@@ -26,7 +26,7 @@ export class DemoMapByKeySection extends UIElement {
 				${mapByKey(
 					this.chores,
 					(c: Chore) => c.id,
-					(c: Chore) => html`
+					(c: Chore) => t`
 						<li class="demo-chore-item" data-id="${c.id}">
 							<label>
 								<input type="checkbox" />

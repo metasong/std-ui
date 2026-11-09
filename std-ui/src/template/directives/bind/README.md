@@ -8,14 +8,14 @@ Built-in **property directive** for `.name="${bind(...)}"` bindings. Combines:
 Roughly “Angular two-way on one property,” with Lit-style `live` on the down direction only.
 
 ```ts
-import { html, bind, signalState, tag, UIElement } from 'std-ui';
+import { t, bind, signalState, tag, UIElement } from 'std-ui';
 
 @tag('search-field')
 class SearchField extends UIElement {
 	query = signalState('');
 
 	protected override template() {
-		return html`
+		return t`
 			<input .value="${bind(this.query)}" placeholder="Search…" />
 			<p>You typed: ${this.query()}</p>
 		`;
@@ -34,8 +34,8 @@ Binds a `signal()` or `signalState()` node directly — the model is the signal 
 ```ts
 const form = signalState({ query: '', agreed: false });
 
-html`<input .value="${bind(form.query)}" />`
-html`<input type="checkbox" .checked="${bind(form.agreed)}" />`
+t`<input .value="${bind(form.query)}" />`
+t`<input type="checkbox" .checked="${bind(form.agreed)}" />`
 ```
 
 Override just the event (property on the element is still `.level` → default would be `level-change`):
@@ -43,13 +43,13 @@ Override just the event (property on the element is still `.level` → default w
 ```ts
 const level = signalState(0);
 
-html`<legacy-dial .level="${bind(level, { event: 'levelinput' })}" />`
+t`<legacy-dial .level="${bind(level, { event: 'levelinput' })}" />`
 ```
 
 Pass `read` / `write` / `equals` in the same options object:
 
 ```ts
-html`
+t`
 	<my-date
 		.iso="${bind(dateIso, {
 			event: 'date-change',
@@ -67,7 +67,7 @@ html`
 Escape hatch when the model is not a signal (computed value, external store, coercion):
 
 ```ts
-html`
+t`
 	<input
 		type="number"
 		.value="${bind({
@@ -81,7 +81,7 @@ html`
 Same shape with extra hooks in one object:
 
 ```ts
-html`
+t`
 	<my-editor
 		.revision="${bind({
 			get: () => this.revision,
@@ -132,7 +132,7 @@ Resolved from the **property name** on the bound element (`PropertyPart.name`):
 Parent:
 
 ```ts
-html`<my-editor .document="${bind(doc)}"></my-editor>`;
+t`<my-editor .document="${bind(doc)}"></my-editor>`;
 ```
 
 Child contract (default event `document-change`):

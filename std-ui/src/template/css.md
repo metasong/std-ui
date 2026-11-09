@@ -36,7 +36,7 @@ class ThemedButton extends UIElement {
   ```
 - `unsafeCSS(value)` wraps an arbitrary value (stringified) as a trusted `CSSResult`, for the rare
   case of CSS text loaded or computed at runtime (mirrors lit-html's `unsafeHTML`).
-- Like `html`, a literal with **no interpolations** is cached (keyed by the literal's `strings`
+- Like `t`, a literal with **no interpolations** is cached (keyed by the literal's `strings`
   identity - the same object every time that exact call site runs) - calling the same zero-arg
   `css\`...\`` repeatedly returns the exact same `CSSResult`, so its `CSSStyleSheet` is only ever
   built once.
@@ -140,7 +140,7 @@ ElementStyles()`.
 - [`css.ts`](./css.ts) — `css`/`unsafeCSS`/`CSSResult`/`flattenCSSResults`/`flattenCSSText`/`hostSelectorsToScope`.
 - [`../element-styles.ts`](../element-styles.ts) — `ElementStyles`, consumed by `UIElement`.
 - [`../ui-element.ts`](../ui-element.ts) — `static styles`, `#ensureRenderRoot()`, `#requestUpdate()`.
-- [`html.md`](./html.md) — the analogous usage/design doc for `html`/`render` (the templating half
+- [`html.md`](./html.md) — the analogous usage/design doc for `t`/`render` (the templating half
   of this same "tagged template, cached by call site" family of tricks).
 - [`css.test.ts`](./css.test.ts) / [`../element-styles.test.ts`](../element-styles.test.ts) /
   [`../ui-element.test.ts`](../ui-element.test.ts) — behavior tests.

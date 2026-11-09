@@ -4,7 +4,7 @@
  */
 import { describe, expect, it } from 'vitest';
 import { mapByKey } from '../template/directives/map-by-key/index.js';
-import { html } from '../template/html.js';
+import { t } from '../template/html.js';
 import { state, tag, UIElement } from '../ui-element.js';
 
 type Chore = { id: string; label: string };
@@ -21,7 +21,7 @@ describe('doc: mapByKey keeps row DOM when a @state() list is reordered', () => 
 			];
 
 			protected override template() {
-				return html`
+				return t`
 					<p>Chore list — sort and the rows move; keyed rows keep their controls.</p>
 					<button type="button" data-action="az" @click="${() => this.sortByLabel(1)}">A → Z</button>
 					<button type="button" data-action="za" @click="${() => this.sortByLabel(-1)}">Z → A</button>
@@ -29,7 +29,7 @@ describe('doc: mapByKey keeps row DOM when a @state() list is reordered', () => 
 						${mapByKey(
 							this.chores,
 							(c) => c.id,
-							(c) => html`
+							(c) => t`
 								<li data-id="${c.id}">
 									<label><input type="checkbox" /> ${c.id}) ${c.label}</label>
 								</li>
