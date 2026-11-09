@@ -1,4 +1,4 @@
-import { KeyedRows } from '../../keyed-rows.js';
+import { KeyedRows } from '../../keyed-rows/index.js';
 import type { Window as ItemWindow } from '../layout.js';
 import type { VirtualizeOptions } from '../options.js';
 import type { Axis } from './axis.js';

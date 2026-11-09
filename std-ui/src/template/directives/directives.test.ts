@@ -1,9 +1,9 @@
 import { describe, expect, it } from 'vitest';
 import { html } from '../html.js';
 import { render } from '../render.js';
-import { classMap } from './class-map.js';
+import { classMap } from './class-map/index.js';
 import { mapByKey } from './map-by-key/index.js';
-import { styleMap } from './style-map.js';
+import { styleMap } from './style-map/index.js';
 
 describe('classMap end-to-end', () => {
 	it('toggles classes through html()/render()', () => {

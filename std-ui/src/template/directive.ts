@@ -19,7 +19,7 @@ export const noChange: unique symbol = Symbol('noChange');
  * actually committable depends on which kind of position the directive is bound to -
  * `string`/`number`/`null`/`undefined` for an `AttributePart` (stringified/removed), or anything
  * a `ChildPart` already knows how to commit (a string, `TemplateResult`, array, `null`/`undefined`
- * /`false`, or another directive's wrapper - see `directives/unsafe-html.ts`) for a `ChildPart`. `noChange` is
+ * /`false`, or another directive's wrapper - see `directives/unsafe-html/core.ts`) for a `ChildPart`. `noChange` is
  * the one value both recognize the same way: "I already applied my update myself - leave whatever
  * I didn't just touch alone."
  */
@@ -29,7 +29,7 @@ export type DirectiveReturn = unknown;
  * Mirrors lit-html's `PartType` - which *kind* of template expression a directive is bound to, so a
  * directive can check `partInfo.type`/`part.type` (see `Directive`'s constructor and `update()`
  * below) and throw if used somewhere it doesn't support, e.g. `classMap` requiring `ATTRIBUTE` +
- * `name === 'class'`, or `unsafeHTML` requiring `CHILD` (see `directives/unsafe-html.ts`). `ATTRIBUTE` and
+ * `name === 'class'`, or `unsafeHTML` requiring `CHILD` (see `directives/unsafe-html/core.ts`). `ATTRIBUTE` and
  * `CHILD` are the two kinds this engine actually dispatches to directives (see `AttributePart`/
  * `ChildPart` in `parts/`); this stays a full union so the shape has room to grow if
  * `BooleanAttributePart`/`EventPart`/`PropertyPart`/`ElementPart` gain directive support later,

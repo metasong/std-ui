@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
-import { AttributePart, ChildPart } from '../parts/index.js';
-import { isDirectiveResult } from '../directive.js';
-import { unsafeHTML } from './unsafe-html.js';
+import { AttributePart, ChildPart } from '../../parts/index.js';
+import { isDirectiveResult } from '../../directive.js';
+import { unsafeHTML } from './index.js';
 
 describe('unsafeHTML', () => {
 	it('returns an opaque directive result, not the markup wrapper directly', () => {

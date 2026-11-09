@@ -1,4 +1,4 @@
-import { Directive, directive, noChange, PartType, type AttributePartInfo, type PartInfo } from '../directive.js';
+import { Directive, directive, noChange, PartType, type AttributePartInfo, type PartInfo } from '../../directive.js';
 
 /** `fontSize` -> `font-size`; CSS custom properties (`--foo`) and already-kebab/lowercase names
  *  pass through unchanged, matching `CSSStyleDeclaration.setProperty`'s expectations. */
@@ -36,7 +36,7 @@ class StyleMapDirective extends Directive {
 	 * signals there's nothing left to commit.
 	 *
 	 * If `part.staticText` is set (`styleMap()` is mixed with static CSS text/other declarations in
-	 * the same `style` attribute - see `AttributePartInfo.staticText` in `../directive.js`), it's
+	 * the same `style` attribute - see `AttributePartInfo.staticText` in `../../directive.js`), it's
 	 * parsed as `prop:value;` declarations the same way a real `style` attribute would and merged
 	 * with this call's own object (whose entries win on a clashing property name) before diffing,
 	 * so neither contribution clobbers the other.

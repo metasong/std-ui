@@ -7,10 +7,10 @@ How the two built-in attribute directives are implemented, and how they use the 
 
 | File | Owns |
 |---|---|
-| [`class-map.ts`](./class-map.ts) | `ClassMapDirective` + `export const classMap = directive(ClassMapDirective)`. |
-| [`style-map.ts`](./style-map.ts) | `toCssPropertyName()` (camelCase → kebab-case) + `StyleMapDirective` + `export const styleMap = directive(StyleMapDirective)`. |
+| [`class-map/`](./class-map/) | `ClassMapDirective` + `export const classMap = directive(ClassMapDirective)`. |
+| [`style-map/`](./style-map/) | `toCssPropertyName()` (camelCase → kebab-case) + `StyleMapDirective` + `export const styleMap = directive(StyleMapDirective)`. |
 | [`index.ts`](./index.ts) | Public re-exports. |
-| [`class-map.test.ts`](./class-map.test.ts) / [`style-map.test.ts`](./style-map.test.ts) | Behavior tests through `AttributePart` directly. |
+| [`class-map/class-map.test.ts`](./class-map/class-map.test.ts) / [`style-map/style-map.test.ts`](./style-map/style-map.test.ts) | Behavior tests through `AttributePart` directly. |
 | [`directives.test.ts`](./directives.test.ts) | End-to-end tests through `html()`/`render()`. |
 
 All code for one directive lives in one file — the constructor's validation, its `update()`
@@ -83,6 +83,6 @@ flowchart LR
 - [`README.md`](./README.md) — public API and examples.
 - [`../directive.ts`](../directive.ts) — the generic `Directive`/`directive()`/`PartType`/`noChange` protocol both directives are built on.
 - [`../html.md`](../html.md#directives) — "Directives" section: how to write a custom one (attribute or child).
-- [`./unsafe-html.ts`](./unsafe-html.ts) — built-in **child** directive `unsafeHTML()` (uses `commitWith()`).
+- [`./unsafe-html/`](./unsafe-html/) — built-in **child** directive `unsafeHTML()` (uses `commitWith()`).
 - [`./map-by-key/`](./map-by-key/) — built-in **child** directive `mapByKey()` (keyed lists); see [`./map-by-key/design.md`](./map-by-key/design.md).
-- [`class-map.test.ts`](./class-map.test.ts) / [`style-map.test.ts`](./style-map.test.ts) / [`directives.test.ts`](./directives.test.ts) — behavior tests.
+- [`class-map/class-map.test.ts`](./class-map/class-map.test.ts) / [`style-map/style-map.test.ts`](./style-map/style-map.test.ts) / [`directives.test.ts`](./directives.test.ts) — behavior tests.

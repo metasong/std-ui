@@ -1,4 +1,4 @@
-import { ChildPart } from '../parts/child-part.js';
+import { ChildPart } from '../../parts/child-part.js';
 
 export type KeyedEntries = ReadonlyArray<{ readonly key: unknown; readonly value: unknown }>;
 

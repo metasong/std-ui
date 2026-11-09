@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
-import { AttributePart } from '../parts/index.js';
-import { classMap } from './class-map.js';
+import { AttributePart } from '../../parts/index.js';
+import { classMap } from './index.js';
 
 describe('classMap', () => {
 	it('adds truthy keys as classes, ignores falsy ones (via the imperative update() path)', () => {

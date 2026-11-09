@@ -15,7 +15,7 @@ usage and API, see [`README.md`](./README.md).
 
 `mapByKey` does not live in `../parts/`: `ChildPart` only knows the generic `commitWith()` protocol
 from [`../../parts/committers/committer.ts`](../../parts/committers/committer.ts). The directive
-supplies its own committer class, same pattern as [`../unsafe-html.ts`](../unsafe-html.ts).
+supplies its own committer class, same pattern as [`../unsafe-html/`](../unsafe-html/).
 
 ## Why `render()`, not `update()`
 
@@ -84,5 +84,5 @@ order, using a single forward reference `ref`.
 
 - [`README.md`](./README.md) — public API.
 - [`../../parts/child-part.ts`](../../parts/child-part.ts) — committer selection and directive application.
-- [`../unsafe-html.ts`](../unsafe-html.ts) — another `commitWith()` child directive.
+- [`../unsafe-html/`](../unsafe-html/) — another `commitWith()` child directive.
 - [`../../parts/committers/list-committer.ts`](../../parts/committers/list-committer.ts) — positional list diff.

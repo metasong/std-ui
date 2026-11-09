@@ -63,13 +63,13 @@ methods for the keys that actually changed.
 
 `classMap`/`styleMap` are just two consumers of a generic protocol — `Directive`/`directive()` in
 [`../directive.ts`](../directive.ts), which also backs the one built-in
-**child** directive, `unsafeHTML()` (see [`./unsafe-html.ts`](./unsafe-html.ts)).
+**child** directive, `unsafeHTML()` (see [`./unsafe-html/`](./unsafe-html/)).
 For the general protocol (lifecycle hooks, `Part`/`PartInfo`, `noChange`, instance reuse, both the
 attribute and child binding kinds) and how to write a custom directive, see the "Directives"
 section of [`../html.md`](../html.md#directives). [`design.md`](./design.md)
 covers how `classMap`/`styleMap` specifically use it.
 
-Other built-in directives: [`unsafe-html.ts`](./unsafe-html.ts) (`unsafeHTML`);
+Other built-in directives: [`unsafe-html/`](./unsafe-html/) (`unsafeHTML`);
 [`map-by-key/`](./map-by-key/) (`mapByKey` — keyed lists; see [`map-by-key/README.md`](./map-by-key/README.md));
 [`bind/`](./bind/) (`bind` — two-way property bind; see [`bind/README.md`](./bind/README.md)).
 

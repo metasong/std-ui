@@ -1,5 +1,5 @@
-import { Directive, directive, PartType, type PartInfo } from '../directive.js';
-import { Committer, commitWith } from '../parts/committers/index.js';
+import { Directive, directive, PartType, type PartInfo } from '../../directive.js';
+import { Committer, commitWith } from '../../parts/committers/index.js';
 
 /** Parses markup and inserts the resulting nodes before the part's anchor; re-parses only when
  *  the markup string changes. */

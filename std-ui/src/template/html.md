@@ -168,7 +168,7 @@ re-renders at that position** as long as the same directive function keeps being
 fields are exactly where to keep "what did I do last time" state, with zero bookkeeping required
 from `AttributePart`/`ChildPart` themselves. All of a directive's logic - including which binding
 kind/name it's valid on - lives in its own module; `AttributePart`/`ChildPart` only dispatch. See
-`./directives/class-map.ts` and `./directives/style-map.ts` for complete attribute-directive
+`./directives/class-map/` and `./directives/style-map/` for complete attribute-directive
 examples - both override `update(part, classes)`/`update(part, styles)` for imperative
 `classList`/`el.style` access and don't implement `render()` at all, since their own `update()`
 signature is already what `directive()` infers `classMap`'s/`styleMap`'s argument types from:
@@ -195,7 +195,7 @@ const row = (active: boolean, big: boolean) => html`
 - Each must be the attribute's *only* interpolation, with no surrounding static text - same rule as
   `?`/`.`/`@`-prefixed bindings, since these bind a live object rather than a composed string.
 
-`unsafeHTML()` (see [`./directives/unsafe-html.ts`](./directives/unsafe-html.ts)) is the one built-in **child**
+`unsafeHTML()` (see [`./directives/unsafe-html/`](./directives/unsafe-html/)) is the one built-in **child**
 directive: its constructor requires `partInfo.type === PartType.CHILD` (throws if bound to an
 attribute instead), and it only needs `render(markup)` - no DOM access required, since parsing
 and inserting the markup is handled centrally by `ChildPart` once it recognizes the resolved

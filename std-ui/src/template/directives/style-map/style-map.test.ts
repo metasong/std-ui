@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
-import { AttributePart } from '../parts/index.js';
-import { styleMap } from './style-map.js';
+import { AttributePart } from '../../parts/index.js';
+import { styleMap } from './index.js';
 
 describe('styleMap', () => {
 	it('sets style properties, converting camelCase keys to kebab-case (via the imperative update() path)', () => {

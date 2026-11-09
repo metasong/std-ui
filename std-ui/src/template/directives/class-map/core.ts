@@ -1,4 +1,4 @@
-import { Directive, directive, noChange, PartType, type AttributePartInfo, type PartInfo } from '../directive.js';
+import { Directive, directive, noChange, PartType, type AttributePartInfo, type PartInfo } from '../../directive.js';
 
 /**
  * `classMap` directive: toggles individual classes on/off via `classList`,
@@ -29,7 +29,7 @@ class ClassMapDirective extends Directive {
 	 * leaving classes from elsewhere untouched, then signals there's nothing left to commit.
 	 *
 	 * If `part.staticText` is set (`classMap()` is mixed with static text/other classes in the same
-	 * `class` attribute - see `AttributePartInfo.staticText` in `../directive.js`), it's tokenized
+	 * `class` attribute - see `AttributePartInfo.staticText` in `../../directive.js`), it's tokenized
 	 * the same whitespace-separated way a real `class` attribute would and unioned with this call's
 	 * own truthy keys before diffing, so neither contribution clobbers the other.
 	 */

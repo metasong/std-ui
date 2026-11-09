@@ -35,7 +35,7 @@
 // own) meant to be interpolated as a child of an existing `<svg>` element.
 //
 // This module ties the pieces (compilation, parts, rendering) together; see the sibling files for
-// each concern: `compile.ts`, `parts/`, `directives/unsafe-html.ts`, `render.ts`.
+// each concern: `compile.ts`, `parts/`, `directives/unsafe-html/core.ts`, `render.ts`.
 
 /** The result of calling `html`/`svg` - inert until passed to `render()`. */
 export interface TemplateResult {

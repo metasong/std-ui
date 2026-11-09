@@ -1,5 +1,5 @@
 import { Committer } from '../../parts/committers/committer.js';
-import { KeyedRows, type KeyedEntries } from '../keyed-rows.js';
+import { KeyedRows, type KeyedEntries } from '../keyed-rows/index.js';
 
 export type MapByKeyEntries = KeyedEntries;
 
