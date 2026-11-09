@@ -2,7 +2,7 @@
 // value, take over applying itself to the DOM instead of being handled the default way (stringified
 // by `AttributePart`, or text/template/array-diffed by `ChildPart`). This is the only extension
 // point `AttributePart`/`ChildPart` know about - neither has built-in knowledge of any specific
-// directive (`classMap`, `styleMap`, `unsafeHTML`, or anything else); all of that lives in each
+// directive (`classMap`, `styleMap`, `html`, or anything else); all of that lives in each
 // directive's own module under `./directives/`. Mirrors lit-html's `Directive`/`directive()` pair (see
 // https://lit.dev/docs/templates/custom-directives/), trimmed to the two binding kinds this engine
 // actually produces (no async/`ElementPart`/boolean-attribute/property/event directives).
@@ -29,7 +29,7 @@ export type DirectiveReturn = unknown;
  * Mirrors lit-html's `PartType` - which *kind* of template expression a directive is bound to, so a
  * directive can check `partInfo.type`/`part.type` (see `Directive`'s constructor and `update()`
  * below) and throw if used somewhere it doesn't support, e.g. `classMap` requiring `ATTRIBUTE` +
- * `name === 'class'`, or `unsafeHTML` requiring `CHILD` (see `directives/unsafe-html/core.ts`). `ATTRIBUTE` and
+ * `name === 'class'`, or `html` requiring `CHILD` (see `directives/unsafe-html/core.ts`). `ATTRIBUTE` and
  * `CHILD` are the two kinds this engine actually dispatches to directives (see `AttributePart`/
  * `ChildPart` in `parts/`); this stays a full union so the shape has room to grow if
  * `BooleanAttributePart`/`EventPart`/`PropertyPart`/`ElementPart` gain directive support later,

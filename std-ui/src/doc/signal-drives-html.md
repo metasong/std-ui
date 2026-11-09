@@ -179,5 +179,5 @@ flowchart LR
   identity, `render()` fast path, nested `t` in lists).
 - [`../signal/core/signal.md`](../signal/core/signal.md) — primitives, tracking, batching, `peek`.
 - [`../signal/tree.md`](../signal/tree.md) — `signalState`, branch `.set(partial)`, app-shaped state.
-- [`../template/html.md`](../template/html.md) — binding kinds, limitations, `svg`, `unsafeHTML`.
+- [`../template/html.md`](../template/html.md) — binding kinds, limitations, `svg`, `html` (raw markup directive).
 - [`signal-drives-html.example.test.ts`](signal-drives-html.example.test.ts) — executable walkthrough of Patterns A, B, and C.

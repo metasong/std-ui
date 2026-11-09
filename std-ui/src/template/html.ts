@@ -23,7 +23,7 @@
 //     `.`/ `?` bindings, string equality on composed attributes, committer reuse in child positions).
 //
 // What's intentionally left out, vs. real lit-html: most lit directives (built-ins include `bind`,
-// `classMap`, `styleMap`, `mapByKey`, `virtualize`, `unsafeHTML` - see `./directives/` and
+// `classMap`, `styleMap`, `mapByKey`, `virtualize`, `html` (raw markup child directive) - see `./directives/` and
 // `./index.js` exports, though `directive.ts`'s `Directive`/`directive()`/`PartType` - modeled on
 // lit-html's own - is the generic extension point for more), and MathML template handling. Plain attributes (no
 // `?`/`.`/`@` sigil) do support multi-expression/mixed-static values like `class="${a} ${b}"` or `class="static-${x}"`; the
@@ -45,21 +45,22 @@ export interface TemplateResult {
 	readonly type?: 'svg';
 }
 
-/** Tags a template literal as HTML to be rendered via `render()`. Does no DOM work itself. */
+/**
+ * create a std-ui template.
+*/
 export function t(strings: TemplateStringsArray, ...values: unknown[]): TemplateResult {
 	return { strings, values };
 }
 
 /**
- * Like `t`, but for markup that's pure SVG content with no `<svg>` wrapper of its own - e.g. a
+ * svg parent tag and namespace wrapper for svg markup that's pure SVG content with no `<svg>` wrapper of its own - e.g. a
  * reusable snippet meant to be interpolated as a child of an existing `<svg>` element:
  *
  *   const dot = (r: number) => svg`<circle r="${r}" />`;
  *   t`<svg viewBox="0 0 10 10">${dot(3)}</svg>`;
  *
- * If your markup already includes its own top-level `<svg>...</svg>`, plain `t` works fine -
- * the parser assigns the SVG namespace as soon as it sees the `<svg>` tag, even inside a
- * `<template>`. `svg` is only needed for namespace-less fragments like the `<circle>` above.
+ * If your markup already includes its own top-level `<svg>...</svg>`, plain `t` works fine - the parser assigns the SVG namespace as soon as it sees the `<svg>` tag, even inside a `<template>`.
+ * `svg` is only needed for namespace-less fragments like the `<circle>` above.
  */
 export function svg(strings: TemplateStringsArray, ...values: unknown[]): TemplateResult {
 	return { strings, values, type: 'svg' };

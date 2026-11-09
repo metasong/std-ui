@@ -67,7 +67,7 @@ API notes: [`../src/template/directives/virtualize/README.md`](../src/template/d
 | `demo-query-section` | [`sections/query-section.ts`](./sections/query-section.ts) | `@query()` |
 | `demo-shadow-section` | [`sections/shadow-section.ts`](./sections/shadow-section.ts) | Shadow DOM + `static styles` |
 | `demo-css-section` | [`sections/css-section.ts`](./sections/css-section.ts) | `css` tagged styles in light DOM |
-| `demo-directives-section` | [`sections/directives-section.ts`](./sections/directives-section.ts) | `classMap`, `styleMap`, `unsafeHTML` |
+| `demo-directives-section` | [`sections/directives-section.ts`](./sections/directives-section.ts) | `classMap`, `styleMap`, `html` |
 | `demo-todo-section` | [`sections/todo-section.ts`](./sections/todo-section.ts) | Composition; positional list via `.map()` |
 | `demo-map-by-key-section` | [`sections/map-by-key-section.ts`](./sections/map-by-key-section.ts) | Keyed lists via `mapByKey` (sort + checkboxes) |
 

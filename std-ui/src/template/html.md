@@ -49,16 +49,16 @@ Child content accepts:
 - `string` / `number` → rendered as a text node.
 - `null` / `undefined` / `false` → renders nothing (clears any previous content).
 - Another `t` result → rendered as a nested template, diffed independently.
-- `unsafeHTML(markup)` → parses `markup` as HTML and inserts the resulting nodes directly (the one
+- `html(markup)` → parses `markup` as HTML and inserts the resulting nodes directly (the one
   escape hatch for already-HTML strings, e.g. an SVG icon loaded via `?raw` - mirrors lit-html's
-  `unsafeHTML` directive). Caller is responsible for the markup being trusted. Itself a built-in
+  `html` directive). Caller is responsible for the markup being trusted. Itself a built-in
   **directive** (see [Directives](#directives) below) bound to the child position.
 - An array of any of the above → rendered as a sibling list (not keyed - see Limitations).
 
 A plain, bare attribute binding (single interpolation, no static text, e.g. `class="${...}"`)
 accepts an **attribute directive** - a value that applies itself directly to the element instead of
 being stringified. `classMap()`/`styleMap()` are the two built in. A child-content position accepts
-a **child directive** - `unsafeHTML()` is the one built in. See [Directives](#directives) below.
+a **child directive** - `html()` is the one built in. See [Directives](#directives) below.
 
 ```ts
 t`
@@ -114,7 +114,7 @@ What's committable from `render()`/`update()` depends on which kind of `Part` th
 bound to: a string/`null`/`undefined` for an attribute position (stringified/removed by
 `AttributePart`), or anything a `ChildPart` already knows how to commit (string, nested `t`
 result, array, `null`/`undefined`/`false`, or another directive's own wrapper, e.g.
-`unsafeHTML()`'s) for a child position. `noChange` is the one value both recognize the same way:
+`html()`'s) for a child position. `noChange` is the one value both recognize the same way:
 "I already applied my update myself - do nothing further."
 
 Three lifecycle hooks, same roles as lit-html's:
@@ -195,7 +195,7 @@ const row = (active: boolean, big: boolean) => t`
 - Each must be the attribute's *only* interpolation, with no surrounding static text - same rule as
   `?`/`.`/`@`-prefixed bindings, since these bind a live object rather than a composed string.
 
-`unsafeHTML()` (see [`./directives/unsafe-html/`](./directives/unsafe-html/)) is the one built-in **child**
+`html()` (see [`./directives/unsafe-html/`](./directives/unsafe-html/)) is the one built-in **child**
 directive: its constructor requires `partInfo.type === PartType.CHILD` (throws if bound to an
 attribute instead), and it only needs `render(markup)` - no DOM access required, since parsing
 and inserting the markup is handled centrally by `ChildPart` once it recognizes the resolved
@@ -325,7 +325,7 @@ and when the fast path is lost), see [`../doc/saved-ui-rerendering.md`](../doc/s
 ## Limitations (vs. real lit-html)
 
 - **Plain arrays are positional** (not keyed). For keyed lists use the built-in `mapByKey()` directive.
-- **Small built-in directive set** (`classMap`, `styleMap`, `mapByKey`, `unsafeHTML`, …) - no `ref`,
+- **Small built-in directive set** (`classMap`, `styleMap`, `mapByKey`, `html`, …) - no `ref`,
   `guard`, `cache`, etc.,
   though the generic `AttributeDirective` protocol (see above) supports writing your own.
 - **No MathML support.** There's no `mathml` tag function analogous to `svg` below.

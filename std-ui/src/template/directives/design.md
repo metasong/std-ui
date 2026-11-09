@@ -83,6 +83,6 @@ flowchart LR
 - [`README.md`](./README.md) — public API and examples.
 - [`../directive.ts`](../directive.ts) — the generic `Directive`/`directive()`/`PartType`/`noChange` protocol both directives are built on.
 - [`../html.md`](../html.md#directives) — "Directives" section: how to write a custom one (attribute or child).
-- [`./unsafe-html/`](./unsafe-html/) — built-in **child** directive `unsafeHTML()` (uses `commitWith()`).
+- [`./unsafe-html/`](./unsafe-html/) — built-in **child** directive `html()` (uses `commitWith()`).
 - [`./map-by-key/`](./map-by-key/) — built-in **child** directive `mapByKey()` (keyed lists); see [`./map-by-key/design.md`](./map-by-key/design.md).
 - [`class-map/class-map.test.ts`](./class-map/class-map.test.ts) / [`style-map/style-map.test.ts`](./style-map/style-map.test.ts) / [`directives.test.ts`](./directives.test.ts) — behavior tests.

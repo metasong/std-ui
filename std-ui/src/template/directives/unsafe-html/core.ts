@@ -28,7 +28,7 @@ class UnsafeHtmlDirective extends Directive {
 	constructor(partInfo: PartInfo) {
 		super(partInfo);
 		if (partInfo.type !== PartType.CHILD) {
-			throw new Error('std-ui unsafeHTML(): must be bound to a child position, not an attribute.');
+			throw new Error('std-ui html(): must be bound to a child position, not an attribute.');
 		}
 	}
 
@@ -38,11 +38,11 @@ class UnsafeHtmlDirective extends Directive {
 }
 
 /**
- * Escape hatch (mirrors lit-html's `unsafeHTML` directive) for injecting markup that's already
- * HTML - e.g. an SVG icon loaded via `?raw` - as a child binding, bypassing the normal
+ * Escape hatch for injecting markup that's already
+ * HTML string - e.g. an SVG icon loaded via `?raw` - as a child binding, bypassing the normal
  * text-node-only handling. Caller is responsible for the markup being trusted/sanitized; this
  * does no escaping.
  *
- *   t`<button>${unsafeHTML(iconSvg)}</button>`
+ *   t`<button>${html(iconSvg)}</button>`
  */
-export const unsafeHTML = directive(UnsafeHtmlDirective);
+export const html = directive(UnsafeHtmlDirective);

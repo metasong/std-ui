@@ -1,5 +1,5 @@
-// Demonstrates: `classMap` / `styleMap` attribute directives, and `unsafeHTML`.
-import { tag, t, UIElement, state, unsafeHTML } from '../../src/index.js';
+// Demonstrates: `classMap` / `styleMap` attribute directives, and `html`.
+import { tag, t, UIElement, state, html } from '../../src/index.js';
 import { classMap, styleMap } from '../../src/template/directives/index.js';
 
 @tag('demo-directives-section')
@@ -17,7 +17,7 @@ export class DemoDirectivesSection extends UIElement {
 
 		return t`
 			<h2>Directives</h2>
-			<p class="desc"><code>classMap</code> toggles individual classes via <code>classList</code>; <code>styleMap</code> sets individual inline style properties - both can coexist with static text/other classes in the same attribute; <code>unsafeHTML</code> injects raw markup (trusted input only).</p>
+			<p class="desc"><code>classMap</code> toggles individual classes via <code>classList</code>; <code>styleMap</code> sets individual inline style properties - both can coexist with static text/other classes in the same attribute; <code>html</code> injects raw markup (trusted input only).</p>
 			<div class="${classMap(classes)} demo-box" style="${styleMap(styles)}">
 				classMap + styleMap controlled box (mixed with static "class"/"style" text)
 			</div>
@@ -25,7 +25,7 @@ export class DemoDirectivesSection extends UIElement {
 				<button type="button" @click="${() => (this.active = !this.active)}">toggle active class</button>
 				<button type="button" class="tonal" @click="${() => (this.big = !this.big)}">toggle size style</button>
 			</div>
-			<div>${unsafeHTML('<em>rendered via <code>unsafeHTML</code></em>')}</div>
+			<div>${html('<em>rendered via <code>html</code></em>')}</div>
 		`;
 	}
 }

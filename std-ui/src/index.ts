@@ -11,7 +11,7 @@ export {
 	t,
 	svg,
 	render,
-	unsafeHTML,
+	html,
 	Directive,
 	directive,
 	noChange,

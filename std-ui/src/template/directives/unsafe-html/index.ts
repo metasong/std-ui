@@ -1,1 +1,1 @@
-export { unsafeHTML } from './core.js';
+export { html } from './core.js';

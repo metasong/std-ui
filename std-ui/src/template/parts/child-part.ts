@@ -31,7 +31,7 @@ function pickCommitter(value: unknown): { Ctor: CommitterClass; value: unknown }
 export class ChildPart implements Part {
 	readonly valueCount = 1;
 	#committer: Committer<any> | undefined;
-	/** The `Directive` instance bound here, if a `directive()`-made value (e.g. `unsafeHTML()`) was
+	/** The `Directive` instance bound here, if a `directive()`-made value (e.g. `html()`) was
 	 *  ever applied to this position; reused across renders - see `directive.ts`. */
 	#directive: Directive | undefined;
 	/** This position's `ChildPartInfo`, built once and handed to directives - see `directive.ts`. */

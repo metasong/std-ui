@@ -7,7 +7,7 @@ import {
 	PropertyPart,
 } from './index.js';
 import { t } from '../html.js';
-import { unsafeHTML } from '../directives/unsafe-html/index.js';
+import { html } from '../directives/unsafe-html/index.js';
 import { Directive, directive, noChange } from '../directive.js';
 import { classMap } from '../directives/class-map/index.js';
 import { styleMap } from '../directives/style-map/index.js';
@@ -287,9 +287,9 @@ describe('ChildPart', () => {
 		expect(container.querySelector('i')).not.toBe(firstB);
 	});
 
-	it('renders unsafeHTML markup as real parsed nodes', () => {
+	it('renders html markup as real parsed nodes', () => {
 		const { part, container } = makePart();
-		part.update([unsafeHTML('<em>hi</em>')]);
+		part.update([html('<em>hi</em>')]);
 		expect(container.querySelector('em')!.textContent).toBe('hi');
 	});
 

@@ -2,11 +2,11 @@ import { describe, expect, it } from 'vitest';
 import * as templateIndex from './index.js';
 
 describe('template/index.ts barrel', () => {
-	it('re-exports the public html/svg/render/unsafeHTML API', () => {
+	it('re-exports the public t/svg/render/html directive API', () => {
 		expect(templateIndex.t).toBeTypeOf('function');
 		expect(templateIndex.svg).toBeTypeOf('function');
 		expect(templateIndex.render).toBeTypeOf('function');
-		expect(templateIndex.unsafeHTML).toBeTypeOf('function');
+		expect(templateIndex.html).toBeTypeOf('function');
 	});
 
 	it('render(html(...)) end-to-end works through the barrel exports alone', () => {
