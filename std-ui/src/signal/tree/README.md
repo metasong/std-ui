@@ -22,9 +22,11 @@ a.b.c.d.set(2); // d notifies -> c dirty -> b dirty -> a dirty -> effect re-runs
 
 - A **branch** is a plain object (`{ ... }` literal, or `Object.create(null)`), recursed into
   key by key.
-- Everything else — numbers, strings, booleans, `null`, `undefined`, arrays, class instances,
-  functions — is a **leaf**, stored as-is in a `signal()`. Arrays and class instances are *not*
-  walked; replace them wholesale with `.set(...)`.
+- **Arrays** become a [`SignalArray`](./signal-array/README.md) (per-element nodes + tracked
+  structure). See that folder for `push`, `at(i)`, and granularity.
+- Everything else — numbers, strings, booleans, `null`, `undefined`, class instances, functions — is
+  a **leaf**, stored as-is in a `signal()`. Class instances are *not* walked; replace them with
+  `.set(...)`.
 
 ## API
 

@@ -1,0 +1,144 @@
+import { describe, expect, it } from 'vitest';
+import { effect, signal } from '../../core/index.js';
+import { signalState } from '../core.js';
+import { signalArray } from './core.js';
+
+describe('signalArray', () => {
+	it('reads initial values and peek snapshots without tracking', () => {
+		const list = signalArray([1, 2], signal);
+		expect(list()).toEqual([1, 2]);
+		expect(list.peek()).toEqual([1, 2]);
+	});
+
+	it('mutates with push, pop, splice, and clear', () => {
+		const list = signalArray([1, 2], signal);
+		list.push(3);
+		expect(list()).toEqual([1, 2, 3]);
+		expect(list.pop()).toBe(3);
+		expect(list()).toEqual([1, 2]);
+		list.splice(0, 1, 9);
+		expect(list()).toEqual([9, 2]);
+		list.clear();
+		expect(list()).toEqual([]);
+	});
+
+	it('set() reuses item nodes by index', () => {
+		const list = signalArray([10, 20], signal);
+		const n0 = list.at(0);
+		const n1 = list.at(1);
+		list.set([99, 20]);
+		expect(list.at(0)).toBe(n0);
+		expect(list.at(1)).toBe(n1);
+		expect(list()).toEqual([99, 20]);
+	});
+
+	it('length computed tracks structure only', async () => {
+		const list = signalArray([1, 2], signal);
+		let lenRuns = 0;
+		effect(() => {
+			list.length();
+			lenRuns++;
+		});
+		await flush();
+		expect(lenRuns).toBe(1);
+
+		list.at(0)!.set(5);
+		await flush();
+		expect(lenRuns).toBe(1);
+
+		list.push(3);
+		await flush();
+		expect(lenRuns).toBe(2);
+		expect(list.length()).toBe(3);
+	});
+
+	it('at(i) effect does not re-run when a sibling item changes', async () => {
+		const list = signalArray([1, 2], signal);
+		let slot0Runs = 0;
+		effect(() => {
+			list.at(0)!();
+			slot0Runs++;
+		});
+		await flush();
+		expect(slot0Runs).toBe(1);
+
+		list.at(1)!.set(99);
+		await flush();
+		expect(slot0Runs).toBe(1);
+
+		list.at(0)!.set(11);
+		await flush();
+		expect(slot0Runs).toBe(2);
+	});
+
+	it('whole-list effect re-runs on structure and any item change', async () => {
+		const list = signalArray([1, 2], signal);
+		let allRuns = 0;
+		effect(() => {
+			list();
+			allRuns++;
+		});
+		await flush();
+		expect(allRuns).toBe(1);
+
+		list.at(1)!.set(2);
+		await flush();
+		expect(allRuns).toBe(1);
+
+		list.at(1)!.set(99);
+		await flush();
+		expect(allRuns).toBe(2);
+
+		list.push(3);
+		await flush();
+		expect(allRuns).toBe(3);
+	});
+
+	it('negative at() indexes from the end', () => {
+		const list = signalArray([1, 2, 3], signal);
+		expect(list.at(-1)!()).toBe(3);
+		expect(list.at(-2)!()).toBe(2);
+	});
+
+	it('remove returns false for out-of-range index', () => {
+		const list = signalArray([1], signal);
+		expect(list.remove(5)).toBe(false);
+		expect(list()).toEqual([1]);
+		list.remove(0);
+		expect(list()).toEqual([]);
+	});
+});
+
+describe('signalArray via signalState', () => {
+	it('exposes tags as an observable collection', () => {
+		const tree = signalState({ tags: ['a', 'b'] as string[] });
+		expect(tree.tags()).toEqual(['a', 'b']);
+		expect(typeof tree.tags.push).toBe('function');
+		tree.tags.push('c');
+		expect(tree.tags()).toEqual(['a', 'b', 'c']);
+	});
+
+	it('updates a tag in place via at()', () => {
+		const tree = signalState({ tags: ['a', 'b'] });
+		tree.tags.at(0)!.set('z');
+		expect(tree()).toEqual({ tags: ['z', 'b'] });
+	});
+
+	it('accepts whole-array replace from root .set({ tags })', () => {
+		const tree = signalState({ count: 0, tags: ['a'] });
+		tree.set({ tags: ['x', 'y'] });
+		expect(tree.tags()).toEqual(['x', 'y']);
+		expect(tree.count()).toBe(0);
+	});
+
+	it('object elements are signalState branches', () => {
+		const todos = signalState([{ text: 'a', done: false }]);
+		expect(todos.at(0)!.text()).toBe('a');
+		todos.at(0)!.done.set(true);
+		expect(todos.at(0)!()).toEqual({ text: 'a', done: true });
+	});
+});
+
+function flush(): Promise<void> {
+	return new Promise((resolve) => queueMicrotask(() => queueMicrotask(resolve)));
+}

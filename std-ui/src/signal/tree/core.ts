@@ -6,11 +6,13 @@
 //   effect(() => console.log(a()));  // logs { b: { c: { d: 1 } } }
 //   a.b.c.d.set(2);                  // d notifies -> c dirty -> b dirty -> a dirty -> effect re-runs
 //
-// Only plain objects (`{ ... }` / `Object.create(null)`) are treated as branches; everything else
-// (numbers, strings, booleans, arrays, class instances, null, undefined, functions, ...) is a leaf
-// and becomes a `Signal` holding that value as-is.
+// Plain objects (`{ ... }` / `Object.create(null)`) are branches; arrays are `SignalArray`
+// collections; everything else (primitives, class instances, null, undefined, functions, ...) is a
+// leaf `Signal`.
 
 import { computed, signal, type Computed, type SignalOptions, type Signal } from '../core/index.js';
+
+import { signalArray, type ItemNode, type SignalArray } from './signal-array/index.js';
 
 /** A plain object eligible to become a branch node; anything else is a leaf value. */
 type PlainObject = Record<string, unknown>;
@@ -66,8 +68,10 @@ type SignalTreeNode<T> = Pick<Signal<T>, 'peek'> & {
  * interface (call to read, `.peek()`, `.set()`, `.update()`); branches additionally expose one
  * child property per key, each itself a `SignalState`.
  */
-export type SignalState<T> = SignalTreeNode<T> &
-	(IsBranch<T> extends true ? { readonly [K in keyof T]: SignalState<T[K]> } : unknown);
+export type SignalState<T> = T extends readonly (infer U)[]
+	? SignalArray<U, SignalState<U> & ItemNode<U>>
+	: SignalTreeNode<T> &
+			(IsBranch<T> extends true ? { readonly [K in keyof T]: SignalState<T[K]> } : unknown);
 
 /**
  * Converts a plain-object value into a `SignalState`: every leaf becomes a `signal()`, and every
@@ -77,7 +81,13 @@ export type SignalState<T> = SignalTreeNode<T> &
  * `signalOptions` is forwarded to every leaf `signal()` created in the tree (e.g. to customize
  * `equals`); it has no effect on branches, which are always `computed()`.
  */
-export function signalState<T>(value: T, signalOptions?: SignalOptions<T>): SignalState<T> {
+export function signalState<T>(value: T, signalOptions?: SignalOptions<unknown>): SignalState<T> {
+	if (Array.isArray(value)) {
+		// Arrays become observable collections whose elements are themselves signal-state nodes.
+		return signalArray(value, (item) =>
+			signalState(item, signalOptions),
+		) as unknown as SignalState<T>;
+	}
 	if (!isPlainObject(value)) {
 		// `Signal<T>` already provides `()`, `peek`, `set`, and `update` matching `SignalTreeNode<T>`
 		// (for leaves, `DeepPartial<T>` is just `T`, and there are no children to leak through).
@@ -86,10 +96,7 @@ export function signalState<T>(value: T, signalOptions?: SignalOptions<T>): Sign
 
 	const children: Record<string, SignalState<unknown>> = {};
 	for (const key of Object.keys(value)) {
-		children[key] = signalState(
-			(value as PlainObject)[key],
-			signalOptions as SignalOptions<unknown> | undefined,
-		);
+		children[key] = signalState((value as PlainObject)[key], signalOptions);
 	}
 
 	// True while the branch itself has been `.set(undefined)`; it then reads as `undefined`.

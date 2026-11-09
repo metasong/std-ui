@@ -28,13 +28,15 @@ describe('signalState', () => {
 		expect(tree.user.label()).toBe('Ada');
 	});
 
-	it('treats arrays as leaves, not branches', () => {
+	it('treats arrays as observable collections (SignalArray)', () => {
 		const tree = signalState(makeState());
 		expect(tree.tags()).toEqual(['a', 'b']);
-		expect(typeof tree.tags.set).toBe('function');
+		expect(typeof tree.tags.push).toBe('function');
+		tree.tags.at(0)!.set('z');
+		expect(tree.tags()).toEqual(['z', 'b']);
 	});
 
-	it('replaces an array leaf wholesale via .set() on the leaf or root .set({ tags })', () => {
+	it('replaces tag contents via .set() on the collection or root .set({ tags })', () => {
 		const tree = signalState(makeState());
 		tree.tags.set(['x']);
 		expect(tree.tags()).toEqual(['x']);
@@ -96,10 +98,10 @@ describe('signalState', () => {
 		expect(tree()).toEqual({ count: 5, user: { label: 'Ada', age: 31 }, tags: ['a', 'b'] });
 	});
 
-	it('set() skips keys whose value is undefined', () => {
+	it('set() forwards explicit undefined to leaf children', () => {
 		const tree = signalState(makeState());
 		tree.set({ count: undefined, user: { label: 'Grace' } });
-		expect(tree.count()).toBe(0);
+		expect(tree.count()).toBeUndefined();
 		expect(tree.user.label()).toBe('Grace');
 	});
 

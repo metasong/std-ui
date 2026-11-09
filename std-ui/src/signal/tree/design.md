@@ -7,17 +7,20 @@ How `signalState()` in [`core.ts`](./core.ts) is implemented. For usage and API,
 | File | Role |
 | --- | --- |
 | [`core.ts`](./core.ts) | `signalState`, `DeepPartial`, `SignalState`, branch/leaf build and `.set()` / `.peek()` overrides |
+| [`signal-array/`](./signal-array/) | Observable array collections (`signalArray`) |
 | [`index.ts`](./index.ts) | Re-exports |
 | [`tree.test.ts`](./tree.test.ts) | Behavior tests |
 
 ## Build algorithm
 
-1. **Leaf path** — if `!isPlainObject(value)`, return `signal(value, signalOptions)` cast to
+1. **Array path** — if `Array.isArray(value)`, delegate to [`signalArray`](./signal-array/core.ts)
+   with `(item) => signalState(item, signalOptions)`.
+2. **Leaf path** — if `!isPlainObject(value)`, return `signal(value, signalOptions)` cast to
    `SignalState<T>`. One node; `DeepPartial<T>` = `T`.
-2. **Branch path** — for each key in `Object.keys(value)`, recursively `signalState(child)`.
-3. Attach children onto the branch via `Object.assign(node, children)` so `tree.b.c` property access
+3. **Branch path** — for each key in `Object.keys(value)`, recursively `signalState(child)`.
+4. Attach children onto the branch via `Object.assign(node, children)` so `tree.b.c` property access
    works.
-4. Branch node is a `computed()` that reads every child `()` and returns a fresh plain object snapshot.
+5. Branch node is a `computed()` that reads every child `()` and returns a fresh plain object snapshot.
 
 `isPlainObject` requires `typeof object`, non-array, and prototype `Object.prototype` or `null`.
 `null` is not a branch at runtime (despite TS `object` including `null` in `IsBranch`).
@@ -83,7 +86,8 @@ snapshot.
 | Plain object | Branch | Branch |
 | `null` / `undefined` at init | Leaf | Leaf (`undefined` / non-object) |
 | Interface-typed object | Branch if plain at runtime | Branch (looser than `isPlainObject`) |
-| Array, function, class instance | Leaf | Leaf |
+| Array | `SignalArray` (see [`signal-array/design.md`](./signal-array/design.md)) | `SignalArray` |
+| Function, class instance | Leaf | Leaf |
 
 Types do not currently express “branch that may read as `undefined` | null`” after
 `.set(undefined)`; branch nodes are still typed as `T` from the initial shape.
