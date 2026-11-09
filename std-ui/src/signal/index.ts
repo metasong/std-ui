@@ -7,12 +7,28 @@ export {
 } from './core/index.js';
 
 export {
+	toSignal,
+	type InteropObservable,
+	type PartialObserver,
+	type Subscribable,
+	type ToSignal,
+	type ToSignalOptions,
+	type ToSignalSource,
+	type Unsubscribable,
+} from './to-signal/index.js';
+
+export {
 	signalState,
 	type DeepPartial,
 	type SignalState,
 } from './tree.js';
 
-import { untrack as _untrack, Watcher as _Watcher } from './core/index.js';
+import {
+	assertNotInReactiveContext as _assertNotInReactiveContext,
+	inReactiveContext as _inReactiveContext,
+	untrack as _untrack,
+	Watcher as _Watcher,
+} from './core/index.js';
 
 /** Grouped re-export of the low-level primitives, named after `Signal.subtle` in the proposed
  * standard signals API (`Signal.subtle.Watcher`, `Signal.subtle.untrack`). Most code should use
@@ -21,4 +37,6 @@ import { untrack as _untrack, Watcher as _Watcher } from './core/index.js';
 export const subtle = {
 	Watcher: _Watcher,
 	untrack: _untrack,
+	inReactiveContext: _inReactiveContext,
+	assertNotInReactiveContext: _assertNotInReactiveContext,
 };

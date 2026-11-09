@@ -56,6 +56,22 @@ export function runTracked<T>(watcher: IWatcher, fn: () => T): T {
 	}
 }
 
+/** True while a `computed` or `effect` body is running (or during template render that tracks signals). */
+export function inReactiveContext(): boolean {
+	return activeWatcher !== null;
+}
+
+/**
+ * Throws if called inside a tracked consumer (`computed` / `effect` / render that reads signals).
+ * Use from helpers like `toSignal()` that must subscribe exactly once per call site.
+ */
+export function assertNotInReactiveContext(
+	caller: string,
+	message = `${caller} must not run while a computed, effect, or template is tracking dependencies — each call creates a new subscription. Create the signal once (field, \`connect()\`, or module scope), then read it inside reactive code.`,
+): void {
+	if (inReactiveContext()) throw new Error(message);
+}
+
 /** Runs `fn` with no active watcher, so any signal/computed it reads is NOT tracked - even if
  * called from inside a `computed`/`effect`. Equivalent to `Signal.subtle.untrack()` in the
  * proposed standard signals API. (`.peek()` is the single-read sibling of this.) */

@@ -8,6 +8,7 @@ Guides for the library under `src/` (`signal/`, `template/`, `ui-element.ts`):
 |---|---|
 | Signals (`signal`, `computed`, `effect`) | [`src/signal/core/signal.md`](./src/signal/core/signal.md) |
 | Reactive state tree | [`src/signal/tree.md`](./src/signal/tree.md) |
+| Async → signal (`toSignal`) | [`src/signal/to-signal/README.md`](./src/signal/to-signal/README.md) · [design](./src/signal/to-signal/design.md) |
 | HTML templates (`t`, `render`) | [`src/template/html.md`](./src/template/html.md) |
 | CSS templates (`css`, `static styles`) | [`src/template/css.md`](./src/template/css.md) |
 | Attribute directives (`classMap`, `styleMap`) | [`src/template/directives/README.md`](./src/template/directives/README.md) · [design](./src/template/directives/design.md) |

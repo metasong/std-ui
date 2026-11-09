@@ -30,6 +30,7 @@ export type { BindAccessor, BindOptions, BindSource } from './template/directive
 export type { VirtualizeOptions, ScrollToIndexOptions, ScrollAlign } from './template/directives/index.js';
 export {
 	signalState,
+	toSignal,
 	computed,
 	effect,
 	subtle,
@@ -37,4 +38,7 @@ export {
 	type DeepPartial,
 	type OnCleanup,
 	type SignalState,
+	type Subscribable,
+	type ToSignal,
+	type ToSignalOptions,
 } from './signal/index.js';
