@@ -10,32 +10,30 @@
 //  1. `html` just captures `strings`/`values` - no DOM work happens yet. Tagged template calls
 //     reuse the *same* `strings` array object across repeated calls at the same call site (this is
 //     guaranteed by the JS spec), so it doubles as a cache key.
-//  2. The first time a given `strings` array is rendered, we compile it once: join the strings with
-//     marker text, parse via a `<template>`, then walk the parsed tree to record where each dynamic
-//     part landed (as a node index in document order, since `TreeWalker` visits nodes in the same
-//     left-to-right order they were written in the markup). This compiled `Template` is cached
-//     forever in a `WeakMap` keyed by `strings`.
-//  3. Each render of a given container clones the compiled template's content once (cheap native
-//     `cloneNode`), re-walks the clone with the same traversal to resolve the recorded indices back
-//     to real nodes, and creates a `Part` (child/attribute/property/event/boolean-attribute) per
-//     dynamic position.
-//  4. On every subsequent render with the *same* `strings`, we skip steps 2-3 entirely and just call
-//     `.update(value)` on each already-bound `Part` - only the values that actually changed touch
-//     the DOM (`Part`s no-op on `Object.is`-equal values).
+//  2. The first time `getTemplate()` needs a given `strings` (+ `html` vs `svg` type), we compile
+//     once: scan/join the strings with marker text, parse via a `<template>`, then walk elements and
+//     child-marker comments to record where each dynamic part landed (`nodeIndex` among those
+//     nodes only). The compiled `Template` is cached in a `WeakMap` keyed by `strings` (per type).
+//  3. When `render()` first binds a container to a template (or the container's `strings` identity
+//     changes), we clone that compiled template once (`cloneNode`), resolve indices on the clone,
+//     and create a `Part` (child/attribute/property/event/boolean-attribute) per dynamic position.
+//  4. Later `render()` calls into the same container with the *same* `strings` reference skip compile,
+//     clone, and part creation entirely - `render.ts` just calls `.update()` on the existing `Part`s.
+//     Unchanged values are skipped when each part can tell nothing changed (e.g. `Object.is` on
+//     `.`/ `?` bindings, string equality on composed attributes, committer reuse in child positions).
 //
-// What's intentionally left out, vs. real lit-html: most lit directives (only `classMap`/`styleMap`,
-// `mapByKey`, `unsafeHTML`, etc. are built in, see `./directives/index.js`, though
-// `directive.ts`'s `Directive`/`directive()`/`PartType` - modeled on lit-html's own - is a generic
-// extension point for writing more), and MathML template handling. Plain attributes (no
-// `?`/`.`/`@` sigil) do support
-// multi-expression/mixed-static values like `class="${a} ${b}"` or `class="static-${x}"`; the
+// What's intentionally left out, vs. real lit-html: most lit directives (built-ins include `bind`,
+// `classMap`, `styleMap`, `mapByKey`, `virtualize`, `unsafeHTML` - see `./directives/` and
+// `./index.js` exports, though `directive.ts`'s `Directive`/`directive()`/`PartType` - modeled on
+// lit-html's own - is the generic extension point for more), and MathML template handling. Plain attributes (no
+// `?`/`.`/`@` sigil) do support multi-expression/mixed-static values like `class="${a} ${b}"` or `class="static-${x}"`; the
 // `?`/`.`/`@`-prefixed kinds don't, since they bind a real JS value rather than a string - each
 // must be a single bare interpolation, e.g. `?hidden="${v}"`. SVG is supported via `svg()` below,
 // for the one case plain `html` can't handle: a namespace-less fragment (no `<svg>` wrapper of its
 // own) meant to be interpolated as a child of an existing `<svg>` element.
 //
 // This module ties the pieces (compilation, parts, rendering) together; see the sibling files for
-// each concern: `compile.ts`, `parts/`, `directives/unsafe-html/core.ts`, `render.ts`.
+// each concern: `compile.ts`, `parts/`, `render.ts`, `directive.ts`.
 
 /** The result of calling `html`/`svg` - inert until passed to `render()`. */
 export interface TemplateResult {

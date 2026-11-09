@@ -4,21 +4,21 @@ import { Committer, commitWith } from '../../parts/committers/index.js';
 /** Parses markup and inserts the resulting nodes before the part's anchor; re-parses only when
  *  the markup string changes. */
 class UnsafeHtmlCommitter extends Committer<string> {
-	#markup: string | undefined;
-	#nodes: ChildNode[] = [];
+	#markupStr: string | undefined;
+	#childNodes: ChildNode[] = [];
 	update(markup: string): boolean {
-		if (this.#markup === markup) return true;
+		if (this.#markupStr === markup) return true;
 		this.dispose();
 		const container = document.createElement('template');
 		container.innerHTML = markup;
-		this.#nodes = Array.from(container.content.childNodes);
+		this.#childNodes = Array.from(container.content.childNodes);
 		this.anchor.before(container.content);
-		this.#markup = markup;
+		this.#markupStr = markup;
 		return true;
 	}
 	dispose(): void {
-		for (const n of this.#nodes) n.remove();
-		this.#nodes = [];
+		for (const n of this.#childNodes) n.remove();
+		this.#childNodes = [];
 	}
 }
 
