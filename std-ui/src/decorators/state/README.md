@@ -1,7 +1,7 @@
 # `@state()` — reactive store-backed component fields
 
 Field decorator for `UIElement` (see `../../ui-element.ts`) subclasses that backs a class field with
-a reactive store (`SignalState`, see [`../../signal/tree.md`](../../signal/tree.md)) — no HTML
+a reactive store (`SignalState`, see [`../../signal/tree/tree.md`](../../signal/tree/tree.md)) — no HTML
 attribute involved. Use [`../attribute/README.md`](../attribute/README.md) when the field should also
 parse from / reflect to an attribute.
 
@@ -61,7 +61,7 @@ Stacking `@state()` and `@attribute()` on the same field is allowed; see [`../fi
 ## Complex-object fields
 
 A field whose value is a **plain object** (`{ ... }`) is backed by a full
-[`SignalTree`](../../signal/tree.md) instead of a single flat `signal()` — every leaf gets its own
+[`SignalTree`](../../signal/tree/tree.md) instead of a single flat `signal()` — every leaf gets its own
 `Signal`, and reads flow through a `Computed` that only recomputes when a leaf touched by a write
 changes:
 

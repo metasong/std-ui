@@ -1,6 +1,6 @@
 # Signal tree
 
-`tree.ts` builds a reactive tree out of a plain-object value: every leaf becomes a `signal()`,
+`core.ts` builds a reactive tree out of a plain-object value: every leaf becomes a `signal()`,
 every nested object becomes a `computed()` that reassembles its children, and each child is
 exposed as a same-named property so you can navigate/write the tree like the original object.
 

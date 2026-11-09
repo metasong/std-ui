@@ -23,7 +23,7 @@ export {
 	signalState,
 	type DeepPartial,
 	type SignalState,
-} from './tree.js';
+} from './tree/index.js';
 
 import {
 	assertNotInReactiveContext as _assertNotInReactiveContext,

@@ -10,7 +10,7 @@
 // (numbers, strings, booleans, arrays, class instances, null, undefined, functions, ...) is a leaf
 // and becomes a `Signal` holding that value as-is.
 
-import { computed, signal, type Computed, type SignalOptions, type Signal } from './core/index.js';
+import { computed, signal, type Computed, type SignalOptions, type Signal } from '../core/index.js';
 
 /** A plain object eligible to become a branch node; anything else is a leaf value. */
 type PlainObject = Record<string, unknown>;
@@ -114,7 +114,15 @@ export function signalState<T>(value: T, signalOptions?: SignalOptions<T>): Sign
 		for (const key of Object.keys(partial as object)) {
 			const value = (partial as Record<string, unknown>)[key];
 			if (value === undefined) continue;
-			children[key].set(value as DeepPartial<unknown>);
+			const child = children[key];
+			if (child === undefined) {
+				const known = Object.keys(children);
+				throw new Error(
+					`signalState: cannot .set() unknown key "${key}" — the tree was built with keys [${known.join(', ')}]. ` +
+						`Tree shape is fixed at signalState() time; add the key to the initial value instead.`,
+				);
+			}
+			child.set(value as DeepPartial<unknown>);
 		}
 	};
 	node.update = (fn: (prev: T) => DeepPartial<T>): T => {

@@ -23,7 +23,15 @@ For how child bindings treat `null` / `false` / `undefined`, nested `` t`...` ``
 engine already treats falsy child values as empty, and boolean attributes use `?attr`. No extra
 protocol is needed for the common cases.
 
-**Use instead** — one `template()` return; branches are nested `` t`...` `` literals in `${...}`:
+**Use instead** — one `template()` return; branches are nested `` t`...` `` literals in `${...}`.
+
+**If only** (no else) — ternary with `null` when the condition is false; falsy child values render nothing:
+
+```ts
+${this.showBanner() ? t`<p class="banner">Sale on now</p>` : null}
+```
+
+**If / else** — same pattern, swap `null` for another `` t`...` ``:
 
 ```ts
 import { tag, t, UIElement, state } from 'std-ui';

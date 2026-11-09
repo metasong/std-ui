@@ -80,7 +80,7 @@ export interface AttributeOptions<V = unknown> {
  *   @attribute({ type: Number, reflect: true }) age = 0; // also mirrors `age` back onto the attribute
  *   @state() internalOnly = 'x'; // store only, no attribute at all - use @state() for this
  *   @attribute({ type: Object, reflect: true }) config = { a: 1, b: { c: 2 } }; // tree-backed:
- *     // a plain-object value becomes a branch of signals/computeds (see `../signal/tree.md`), so
+ *     // a plain-object value becomes a branch of signals/computeds (see `../signal/tree/tree.md`), so
  *     // `this.config.set({ ...this.config(), a: 2 })` only notifies readers of the `a` leaf -
  *     // readers depending only on `config.b` don't re-run. `type: Object`'s default converter
  *     // reflects the object to/from the attribute as JSON text; use `@state()` instead if it

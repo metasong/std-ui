@@ -10,13 +10,13 @@ import { signalState, type SignalState } from '../signal/index.js';
 
 /**
  * Picks the reactive store that backs a `@state()`/`@attribute()` field's value: `signalState()`
- * (see `../signal/tree.ts`) for *any* initial value, not just plain objects.
+ * (see `../signal/tree/core.ts`) for *any* initial value, not just plain objects.
  *
  * For a primitive/array/class-instance/etc. initial value, `signalState()` already degrades to
  * a plain `signal()` internally - so a `number`/`string`/`boolean` field behaves exactly as
  * before, just reached through `SignalState`'s identical `()`/`.peek()`/`.set()`/`.update()` surface.
  * For a *plain-object* initial value, it instead builds a tree of signals/computeds mirroring that
- * object's shape (see `../signal/tree.md`): each leaf becomes an independently-writable `Signal`,
+ * object's shape (see `../signal/tree/tree.md`): each leaf becomes an independently-writable `Signal`,
  * and reading the field goes through the root `Computed`, which only recomputes (and so only
  * re-triggers `template()`/effects reading the whole property) when a leaf actually touched by that
  * write changes - `this.config.set({ ...this.config(), count: 1 })` doesn't spuriously dirty
