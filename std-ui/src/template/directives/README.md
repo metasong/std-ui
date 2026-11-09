@@ -17,3 +17,7 @@ Shared protocol: [`../directive.ts`](../directive.ts). How to write a custom dir
 **No `if` / `for` / `switch` directives** — use JS (`? :`, `map`, `switch`) and
 [`mapByKey`](./map-by-key/README.md) where keys matter:
 [`why-not-structure-directives.md`](./why-not-structure-directives.md).
+
+**No async pipe or async directive** — bridge Promises and observable-like sources with
+[`toSignal`](../../signal/to-signal/README.md) / [`toSignalFrom`](../../signal/to-signal/README.md#reactive-sources-tosignalfromfactory-options), then bind signals in templates:
+[`why-not-async-directives-or-pipes.md`](./why-not-async-directives-or-pipes.md).
