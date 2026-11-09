@@ -155,7 +155,7 @@ time. How `updateComplete` aligns with the effect flush (two nested microtasks) 
 ## Related reading
 
 - [`./design.md`](./design.md) — why these need no initializer, and why they're plain-field-only.
-- [`../design.md`](../design.md) / [`../README.md`](../README.md) — `@state()`/`@attribute()`'s own
+- [`../design.md`](../design.md) / [`../state/README.md`](../state/README.md) — `@state()`/`@attribute()` shared
   field mechanics, which this folder's `addInitializer` technique borrows.
 - [`../../ui-element.ts`](../../ui-element.ts) — `UIElement.updateComplete`, which `@queryAsync()`
   waits on.

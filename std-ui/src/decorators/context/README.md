@@ -67,7 +67,7 @@ per concern, except collision-proof.
 
 ## `@state({ contextKey })` (provide)
 
-Exactly `@state()` (see [`../README.md`](../README.md)) - same reactive store, same plain-field-only
+Exactly `@state()` (see [`../state/README.md`](../state/README.md)) - same reactive store, same plain-field-only
 mechanics, same complex-object (`SignalTree`) handling - plus registers the field so
 descendants can find it:
 
@@ -120,6 +120,6 @@ property/attribute (`@attribute()`/`@state()` on the child, set by the parent in
 ## Related reading
 
 - [`./design.md`](./design.md) — how resolution, reactivity, and "nearest provider wins" work internally.
-- [`../README.md`](../README.md) / [`../design.md`](../design.md) — `@state()`/`@attribute()`, which this builds on.
+- [`../state/README.md`](../state/README.md) / [`../design.md`](../design.md) — `@state()` / shared field wiring this builds on.
 - [`../../ui-element.ts`](../../ui-element.ts) — `UIElement` lifecycle this plugs into.
 - [`./consume.test.ts`](./consume.test.ts) — behavior tests.

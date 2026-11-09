@@ -1,12 +1,38 @@
-// Shared field decorator mechanics for turning a class field into a read-only store accessor (see
-// `./store.ts`). Both `@state()` (`./state/state.decorator.ts`, store only) and `@attribute()`
+// Shared field decorator mechanics for turning a class field into a read-only store accessor.
+// Both `@state()` (`./state/state.decorator.ts`, store only) and `@attribute()`
 // (`./attribute/attribute.decorator.ts`, store + attribute sync) delegate here instead of
 // duplicating it - `@attribute()` is "everything `@state()` does, plus attribute
 // registration/sync", so this is the one piece of logic they share.
 //
 // Plain fields only (no `accessor`) - see `./design.md` for why.
 
-import { createStore } from './store.js';
+import { signalState, type SignalState } from '../signal/index.js';
+
+/**
+ * Picks the reactive store that backs a `@state()`/`@attribute()` field's value: `signalState()`
+ * (see `../signal/tree.ts`) for *any* initial value, not just plain objects.
+ *
+ * For a primitive/array/class-instance/etc. initial value, `signalState()` already degrades to
+ * a plain `signal()` internally - so a `number`/`string`/`boolean` field behaves exactly as
+ * before, just reached through `SignalState`'s identical `()`/`.peek()`/`.set()`/`.update()` surface.
+ * For a *plain-object* initial value, it instead builds a tree of signals/computeds mirroring that
+ * object's shape (see `../signal/tree.md`): each leaf becomes an independently-writable `Signal`,
+ * and reading the field goes through the root `Computed`, which only recomputes (and so only
+ * re-triggers `template()`/effects reading the whole property) when a leaf actually touched by that
+ * write changes - `this.config.set({ ...this.config(), count: 1 })` doesn't spuriously dirty
+ * sibling leaves the way replacing a single flat `signal()`'s value would force a full re-render on
+ * identity change alone.
+ *
+ * Writing the field (`this.config.set({...})`) calls the store's `.set()` with the *whole* new value;
+ * `SignalState.set()` treats its argument as a `DeepPartial` merge (recursing into branches, calling
+ * `.set()` per provided leaf, leaving omitted keys untouched) - a complete object satisfies that
+ * shape trivially (every key is provided), so this is a full logical replace, just performed
+ * leaf-by-leaf so each `Signal.set()`'s own `Object.is` check still skips notifying leaves whose
+ * value didn't actually change.
+ */
+function createStore<V>(initial: V): SignalState<V> {
+	return signalState(initial);
+}
 
 // `@state()` and `@attribute()` aren't meant to be stacked on the same field, but rather than
 // throwing if they are, `applyFieldStore()` stays compatible: it tracks which fields it has

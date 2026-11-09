@@ -1,8 +1,9 @@
 // `@state()` field decorator: turns a class field on a `UIElement` subclass (see
-// `../ui-element.ts`) into a store accessor (see `./store.ts`) - no attribute involved at
+// `../ui-element.ts`) into a store accessor (see `../field-store.ts`) - no attribute involved at
 // all. The field becomes that store (`this.someField()` / `this.someField.set(...)`) — a `signal()`
 // for a primitive/array/class-instance value, or a `SignalState` for a plain-object value (see
-// `./store.ts`) — so reads inside `template()`/`effect()` track it transparently, the same way as
+// `../field-store.ts` and `../../signal/tree.md`) — so reads inside `template()`/`effect()` track
+// it transparently, the same way as
 // any other signal.
 //
 // This is the "just a reactive field" half of what used to be `@property()`'s combined behavior -
@@ -33,7 +34,7 @@ export interface StateOptions<V = unknown> {
  * class MyPanel extends UIElement {
  *   @state() count = 0; // `this.count()` / `this.count.set(n)`
  *   @state() config = { a: 1, b: { c: 2 } }; // plain-object value -> `SignalState`-backed (see
- *     // `./store.ts`): each leaf is independently writable/reactive, and
+ *     // `../field-store.ts` / `../../signal/tree.md`): each leaf is independently writable/reactive, and
  *     // `this.config.set({ ...this.config(), a: 2 })` only notifies readers of the `a` leaf.
  * }
  * ```
