@@ -8,7 +8,7 @@ see [`README.md`](./README.md).
 
 | File | Owns |
 |---|---|
-| [`field-store.ts`](./field-store.ts) | `applyFieldStore()` — the shared plain-field decorator mechanics (store-backed `get`/`set` via `addInitializer`/`Object.defineProperty`) that both `@state()` and `@attribute()` delegate to. This is the one piece of logic they share, so neither re-implements it. |
+| [`field-store.ts`](./field-store.ts) | `applyFieldStore()` — the shared plain-field decorator mechanics (read-only store accessor via `addInitializer`/`Object.defineProperty`) that both `@state()` and `@attribute()` delegate to. This is the one piece of logic they share, so neither re-implements it. |
 | [`store.ts`](./store.ts) | `createStore` — picks the reactive store (`SignalTree`) backing a field's value. |
 | [`state/state.decorator.ts`](./state/state.decorator.ts) | The `@state()` decorator itself — just wires a field to `applyFieldStore()`, no attribute concern at all. |
 | [`attribute/converter.ts`](./attribute/converter.ts) | `AttributeType`/`AttributeConverter` types, the five default converters (`String`/`Number`/`Boolean`/`Object`/`Array`), `resolveConverter`, `parseAttribute`/`serializeAttribute`, `toAttributeName`. Only `@attribute()` uses this. |
@@ -31,8 +31,9 @@ on the `AttributeDef` — so per-instance code never re-derives it from `type`.
 
 `@attribute()` is "everything `@state()` does, plus attribute registration/sync" - every field it
 decorates is store-backed exactly the way a `@state()` field is, with the same field-decorator
-mechanics, the same complex-object (`SignalTree`) handling, the same `undefined`-write no-op
-convention. Rather than duplicating that logic in both decorators (and risking them drifting apart),
+mechanics, the same complex-object (`SignalTree`) handling, the same `undefined` from
+`fromAttribute` meaning "leave untouched" (enforced in `UIElement.attributeChangedCallback`).
+Rather than duplicating that logic in both decorators (and risking them drifting apart),
 `field-store.ts` extracts it into one function, `applyFieldStore()`, parameterized by an optional
 `onInitialValue(initial)` hook:
 
@@ -60,8 +61,9 @@ field has no such slot to replace. So `applyFieldStore()` leans on field initial
 2. It calls `context.addInitializer(fn)`. Per spec, for a field decorator this runs with `this`
    bound to the instance, immediately *after* this field has been set.
 3. `fn` reads that initial value, creates `createStore(initial)`, and immediately calls
-   `Object.defineProperty(this, key, { get, set })` — redefining the very same own property with an
-   accessor backed by the store, before the constructor can run any later code.
+   `Object.defineProperty(this, key, { get })` — redefining the very same own property with a
+   read-only accessor that returns the store (`this.count()` / `this.count.set(...)`), before the
+   constructor can run any later code.
 
 A plain field can't delegate through a prototype `get`/`set`: class field initializers always use
 `[[DefineOwnProperty]]` ("define" semantics) directly onto the instance, bypassing any
@@ -80,12 +82,11 @@ regardless, since their whole point is giving the field a real starting value.
 ## Where the store lives (no side table)
 
 Per-instance state (the store itself) is not kept in a module-level `WeakMap`/`Map`, and not stored
-as a separate public property - it's closed over by the `get`/`set` pair `Object.defineProperty`
+as a separate public property - it's closed over by the read-only `get` `Object.defineProperty`
 installs on that instance's own property. Code outside this folder — `UIElement`'s
-`attributeChangedCallback` and its reflection `effect()` — just reads/writes the property the
-normal way (`this[def.key]`), exactly like any other caller; the decorator's `get`/`set` does the
-store dereference internally, including **tracking**: reading `this[def.key]` from inside an
-`effect()` tracks the field's store transparently.
+`attributeChangedCallback` and its reflection `effect()` — call `this[def.key].set(parsed)` or
+`this[def.key]()` respectively (same as any other caller). **Tracking**: reading `this[def.key]()`
+from inside an `effect()` tracks the field's store transparently.
 
 `attributeChangedCallback` and the reflection effect can safely assume the store already exists
 whenever they run (even for attributes present at upgrade, before `connectedCallback`): a custom
@@ -130,9 +131,8 @@ during its own execution. `tag()` reads `context.metadata` for this reason; `get
 
 `UIElement` defines a private `attributeChangedCallback(name, _oldValue, newValue)` (subclasses
 cannot override it). It finds the `AttributeDef` whose `attribute === name` via
-`getAttributeDefs(this.constructor)`, and writes through the property:
-`this[def.key] = parseAttribute(newValue, def.converter)` — the `@attribute()` accessor's `set`
-then forwards it into the field's store.
+`getAttributeDefs(this.constructor)`, parses with `parseAttribute`, and writes
+`this[def.key].set(parsed)` (skipping when `parsed === undefined`).
 
 The browser invokes this for `setAttribute`/`removeAttribute` calls, and for every attribute
 already present on an element when it is **upgraded** (typically before `connectedCallback`) — so
@@ -140,23 +140,22 @@ static markup like `<user-badge count="3">` can override the field default befor
 [`attribute.test.ts`](./attribute/attribute.test.ts)).
 
 A custom `converter` can return anything it wants from `fromAttribute`/`toAttribute`, including
-`undefined` from `fromAttribute` to mean "leave the property untouched" — `applyFieldStore()`'s
-`set` no-ops on an `undefined` write (shared by both decorators, though only `@attribute()`'s
-converters ever produce `undefined`).
+`undefined` from `fromAttribute` to mean "leave the store untouched" — `attributeChangedCallback`
+skips `.set` when parsing yields `undefined`.
 
 ## Property → attribute: connect-time effects
 
 Reflection is set up at **connect time**, not class-definition time, and is opt-in (`reflect:
 true`), matching `lit`'s default. In `connectedCallback`, after optional one-time `connect()`,
 `UIElement` loops `getAttributeDefs(this.constructor)`, skips any def with `reflect: false`, and
-registers one `effect()` per remaining def that reads the property (`this[def.key]`), serializes it,
+registers one `effect()` per remaining def that reads the store (`this[def.key]()`), serializes it,
 and calls `setAttribute`/`removeAttribute`. Effects are pushed onto the same disposer list as the
 main render effect and disposed in `disconnectedCallback`.
 
 The effect runs synchronously on first subscribe, so the host attribute is brought in line with the
 current value even if no write happened after upgrade.
 
-If `template()` reads `this.someField`, a property change schedules both the reflection effect
+If `template()` reads `this.someField()`, a store change schedules both the reflection effect
 (attribute update) and the render effect — subject to the usual microtask batching for multiple
 writes in one turn.
 

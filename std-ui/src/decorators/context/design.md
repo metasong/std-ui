@@ -95,7 +95,7 @@ const listener = (event: Event): void => {
 	if (request.contextKey !== def.contextKey) return; // identity check
 	request.stopPropagation(); // "nearest provider wins" - see below
 	this.#effectDisposers.push(createEffect(() => {
-		request.callback(this[def.key]); // runs now, and again whenever this field's store changes
+		request.callback(this[def.key]()); // runs now, and again whenever this field's store changes
 	}));
 };
 this.addEventListener(CONTEXT_REQUEST_EVENT, listener);

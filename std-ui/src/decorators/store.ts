@@ -16,11 +16,11 @@ import { signalState, type SignalState } from '../signal/index.js';
  * object's shape (see `../signal/tree.md`): each leaf becomes an independently-writable `Signal`,
  * and reading the field goes through the root `Computed`, which only recomputes (and so only
  * re-triggers `template()`/effects reading the whole property) when a leaf actually touched by that
- * write changes - assigning `this.config = { ...this.config, count: 1 }` doesn't spuriously dirty
+ * write changes - `this.config.set({ ...this.config(), count: 1 })` doesn't spuriously dirty
  * sibling leaves the way replacing a single flat `signal()`'s value would force a full re-render on
  * identity change alone.
  *
- * Writing the field (`this.config = {...}`) calls the store's `.set()` with the *whole* new value;
+ * Writing the field (`this.config.set({...})`) calls the store's `.set()` with the *whole* new value;
  * `SignalState.set()` treats its argument as a `DeepPartial` merge (recursing into branches, calling
  * `.set()` per provided leaf, leaving omitted keys untouched) - a complete object satisfies that
  * shape trivially (every key is provided), so this is a full logical replace, just performed

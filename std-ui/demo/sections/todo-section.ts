@@ -15,14 +15,15 @@ export class DemoTodoSection extends UIElement {
 	];
 
 	protected override template() {
-		const remaining = computed(() => this.todos.filter(t => !t.done).length)();
+		const todos = this.todos();
+		const remaining = computed(() => this.todos().filter(t => !t.done).length)();
 
 		return t`
 			<h2>Putting it together: a tiny todo list</h2>
 			<p class="desc">A realistic composition of <code>@state()</code>, list rendering, and event bindings — no framework, no virtual DOM.</p>
-			<p>${remaining} remaining of ${this.todos.length}</p>
+			<p>${remaining} remaining of ${todos.length}</p>
 			<ul class="demo-todo-list">
-				${this.todos.map(todo => t`
+				${todos.map(todo => t`
 					<li class="demo-todo-item">
 						<input type="checkbox" .checked="${todo.done}" @change="${() => this.#toggle(todo.id)}" />
 						<span class="${todo.done ? 'done' : ''}">${todo.text}</span>
@@ -38,11 +39,11 @@ export class DemoTodoSection extends UIElement {
 	}
 
 	#toggle(id: number): void {
-		this.todos = this.todos.map(t => (t.id === id ? { ...t, done: !t.done } : t));
+		this.todos.set(this.todos().map(t => (t.id === id ? { ...t, done: !t.done } : t)));
 	}
 
 	#remove(id: number): void {
-		this.todos = this.todos.filter(t => t.id !== id);
+		this.todos.set(this.todos().filter(t => t.id !== id));
 	}
 
 	#onSubmit(e: Event): void {
@@ -51,7 +52,7 @@ export class DemoTodoSection extends UIElement {
 		const input = form.elements.namedItem('text') as HTMLInputElement;
 		const text = input.value.trim();
 		if (!text) return;
-		this.todos = [...this.todos, { id: nextId++, text, done: false }]; // update state
+		this.todos.set([...this.todos(), { id: nextId++, text, done: false }]);
 		form.reset();
 	}
 }

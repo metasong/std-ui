@@ -47,7 +47,7 @@ export function render(result: TemplateResult, container: Element | DocumentFrag
 	unmount(container);
 	const { fragment, parts } = instantiate(getTemplate(result.strings, result.type));
 	container.appendChild(fragment);
-	// After connect so custom elements are upgraded before `.prop` bindings hit `@state()`/`@attribute()` accessors.
+	// After connect so custom elements are upgraded before `.prop` bindings forward into `@state()`/`@attribute()` stores.
 	updateParts(parts, result.values);
 	renderedInstances.set(container, { strings: result.strings, parts });
 }

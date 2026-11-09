@@ -50,6 +50,21 @@ export class BooleanAttributePart implements Part {
 	}
 }
 
+/** `@state()`/`@attribute()` fields expose a read-only store; plain assignment would hit a getter-only accessor. */
+function writeProperty(el: Element, name: string, value: unknown): void {
+	const host = el as unknown as Record<string, unknown>;
+	const current = host[name];
+	if (
+		typeof current === 'function'
+		&& current !== value
+		&& typeof (current as { set?: unknown }).set === 'function'
+	) {
+		(current as { set: (v: unknown) => void }).set(value);
+		return;
+	}
+	host[name] = value;
+}
+
 export class PropertyPart implements Part {
 	readonly valueCount = 1;
 	#value: unknown;
@@ -75,13 +90,13 @@ export class PropertyPart implements Part {
 			if (result === noChange) return;
 			if (Object.is(result, this.#value)) return;
 			this.#value = result;
-			(this.el as unknown as Record<string, unknown>)[this.name] = result;
+			writeProperty(this.el, this.name, result);
 			return;
 		}
 		this.disconnect();
 		if (Object.is(value, this.#value)) return;
 		this.#value = value;
-		(this.el as unknown as Record<string, unknown>)[this.name] = value;
+		writeProperty(this.el, this.name, value);
 	}
 }
 

@@ -57,7 +57,7 @@ describe('@state({ contextKey }) + @consume()', () => {
 		document.body.appendChild(root);
 		expect(rendered).toEqual(['dark']);
 
-		root.theme = { mode: 'light' };
+		root.theme.set({ mode: 'light' });
 		await flush();
 		expect(rendered).toEqual(['dark', 'light']);
 		root.remove();

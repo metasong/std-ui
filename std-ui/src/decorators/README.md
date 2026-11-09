@@ -15,7 +15,9 @@ a reactive store (a `SignalTree`, see [`../signal/tree.md`](../signal/tree.md)):
 a plain-value field vs. a complex-object field behaves; `@attribute()` just adds the
 attribute-facing half on top.
 
-A primitive/array/class-instance field behaves exactly as a plain `signal()`-backed one always did.
+From outside the class (and in `template()`), a decorated field is its backing store: read with
+`this.field()`, write with `this.field.set(value)` (or `.update()`). A primitive/array/class-instance
+field behaves exactly as a plain `signal()`-backed one always did.
 A **plain-object** field instead becomes a tree of signals/computeds mirroring its shape - see
 ["Complex-object fields"](#complex-object-fields) below. This is true for both decorators.
 
@@ -31,7 +33,7 @@ class UserBadge extends UIElement {
 	@state() internal = 'x'; // store-backed only, no attribute at all
 
 	protected override template() {
-		return t`<span>${this.label}: ${this.count}</span>`;
+		return t`<span>${this.label()}: ${this.count()}</span>`;
 	}
 }
 ```
@@ -42,9 +44,9 @@ class UserBadge extends UIElement {
 
 ```js
 const el = document.querySelector('user-badge');
-el.count; // 3 — parsed from the attribute at upgrade
-el.count = 4; // writes the store, re-renders template(), and (because `reflect: true`) updates the `count="4"` attribute
-el.setAttribute('count', '9'); // native attributeChangedCallback parses it back into the property
+el.count(); // 3 — parsed from the attribute at upgrade
+el.count.set(4); // writes the store, re-renders template(), and (because `reflect: true`) updates the `count="4"` attribute
+el.setAttribute('count', '9'); // native attributeChangedCallback parses it back into the store
 ```
 
 ## Requirements
@@ -81,7 +83,7 @@ reactively via `@consume(contextKey)` - see [`context/README.md`](./context/READ
 |---|---|---|
 | `name` | kebab-case of the field name | Attribute name to parse from/reflect to. This is what used to be `@property()`'s `attribute` option - there's no `false` case anymore: use `@state()` instead of `@attribute()` for a field that shouldn't touch an attribute at all. |
 | `type` | inferred from the field's initial value | Selects the *default* attribute <-> property converter (see below). Ignored if `converter` is given. |
-| `reflect` | `false` | Whether writing the property (from JS) also reflects back onto the attribute. When `false` (default, like `lit`), sync is attribute -> property only. |
+| `reflect` | `false` | Whether writing the store (from JS via `.set()`) also reflects back onto the attribute. When `false` (default, like `lit`), sync is attribute -> property only. |
 | `converter` | — | Fully custom `{ fromAttribute, toAttribute }` pair, overriding `type`'s default - see below. |
 
 ## `type` conversions
@@ -148,14 +150,14 @@ class ConfigPanel extends UIElement {
 	@state() config = { theme: 'dark', limits: { max: 10 } };
 
 	protected override template() {
-		return t`<span>${this.config.theme} / ${this.config.limits.max}</span>`;
+		return t`<span>${this.config().theme} / ${this.config().limits.max}</span>`;
 	}
 }
 
-el.config = { ...el.config, theme: 'light' }; // only the `theme` leaf notifies; `limits` keeps its identity
+el.config.set({ ...el.config(), theme: 'light' }); // only the `theme` leaf notifies; `limits` keeps its identity
 ```
 
-Writing the field always takes a **whole** replacement object (`this.config = {...}`, not a partial)
+Writing the field always takes a **whole** replacement object (`this.config.set({...})`, not a partial)
 - internally this is passed to the tree's `.set()`, which treats a fully-specified object as a
 complete (if leaf-by-leaf) merge, so sibling leaves whose value didn't change don't spuriously
 notify their own readers just because the field as a whole was reassigned.
@@ -189,10 +191,10 @@ the attribute as JSON text:
   attribute -> property direction is harmless because the store only notifies when the value
   actually changes (`Object.is`) - so the property -> attribute effect simply doesn't re-run for a
   no-op write.
-- **Reads inside `template()`**: a `@state()`/`@attribute()` field's getter reads its store, so
-  using `this.someField` inside `template()` (or any `this.effect()`) tracks it like any other
-  signal - the component re-renders when the field/attribute changes, same as reading any other
-  signal would.
+- **Reads inside `template()`**: a decorated field *is* its backing store (`SignalState`), so
+  `this.someField()` inside `template()` (or any `this.effect()`) tracks it like any other signal;
+  use `this.someField.set(value)` (or `.update()`) to write. Template `.prop` bindings from a parent
+  still pass plain values — `PropertyPart` forwards those into `.set()` on the child's store.
 
 ## Plain fields only
 

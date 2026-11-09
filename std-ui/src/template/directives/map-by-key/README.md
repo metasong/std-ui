@@ -47,7 +47,7 @@ class SortableChores extends UIElement {
       <button type="button" @click="${() => this.sortByLabel(-1)}">Z → A</button>
       <ul>
         ${mapByKey(
-          this.chores,
+          this.chores(),
           (c) => c.id,
           (c) => t`
             <li data-id="${c.id}">
@@ -60,12 +60,12 @@ class SortableChores extends UIElement {
   }
 
   private sortByLabel(dir: 1 | -1) {
-    this.chores = [...this.chores].sort((a, b) => a.label.localeCompare(b.label) * dir);
+    this.chores.set([...this.chores()].sort((a, b) => a.label.localeCompare(b.label) * dir));
   }
 }
 ```
 
-With `${this.chores.map(...)}` instead, the same sort would reorder labels but leave each checkbox
+With `${this.chores().map(...)}` instead, the same sort would reorder labels but leave each checkbox
 on its *index*, not its chore. **Run it:** browser demo — [`../../../../demo/README.md`](../../../../demo/README.md) (`npm run demo`, section **Keyed lists**).
 Vitest walkthrough — [`../../../doc/map-by-key-sort.example.test.ts`](../../../doc/map-by-key-sort.example.test.ts) (`npm test -- map-by-key-sort.example`).
 

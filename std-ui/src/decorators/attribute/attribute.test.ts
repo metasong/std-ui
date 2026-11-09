@@ -27,7 +27,7 @@ describe('@attribute()', () => {
 		const el = document.createElement('attr-seed-attr') as Foo;
 		el.setAttribute('count', '42');
 		document.body.appendChild(el);
-		expect(el.count).toBe(42);
+		expect(el.count()).toBe(42);
 		el.remove();
 	});
 
@@ -41,10 +41,10 @@ describe('@attribute()', () => {
 		document.body.appendChild(el);
 		expect(el.hasAttribute('label')).toBe(false);
 
-		el.label = 'bye';
+		el.label.set('bye');
 		await flush();
 		expect(el.hasAttribute('label')).toBe(false);
-		expect(el.label).toBe('bye');
+		expect(el.label()).toBe('bye');
 		el.remove();
 	});
 
@@ -58,7 +58,7 @@ describe('@attribute()', () => {
 		document.body.appendChild(el);
 		expect(el.getAttribute('label')).toBe('hi');
 
-		el.label = 'bye';
+		el.label.set('bye');
 		await flush();
 		expect(el.getAttribute('label')).toBe('bye');
 		el.remove();
@@ -74,7 +74,7 @@ describe('@attribute()', () => {
 		document.body.appendChild(el);
 
 		el.setAttribute('count', '9');
-		expect(el.count).toBe(9);
+		expect(el.count()).toBe(9);
 		el.remove();
 	});
 
@@ -88,13 +88,13 @@ describe('@attribute()', () => {
 		document.body.appendChild(el);
 		expect(el.hasAttribute('active')).toBe(false);
 
-		el.active = true;
+		el.active.set(true);
 		await flush();
 		expect(el.hasAttribute('active')).toBe(true);
 		expect(el.getAttribute('active')).toBe('');
 
 		el.removeAttribute('active');
-		expect(el.active).toBe(false);
+		expect(el.active()).toBe(false);
 		el.remove();
 	});
 
@@ -109,10 +109,10 @@ describe('@attribute()', () => {
 		expect(el.hasAttribute('internal-only')).toBe(false);
 		expect((Foo as unknown as { observedAttributes?: string[] }).observedAttributes ?? []).not.toContain('internal-only');
 
-		el.internalOnly = 'still-secret';
+		el.internalOnly.set('still-secret');
 		await flush();
 		expect(el.hasAttribute('internal-only')).toBe(false);
-		expect(el.internalOnly).toBe('still-secret');
+		expect(el.internalOnly()).toBe('still-secret');
 		el.remove();
 	});
 
@@ -152,9 +152,9 @@ describe('@attribute()', () => {
 		expect(el.getAttribute('config')).toBe('{"a":1}');
 
 		el.setAttribute('config', '{"a":9}');
-		expect(el.config).toEqual({ a: 9 });
+		expect(el.config()).toEqual({ a: 9 });
 
-		el.config = { a: 3 };
+		el.config.set({ a: 3 });
 		await flush();
 		expect(el.getAttribute('config')).toBe('{"a":3}');
 		el.remove();
@@ -172,7 +172,7 @@ describe('@attribute()', () => {
 		// The default `Object` converter falls back to `{}` on unparsable text, but writing `{}`
 		// through the `SignalState`'s `DeepPartial` merge provides no keys to overwrite, so the
 		// field's existing leaves are left as-is rather than cleared.
-		expect(el.config).toEqual({ a: 1 });
+		expect(el.config()).toEqual({ a: 1 });
 		el.remove();
 	});
 
@@ -187,7 +187,7 @@ describe('@attribute()', () => {
 		expect(el.getAttribute('count')).toBe('5'); // reflected as Number's converter would
 
 		el.setAttribute('count', '42');
-		expect(el.count).toBe(42); // parsed as a number, not left as the string "42"
+		expect(el.count()).toBe(42); // parsed as a number, not left as the string "42"
 		el.remove();
 	});
 
@@ -201,7 +201,7 @@ describe('@attribute()', () => {
 		document.body.appendChild(el);
 		expect(el.hasAttribute('active')).toBe(false); // Boolean converter, not String's `''`
 
-		el.active = true;
+		el.active.set(true);
 		await flush();
 		expect(el.getAttribute('active')).toBe(''); // presence-based, like type: Boolean
 		el.remove();
@@ -218,7 +218,7 @@ describe('@attribute()', () => {
 		expect(el.getAttribute('config')).toBe('{"a":1}'); // JSON, like type: Object
 
 		el.setAttribute('config', '{"a":9}');
-		expect(el.config).toEqual({ a: 9 });
+		expect(el.config()).toEqual({ a: 9 });
 		el.remove();
 	});
 
@@ -255,9 +255,9 @@ describe('@attribute()', () => {
 		expect(el.getAttribute('config')).toBe('{"theme":"dark"}');
 
 		el.setAttribute('config', 'garbage');
-		expect(el.config).toEqual({ theme: 'dark' }); // custom converter's fallback, not the type default's {}
+		expect(el.config()).toEqual({ theme: 'dark' }); // custom converter's fallback, not the type default's {}
 
-		el.config = { theme: 'light' };
+		el.config.set({ theme: 'light' });
 		await flush();
 		expect(el.getAttribute('config')).toBe('{"theme":"light"}');
 		el.remove();

@@ -1,9 +1,9 @@
 // `@state()` field decorator: turns a class field on a `UIElement` subclass (see
-// `../ui-element.ts`) into a store-backed property (see `./store.ts`) - no attribute involved at
-// all. Reading/writing the field reads/writes a reactive store (a `signal()` for a
-// primitive/array/class-instance value, or a `SignalState` for a plain-object value - see
-// `./store.ts`), so `this.someField` inside `template()`/`effect()` tracks it transparently, the
-// same way reading any other signal would.
+// `../ui-element.ts`) into a store accessor (see `./store.ts`) - no attribute involved at
+// all. The field becomes that store (`this.someField()` / `this.someField.set(...)`) — a `signal()`
+// for a primitive/array/class-instance value, or a `SignalState` for a plain-object value (see
+// `./store.ts`) — so reads inside `template()`/`effect()` track it transparently, the same way as
+// any other signal.
 //
 // This is the "just a reactive field" half of what used to be `@property()`'s combined behavior -
 // for the attribute-syncing half, see `@attribute()` in `../attribute/attribute.decorator.ts`, which reuses this exact
@@ -31,10 +31,10 @@ export interface StateOptions<V = unknown> {
  *
  * ```ts
  * class MyPanel extends UIElement {
- *   @state() count = 0; // plain store-backed property
+ *   @state() count = 0; // `this.count()` / `this.count.set(n)`
  *   @state() config = { a: 1, b: { c: 2 } }; // plain-object value -> `SignalState`-backed (see
- *     // `./store.ts`): each leaf is independently writable/reactive, and writing
- *     // `this.config = { ...this.config, a: 2 }` only notifies readers of the `a` leaf.
+ *     // `./store.ts`): each leaf is independently writable/reactive, and
+ *     // `this.config.set({ ...this.config(), a: 2 })` only notifies readers of the `a` leaf.
  * }
  * ```
  *

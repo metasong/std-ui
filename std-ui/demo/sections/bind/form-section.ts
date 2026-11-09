@@ -8,7 +8,6 @@ export class DemoBindFormSection extends UIElement {
 	@state() renderPasses = 0;
 
 	protected override template() {
-		this.renderPasses;
 		return t`
 			<section class="demo-bind-block" id="form">
 				<h2>Native form controls</h2>
@@ -28,8 +27,8 @@ export class DemoBindFormSection extends UIElement {
 				<p class="demo-bind-mirror">Agreed: <code>${String(this.agreed())}</code></p>
 				<div class="demo-actions">
 					<button type="button" @click="${() => this.query.set('')}">clear query from model</button>
-					<button type="button" class="tonal" @click="${() => (this.renderPasses += 1)}">
-						bump render counter (${this.renderPasses})
+					<button type="button" class="tonal" @click="${() => this.renderPasses.update(n => n + 1)}">
+						bump render counter (${this.renderPasses()})
 					</button>
 				</div>
 			</section>

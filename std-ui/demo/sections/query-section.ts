@@ -17,7 +17,7 @@ export class DemoQuerySection extends UIElement {
 			<input class="demo-outlined-field" type="text" placeholder="add an item, press Enter" @keydown="${(e: KeyboardEvent) => this.#onKeydown(e)}" />
 			<span class="demo-badge badge"></span>
 			<ul>
-				${this.items.map(item => t`<li>${item}</li>`)}
+				${this.items().map(item => t`<li>${item}</li>`)}
 			</ul>
 			<div class="demo-actions">
 				<button type="button" @click="${() => this.input?.focus()}">focus input via @query</button>
@@ -29,7 +29,8 @@ export class DemoQuerySection extends UIElement {
 	protected override firstRendered(): void {
 		const badge = this.querySelector('.badge') as HTMLElement;
 		this.effect(() => {
-			badge.textContent = `${this.items.length} item${this.items.length === 1 ? '' : 's'}`;
+			const n = this.items().length;
+			badge.textContent = `${n} item${n === 1 ? '' : 's'}`;
 		});
 	}
 
@@ -37,7 +38,7 @@ export class DemoQuerySection extends UIElement {
 		if (e.key !== 'Enter') return;
 		const value = this.input?.value.trim();
 		if (!value) return;
-		this.items = [...this.items, value];
+		this.items.set([...this.items(), value]);
 		if (this.input) this.input.value = '';
 	}
 }

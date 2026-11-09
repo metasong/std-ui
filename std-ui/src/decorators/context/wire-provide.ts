@@ -24,7 +24,7 @@ export function wireProvidedContextListeners(
 			if (request.contextKey !== def.contextKey) return;
 			request.stopPropagation();
 			registerEffectDisposer(createEffect(() => {
-				request.callback((host as unknown as Record<PropertyKey, unknown>)[def.key]);
+				request.callback((host as unknown as Record<PropertyKey, () => unknown>)[def.key]());
 			}));
 		};
 		host.addEventListener(CONTEXT_REQUEST_EVENT, listener);

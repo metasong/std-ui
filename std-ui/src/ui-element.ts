@@ -215,8 +215,8 @@ export abstract class UIElement extends HTMLElement {
 	 * in `static observedAttributes` (set up by `tag()` from `@attribute()` fields) is set,
 	 * changed, or removed - including once per already-present attribute right when a pre-existing
 	 * element is upgraded, *before* `connectedCallback`. Parses the new attribute text per the
-	 * field's `type` and writes it through the `@attribute()` accessor (`this[def.key] = ...`), which
-	 * sets its backing signal - the same signal the property → attribute effect above reads, so
+	 * field's `type` and writes `this[def.key].set(parsed)` on the field's backing store — the same
+	 * store the property → attribute effect above reads via `this[def.key]()` — so
 	 * writing back the same (serialized) text is a no-op: `signal.set` only notifies on an actual
 	 * value change.
 	 */
@@ -224,6 +224,8 @@ export abstract class UIElement extends HTMLElement {
 		const def = getAttributeDefs(this.constructor).find(def => def.attribute === name);
 		if (!def) return;
 
-		(this as unknown as Record<PropertyKey, unknown>)[def.key] = parseAttribute(newValue, def.converter);
+		const parsed = parseAttribute(newValue, def.converter);
+		if (parsed === undefined) return; // a converter's `fromAttribute` returning `undefined` means "leave untouched"
+		(this as unknown as Record<PropertyKey, { set(value: unknown): void }>)[def.key].set(parsed);
 	}
 }

@@ -18,7 +18,7 @@ describe('template `.prop` bindings with @state()', () => {
 			@state() count = 0;
 
 			protected override template() {
-				return t`<span class="count">${this.count}</span>`;
+				return t`<span class="count">${this.count()}</span>`;
 			}
 		}
 
@@ -38,7 +38,7 @@ describe('template `.prop` bindings with @state()', () => {
 		await flush();
 
 		const badge = panel.querySelector('bind-child') as Badge;
-		expect(badge.count).toBe(3);
+		expect(badge.count()).toBe(3);
 		expect(badge.hasAttribute('count')).toBe(false);
 		expect(badge.querySelector('.count')!.textContent).toBe('3');
 
@@ -48,7 +48,7 @@ describe('template `.prop` bindings with @state()', () => {
 		panel.tree.count.set(9);
 		await flush();
 
-		expect(badge.count).toBe(9);
+		expect(badge.count()).toBe(9);
 		expect(badge.hasAttribute('count')).toBe(false);
 		expect(badge.querySelector('.count')!.textContent).toBe('9');
 		expect(panel.querySelector('bind-child')).toBe(badge);

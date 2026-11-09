@@ -26,7 +26,7 @@ class AppRoot extends UIElement {
 	@state({ contextKey: ThemeKey }) theme: Theme = { mode: 'dark' };
 
 	protected override connect() {
-		this.theme = { mode: 'light' }; // any descendant @consume(ThemeKey) field re-renders
+		this.theme.set({ mode: 'light' }); // any descendant @consume(ThemeKey) field re-renders
 	}
 }
 
@@ -75,8 +75,8 @@ descendants can find it:
 @state({ contextKey: ThemeKey }) theme: Theme = { mode: 'dark' };
 ```
 
-Writing `this.theme` re-renders this element's own `template()` *and* notifies every descendant
-`@consume(ThemeKey)` field, exactly the way it would notify this element's own `effect()`s.
+Writing `this.theme.set(...)` re-renders this element's own `template()` *and* notifies every
+descendant `@consume(ThemeKey)` field, exactly the way it would notify this element's own `effect()`s.
 
 **Re-providing (overriding for a sub-tree):** a descendant element can itself declare
 `@state({ contextKey: ThemeKey })` with a different value - every `@consume(ThemeKey)` field
@@ -93,10 +93,10 @@ Writing `this.theme` re-renders this element's own `template()` *and* notifies e
 - **Plain field only** - no `accessor` support. A consumed field is never written locally (see
   below), so there's no local initializer/storage slot for it to own; give it a type annotation
   (`!: Theme`), not an initializer.
-- **Reactive** - reading `this.theme` inside `template()`/`effect()` tracks it like any other
-  `@state()` field; the provider changing its value re-runs them.
-- **Read-only** - `this.theme = ...` throws. The provider owns the value; to change it, change the
-  provider's own field.
+- **Reactive** - reading `this.theme` inside `template()`/`effect()` tracks the provider's value
+  (consumers still see a plain value, not a store).
+- **Read-only** - `this.theme = ...` throws. The provider owns the value; to change it, call
+  `.set()` on the provider's `@state({ contextKey })` field.
 - **Resolved once per connect**, against whichever provider is the nearest ancestor *at the moment
   this element connects* - see [`design.md`](./design.md) for exactly when/how.
 - **Throws if nothing provides `contextKey`** when this element connects - there is no default

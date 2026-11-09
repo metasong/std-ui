@@ -34,16 +34,16 @@ export class DemoShadowChip extends UIElement {
 			</style>
 			<button
 				type="button"
-				data-off="${this.on ? null : ''}"
-				@click="${() => (this.on = !this.on)}"
+				data-off="${this.on() ? null : ''}"
+				@click="${() => this.on.set(!this.on())}"
 			>
-				${this.on ? 'Encapsulated (shadow)' : 'Click — themed only inside shadow'}
+				${this.on() ? 'Encapsulated (shadow)' : 'Click — themed only inside shadow'}
 			</button>
 		`;
 	}
 
 	protected override rendered(): void {
-		if (this.on && this.toggle) this.toggle.focus();
+		if (this.on() && this.toggle) this.toggle.focus();
 	}
 }
 

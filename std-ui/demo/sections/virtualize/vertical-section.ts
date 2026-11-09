@@ -23,7 +23,7 @@ export class DemoVirtualizeVertical extends UIElement {
 				<button type="button" class="tonal" @click="${() => this.#list.scrollToIndex(9999, { align: 'end' })}">End</button>
 				<button type="button" @click="${() => this.#jumpRandom()}">Random</button>
 			</div>
-			<p class="demo-v-meta">Last jump: ${this.scrollHint}</p>
+			<p class="demo-v-meta">Last jump: ${this.scrollHint()}</p>
 			<div class="demo-v-scroller demo-v-scroller-y">
 				<div>
 					${virtualize(this.#items, {
@@ -49,6 +49,6 @@ export class DemoVirtualizeVertical extends UIElement {
 	#jumpRandom(): void {
 		const i = Math.floor(Math.random() * this.#items.length);
 		this.#list.scrollToIndex(i, { align: 'center' });
-		this.scrollHint = `#${i}`;
+		this.scrollHint.set(`#${i}`);
 	}
 }

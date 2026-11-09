@@ -21,13 +21,13 @@ describe('@state() + @attribute() stacked on the same field', () => {
 
 		const el = document.createElement('stack-state-over-attr-plain') as Foo;
 		document.body.appendChild(el);
-		expect(el.count).toBe(5);
+		expect(el.count()).toBe(5);
 		expect(el.getAttribute('count')).toBe('5'); // reflect: true, via @attribute()'s own wiring
 
 		el.setAttribute('count', '9');
-		expect(el.count).toBe(9);
+		expect(el.count()).toBe(9);
 
-		el.count = 2;
+		el.count.set(2);
 		await flush();
 		expect(el.getAttribute('count')).toBe('2');
 		el.remove();
@@ -43,13 +43,13 @@ describe('@state() + @attribute() stacked on the same field', () => {
 
 		const el = document.createElement('stack-attr-over-state-plain') as Foo;
 		document.body.appendChild(el);
-		expect(el.count).toBe(3);
+		expect(el.count()).toBe(3);
 		expect(el.getAttribute('count')).toBe('3'); // @attribute() still registered reflect + the def
 
 		el.setAttribute('count', '7');
-		expect(el.count).toBe(7); // attributeChangedCallback writes through @state()'s store-backed accessor
+		expect(el.count()).toBe(7); // attributeChangedCallback writes through @state()'s store-backed accessor
 
-		el.count = 4;
+		el.count.set(4);
 		await flush();
 		expect(el.getAttribute('count')).toBe('4');
 		el.remove();

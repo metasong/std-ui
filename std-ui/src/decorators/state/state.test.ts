@@ -16,10 +16,10 @@ describe('@state()', () => {
 		document.body.appendChild(el);
 		expect(el.hasAttribute('label')).toBe(false);
 
-		el.label = 'bye';
+		el.label.set('bye');
 		await flush();
 		expect(el.hasAttribute('label')).toBe(false);
-		expect(el.label).toBe('bye');
+		expect(el.label()).toBe('bye');
 		el.remove();
 	});
 
@@ -30,7 +30,7 @@ describe('@state()', () => {
 		class Foo extends UIElement {
 			@state() label = 'a';
 			protected override template(): void {
-				rendered.push(this.label);
+				rendered.push(this.label());
 			}
 		}
 
@@ -38,7 +38,7 @@ describe('@state()', () => {
 		document.body.appendChild(el);
 		expect(rendered).toEqual(['a']);
 
-		el.label = 'b';
+		el.label.set('b');
 		await flush();
 		expect(rendered).toEqual(['a', 'b']);
 		el.remove();
@@ -62,11 +62,11 @@ describe('@state()', () => {
 
 		const el = document.createElement('state-obj-tree') as Foo;
 		document.body.appendChild(el);
-		expect(el.config).toEqual({ a: 1, b: { c: 2 } });
+		expect(el.config()).toEqual({ a: 1, b: { c: 2 } });
 
-		el.config = { ...el.config, a: 2 };
+		el.config.set({ ...el.config(), a: 2 });
 		await flush();
-		expect(el.config).toEqual({ a: 2, b: { c: 2 } });
+		expect(el.config()).toEqual({ a: 2, b: { c: 2 } });
 		el.remove();
 	});
 
@@ -78,11 +78,11 @@ describe('@state()', () => {
 
 		const el = document.createElement('state-obj-sibling') as Foo;
 		document.body.appendChild(el);
-		const bBefore = el.config.b;
+		const bBefore = el.config().b;
 
-		el.config = { ...el.config, a: 2 }; // only `a` changes; `b`'s leaf (`c`) is unchanged
+		el.config.set({ ...el.config(), a: 2 }); // only `a` changes; `b`'s leaf (`c`) is unchanged
 		await flush();
-		expect(el.config.b).toBe(bBefore); // `b`'s branch never recomputed, so its identity is preserved
+		expect(el.config().b).toBe(bBefore); // `b`'s branch never recomputed, so its identity is preserved
 		el.remove();
 	});
 
@@ -94,7 +94,7 @@ describe('@state()', () => {
 
 		const el = document.createElement('state-array') as Foo;
 		document.body.appendChild(el);
-		expect(el.tags).toEqual(['a', 'b']);
+		expect(el.tags()).toEqual(['a', 'b']);
 		el.remove();
 	});
 

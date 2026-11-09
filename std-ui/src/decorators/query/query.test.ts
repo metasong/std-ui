@@ -98,7 +98,7 @@ describe('@queryAsync()', () => {
 			@state() show = false;
 			@queryAsync('.lazy') lazy!: Promise<HTMLElement | null>;
 			protected override template() {
-				return this.show ? t`<em class="lazy">here</em>` : t``;
+				return this.show() ? t`<em class="lazy">here</em>` : t``;
 			}
 		}
 
@@ -106,7 +106,7 @@ describe('@queryAsync()', () => {
 		document.body.appendChild(el);
 		expect(await el.lazy).toBeNull();
 
-		el.show = true;
+		el.show.set(true);
 		const found = await el.lazy;
 		expect(found).not.toBeNull();
 		expect(found!.textContent).toBe('here');

@@ -16,7 +16,7 @@ export function wireReflectedAttributes(host: HTMLElement, registerEffectDispose
 	for (const def of getAttributeDefs(host.constructor)) {
 		if (!def.reflect) continue;
 		registerEffectDisposer(createEffect(() => {
-			const value = (host as unknown as Record<PropertyKey, unknown>)[def.key];
+			const value = (host as unknown as Record<PropertyKey, () => unknown>)[def.key]();
 			const serialized = serializeAttribute(value, def.converter);
 			if (serialized === null) host.removeAttribute(def.attribute);
 			else host.setAttribute(def.attribute, serialized);

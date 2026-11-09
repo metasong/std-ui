@@ -1,5 +1,5 @@
 // `@attribute()` field decorator: turns a class field on a `UIElement` subclass (see
-// `../ui-element.ts`) into a store-backed property - exactly like `@state()` (`../state/state.decorator.ts`) - and
+// `../ui-element.ts`) into a store accessor - exactly like `@state()` (`../state/state.decorator.ts`) - and
 // additionally keeps it in sync with an HTML attribute via the platform's own custom-element
 // "attribute changed" monitoring mechanism (`observedAttributes` + `attributeChangedCallback`,
 // wired through `./metadata.ts`), rather than polling or a `MutationObserver`.
@@ -67,8 +67,8 @@ export interface AttributeOptions<V = unknown> {
 /**
  * Class field decorator that backs the field with a reactive store - exactly like `@state()`
  * (`../state/state.decorator.ts`), via the shared `applyFieldStore()` - and registers it to be mirrored to/from an
- * HTML attribute by `UIElement` (see `../ui-element.ts`): reading/writing the field reads/writes
- * the store; the store's value is reflected onto the host's attribute; and the attribute being set
+ * HTML attribute by `UIElement` (see `../ui-element.ts`): `this.field()` / `this.field.set(...)`
+ * match `@state()`; the store's value is reflected onto the host's attribute when the attribute being set
  * (including by the browser while parsing static markup) parses back into the store.
  *
  * Works for plain values exactly like `@state()`, and for complex (plain-object) values too - a
@@ -81,7 +81,7 @@ export interface AttributeOptions<V = unknown> {
  *   @state() internalOnly = 'x'; // store only, no attribute at all - use @state() for this
  *   @attribute({ type: Object, reflect: true }) config = { a: 1, b: { c: 2 } }; // tree-backed:
  *     // a plain-object value becomes a branch of signals/computeds (see `../signal/tree.md`), so
- *     // writing `this.config = { ...this.config, a: 2 }` only notifies readers of the `a` leaf -
+ *     // `this.config.set({ ...this.config(), a: 2 })` only notifies readers of the `a` leaf -
  *     // readers depending only on `config.b` don't re-run. `type: Object`'s default converter
  *     // reflects the object to/from the attribute as JSON text; use `@state()` instead if it
  *     // shouldn't touch the attribute at all, or pass a custom `converter` for anything else.

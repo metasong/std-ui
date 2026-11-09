@@ -97,7 +97,7 @@ class DemoTodoList extends UIElement {
     // Fixed order, append/remove at the end — positional list diff is enough
     return t`
       <ul class="positional">
-        ${this.todos.map((todo) => t`
+        ${this.todos().map((todo) => t`
           <li>
             <input type="checkbox" .checked="${todo.done}" />
             ${todo.text}
@@ -120,7 +120,7 @@ class DemoSortableTodos extends UIElement {
     return t`
       <ul class="keyed">
         ${mapByKey(
-          this.todos,
+          this.todos(),
           (todo) => todo.id,
           (todo) => t`
             <li data-id="${todo.id}">
@@ -179,15 +179,15 @@ class DemoTabs extends UIElement {
   protected override template() {
     return t`
       <nav>
-        <button type="button" ?aria-current="${this.tab === 'home'}" @click="${() => { this.tab = 'home'; }}">Home</button>
-        <button type="button" ?aria-current="${this.tab === 'settings'}" @click="${() => { this.tab = 'settings'; }}">Settings</button>
+        <button type="button" ?aria-current="${this.tab() === 'home'}" @click="${() => this.tab.set('home')}">Home</button>
+        <button type="button" ?aria-current="${this.tab() === 'settings'}" @click="${() => this.tab.set('settings')}">Settings</button>
       </nav>
       <main>
-        ${this.tab === 'home'
+        ${this.tab() === 'home'
           ? t`<section><h2>Home</h2></section>`
           : t`<section><h2>Settings</h2></section>`}
       </main>
-      <span>${this.size === 's' ? 'Small' : this.size === 'm' ? 'Medium' : 'Large'}</span>
+      <span>${this.size() === 's' ? 'Small' : this.size() === 'm' ? 'Medium' : 'Large'}</span>
     `;
   }
 }

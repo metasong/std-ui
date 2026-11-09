@@ -1,4 +1,4 @@
-// Shared field decorator mechanics for turning a class field into a store-backed property (see
+// Shared field decorator mechanics for turning a class field into a read-only store accessor (see
 // `./store.ts`). Both `@state()` (`./state/state.decorator.ts`, store only) and `@attribute()`
 // (`./attribute/attribute.decorator.ts`, store + attribute sync) delegate here instead of
 // duplicating it - `@attribute()` is "everything `@state()` does, plus attribute
@@ -25,7 +25,7 @@ function wiredFields(meta: object): Set<PropertyKey> {
 }
 
 /**
- * Applies the store-backed `get`/`set` wiring to a decorated plain field - the entire body of what
+ * Applies read-only store-backed field wiring to a decorated plain field - the entire body of what
  * used to be `@property()`, minus any attribute concern. `onInitialValue`, if given, runs once per
  * instance with the field's initial value, right as its store is created - `@attribute()` uses
  * this to resolve a type-inferred converter once that value is known (see
@@ -61,7 +61,7 @@ export function applyFieldStore<T, V>(context: ClassFieldDecoratorContext<T, V>,
 		if (onInitialValue) {
 			// @attribute() needs the initial value to infer a converter type
 			context.addInitializer(function (this: T): void {
-				onInitialValue((this as unknown as Record<PropertyKey, V>)[key]);
+				onInitialValue((this as unknown as Record<PropertyKey, { peek(): V }>)[key].peek());
 			});
 		}
 		return;
@@ -73,12 +73,9 @@ export function applyFieldStore<T, V>(context: ClassFieldDecoratorContext<T, V>,
 		onInitialValue?.(initial);
 		const store = createStore(initial);
 		Object.defineProperty(this, key, {
-			get(): V {
-				return store();
-			},
-			set(value: V): void {
-				if (value === undefined) return; // a converter's `fromAttribute` returning `undefined` means "leave untouched"
-				store.set(value as never);
+			// Read-only accessor returning the store itself: `this.count()` reads, `this.count.set(v)` writes.
+			get() {
+				return store;
 			},
 			enumerable: true,
 			configurable: true,
