@@ -30,8 +30,7 @@ export function createRef<T extends Element = Element>(): Ref<T> {
  */
 class RefDirective extends Directive {
 	#ref: RefOrCallback | undefined;
-	/** True once `#ref` has been told about the element, so re-renders with the same ref are no-ops. */
-	#applied = false;
+	/** Element `#ref` was last told about; re-renders with the same ref and element are no-ops. */
 	#element: Element | undefined;
 
 	constructor(partInfo: PartInfo) {
@@ -45,12 +44,11 @@ class RefDirective extends Directive {
 		if (ref !== this.#ref) {
 			this.#set(undefined);
 			this.#ref = ref;
-			this.#applied = false;
+			this.#element = undefined;
 		}
-		if (!this.#applied) {
+		if (this.#element !== part.element) {
 			this.#element = part.element;
 			this.#set(part.element);
-			this.#applied = true;
 		}
 		return noChange;
 	}
@@ -58,7 +56,6 @@ class RefDirective extends Directive {
 	override disconnected(): void {
 		// Only clear a ref that still points at our element, so a ref handed to another binding isn't wiped.
 		this.#set(undefined);
-		this.#applied = false;
 		this.#ref = undefined;
 		this.#element = undefined;
 	}
