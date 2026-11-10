@@ -5,6 +5,8 @@
 // landed, and `instantiate()` later clones that template and resolves those descriptors to real
 // nodes for a fresh render.
 
+import { DEV, warnOnUndefinedElements } from '../dev/index.js';
+
 /** Marks a child-content position; kept as a real comment node in the DOM to anchor updates. */
 const CHILD_MARKER = 'std-ui-part';
 const CHILD_MARKER_COMMENT = `<!--${CHILD_MARKER}-->`;
@@ -233,6 +235,7 @@ function compile(strings: TemplateStringsArray, type: TemplateType): Template {
 		element.innerHTML = markup;
 	}
 	resolvePartIndices(element.content, descriptors);
+	if (DEV) warnOnUndefinedElements(element.content);
 
 	return { element, parts: descriptors };
 }
