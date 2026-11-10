@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { getTemplate, instantiate } from './compile.js';
-import { t, svg } from './html.js';
-import { updateParts } from './parts/index.js';
+import { t, svg } from '../html.js';
+import { updateParts } from '../parts/index.js';
 
 describe('getTemplate/instantiate', () => {
 	it('compiles a child binding to a comment-anchored ChildPart', () => {

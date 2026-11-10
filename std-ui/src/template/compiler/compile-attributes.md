@@ -1,6 +1,6 @@
 # How attribute compilation works
 
-This doc focuses on **plain attributes** (no `?`/`.`/`@` prefix): values that end up as strings via `setAttribute`. The implementation lives in `compile.ts` (`AttributePart` and `updateParts` in `parts/` apply the compiled result at runtime).
+This doc focuses on **plain attributes** (no `?`/`.`/`@` prefix): values that end up as strings via `setAttribute`. The scanning lives in the generic `engine.ts`; the attribute *syntax* (sigils, one-interpolation rules) lives in `compile.ts` and is plugged in through hooks (see [design.md](./design.md)). `AttributePart` and `updateParts` in `parts/` apply the compiled result at runtime.
 
 If you only read one diagram, use [the state machine](#scanner-two-states) and [the end-to-end pipeline](#end-to-end-pipeline).
 
@@ -45,7 +45,7 @@ The compiler **never** looks at `values` while compiling. It only walks `strings
 ```mermaid
 flowchart TB
   subgraph compile["compile(strings) — once per call site"]
-    A["Scan strings, choose binding per gap"] --> B["Build synthetic markup with ATTR_MARKER placeholders"]
+    A["Scan strings, choose binding per gap"] --> B["Build synthetic markup with marker placeholders"]
     B --> C["Parse with template element innerHTML"]
     C --> D["Walk DOM: node index per part, strip placeholders"]
   end
@@ -83,13 +83,13 @@ Rough meanings:
 | **TEXT** | Outside an open quoted attribute value | Either a **child** binding, or the **first** piece of an attribute value (right after `name="`). |
 | **ATTR_VALUE** | Inside `name="…` until the matching `"` or `'` | **Another segment of the same attribute** (more static text and/or another `${...}`), until the closing quote. |
 
-The code uses `stepText` / `stepAttrValue` for transitions; see `compile.ts`.
+The engine uses `stepText` / `stepAttrValue` for transitions; see `engine.ts`. It calls the `onAttributeOpen` hook at the `TEXT -> ATTR_VALUE` transition and `onAttributeClose` at `ATTR_VALUE -> TEXT`.
 
 ---
 
 ## Placeholder markup the HTML parser can eat
 
-Dynamic attribute **values** are not left as real text in the template fragment. The compiler inserts a single fake attribute value **`std-ui-part`** (constant `ATTR_MARKER`) on the element so that, after parsing, the walk can find “this element + attribute name = one AttributePart”. The real string is **rebuilt at runtime** from `literals` + the matching slice of `values`.
+Dynamic attribute **values** are not left as real text in the template fragment. The compiler inserts a single fake attribute value **`std-ui-part`** (the engine's `MARKER`, shared with the child-slot comment) on the element so that, after parsing, the walk can find “this element + attribute name = one AttributePart”. The real string is **rebuilt at runtime** from `literals` + the matching slice of `values`.
 
 ```mermaid
 flowchart LR
@@ -145,7 +145,7 @@ flowchart LR
   end
   subgraph correct["With rewind"]
     R1["literals[0] keeps prefix for composition"]
-    R2["markup uses ATTR_MARKER only"]
+    R2["markup uses the marker only"]
     R1 --> R2
   end
   wrong -->|fix| correct
@@ -163,6 +163,8 @@ flowchart LR
 | Event | `@click="${fn}"` | Same (plus optional `.once`/`.capture`/`.passive` on the **name**). |
 
 Sigiled kinds bind a **single JS value** (boolean, property, listener), not a composed string, so the compiler rejects multiple interpolations or static glue inside the quoted value.
+
+Division of labour: the engine hands the hooks the attribute's raw name (sigil and modifiers included, e.g. `@click.once`). `onAttributeOpen` in `compile.ts` parses it into kind/name/options, and `onAttributeClose` receives `literals` and `valueCount` and throws for sigiled kinds that break the rule above. The engine itself has no notion of sigils.
 
 ---
 
@@ -193,7 +195,9 @@ flowchart LR
 
 | File | Role |
 |------|------|
-| `compile.ts` | Scan `strings`, build synthetic markup, `getTemplate`, `instantiate` |
+| `engine.ts` | Generic: scan `strings`, build synthetic markup, node indexing, `getTemplate`, `instantiate`, hooks |
+| `compile.ts` | std-ui syntax: sigils, descriptor kinds, `createPart`, SVG, dev warnings |
+| `design.md` | Engine/hook architecture |
 | `parts/attribute-part.ts` | `AttributePart` |
 | `parts/core.ts` | `updateParts` |
 | `render.ts` | Root `render()` calling `updateParts` |
@@ -202,5 +206,6 @@ flowchart LR
 
 ## Related
 
-- Overview for users: [html.md](./html.md) (binding table, limitations).
-- Implementation comments at the top of `compile.ts` and the `ScanState` / `stepText` / `stepAttrValue` helpers.
+- Overview for users: [html.md](../html.md) (binding table, limitations).
+- Architecture: [design.md](./design.md).
+- Implementation comments at the top of `engine.ts` and its `ScanState` / `stepText` / `stepAttrValue` helpers.

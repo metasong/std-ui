@@ -302,7 +302,7 @@ class HelloBanner extends UIElement {
 
 For a **deeper, illustrated walkthrough** of how plain attributes are compiled (state machine,
 placeholders, `literals` / `valueCount`, and the “rewind” trick for `class="prefix-${x}"`), see
-[compile-attributes.md](./compile-attributes.md).
+[compile-attributes.md](./compiler/compile-attributes.md).
 
 1. `t` just captures `strings`/`values` — no DOM work happens yet. Tagged template calls reuse
    the *same* `strings` array object across repeated calls at the same call site (guaranteed by the
