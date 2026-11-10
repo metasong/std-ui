@@ -10,6 +10,7 @@ import {
 	noChange,
 	PartType,
 	type Directive,
+	type ElementPartInfo,
 	type PropertyPartInfo,
 } from '../directive.js';
 
@@ -100,22 +101,37 @@ export class PropertyPart implements Part {
 	}
 }
 
-export class EventPart implements Part {
+export class EventPart implements Part, EventListenerObject {
 	readonly valueCount = 1;
 	#listener: EventListenerOrEventListenerObject | undefined;
+	#attached = false;
 	constructor(
 		private readonly el: Element,
 		private readonly name: string,
 		private readonly options?: AddEventListenerOptions,
+		private readonly host?: unknown,
 	) {}
 	update(values: readonly unknown[]): void {
 		const value = values[0];
-		if (value === this.#listener) return;
-		// `removeEventListener` only needs `capture` to match the call that added the listener;
-		// `once`/`passive` are ignored for removal purposes, but passing the same options is harmless.
-		if (this.#listener) this.el.removeEventListener(this.name, this.#listener, this.options);
-		this.#listener = typeof value === 'function' ? (value as EventListener) : undefined;
-		if (this.#listener) this.el.addEventListener(this.name, this.#listener, this.options);
+		const listener = typeof value === 'function' || (typeof value === 'object' && value !== null)
+			? (value as EventListenerOrEventListenerObject)
+			: undefined;
+		this.#listener = listener;
+		// The part itself is the one registered listener (stable identity), so swapping handlers
+		// between renders needs no remove/add, and `this` inside a handler is the host (like lit).
+		if (listener && !this.#attached) {
+			this.el.addEventListener(this.name, this, this.options);
+			this.#attached = true;
+		} else if (!listener && this.#attached) {
+			this.el.removeEventListener(this.name, this, this.options);
+			this.#attached = false;
+		}
+	}
+	handleEvent(event: Event): void {
+		if (this.options?.once) this.#attached = false; // the browser removed us
+		const l = this.#listener;
+		if (typeof l === 'function') l.call(this.host ?? this.el, event);
+		else l?.handleEvent(event);
 	}
 }
 
@@ -125,8 +141,8 @@ export class ElementPart implements Part {
 	readonly valueCount = 1;
 	#directive: Directive | undefined;
 	readonly #partInfo: ElementPartInfo;
-	constructor(el: Element) {
-		this.#partInfo = { type: PartType.ELEMENT, element: el };
+	constructor(el: Element, host?: unknown) {
+		this.#partInfo = { type: PartType.ELEMENT, element: el, host };
 	}
 
 	disconnect(): void {

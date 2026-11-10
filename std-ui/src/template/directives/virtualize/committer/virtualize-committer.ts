@@ -62,8 +62,8 @@ export class VirtualizeCommitter extends Committer<VirtualizeValue> implements C
 		this.#axis = new Axis(value.options.direction === 'horizontal');
 		if (!this.#rows) {
 			this.#spacers = new Spacers(this.anchor, value.options.spacerTag ?? 'div', this.#axis);
-			this.#rows = new KeyedRows(this.#spacers.bottom);
-			this.#sticky = new StickyHeaders(this.#spacers.top);
+			this.#rows = new KeyedRows(this.#spacers.bottom, this.host);
+			this.#sticky = new StickyHeaders(this.#spacers.top, this.host);
 		}
 		const controller = value.options.controller;
 		if (controller !== this.#controller) {

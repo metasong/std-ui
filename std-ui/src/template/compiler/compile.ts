@@ -100,14 +100,14 @@ function describeBinding(open: OpenBinding, literals: readonly string[], valueCo
 
 // --- Part creation ------------------------------------------------------------------------------
 
-function createPart(descriptor: PartDescriptor, target: Node): Part {
+function createPart(descriptor: PartDescriptor, target: Node, host?: unknown): Part {
 	switch (descriptor.kind) {
-		case 'child': return new ChildPart(target as Comment);
+		case 'child': return new ChildPart(target as Comment, host);
 		case 'attr': return new AttributePart(target as Element, descriptor.name, descriptor.literals);
 		case 'bool': return new BooleanAttributePart(target as Element, descriptor.name);
 		case 'prop': return new PropertyPart(target as Element, descriptor.name);
-		case 'event': return new EventPart(target as Element, descriptor.name, descriptor.options);
-		case 'element': return new ElementPart(target as Element);
+		case 'event': return new EventPart(target as Element, descriptor.name, descriptor.options, host);
+		case 'element': return new ElementPart(target as Element, host);
 	}
 }
 

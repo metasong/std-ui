@@ -16,8 +16,8 @@ export class StickyHeaders {
 	pinnedKey: unknown;
 	#cache: { items: ArrayLike<unknown>; length: number; indices: number[] } | undefined;
 
-	constructor(anchor: Node) {
-		this.pinned = new KeyedRows(anchor);
+	constructor(anchor: Node, host?: unknown) {
+		this.pinned = new KeyedRows(anchor, host);
 	}
 
 	/** Indices of header items, cached per `items` array (identity + length). */

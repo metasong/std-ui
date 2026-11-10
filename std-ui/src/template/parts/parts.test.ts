@@ -218,12 +218,30 @@ describe('EventPart', () => {
 		const part = new EventPart(el, 'click', options);
 		const first = vi.fn();
 		part.update([first]);
-		expect(addEventListener).toHaveBeenCalledWith('click', first, options);
+		expect(addEventListener).toHaveBeenCalledWith('click', part, options);
 
+		// Swapping handlers keeps the one registered listener (the part itself).
 		const second = vi.fn();
 		part.update([second]);
-		expect(removeEventListener).toHaveBeenCalledWith('click', first, options);
-		expect(addEventListener).toHaveBeenCalledWith('click', second, options);
+		expect(addEventListener).toHaveBeenCalledTimes(1);
+		part.update([undefined]);
+		expect(removeEventListener).toHaveBeenCalledWith('click', part, options);
+	});
+
+	it('calls handlers with `this` = host (or the element when no host)', () => {
+		const el = document.createElement('button');
+		const host = {};
+		let seen: unknown;
+		const handler = function (this: unknown) { seen = this; };
+		const withHost = new EventPart(el, 'click', undefined, host);
+		withHost.update([handler]);
+		el.dispatchEvent(new Event('click'));
+		expect(seen).toBe(host);
+
+		const el2 = document.createElement('button');
+		new EventPart(el2, 'click').update([handler]);
+		el2.dispatchEvent(new Event('click'));
+		expect(seen).toBe(el2);
 	});
 
 	it('honors the `once` option: handler fires once then self-removes', () => {

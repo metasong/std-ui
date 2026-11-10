@@ -1,6 +1,6 @@
 export { t, svg, type TemplateResult } from './html.js';
 export { html } from './directives/html/index.js';
-export { render, unmount, disconnectRendered } from './render.js';
+export { render, unmount, disconnectRendered, type RenderOptions } from './render.js';
 export { Directive, directive, noChange, PartType, type Part, type PartInfo } from './directive.js';
 export {
 	css,

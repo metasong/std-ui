@@ -91,6 +91,8 @@ export interface PropertyPartInfo {
 export interface ElementPartInfo {
 	readonly type: typeof PartType.ELEMENT;
 	readonly element: Element;
+	/** The `host` passed to `render()` (the component), if any. */
+	readonly host?: unknown;
 }
 
 /** Metadata + live DOM access for a child-content binding - see `ChildPart` in `parts/`. Unlike

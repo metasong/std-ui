@@ -36,7 +36,7 @@ export class ChildPart implements Part {
 	#directive: Directive | undefined;
 	/** This position's `ChildPartInfo`, built once and handed to directives - see `directive.ts`. */
 	#partInfo: ChildPartInfo;
-	constructor(private readonly anchor: Comment) {
+	constructor(private readonly anchor: Comment, private readonly host?: unknown) {
 		this.#partInfo = { type: PartType.CHILD, anchor };
 	}
 
@@ -61,7 +61,7 @@ export class ChildPart implements Part {
 		}
 		if (this.#committer?.constructor === picked.Ctor && this.#committer.update(picked.value)) return;
 		this.#clear();
-		this.#committer = new picked.Ctor(this.anchor);
+		this.#committer = new picked.Ctor(this.anchor, this.host);
 		this.#committer.update(picked.value);
 	}
 

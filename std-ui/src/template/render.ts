@@ -9,6 +9,11 @@ interface RenderedInstance {
 	parts: Part[];
 }
 
+export interface RenderOptions {
+	/** `this` for `@event` handlers and callback `ref()`s in the rendered template (default: the element). */
+	host?: unknown;
+}
+
 const renderedInstances = new WeakMap<Element | DocumentFragment, RenderedInstance>();
 
 /**
@@ -37,7 +42,12 @@ export function unmount(container: Element | DocumentFragment): void {
  * from the same tagged-template call site (same `strings` identity) - matching lit-html's contract
  * that only *values* need to be diffed, not structure.
  */
-export function render(result: TemplateResult, container: Element | DocumentFragment): void {
+export function render(
+	result: TemplateResult,
+	container: Element | DocumentFragment,
+	options?: RenderOptions,
+): void {
+	const host = options?.host;
 	const previous = renderedInstances.get(container);
 	if (previous && previous.strings === result.strings) {
 		updateParts(previous.parts, result.values);
@@ -45,7 +55,7 @@ export function render(result: TemplateResult, container: Element | DocumentFrag
 	}
 
 	unmount(container);
-	const { fragment, parts } = instantiate(getTemplate(result.strings, result.type));
+	const { fragment, parts } = instantiate(getTemplate(result.strings, result.type), host);
 	container.appendChild(fragment);
 	// After connect so custom elements are upgraded before `.prop` bindings forward into `@state()`/`@attribute()` stores.
 	updateParts(parts, result.values);

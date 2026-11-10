@@ -13,7 +13,7 @@ export class TemplateCommitter extends Committer<TemplateResult> {
 			updateParts(this.#parts, result.values);
 			return true;
 		}
-		const { fragment, parts } = instantiate(getTemplate(result.strings, result.type));
+		const { fragment, parts } = instantiate(getTemplate(result.strings, result.type), this.host);
 		this.#nodes = Array.from(fragment.childNodes);
 		this.anchor.before(fragment);
 		updateParts(parts, result.values);

@@ -20,7 +20,7 @@ function removeRow(row: KeyedRow): void {
  */
 export class KeyedRows {
 	#rows = new Map<unknown, KeyedRow>();
-	constructor(readonly anchor: Node) {}
+	constructor(readonly anchor: Node, readonly host?: unknown) {}
 
 	has(key: unknown): boolean {
 		return this.#rows.has(key);
@@ -60,7 +60,7 @@ export class KeyedRows {
 				const end = document.createComment('std-ui-part');
 				ref.parentNode!.insertBefore(start, ref);
 				ref.parentNode!.insertBefore(end, ref);
-				row = { start, part: new ChildPart(end) };
+				row = { start, part: new ChildPart(end, this.host) };
 			} else {
 				if (row.part.endNode.nextSibling !== ref) {
 					const parent = ref.parentNode!;

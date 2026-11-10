@@ -80,7 +80,7 @@ export interface EngineHooks<D extends SlotDescriptor, Part, Type extends string
 	onCompiled?(template: Template<D>, type: Type): void;
 
 	/** Create the runtime part for one descriptor, bound to its resolved node in a fresh clone. */
-	createPart(descriptor: D, node: Node): Part;
+	createPart(descriptor: D, node: Node, host?: unknown): Part;
 	/** A fresh clone has all its parts created. */
 	onInstantiated?(fragment: DocumentFragment, parts: Part[]): void;
 }
@@ -93,7 +93,7 @@ export interface Template<D extends SlotDescriptor = SlotDescriptor> {
 export interface Engine<D extends SlotDescriptor, Part, Type extends string> {
 	/** Cached compile, keyed by the `strings` identity and `type`. */
 	getTemplate(strings: TemplateStringsArray, type?: Type): Template<D>;
-	instantiate(template: Template<D>): { fragment: DocumentFragment; parts: Part[] };
+	instantiate(template: Template<D>, host?: unknown): { fragment: DocumentFragment; parts: Part[] };
 }
 
 export interface EngineOptions<Type extends string> {
@@ -287,7 +287,7 @@ export function createEngine<D extends SlotDescriptor, Part, Type extends string
 			return (byType[type] ??= compile(strings, type));
 		},
 
-		instantiate(template) {
+		instantiate(template, host) {
 			const fragment = template.element.content.cloneNode(true) as DocumentFragment;
 			const nodes: Node[] = [];
 			const walker = document.createTreeWalker(fragment, NodeFilter.SHOW_ELEMENT | NodeFilter.SHOW_COMMENT);
@@ -295,7 +295,7 @@ export function createEngine<D extends SlotDescriptor, Part, Type extends string
 			let i = 0;
 			while ((node = walker.nextNode())) nodes[i++] = node;
 
-			const parts = template.parts.map(d => hooks.createPart(d, nodes[d.nodeIndex]));
+			const parts = template.parts.map(d => hooks.createPart(d, nodes[d.nodeIndex], host));
 			hooks.onInstantiated?.(fragment, parts);
 			return { fragment, parts };
 		},

@@ -32,6 +32,8 @@ class RefDirective extends Directive {
 	#ref: RefOrCallback | undefined;
 	/** Element `#ref` was last told about; re-renders with the same ref and element are no-ops. */
 	#element: Element | undefined;
+	/** Host passed to `render()`; callback refs are called with it as `this`. */
+	#host: unknown;
 
 	constructor(partInfo: PartInfo) {
 		super(partInfo);
@@ -41,6 +43,7 @@ class RefDirective extends Directive {
 	}
 
 	override update(part: ElementPartInfo, ref: RefOrCallback): typeof noChange {
+		this.#host = part.host;
 		if (ref !== this.#ref) {
 			this.#set(undefined);
 			this.#ref = ref;
@@ -63,7 +66,7 @@ class RefDirective extends Directive {
 	#set(el: Element | undefined): void {
 		const ref = this.#ref;
 		if (!ref) return;
-		if (typeof ref === 'function') ref(el);
+		if (typeof ref === 'function') ref.call(this.#host, el);
 		else if (el || ref.value === this.#element) ref.value = el;
 	}
 }

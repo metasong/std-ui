@@ -173,7 +173,7 @@ export abstract class UIElement extends HTMLElement {
 
 	#requestUpdate() {
 		const result = this.template?.();
-		if (result) render(result, this.renderRoot);
+		if (result) render(result, this.renderRoot, { host: this });
 	}
 
 	// Browser lifecycle entry points — `private` so TS subclasses cannot override; extend `connect` / `disconnect` / `template` / `firstRendered` / `rendered` instead.

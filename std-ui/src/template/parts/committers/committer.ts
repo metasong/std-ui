@@ -3,7 +3,7 @@
 // reusing it while successive values map to the same class and replacing it otherwise.
 
 export abstract class Committer<V> {
-	constructor(protected readonly anchor: Comment) {}
+	constructor(protected readonly anchor: Comment, protected readonly host?: unknown) {}
 	/** Apply `value`, reusing existing DOM where possible. Return `false` (having changed nothing)
 	 *  if this committer can't be reused for `value`; `ChildPart` then replaces it. */
 	abstract update(value: V): boolean;
@@ -14,7 +14,7 @@ export abstract class Committer<V> {
 	disconnect(): void {}
 }
 
-export type CommitterClass = new (anchor: Comment) => Committer<any>;
+export type CommitterClass = new (anchor: Comment, host?: unknown) => Committer<any>;
 
 // --- Directive-supplied committers --------------------------------------------------------------
 // A child directive can return `commitWith(MyCommitter, value)` from `render()`/`update()` to have
@@ -25,11 +25,11 @@ const commitWithTag = Symbol('commitWith');
 
 export interface CommitWith<V = unknown> {
 	readonly [commitWithTag]: true;
-	readonly Ctor: new (anchor: Comment) => Committer<V>;
+	readonly Ctor: new (anchor: Comment, host?: unknown) => Committer<V>;
 	readonly value: V;
 }
 
-export function commitWith<V>(Ctor: new (anchor: Comment) => Committer<V>, value: V): CommitWith<V> {
+export function commitWith<V>(Ctor: new (anchor: Comment, host?: unknown) => Committer<V>, value: V): CommitWith<V> {
 	return { [commitWithTag]: true, Ctor, value };
 }
 

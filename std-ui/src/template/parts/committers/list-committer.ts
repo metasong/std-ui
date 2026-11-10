@@ -11,7 +11,7 @@ export class ListCommitter extends Committer<readonly unknown[]> {
 		while (items.length < values.length) {
 			const itemAnchor = document.createComment('std-ui-part');
 			this.anchor.before(itemAnchor);
-			items.push(new ChildPart(itemAnchor));
+			items.push(new ChildPart(itemAnchor, this.host));
 		}
 		for (let i = 0; i < values.length; i++) items[i].update([values[i]]);
 		return true;
