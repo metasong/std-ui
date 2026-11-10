@@ -30,6 +30,11 @@ export interface SignalArray<T, N extends ItemNode<T> = ItemNode<T>> {
 	 * index it currently resolves to (`-1` follows the last slot as the length changes).
 	 */
 	at(index: number): N | undefined;
+	/**
+	 * Untracked node at `index` (`array[1]`), read via `nodes.peek()`. Only non-negative integer
+	 * indices; use `at()` for tracked or negative-index access.
+	 */
+	readonly [index: number]: N | undefined;
 	/** Tracked the whole replacement and any structural changes, even when the length is the same */
 	nodes(): readonly N[];
 
@@ -124,5 +129,13 @@ export function signalArray<T, N extends ItemNode<T> = ItemNode<T>>(
 		if (nodes.peek().length) mutate((l) => void (l.length = 0));
 	};
 
-	return self;
+	const isIndex = (key: string | symbol): key is string =>
+		typeof key === 'string' && /^(0|[1-9]\d*)$/.test(key);
+
+	return new Proxy(self, {
+		get: (target, key, receiver) => // key can be number or any string or symbol
+			isIndex(key) ? nodes.peek()[Number(key)] : Reflect.get(target, key, receiver),
+		has: (target, key) => // `1 in array` is true when that index exists
+			isIndex(key) ? Number(key) < nodes.peek().length : Reflect.has(target, key),
+	});
 }
