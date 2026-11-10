@@ -102,7 +102,36 @@ export interface EngineOptions<Type extends string> {
 	defaultType: Type;
 }
 
-/** Quoted attribute value open at the end of `markup`: `name="prefix`. */
+/**
+ * Quoted attribute value open at the end of `markup` (before the next `${...}`), e.g. `class="` or `class="foo`.
+ *
+ * ```
+ * (                       start capture group 1 → `rawName` in openAttr
+ *   [^\s"'<>\/=]+         one or more chars that are NOT:
+ *                           \s  whitespace (name can't contain spaces unquoted)
+ *                           " ' angle brackets, slash, equals (tag/attr syntax)
+ * )
+ * \s*                     optional whitespace before =
+ * =                       literal equals
+ * \s*                     optional whitespace after =
+ * (                       start capture group 2 → opening delimiter → `quote`
+ *   ["']                  exactly one " or ' (which char is stored in \2)
+ * )
+ * (                       start capture group 3 → static text before `${...}` → `prefix`
+ *   (?:                   non-capturing group — only the outer ( ) is group 3
+ *     (?!\2)              negative lookahead: next position must NOT start with \2
+ *                           (stop before the closing quote that matches the opener)
+ *     .                   one character (any except line terminators) that passed (?!\2)
+ *   )                     end one "prefix character" unit
+ *   *                     repeat that unit zero or more times → entire prefix, may be ""
+ * )
+ * $                       end of string — markup stops exactly at the interpolation gap
+ * ```
+ *
+ * Example: markup = `... class="static-` before `${x}` → (1)=class, (2)=", (3)=static-
+ *
+ * @see UNQUOTED_ATTR_RE when markup ends at `name=` with no opening quote yet (`class=${x}`).
+ */
 const ATTR_START_RE = /([^\s"'<>\/=]+)\s*=\s*(["'])((?:(?!\2).)*)$/;
 
 /** Unquoted attribute value about to start at the end of `markup`: `name=`. */
@@ -110,7 +139,8 @@ const UNQUOTED_ATTR_RE = /([^\s"'<>\/=]+)\s*=\s*$/;
 
 /** True if `markup` currently sits inside an unclosed tag, i.e. in attribute position. */
 function isInsideTag(markup: string): boolean {
-	return markup.lastIndexOf('<') > markup.lastIndexOf('>');
+	// examples: `<div class="`, `<div class="foo`, `<div `, `<span><a href="x"`
+	return markup.lastIndexOf('<') > markup.lastIndexOf('>')/* not exit is -1*/;
 }
 
 interface OpenAttr<Open> {
@@ -184,7 +214,20 @@ export function createEngine<D extends SlotDescriptor, Part, Type extends string
 			// 1. Attribute slot - it is the value of a quoted attribute: `<div class="${x}">`.
 			//    Keep scanning until the closing quote.
 			const attr = openAttr(markup);
-			if (attr) return { state: { kind: 'ATTR_VALUE', attr }, append: '', rewind: attr.literals[0].length };
+			if (attr) {
+				// Quoted in source; ATTR_START_RE matched — opening `"` or `'` is already in markup.
+				// Example: t`<div class="static-${x}"></div>` → strings[0] ends with `class="static-`.
+				// Example: t`<div class="${x}"></div>`     → prefix "" (opening quote only).
+				//
+				// markup before return:     `<div class="static-`
+				// rewind prefix length:     `<div class="`  (prefix lives in attr.literals[0] for runtime join)
+				// append '':               wait for closing quote in a later strings[i] via stepAttrValue
+				// then MARKER replaces value: `<div class="std-ui-part">`
+				//
+				// Multiple `${...}` in one value stay ATTR_VALUE until the matching closing quote.
+				// state ATTR_VALUE: next gaps use stepAttrValue, not another openAttr.
+				return { state: { kind: 'ATTR_VALUE', attr }, append: '', rewind: attr.literals[0].length };
+			}
 
 			// 2. Tag slot - it belongs to the tag itself, with no attribute name: `<div ${directive()}>`.
 			//    Not allowed: an unquoted attribute value (`<div a=${x}>`), or hooks without `onTagSlot`.
@@ -194,6 +237,16 @@ export function createEngine<D extends SlotDescriptor, Part, Type extends string
 			if (unquoted) {
 				const open = hooks.onAttributeOpen({ rawName: unquoted[1], quote: '', prefix: '', markup });
 				descriptors.push(closeAttr({ open, quote: '', literals: ['', ''], valueCount: 1 }));
+				// Unquoted in source; one `${...}` only (no quote delimiter to scan in later strings).
+				// Example: t`<div class=${x}></div>` → strings[0] ends with `class=` at this gap.
+				//
+				// markup before return:     `<div class=`
+				// append `"${MARKER}"`:     `<div class="std-ui-part"`  (quotes added for innerHTML only)
+				// strings[1] then adds:    `>`
+				//
+				// Runtime: literals ['', ''] + valueCount 1 → setAttribute('class', '' + x + '').
+				// state TEXT (not ATTR_VALUE): attribute part is complete; no stepAttrValue pass.
+				// rewind 0: nothing was moved into literals from trailing markup (contrast quoted prefix).
 				return { state: TEXT, append: `"${MARKER}"`, rewind: 0 };
 			}
 
