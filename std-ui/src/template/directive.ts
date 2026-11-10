@@ -85,6 +85,14 @@ export interface PropertyPartInfo {
 	readonly name: string;
 }
 
+/** Metadata + live DOM access for an element binding - an interpolation inside an opening tag with
+ *  no attribute name, e.g. `<input ${ref(inputRef)}>` (see `ElementPart` in `parts/`). Only
+ *  directives can be bound here; whatever `update()` returns is ignored. */
+export interface ElementPartInfo {
+	readonly type: typeof PartType.ELEMENT;
+	readonly element: Element;
+}
+
 /** Metadata + live DOM access for a child-content binding - see `ChildPart` in `parts/`. Unlike
  *  `AttributePartInfo`, a child directive isn't expected to mutate `anchor`'s siblings directly;
  *  it returns a value instead (see `DirectiveReturn`) for `ChildPart` to commit the normal way -
@@ -99,8 +107,8 @@ export interface ChildPartInfo {
 /** Every `Part`/`PartInfo` shape this engine constructs; see `AttributePartInfo`/`ChildPartInfo`.
  *  A directive's constructor/`update()` narrows via `partInfo.type`/`part.type` to find out which
  *  one it actually got. */
-export type PartInfo = AttributePartInfo | ChildPartInfo | PropertyPartInfo;
-export type Part = AttributePartInfo | ChildPartInfo | PropertyPartInfo;
+export type PartInfo = AttributePartInfo | ChildPartInfo | PropertyPartInfo | ElementPartInfo;
+export type Part = AttributePartInfo | ChildPartInfo | PropertyPartInfo | ElementPartInfo;
 
 /**
  * Base class for a custom attribute directive. One instance is created *per binding position* the

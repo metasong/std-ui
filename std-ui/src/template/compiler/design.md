@@ -22,7 +22,7 @@ It has two layers:
 
 ## Non-goals
 
-- Unquoted attribute values (`a=${x}`) are not supported.
+- Unquoted attribute values (`a=${x}`) are not supported and now throw.
 - Interpolation inside tag names, comments or `<script>`/`<style>` bodies is not supported.
 - The engine does not render or update. That is the job of parts.
 
@@ -32,6 +32,7 @@ It has two layers:
 compile(strings, type)
   scan strings, for each interpolation:
     text position       -> onTextSlot()                    -> descriptor
+    tag position        -> onTagSlot()                     -> descriptor (`<div ${x}>`, no attribute name)
     attribute position  -> onAttributeOpen()               (at the opening quote)
                            more ${} in same value extend the same attribute
                            onAttributeClose()              (at the closing quote) -> descriptor
@@ -65,6 +66,7 @@ The engine tracks `quote`, `literals` and `valueCount` itself. The hooks only se
 ### Markers
 
 - Text slot: a real comment node `<!--std-ui-part-->`, kept in the DOM as an anchor.
+- Tag slot: an injected attribute `std-ui-part-tag-N` valued with the marker (unique per element, since the parser drops duplicate attributes), stripped like attribute slots.
 - Attribute slot: an attribute whose value is the placeholder `std-ui-part`. After parsing, the engine records its `nodeIndex` and removes it. The real value is recomputed from `literals` and live values on first update, so one placeholder works for one or many interpolations.
 - Static text before the first interpolation (the `static-` in `class="static-${x}"`) is rewound out of the markup, because it is already stored in `literals[0]`.
 
@@ -77,6 +79,7 @@ Descriptors are in source order, and the walk visits element and comment nodes i
 ```ts
 interface EngineHooks<D, Part, Type, Open> {
   onTextSlot(ctx): DescriptorInit<D>
+  onTagSlot?(ctx): DescriptorInit<D>
   onAttributeOpen(ctx): Open
   onAttributeClose(open, ctx): DescriptorInit<D>
 
@@ -100,6 +103,7 @@ interface EngineHooks<D, Part, Type, Open> {
 |---|---|
 | Binding syntax | `onAttributeOpen` parses `[sigil]name[.modifiers]`; `onAttributeClose` enforces that `.`/`?`/`@` bindings take exactly one interpolation and no static text |
 | Child content | `onTextSlot` returns a `child` descriptor |
+| Element slot | `onTagSlot` returns an `element` descriptor; `ElementPart` only accepts directives (e.g. `ref`) |
 | Part creation | `createPart` maps descriptor `kind` to `ChildPart`, `AttributePart`, `BooleanAttributePart`, `PropertyPart` or `EventPart` |
 | SVG | `wrapMarkup` wraps in `<svg>`, `unwrapContent` hoists the children back so indices match the HTML path |
 | Dev diagnostics | `onCompiled` calls `warnOnUndefinedElements` in DEV |

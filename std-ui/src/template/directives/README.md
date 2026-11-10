@@ -7,6 +7,7 @@ Index of built-in template directives. Each folder has its own README (and usual
 | `classMap` | [`class-map/README.md`](./class-map/README.md) · [design](./class-map/design.md) |
 | `styleMap` | [`style-map/README.md`](./style-map/README.md) · [design](./style-map/design.md) |
 | `html` | [`html/`](./html/) |
+| `ref` | [`ref/README.md`](./ref/README.md) |
 | `mapByKey` | [`map-by-key/README.md`](./map-by-key/README.md) · [design](./map-by-key/design.md) |
 | `bind` | [`bind/README.md`](./bind/README.md) · [design](./bind/design.md) |
 | `virtualize` | [`virtualize/README.md`](./virtualize/README.md) · [design](./virtualize/design.md) |

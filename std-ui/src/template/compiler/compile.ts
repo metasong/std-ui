@@ -3,7 +3,8 @@
 // `engine.ts` knows only templates, tags, attributes and lifecycle hooks. Everything specific to
 // std-ui lives here, grouped by concern and wired in through `EngineHooks`:
 //
-//   - binding syntax   : `.prop`, `?bool`, `@event.modifier`, plain `attr` (+ single-interpolation rules)
+//   - binding syntax   : `.prop`, `?bool`, `@event.modifier`, plain `attr` (+ single-interpolation rules),
+//                        and bare element slots `<div ${x}>`
 //   - part creation    : descriptor kind -> `Part` class
 //   - SVG namespace    : wrap/unwrap markup meant to be interpolated into an existing `<svg>`
 //   - dev diagnostics  : warn on undefined custom elements
@@ -14,9 +15,9 @@ import { DEV, warnOnUndefinedElements } from '../../dev/index.js';
 import { createEngine, type EngineHooks, type SlotDescriptor, type Template as EngineTemplate } from './engine.js';
 // Parts import `instantiate` for nested templates; they are only touched lazily inside hooks, so
 // the module cycle is harmless.
-import { AttributePart, BooleanAttributePart, EventPart, PropertyPart, ChildPart, type Part } from '../parts/index.js';
+import { AttributePart, BooleanAttributePart, PropertyPart, EventPart, ElementPart, ChildPart, type Part } from '../parts/index.js';
 
-export type PartKind = 'child' | 'attr' | 'bool' | 'prop' | 'event';
+export type PartKind = 'child' | 'attr' | 'bool' | 'prop' | 'event' | 'element';
 
 export interface PartDescriptor extends SlotDescriptor {
 	kind: PartKind;
@@ -106,6 +107,7 @@ function createPart(descriptor: PartDescriptor, target: Node): Part {
 		case 'bool': return new BooleanAttributePart(target as Element, descriptor.name);
 		case 'prop': return new PropertyPart(target as Element, descriptor.name);
 		case 'event': return new EventPart(target as Element, descriptor.name, descriptor.options);
+		case 'element': return new ElementPart(target as Element);
 	}
 }
 
@@ -127,6 +129,7 @@ const svgSupport = {
 
 const hooks: EngineHooks<PartDescriptor, Part, TemplateType, OpenBinding> = {
 	onTextSlot: () => ({ kind: 'child', name: '', valueCount: 1 }),
+	onTagSlot: () => ({ kind: 'element', name: '', valueCount: 1 }),
 	onAttributeOpen: ({ rawName, markup }) => parseBinding(rawName, markup),
 	onAttributeClose: (open, { literals, valueCount }) => describeBinding(open, literals, valueCount),
 

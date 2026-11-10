@@ -10,6 +10,7 @@
 //   compile(strings, type)
 //     for each interpolation:
 //        text position      -> [onTextSlot]                      -> descriptor
+//        tag position       -> [onTagSlot]                       -> descriptor (`<div ${x}>`, no name)
 //        attribute position -> [onAttributeOpen]   (at opening quote)
 //                              ... extra interpolations just extend the same attribute ...
 //                              [onAttributeClose]  (at closing quote) -> descriptor
@@ -37,6 +38,11 @@ export interface TextSlotContext {
 	readonly markup: string;
 }
 
+export interface TagSlotContext {
+	/** Markup accumulated so far; ends inside an open tag, e.g. `<div class="a" `. */
+	readonly markup: string;
+}
+
 export interface AttributeOpenContext {
 	/** The attribute's full name exactly as written, including any prefix/suffix characters. */
 	readonly rawName: string;
@@ -56,6 +62,10 @@ export interface AttributeCloseContext {
 export interface EngineHooks<D extends SlotDescriptor, Part, Type extends string = string, Open = unknown> {
 	/** An interpolation in text position (between tags). */
 	onTextSlot(ctx: TextSlotContext): DescriptorInit<D>;
+
+	/** An interpolation inside an open tag but not in a `name="..."` value, e.g. `<div ${x}>`.
+	 *  Optional: without it such templates are rejected. */
+	onTagSlot?(ctx: TagSlotContext): DescriptorInit<D>;
 
 	/** An attribute value's first interpolation was reached. Returns hook-private state for that attribute. */
 	onAttributeOpen(ctx: AttributeOpenContext): Open;
@@ -118,6 +128,9 @@ export function createEngine<D extends SlotDescriptor, Part, Type extends string
 ): Engine<D, Part, Type> {
 	const MARKER = options.marker ?? 'std-ui-part';
 	const MARKER_COMMENT = `<!--${MARKER}-->`;
+	/** Tag-level slots have no attribute of their own, so a placeholder attribute (valued `MARKER`) is
+	 *  injected; names must be unique per element since the parser drops duplicate attributes. */
+	const tagMarker = (n: number) => ` ${MARKER}-tag-${n}="${MARKER}"`;
 	const TEXT: ScanState<Open> = { kind: 'TEXT' };
 	const cache = new WeakMap<TemplateStringsArray, Partial<Record<Type, Template<D>>>>();
 
@@ -126,11 +139,10 @@ export function createEngine<D extends SlotDescriptor, Part, Type extends string
 		return init as D;
 	};
 
-	function openAttr(markup: string): OpenAttr<Open> {
+	/** Starts an attribute binding if `markup` ends inside an open quoted value; `null` otherwise. */
+	function openAttr(markup: string): OpenAttr<Open> | null {
 		const match = ATTR_START_RE.exec(markup);
-		if (!match) {
-			throw new Error(`std-ui html: could not parse an attribute binding near "...${markup.slice(-40)}"`);
-		}
+		if (!match) return null;
 		const [, rawName, quote, prefix] = match;
 		const open = hooks.onAttributeOpen({ rawName, quote, prefix, markup });
 		return { open, quote, literals: [prefix], valueCount: 1 };
@@ -161,10 +173,27 @@ export function createEngine<D extends SlotDescriptor, Part, Type extends string
 	function stepText(
 		markup: string,
 		descriptors: D[],
+		counters: { tagSlots: number },
 	): { state: ScanState<Open>; append: string; rewind: number } {
 		if (isInsideTag(markup)) {
+			// The interpolation sits inside an opening tag. Two possibilities:
+
+			// 1. Attribute slot - it is the value of a quoted attribute: `<div class="${x}">`.
+			//    Keep scanning until the closing quote.
 			const attr = openAttr(markup);
-			return { state: { kind: 'ATTR_VALUE', attr }, append: '', rewind: attr.literals[0].length };
+			if (attr) return { state: { kind: 'ATTR_VALUE', attr }, append: '', rewind: attr.literals[0].length };
+
+			// 2. Tag slot - it belongs to the tag itself, with no attribute name: `<div ${directive()}>`.
+			//    Not allowed: an unquoted attribute value (`<div a=${x}>`), or hooks without `onTagSlot`.
+			const isUnquotedValue = /=\s*$/.test(markup);
+			if (isUnquotedValue || !hooks.onTagSlot) {
+				throw new Error(
+					`std-ui html: unsupported interpolation inside a tag near "...${markup.slice(-40)}" ` +
+						`- attribute values must be quoted, e.g. name="\${value}".`,
+				);
+			}
+			descriptors.push(finalize(hooks.onTagSlot({ markup })));
+			return { state: TEXT, append: tagMarker(counters.tagSlots++), rewind: 0 };
 		}
 		descriptors.push(finalize(hooks.onTextSlot({ markup })));
 		return { state: TEXT, append: MARKER_COMMENT, rewind: 0 };
@@ -174,6 +203,7 @@ export function createEngine<D extends SlotDescriptor, Part, Type extends string
 		let markup = '';
 		const descriptors: D[] = [];
 		let state: ScanState<Open> = TEXT;
+		const counters = { tagSlots: 0 };
 
 		for (let i = 0; i < strings.length - 1; i++) {
 			const chunk = strings[i];
@@ -190,7 +220,7 @@ export function createEngine<D extends SlotDescriptor, Part, Type extends string
 				markup += chunk;
 			}
 
-			const step = stepText(markup, descriptors);
+			const step = stepText(markup, descriptors, counters);
 			state = step.state;
 			markup = markup.slice(0, markup.length - step.rewind) + step.append;
 		}
