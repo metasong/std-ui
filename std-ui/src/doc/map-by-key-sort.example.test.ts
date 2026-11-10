@@ -27,7 +27,7 @@ describe('doc: mapByKey keeps row DOM when a @state() list is reordered', () => 
 					<button type="button" data-action="za" @click="${() => this.sortByLabel(-1)}">Z → A</button>
 					<ul>
 						${mapByKey(
-							this.chores(),
+							this.chores.deep(),
 							(c) => c.id,
 							(c) => t`
 								<li data-id="${c.id}">
@@ -41,7 +41,7 @@ describe('doc: mapByKey keeps row DOM when a @state() list is reordered', () => 
 
 			private sortByLabel(dir: 1 | -1) {
 				// New array reference so @state() notifies; in-place .sort() would not.
-				this.chores.set([...this.chores()].sort((a, b) => a.label.localeCompare(b.label) * dir));
+				this.chores.set([...this.chores.deep()].sort((a, b) => a.label.localeCompare(b.label) * dir));
 			}
 		}
 

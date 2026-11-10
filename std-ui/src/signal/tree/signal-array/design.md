@@ -6,30 +6,41 @@ How `signalArray()` in [`core.ts`](./core.ts) is implemented. For usage, see [`R
 
 | File | Role |
 | --- | --- |
-| [`core.ts`](./core.ts) | `signalArray`, `SignalArray`, `ItemNode` |
+| [`core.ts`](./core.ts) | `signalArray`, `SignalArray`, `ItemNode`, `readValue` |
 | [`index.ts`](./index.ts) | Re-exports |
 | [`signal-array.test.ts`](./signal-array.test.ts) | Behavior and granularity tests |
 
 ## Data model
 
-Two layers:
+One signal plus derived reads:
 
-1. **`nodes: Signal<N[]>`** — holds the ordered list of item **node references**. Mutations
-   (`push`, `splice`, `set` trimming, etc.) copy-on-write via `mutate()`: `nodes.peek().slice()`,
-   edit, then `nodes.set(list)`. Equality is always false so any structural write notifies even if
-   every `N` instance was reused.
-2. **Aggregate read** — `computed(() => nodes().map((n) => n()))` is the callable `SignalArray`.
-   Reading it tracks `nodes` and every item's tracked read.
+1. **`nodes: Signal<N[]>`** — holds the ordered list of item **node references**. Structural
+   mutators (`push`, `splice`, ...) edit this array **in place** via `mutate()` and then
+   `nodes.set(sameArray)`; equality is always false so this still notifies. Only `set()` swaps in
+   a **new** array.
+2. **`()`** — `computed(() => nodes())` is the callable `SignalArray`. In-place edits recompute to
+   the same instance, so the core's equality cutoff (see
+   [`../../core/computed-lazy.md`](../../core/computed-lazy.md)) stops them; only `set()` gets through.
+3. **`shallow()`** — reads `nodes()` directly: every structural change.
+4. **`deep()`** — `computed(() => nodes().map(readValue))`: structure plus every item, recursively.
 
 Item nodes are opaque except for `ItemNode<T>` (`()`, `.peek()`, `.set()`). `signalState` passes
 `(item) => signalState(item)` so elements can be branches or leaves.
+
+`[i]` is a `Proxy` `get` trap returning `nodes.peek()[i]` (untracked).
+
+## `readValue(node)`
+
+Reads a node's plain value, tracked: `node.deep()` if present (nested `SignalArray`), else `node()`.
+Used by `deep()`, by object branches in [`../core.ts`](../core.ts), and by attribute reflection, since
+a `SignalArray`'s `()` yields nodes, not values.
 
 ## `mutate(fn)`
 
 Shared path for all structural edits:
 
 ```ts
-const list = nodes.peek().slice();
+const list = nodes.peek();
 const result = fn(list);
 nodes.set(list);
 return result;
@@ -40,14 +51,14 @@ return result;
 
 ## `set(values)` semantics
 
-By index:
+Builds a new node array by index:
 
-- `i < list.length` → `list[i].set(values[i])` (same node identity, new value).
-- `i >= list.length` → `makeItem(values[i])` appended.
-- After loop, `list.length = values.length` (drops trailing nodes).
+- `i < prev.length` → `prev[i].set(values[i])` and reuse `prev[i]` (same node identity, new value).
+- `i >= prev.length` → `makeItem(values[i])`.
+- Trailing old nodes are dropped.
 
-This matches "replace array contents" while preserving per-index subscriptions. It differs from
-assigning a new array into a plain `signal<T[]>`.
+This matches "replace array contents" while preserving per-index subscriptions, and the new array
+instance is what notifies `()`.
 
 ## `at(index)` and `length`
 
@@ -71,16 +82,16 @@ signalArray(value, (item) => signalState(item, signalOptions));
 Branch `.set({ key: array })` forwards the array to `child.set(array)` on a `SignalArray` child
 (whole-value replace, not `DeepPartial` index patches).
 
-Parent branch `computed` still reads `children[key]()` for array children, so any item or structure
-change dirties the parent object snapshot.
+Parent branch `computed` reads `readValue(children[key])`, i.e. `deep()` for array children, so any
+item or structure change dirties the parent object snapshot.
 
 ## Notification sketch
 
 ```
-item.set(v)     →  item notifies  →  aggregate computed dirty  →  parent branch computed (if any)
-push/splice/... →  nodes signal notifies  →  aggregate + length computeds dirty
+item.set(v)     →  item notifies  →  deep() dirty  →  parent branch computed (if any)
+push/splice/... →  nodes notifies →  shallow(), deep(), length, at(i) dirty; () cut off (same instance)
+set(values)     →  new nodes array →  all of the above, including ()
 effect on at(i) →  depends on nodes + item i only (not sibling items' values)
-effect on ()    →  depends on nodes + every item ()
 ```
 
 ## Type notes

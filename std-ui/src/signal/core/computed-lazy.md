@@ -1,51 +1,75 @@
-# Lazy `computed` recomputation
+# Lazy `computed` recomputation and equality cutoff
 
-How `computed()` in [`./computed.ts`](./computed.ts) caches its last result and only re-runs the
-derivation when marked **dirty**. See [`./signal.md`](./signal.md) for the full signals API.
+How `computed()` in [`./computed.ts`](./computed.ts) caches its last result, only re-runs the
+derivation when needed, and stops propagation when the result is unchanged. See
+[`./signal.md`](./signal.md) for the full signals API.
 
-`computed` stores the last result in `value` and only runs `fn` again when `dirty` is true. That
-is lazy memoization: invalidate on dependency change, recompute on the next read.
+## The graph model
 
-## On read
+Every `signal`, `computed`, and `effect` is a `ReactiveNode` (see [`./tracking.ts`](./tracking.ts)):
 
-If not dirty, the cached `value` is returned and `fn` is not called:
+```
+version    bumped only when my value really changes (per `equals`)
+sources    what I read -> the version I saw when I read it
+observers  who reads me
+```
+
+This is the push-pull model of the [TC39 Signals proposal](https://github.com/tc39/proposal-signals),
+also used by Angular and Preact signals.
+
+## Push: a dependency changes
+
+A write bumps the signal's `version` and calls `markDirty()` on its observers. A computed only
+propagates on the clean -> dirty edge; nothing is recomputed yet:
 
 ```ts
-// computed.ts — computed read()
-const read = (): T => {
-	if (dirty) {
-		value = runTracked(consumer, fn);
-		dirty = false;
-		hasValue = true;
-	}
-	track(dep);
-	return hasValue ? value : (value as T);
+// computed.ts
+node.markDirty = () => {
+	if (node.dirty) return;
+	node.dirty = true;
+	notify(node);
 };
 ```
 
-## When a dependency changes
+"Dirty" therefore means **maybe** stale.
 
-The computed is marked dirty and downstream subscribers are notified; there is no eager recompute.
-This runs inside a `Watcher` (see [`./tracking.ts`](./tracking.ts)), whose `run()` unsubscribes
-from every dependency the moment it fires - so further changes to *other* deps before the next
-recompute re-subscribes via `runTracked` are silently ignored, with no manual `dirty` guard needed:
+## Pull: on read
+
+`refresh()` runs on every read. If clean, the cached value is returned. If dirty, it first asks
+`sourcesChanged()` — refresh each source in read order and compare its `version` with the one seen —
+and only runs `fn` if something actually moved:
 
 ```ts
-// computed.ts — the Watcher's notify callback
-const consumer = new Watcher(() => {
-	dirty = true;
-	notify(dep);
-});
+// computed.ts
+node.refresh = () => {
+	if (!node.dirty) return;
+	if (!hasValue || sourcesChanged(node)) {
+		const next = runTracked(node, fn);
+		if (!hasValue || !equals(next, value)) {
+			value = next;
+			node.version++;
+		}
+		hasValue = true;
+	}
+	node.dirty = false;
+};
 ```
 
-## Summary
+## Equality cutoff
 
-Repeated reads while clean return the same cached value without calling `fn` again. Writes to
-dependencies only set `dirty = true`; the derivation runs the first time something reads the
-computed after that (via `computed()` or `computed.peek()` — both call the same
-`recomputeIfDirty` path; only a tracked `computed()` read registers the caller as a subscriber).
+If the recompute yields a value `equals()` to the cached one, the old value **and `version`** are
+kept. Observers then see an unchanged version in their own pull check and skip work too:
+
+```ts
+const n = signal(1);
+const parity = computed(() => n() % 2);
+effect(() => console.log(parity()));
+n.set(3); // parity recomputes to 1 again -> effect does NOT re-run
+```
+
+Effects do the same pull check before re-running (see [`./effect.ts`](./effect.ts)).
 
 ## Untracked read: `.peek()`
 
-`computed.peek()` uses the same lazy recompute when `dirty`, but skips `track(dep)` so the active
-consumer does not subscribe to this computed.
+`computed.peek()` uses the same `refresh()`, but skips `track(node)` so the active consumer does
+not subscribe to this computed.

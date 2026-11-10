@@ -30,7 +30,7 @@ class TodoList extends UIElement {
 		return t`
 			<h2 class="title">To-dos</h2>
 			<form><input /></form>
-			<ul>${this.items().map(item => t`<li>${item}</li>`)}</ul>
+			<ul>${this.items.deep().map(item => t`<li>${item}</li>`)}</ul>
 		`;
 	}
 }

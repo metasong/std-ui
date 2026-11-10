@@ -4,7 +4,7 @@ An effect can write to a signal it also reads, for example:
 
 ```ts
 effect(() => {
-  arr.nodes();   // subscribes to the structure signal
+  arr.shallow(); // subscribes to the structure signal
   arr.push(x);   // nodes.set(...) -> notifies (equals: () => false)
 });
 ```
@@ -12,7 +12,7 @@ effect(() => {
 Without protection this re-queues itself after every run and spins forever in microtasks, which
 freezes the page with no error. Two guards prevent that.
 
-## 1. Self-write guard (`tracking.ts`, `Watcher.run`)
+## 1. Self-write guard (`tracking.ts`, `notify`)
 
 If a dependency notifies a watcher **while that same watcher is running**, the notification is
 ignored. The example above runs once.
@@ -37,7 +37,7 @@ cycle is reported. Production builds still throw on a cycle, but only list run c
 
 - Prefer `peek()` / `untrack()` for reads that should not subscribe.
 - Array mutators (`push`, `splice`, ...) use `nodes.peek()` internally, so calling them in an effect
-  does not subscribe by itself. Only an explicit tracked read (`()`, `nodes()`, `length`, `at()`)
+  does not subscribe by itself. Only an explicit tracked read (`()`, `shallow()`, `deep()`, `length`, `at()`)
   does.
 - An effect that must react to its own output should be split in two. With the self-write guard,
   `if (arr.length < 5) arr.push(x)` pushes only once per trigger instead of converging to 5; use a

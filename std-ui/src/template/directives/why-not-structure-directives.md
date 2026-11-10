@@ -109,7 +109,7 @@ class DemoTodoList extends UIElement {
     // Fixed order, append/remove at the end — positional list diff is enough
     return t`
       <ul class="positional">
-        ${this.todos().map((todo) => t`
+        ${this.todos.deep().map((todo) => t`
           <li>
             <input type="checkbox" .checked="${todo.done}" />
             ${todo.text}
@@ -132,7 +132,7 @@ class DemoSortableTodos extends UIElement {
     return t`
       <ul class="keyed">
         ${mapByKey(
-          this.todos(),
+          this.todos.deep(),
           (todo) => todo.id,
           (todo) => t`
             <li data-id="${todo.id}">

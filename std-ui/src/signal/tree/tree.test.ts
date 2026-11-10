@@ -30,20 +30,20 @@ describe('signalState', () => {
 
 	it('treats arrays as observable collections (SignalArray)', () => {
 		const tree = signalState(makeState());
-		expect(tree.tags()).toEqual(['a', 'b']);
+		expect(tree.tags.deep()).toEqual(['a', 'b']);
 		expect(typeof tree.tags.push).toBe('function');
 		tree.tags.at(0)!.set('z');
-		expect(tree.tags()).toEqual(['z', 'b']);
+		expect(tree.tags.deep()).toEqual(['z', 'b']);
 	});
 
 	it('replaces tag contents via .set() on the collection or root .set({ tags })', () => {
 		const tree = signalState(makeState());
 		tree.tags.set(['x']);
-		expect(tree.tags()).toEqual(['x']);
+		expect(tree.tags.deep()).toEqual(['x']);
 		expect(tree()).toEqual({ ...makeState(), tags: ['x'] });
 
 		tree.set({ tags: ['y', 'z'] });
-		expect(tree.tags()).toEqual(['y', 'z']);
+		expect(tree.tags.deep()).toEqual(['y', 'z']);
 	});
 
 	it('a leaf .set() is reflected when reading its ancestor branches', () => {

@@ -6,5 +6,5 @@ export {
 	inReactiveContext,
 	untrack,
 	Watcher,
-	type Dependency,
+	type ReactiveNode,
 } from './tracking.js';

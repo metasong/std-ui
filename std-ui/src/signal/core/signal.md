@@ -61,8 +61,8 @@ double.peek();  // same value, but does not track this computed as a dependency
 - Lazy caching and dirty invalidation: [`./computed-lazy.md`](./computed-lazy.md).
 - Also accepts `{ equals }` (default `Object.is`, same as `Signal.Computed`'s option): on
   recompute, if the fresh value `equals()` the previously cached one, the old reference is kept
-  instead of being replaced - useful so a parent `computed`/an `effect` doing its own reference
-  checks on this value doesn't see spurious "changes".
+  and dependents are treated as unchanged - downstream `computed`s don't recompute and `effect`s
+  don't re-run (equality cutoff).
 
 ### `effect(fn)`
 
@@ -92,17 +92,21 @@ dispose();
 
 ## How dependency tracking works
 
-While a `computed`/`effect` body is running, it's the single global "active consumer." Any
-signal (or computed) read during that window records the active consumer as a subscriber.
-When that signal later changes (via `.set`/`.update`), it notifies its subscribers:
+Every `signal`/`computed`/`effect` is a `ReactiveNode` with a `version` (bumped only on a real
+value change), `sources` (what it read, with the version seen) and `observers` (who reads it).
+While a `computed`/`effect` body is running, it's the single global "active node"; any read during
+that window is recorded in its `sources`. It's push-pull, as in the TC39 proposal:
 
-- A subscribed `computed` just marks itself dirty and notifies its own subscribers in turn
-  (it doesn't eagerly recompute - that happens lazily, on next read).
-- A subscribed `effect` schedules itself into a shared microtask flush, so repeated writes in
-  one tick collapse into a single re-run.
+- **Push:** a write notifies observers that they *may* be stale. A `computed` marks itself dirty
+  and passes it on (no eager recompute); an `effect` schedules itself into a shared microtask
+  flush, so repeated writes in one tick collapse into a single re-run.
+- **Pull:** before a `computed` recomputes or an `effect` re-runs, it refreshes its sources and
+  compares versions. If none moved (e.g. a computed recomputed to an equal value), the work is
+  skipped.
 
-Each consumer's dependency set is rebuilt from scratch on every run, so stale subscriptions
-from a previous run (e.g. a branch that's no longer read) are automatically dropped.
+Each consumer's sources are rebuilt from scratch on every run, so stale subscriptions from a
+previous run (e.g. a branch that's no longer read) are automatically dropped. Details:
+[`./computed-lazy.md`](./computed-lazy.md).
 
 ## Low-level primitives: `subtle`
 
@@ -113,8 +117,8 @@ dependency graph (`effect()` itself is built on `subtle.Watcher`; see [`./effect
 
 - **`subtle.Watcher`** (`new Watcher(notify)`) - watches a fixed set of dependencies (via
   `.watch(...)`/`.unwatch(...)`) and fires `notify` once, synchronously, the moment any of them
-  changes, then goes inert until re-`watch()`ed. `.getPending()` lists currently-dirty watched
-  dependencies without forcing a recompute.
+  may have changed, then goes inert until re-`watch()`ed. `.getPending()` lists currently-dirty
+  watched nodes without forcing a recompute.
 - **`subtle.untrack(fn)`** - runs `fn` with tracking suspended, even inside a `computed`/`effect`
   body, so any signal/computed it reads is not registered as a dependency. (`.peek()` is the
   single-read sibling of this for one signal/computed at a time.)

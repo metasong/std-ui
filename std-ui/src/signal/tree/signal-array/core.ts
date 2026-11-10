@@ -1,7 +1,9 @@
 // Observable collection: `signalArray()` is the signal-tree version of an array. Each element is its
 // own node (built by the supplied `makeItem`, so objects become branches and primitives leaves), and
 // the list structure (which nodes, in what order) is tracked by one signal. Consequently:
-//   - `list()` re-runs when items are added/removed/reordered OR any item's value changes;
+//   - `list()` returns the node array and re-runs only on whole replacement via `set()`;
+//   - `list.shallow()` also re-runs when items are added/removed/reordered;
+//   - `list.deep()` returns plain values and re-runs on structure OR any item's value change;
 //   - `list.at(i)()` only re-runs when that element changes (or the element at `i` is replaced).
 
 import { computed, signal, type Computed, type Signal } from '../../core/index.js';
@@ -14,8 +16,13 @@ export interface ItemNode<T> {
 }
 
 export interface SignalArray<T, N extends ItemNode<T> = ItemNode<T>> {
-	/** Reads the whole array (tracks structure and every item). */
-	(): T[];
+	/**
+	 * Reads the node array instance, tracking only whole replacement via `set()` / `update()` (like
+	 * a plain `signal(array)`). Use `shallow()` to also track push/pop/splice etc.
+	 */
+	(): readonly N[];
+	/** Reads the whole array as plain values (tracks structure and every item, recursively). */
+	deep(): T[];
 	/** Deep-untracked snapshot. */
 	peek(): T[];
 	/** Replaces the contents; existing nodes are reused by index, extras are created/dropped. */
@@ -35,12 +42,15 @@ export interface SignalArray<T, N extends ItemNode<T> = ItemNode<T>> {
 	 * indices; use `at()` for tracked or negative-index access.
 	 */
 	readonly [index: number]: N | undefined;
-	/** Tracked the whole replacement and any structural changes, even when the length is the same */
-	nodes(): readonly N[];
+	/**
+	 * Reads the node array, tracking whole replacement and any structural change,
+	 * even when the length is the same.
+	 */
+	shallow(): readonly N[];
 
 	/**
 	 * Array-like mutators. `mutate` reads `nodes.peek()` so these do not subscribe; `nodes.set`
-	 * still notifies `()`, `length`, `at`, and `nodes`. `pop` / `shift` / `splice` return untracked
+	 * still notifies `deep()`, `length`, `at`, and `shallow()`. `pop` / `shift` / `splice` return untracked
 	 * value snapshots (`node.peek()`), not tracked `node()` reads.
 	 */
 	push(...values: T[]): number;
@@ -53,21 +63,28 @@ export interface SignalArray<T, N extends ItemNode<T> = ItemNode<T>> {
 	clear(): void;
 }
 
+/** Tracked value read of a node; nested `SignalArray`s are read via `deep()` since `()` yields nodes. */
+export function readValue<T>(node: ItemNode<T>): T {
+	const deep = (node as { deep?: () => T }).deep;
+	return typeof deep === 'function' ? deep() : node();
+}
+
 export function signalArray<T, N extends ItemNode<T> = ItemNode<T>>(
 	initial: readonly T[],
 	makeItem: (value: T) => N,
 ): SignalArray<T, N> {
 	const nodes: Signal<N[]> = signal(initial.map(makeItem), { equals: () => false });
 
-	const read = computed(() => nodes().map((n) => n())) as Computed<T[]> & Partial<SignalArray<T, N>>;
-	const self = read as unknown as SignalArray<T, N>;
+	const deep = computed(() => nodes().map(readValue));
+	// Mutators edit the node array in place and only `set()` swaps in a new one, so with `Object.is`
+	// cutoff `()` notifies on replacement only, like a plain `signal(array)`.
+	const self = computed(() => nodes()) as unknown as SignalArray<T, N>;
+	self.deep = () => deep();
 
 	const snapshot = (list: readonly N[]): T[] => list.map((n) => n.peek());
-	/** Copy-on-write structural edit; `peek` avoids tracking when mutators run inside effects. */
-	const mutate = <R>(
-		fn: (/** The copy of the nodes to be set back */ list: N[]) => R,
-	): R => {
-		const list = nodes.peek().slice();
+	/** In-place structural edit; `peek` avoids tracking when mutators run inside effects. */
+	const mutate = <R>(fn: (list: N[]) => R): R => {
+		const list = nodes.peek();
 		const result = fn(list);
 		nodes.set(list);
 		return result;
@@ -75,10 +92,8 @@ export function signalArray<T, N extends ItemNode<T> = ItemNode<T>>(
 
 	self.peek = () => snapshot(nodes.peek());
 	self.set = (values) => {
-		mutate((list) => {
-			values.forEach((v, i) => (i < list.length ? list[i].set(v) : list.push(makeItem(v))));
-			list.length = values.length;
-		});
+		const prev = nodes.peek();
+		nodes.set(values.map((v, i) => (i < prev.length ? (prev[i].set(v), prev[i]) : makeItem(v))));
 	};
 	self.update = (fn) => {
 		self.set(fn(self.peek()));
@@ -109,7 +124,7 @@ export function signalArray<T, N extends ItemNode<T> = ItemNode<T>>(
 		}
 		return c();
 	};
-	self.nodes = () => nodes();
+	self.shallow = () => nodes();
 
 	self.push = (...values) => mutate((l) => l.push(...values.map(makeItem)));
 	self.unshift = (...values) => mutate((l) => l.unshift(...values.map(makeItem)));

@@ -6,20 +6,20 @@ import { signalArray } from './core.js';
 describe('signalArray', () => {
 	it('reads initial values and peek snapshots without tracking', () => {
 		const list = signalArray([1, 2], signal);
-		expect(list()).toEqual([1, 2]);
+		expect(list.deep()).toEqual([1, 2]);
 		expect(list.peek()).toEqual([1, 2]);
 	});
 
 	it('mutates with push, pop, splice, and clear', () => {
 		const list = signalArray([1, 2], signal);
 		list.push(3);
-		expect(list()).toEqual([1, 2, 3]);
+		expect(list.deep()).toEqual([1, 2, 3]);
 		expect(list.pop()).toBe(3);
-		expect(list()).toEqual([1, 2]);
+		expect(list.deep()).toEqual([1, 2]);
 		list.splice(0, 1, 9);
-		expect(list()).toEqual([9, 2]);
+		expect(list.deep()).toEqual([9, 2]);
 		list.clear();
-		expect(list()).toEqual([]);
+		expect(list.deep()).toEqual([]);
 	});
 
 	it('set() reuses item nodes by index', () => {
@@ -29,7 +29,7 @@ describe('signalArray', () => {
 		list.set([99, 20]);
 		expect(list.at(0)).toBe(n0);
 		expect(list.at(1)).toBe(n1);
-		expect(list()).toEqual([99, 20]);
+		expect(list.deep()).toEqual([99, 20]);
 	});
 
 	it('length computed tracks structure only', async () => {
@@ -75,7 +75,7 @@ describe('signalArray', () => {
 		const list = signalArray([1, 2], signal);
 		let allRuns = 0;
 		effect(() => {
-			list();
+			list.deep();
 			allRuns++;
 		});
 		await flush();
@@ -94,6 +94,41 @@ describe('signalArray', () => {
 		expect(allRuns).toBe(3);
 	});
 
+	it('() returns the node array and tracks only set() replacement', async () => {
+		const list = signalArray([1, 2], signal);
+		expect(list()).toEqual([list.at(0), list.at(1)]);
+		let runs = 0;
+		effect(() => {
+			list();
+			runs++;
+		});
+		await flush();
+		list.at(0)!.set(5);
+		await flush();
+		expect(runs).toBe(1);
+		list.push(3);
+		await flush();
+		expect(runs).toBe(1);
+		list.set([7, 8]);
+		await flush();
+		expect(runs).toBe(2);
+	});
+
+	it('[i] returns the node without tracking', async () => {
+		const list = signalArray([1, 2], signal);
+		expect(list[1]).toBe(list.at(1));
+		expect(list[5]).toBeUndefined();
+		let runs = 0;
+		effect(() => {
+			list[0];
+			runs++;
+		});
+		await flush();
+		list.unshift(0);
+		await flush();
+		expect(runs).toBe(1);
+	});
+
 	it('negative at() indexes from the end', () => {
 		const list = signalArray([1, 2, 3], signal);
 		expect(list.at(-1)!()).toBe(3);
@@ -103,19 +138,19 @@ describe('signalArray', () => {
 	it('remove returns false for out-of-range index', () => {
 		const list = signalArray([1], signal);
 		expect(list.remove(5)).toBe(false);
-		expect(list()).toEqual([1]);
+		expect(list.deep()).toEqual([1]);
 		list.remove(0);
-		expect(list()).toEqual([]);
+		expect(list.deep()).toEqual([]);
 	});
 });
 
 describe('signalArray via signalState', () => {
 	it('exposes tags as an observable collection', () => {
 		const tree = signalState({ tags: ['a', 'b'] as string[] });
-		expect(tree.tags()).toEqual(['a', 'b']);
+		expect(tree.tags.deep()).toEqual(['a', 'b']);
 		expect(typeof tree.tags.push).toBe('function');
 		tree.tags.push('c');
-		expect(tree.tags()).toEqual(['a', 'b', 'c']);
+		expect(tree.tags.deep()).toEqual(['a', 'b', 'c']);
 	});
 
 	it('updates a tag in place via at()', () => {
@@ -127,7 +162,7 @@ describe('signalArray via signalState', () => {
 	it('accepts whole-array replace from root .set({ tags })', () => {
 		const tree = signalState({ count: 0, tags: ['a'] });
 		tree.set({ tags: ['x', 'y'] });
-		expect(tree.tags()).toEqual(['x', 'y']);
+		expect(tree.tags.deep()).toEqual(['x', 'y']);
 		expect(tree.count()).toBe(0);
 	});
 

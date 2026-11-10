@@ -1,64 +1,85 @@
-// Shared dependency graph for `signal`, `computed`, and `effect`. While a watcher runs, it is
-// the global "active watcher"; reads call `track(dep)` so writes can `notify(dep)`.
+// Shared dependency graph for `signal`, `computed`, and `effect`. Every one of them is a
+// `ReactiveNode`; the whole model is:
+//
+//   - `sources`:   what I read  -> the `version` I saw when I read it
+//   - `observers`: who reads me
+//   - `version`:   bumped only when my value really changes
+//
+// Push: a write calls `notify()`, which tells observers "maybe dirty" (`markDirty()`).
+// Pull: before recomputing / re-running, a node calls `sourcesChanged()`; if no source's version
+// moved since it was read, the work is skipped (equality cutoff, as in the TC39 proposal).
 
-export interface IWatcher {
-	/** Dependencies this watcher currently reads (rebuilt every run). */
-	deps: Set<Dependency>;
-	/** Re-run this watcher in response to a dependency changing. */
-	run(): void;
+export class ReactiveNode {
+	/** Bumped only when this node's value actually changes (per `equals`). */
+	version = 0;
+	/** "Maybe stale": a source notified since the last refresh. */
+	dirty = false;
+	/** What this node read on its last run, with the `version` seen at the time. */
+	readonly sources = new Map<ReactiveNode, number>();
+	/** Who reads this node. */
+	readonly observers = new Set<ReactiveNode>();
+
+	/** A source may have changed. */
+	markDirty(): void {}
+	/** Brings the value up to date so `version` is current (computed overrides this). */
+	refresh(): void {}
 }
 
-export interface Dependency {
-	/** who depends on me? */
-	subscribers: Set<IWatcher>;
-	/** is me dirty?
-	 * Optional (set by `computed`): reports whether this dependency's value is stale and hasn't
-	 * been recomputed since it was last marked dirty. Lets a `Watcher` answer `getPending()`
-	 * without forcing a recompute, mirroring `Signal.subtle.Watcher.getPending()`. */
-	isDirty?(): boolean;
+/** The node currently running - reads during this window are tracked as its sources. */
+let activeNode: ReactiveNode | null = null;
+
+/** Records `source` as read by the running node. */
+export function track(source: ReactiveNode): void {
+	if (!activeNode) return;
+	activeNode.sources.set(source, source.version);
+	source.observers.add(activeNode);
 }
 
-/** global variable, the watcher currently executing, if any - signal reads during this window get tracked. */
-let activeWatcher: IWatcher | null = null;
-
-/** Break the 2-way link between a watcher and its dependencies */
-export function clearDeps(watcher: IWatcher): void {
-	for (const dep of watcher.deps) dep.subscribers.delete(watcher);
-	watcher.deps.clear();
-}
-
-/** Setup the 2-way link between the dependency and  the active watcher. */
-export function track(dep: Dependency): void {
-	if (activeWatcher) {
-		dep.subscribers.add(activeWatcher);
-		activeWatcher.deps.add(dep);
+/** Push phase: tells `source`'s observers they may be stale. */
+export function notify(source: ReactiveNode): void {
+	// Snapshot: observers reacting may change the set. Skip the running node (self-write guard,
+	// otherwise `effect(() => { a(); a.set(...) })` loops forever).
+	for (const observer of Array.from(source.observers)) {
+		if (observer !== activeNode) observer.markDirty();
 	}
 }
 
-/** Notifies `dep`'s subscribers that it changed. */
-export function notify(dep: Dependency): void {
-	// Snapshot first: a subscriber reacting may mutate `subscribers` (e.g. a computed re-notifying).
-	for (const watcher of Array.from(dep.subscribers))
-		watcher.run(); // may trigger subscribers modification
+/** Pull phase: refreshes `node`'s sources in read order; true if any version moved. */
+export function sourcesChanged(node: ReactiveNode): boolean {
+	for (const [source, seen] of node.sources) {
+		source.refresh();
+		if (source.version !== seen) return true;
+	}
+	return false;
 }
 
-/** Runs `fn` as `watcher`, tracking whatever signals it reads, then restores the prior watcher. */
-export function runTracked<T>(watcher: IWatcher, fn: () => T): T {
-	// clear for re-setup the watcher's dependencies after running the function
-	clearDeps(watcher);
-	const prev = activeWatcher;
-	activeWatcher = watcher;
+/** Starts receiving notifications from everything `node` last read. */
+export function subscribe(node: ReactiveNode): void {
+	for (const source of node.sources.keys()) source.observers.add(node);
+}
+
+/** Stops receiving notifications, but keeps `sources` so `sourcesChanged()` still works. */
+export function unsubscribe(node: ReactiveNode): void {
+	for (const source of node.sources.keys()) source.observers.delete(node);
+}
+
+/** Runs `fn` as `node`, rebuilding its sources from whatever `fn` reads. */
+export function runTracked<T>(node: ReactiveNode, fn: () => T): T {
+	unsubscribe(node);
+	node.sources.clear();
+	const prev = activeNode;
+	activeNode = node;
 	try {
 		return fn();
 	}
 	finally {
-		activeWatcher = prev;
+		activeNode = prev;
 	}
 }
 
 /** True while a `computed` or `effect` body is running (or during template render that tracks signals). */
 export function inReactiveContext(): boolean {
-	return activeWatcher !== null;
+	return activeNode !== null;
 }
 
 /**
@@ -72,59 +93,51 @@ export function assertNotInReactiveContext(
 	if (inReactiveContext()) throw new Error(message);
 }
 
-/** Runs `fn` with no active watcher, so any signal/computed it reads is NOT tracked - even if
+/** Runs `fn` with no active node, so any signal/computed it reads is NOT tracked - even if
  * called from inside a `computed`/`effect`. Equivalent to `Signal.subtle.untrack()` in the
  * proposed standard signals API. (`.peek()` is the single-read sibling of this.) */
 export function untrack<T>(fn: () => T): T {
-	const prev = activeWatcher;
-	activeWatcher = null;
+	const prev = activeNode;
+	activeNode = null;
 	try {
 		return fn();
 	}
 	finally {
-		activeWatcher = prev;
+		activeNode = prev;
 	}
 }
 
 /**
  * Low-level primitive modeled on `Signal.subtle.Watcher` from the proposed standard signals API:
- * watches a fixed set of dependencies and fires `notify` (synchronously, at most once) the moment
- * any of them changes - then goes inert. Re-arm by calling `watch()` again (typically with
- * whatever deps the next run actually reads). `effect()` is built on top of this: `notify`
- * schedules a microtask-batched re-run, and the re-run re-arms the watcher via `runTracked`.
+ * fires `notify` (synchronously, at most once) the moment any watched node may have changed, then
+ * goes inert until re-armed by `watch()` / `subscribe()` / `runTracked()`. `effect()` is built on
+ * top of this.
  */
-export class Watcher implements IWatcher {
-	/** Currently watched dependencies - doubles as this `IWatcher`'s tracked-deps set. */
-	readonly deps = new Set<Dependency>();
-	constructor(private readonly notify: (this: Watcher) => void) {}
+export class Watcher extends ReactiveNode {
+	constructor(private readonly notify: (this: Watcher) => void) {
+		super();
+	}
 
-	/** Starts watching `deps`, in addition to any already watched. */
-	watch(...deps: Dependency[]): void {
-		for (const dep of deps) {
-			this.deps.add(dep);
-			dep.subscribers.add(this);
+	/** Starts watching `nodes`, in addition to any already watched. */
+	watch(...nodes: ReactiveNode[]): void {
+		for (const node of nodes) {
+			this.sources.set(node, node.version);
+			node.observers.add(this);
 		}
 	}
-	/** Stops watching `deps`. */
-	unwatch(...deps: Dependency[]): void {
-		for (const dep of deps) {
-			this.deps.delete(dep);
-			dep.subscribers.delete(this);
+	/** Stops watching `nodes`. */
+	unwatch(...nodes: ReactiveNode[]): void {
+		for (const node of nodes) {
+			this.sources.delete(node);
+			node.observers.delete(this);
 		}
 	}
-	/** The watched dependencies that are currently dirty (changed but not yet recomputed/read). */
-	getPending(): Dependency[] {
-		return Array.from(this.deps).filter(dep => dep.isDirty?.() ?? false);
+	/** The watched nodes that are currently dirty (notified but not yet recomputed). */
+	getPending(): ReactiveNode[] {
+		return Array.from(this.sources.keys()).filter(node => node.dirty);
 	}
-	/** Called by a watched dependency's `notify()`. Per spec, fires once then goes inert - clears
-	 * all subscriptions so `getPending()`/further changes are silent until re-`watch()`ed. */
-	run(): void {
-		// Self-write guard: a write to a dependency while this watcher is the one running must not
-		// re-trigger it (otherwise `effect(() => { a(); a.set(...) })` loops forever).
-		if (activeWatcher === this) return;
-		// break the 2-way link between the watcher and its dependencies,
-		// so no further notifications are sent to this watcher from the dependencies.
-		clearDeps(this);
+	override markDirty(): void {
+		unsubscribe(this); // inert until re-armed
 		this.notify.call(this);
 	}
 }

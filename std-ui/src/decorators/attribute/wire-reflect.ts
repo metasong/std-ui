@@ -4,6 +4,7 @@
 // fields never appear here).
 
 import { effect as createEffect } from '../../signal/index.js';
+import { readValue, type ItemNode } from '../../signal/tree/index.js';
 import { serializeAttribute } from './converter.js';
 import { getAttributeDefs } from './metadata.js';
 
@@ -16,7 +17,7 @@ export function wireReflectedAttributes(host: HTMLElement, registerEffectDispose
 	for (const def of getAttributeDefs(host.constructor)) {
 		if (!def.reflect) continue;
 		registerEffectDisposer(createEffect(() => {
-			const value = (host as unknown as Record<PropertyKey, () => unknown>)[def.key]();
+			const value = readValue((host as unknown as Record<PropertyKey, ItemNode<unknown>>)[def.key]);
 			const serialized = serializeAttribute(value, def.converter);
 			if (serialized === undefined) return; // `toAttribute` returning `undefined` means leave untouched
 			if (serialized === null) host.removeAttribute(def.attribute);

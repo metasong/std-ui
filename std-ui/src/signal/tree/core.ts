@@ -12,7 +12,7 @@
 
 import { computed, signal, type Computed, type SignalOptions, type Signal } from '../core/index.js';
 
-import { signalArray, type ItemNode, type SignalArray } from './signal-array/index.js';
+import { readValue, signalArray, type ItemNode, type SignalArray } from './signal-array/index.js';
 
 /** A plain object eligible to become a branch node; anything else is a leaf value. */
 type PlainObject = Record<string, unknown>;
@@ -109,7 +109,7 @@ export function signalState<T>(value: T, signalOptions?: SignalOptions<unknown>)
 		if (c) return c.value;
 		const result: PlainObject = {};
 		for (const key of Object.keys(children)) {
-			result[key] = children[key]();
+			result[key] = readValue(children[key] as ItemNode<unknown>);
 		}
 		return result;
 	}) as Computed<T> & Partial<SignalTreeNode<T>>;

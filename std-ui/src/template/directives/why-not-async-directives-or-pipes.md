@@ -96,7 +96,7 @@ While a new fetch is pending, the **last** successful value is kept (see [`../..
 ## Patterns in `template()`
 
 - **Loading UI** — branch on `initialValue` / `null` / a dedicated `@state()` flag you set in an `effect`.
-- **Derived display** — `computed(() => format(this.items()))` instead of awaiting inside the literal.
+- **Derived display** — `computed(() => format(this.items.deep()))` instead of awaiting inside the literal.
 - **Lists from async** — resolve in `toSignal`, then `this.rows().map((row) => t\`...\`)` or `mapByKey` (same as sync data).
 - **Errors** — wrap reads that may throw in a small `computed` that returns a result type, or handle failure upstream and store an error signal yourself; do not expect a built-in “async pipe with error slot”.
 

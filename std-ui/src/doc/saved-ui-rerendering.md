@@ -117,7 +117,7 @@ still one call site reused for every row — not one `strings` per row.
 ```ts
 t`
   <ul>
-    ${this.todos().map(todo => t`
+    ${this.todos.deep().map(todo => t`
       <li>${todo.text}</li>
     `)}
   </ul>

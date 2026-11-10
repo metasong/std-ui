@@ -1,7 +1,7 @@
 // Writable reactive value: `signal()`. See `./computed.ts` and `./effect.ts` for derived values and
 // side effects; `./tracking.ts` for the shared dependency graph.
 
-import { notify, track, type Dependency } from './tracking.js';
+import { notify, ReactiveNode, track } from './tracking.js';
 
 /** Options accepted by `signal()`, named after `Signal.State`'s options in the proposed standard
  * signals API. */
@@ -25,16 +25,17 @@ export interface Signal<T> {
 export function signal<T>(initial: T, options: SignalOptions<T> = {}): Signal<T> {
 	const { equals = Object.is } = options;
 	let value = initial;
-	const dep: Dependency = { subscribers: new Set() };
+	const node = new ReactiveNode();
 
 	const read = (): T => {
-		track(dep);
+		track(node);
 		return value;
 	};
 	read.set = (next: T): void => {
 		if (equals(next, value)) return;
 		value = next;
-		notify(dep);
+		node.version++;
+		notify(node);
 	};
 	/** Updates the signal value by applying `fn` to the **current** value.
 	 * Returns the new value.

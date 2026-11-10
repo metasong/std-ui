@@ -94,7 +94,7 @@ describe('@state()', () => {
 
 		const el = document.createElement('state-array') as Foo;
 		document.body.appendChild(el);
-		expect(el.tags()).toEqual(['a', 'b']);
+		expect(el.tags.deep()).toEqual(['a', 'b']);
 		el.remove();
 	});
 

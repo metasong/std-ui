@@ -3,7 +3,7 @@
 // standard signals API.
 
 import { CycleGuard } from '../../dev/effect-cycle-guard.js';
-import { clearDeps, runTracked, Watcher } from './tracking.js';
+import { runTracked, sourcesChanged, subscribe, unsubscribe, Watcher } from './tracking.js';
 
 /** Call inside an `effect()` body to register cleanup that runs before the next re-run, and on dispose. */
 export type OnCleanup = (cleanup: () => void) => void;
@@ -65,8 +65,15 @@ export function effect(
 	// `rerun` does the actual work. Running it through `runTracked(watcher, ...)` re-arms the
 	// watcher with whatever deps this run actually read (a `Watcher` goes inert - stops watching -
 	// the moment it fires `notify`, per the proposed standard signals API).
+	let hasRun = false;
 	const rerun = (): void => {
 		if (disposed) return;
+		// Pull phase: a notification only means "maybe dirty"; skip if nothing read actually changed.
+		if (hasRun && !sourcesChanged(watcher)) {
+			subscribe(watcher);
+			return;
+		}
+		hasRun = true;
 
 		runCleanup();
 		runTracked(watcher, () => monitoredAction(onCleanup));
@@ -90,7 +97,7 @@ export function effect(
 		pendingWatchers.delete(watcher);
 		effectBodies.delete(watcher);
 		cycleGuard.unregister(watcher);
-		clearDeps(watcher);
+		unsubscribe(watcher);
 		runCleanup();
 	};
 }
