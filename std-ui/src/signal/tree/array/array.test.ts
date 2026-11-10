@@ -156,7 +156,7 @@ describe('signalArray via signalState', () => {
 	it('updates a tag in place via at()', () => {
 		const tree = signalState({ tags: ['a', 'b'] });
 		tree.tags.at(0)!.set('z');
-		expect(tree()).toEqual({ tags: ['z', 'b'] });
+		expect(tree.deep()).toEqual({ tags: ['z', 'b'] });
 	});
 
 	it('accepts whole-array replace from root .set({ tags })', () => {
@@ -170,7 +170,7 @@ describe('signalArray via signalState', () => {
 		const todos = signalState([{ text: 'a', done: false }]);
 		expect(todos.at(0)!.text()).toBe('a');
 		todos.at(0)!.done.set(true);
-		expect(todos.at(0)!()).toEqual({ text: 'a', done: true });
+		expect(todos.at(0)!.deep()).toEqual({ text: 'a', done: true });
 	});
 });
 

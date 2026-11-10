@@ -6,9 +6,9 @@ How `signalArray()` in [`core.ts`](./core.ts) is implemented. For usage, see [`R
 
 | File | Role |
 | --- | --- |
-| [`core.ts`](./core.ts) | `signalArray`, `SignalArray`, `ItemNode`, `readValue` |
+| [`core.ts`](./core.ts) | `signalArray`, `SignalArray` (`ItemNode` / `readValue` live in [`../node.ts`](../node.ts)) |
 | [`index.ts`](./index.ts) | Re-exports |
-| [`signal-array.test.ts`](./signal-array.test.ts) | Behavior and granularity tests |
+| [`array.test.ts`](./array.test.ts) | Behavior and granularity tests |
 
 ## Data model
 

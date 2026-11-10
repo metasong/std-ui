@@ -3,6 +3,7 @@
 // `stopPropagation()` on a match gives nearest-provider-wins — see `./request-event.ts`.
 
 import { effect as createEffect } from '../../signal/index.js';
+import { readValue, type ItemNode } from '../../signal/tree/index.js';
 import { getProvidedContextDefs } from './metadata.js';
 import { CONTEXT_REQUEST_EVENT, ContextRequestEvent } from './request-event.js';
 
@@ -24,7 +25,7 @@ export function wireProvidedContextListeners(
 			if (request.contextKey !== def.contextKey) return;
 			request.stopPropagation();
 			registerEffectDisposer(createEffect(() => {
-				request.callback((host as unknown as Record<PropertyKey, () => unknown>)[def.key]());
+				request.callback(readValue((host as unknown as Record<PropertyKey, ItemNode<unknown>>)[def.key]));
 			}));
 		};
 		host.addEventListener(CONTEXT_REQUEST_EVENT, listener);

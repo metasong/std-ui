@@ -35,7 +35,7 @@ export interface StateOptions<V = unknown> {
  *   @state() count = 0; // `this.count()` / `this.count.set(n)`
  *   @state() config = { a: 1, b: { c: 2 } }; // plain-object value -> `SignalState`-backed (see
  *     // `../field-store.ts` / `../../signal/tree/README.md`): each leaf is independently writable/reactive, and
- *     // `this.config.set({ ...this.config(), a: 2 })` only notifies readers of the `a` leaf.
+ *     // `this.config.set({ ...this.config.peek(), a: 2 })` only notifies readers of the `a` leaf.
  * }
  * ```
  *

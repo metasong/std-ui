@@ -6,106 +6,64 @@ How `signalState()` in [`core.ts`](./core.ts) is implemented. For usage and API,
 
 | File | Role |
 | --- | --- |
-| [`core.ts`](./core.ts) | `signalState`, `DeepPartial`, `SignalState`, branch/leaf build and `.set()` / `.peek()` overrides |
-| [`signal-array/`](./signal-array/) | Observable array collections (`signalArray`) |
+| [`core.ts`](./core.ts) | `signalState`, `DeepPartial`, `SignalState`: dispatch to array / object / leaf |
+| [`node.ts`](./node.ts) | `ItemNode` (child contract) and `readValue` (plain-value read of any node) |
+| [`array/`](./array/) | `signalArray` (see [`array/design.md`](./array/design.md)) |
+| [`object/`](./object/) | `signalObject` (see [`object/design.md`](./object/design.md)) |
 | [`index.ts`](./index.ts) | Re-exports |
 | [`tree.test.ts`](./tree.test.ts) | Behavior tests |
 
 ## Build algorithm
 
-1. **Array path** — if `Array.isArray(value)`, delegate to [`signalArray`](./signal-array/core.ts)
-   with `(item) => signalState(item, signalOptions)`.
-2. **Leaf path** — if `!isPlainObject(value)`, return `signal(value, signalOptions)` cast to
-   `SignalState<T>`. One node; `DeepPartial<T>` = `T`.
-3. **Branch path** — for each key in `Object.keys(value)`, recursively `signalState(child)`.
-4. Attach children onto the branch via `Object.assign(node, children)` so `tree.b.c` property access
-   works.
-5. Branch node is a `computed()` that reads every child `()` and returns a fresh plain object snapshot.
-
-`isPlainObject` requires `typeof object`, non-array, and prototype `Object.prototype` or `null`.
-`null` is not a branch at runtime (despite TS `object` including `null` in `IsBranch`).
-
-## Branch reads: `computed` + `cleared`
-
-A branch has no stored “own” value when intact — its value is always derived from children.
-
-When the user calls `branch.set(undefined)` or `branch.set(null)`, the implementation cannot delete
-children (tree shape is fixed) and cannot call `Object.keys` on `null`/`undefined`. Instead each
-branch owns a private **`cleared` signal**:
-
 ```ts
-const cleared = signal<false | { value: undefined | null }>(false);
+const child = (item) => signalState(item, signalOptions);
+if (Array.isArray(value)) return signalArray(value, child);
+if (isPlainObject(value)) return signalObject(value, child);
+return signal(value, signalOptions);
 ```
 
-| `cleared` state | `branch()` / `branch.peek()` |
-| --- | --- |
-| `false` | Reassemble `{ [key]: child... }` from children |
-| `{ value: undefined }` | `undefined` (children not read for assembly) |
-| `{ value: null }` | `null` |
+`isPlainObject` requires `typeof object`, non-array, and prototype `Object.prototype` or `null`.
+`null` is not an object node at runtime (despite TS `object` including `null` in `IsBranch`).
 
-**Why a signal, not a closure variable:** the branch body is a `computed`. Only reads of signals
-inside that computed register dependencies. Toggling `cleared` must dirty the branch (and ancestors /
-effects) when the branch switches between empty and object-shaped reads.
+## One shape for containers
 
-**Restore:** `branch.set(partial)` with a non-nullish object sets `cleared` to `false`, then applies
-the usual per-key `child.set(value)` loop. Omitted keys keep prior child values.
+`signalArray` and `signalObject` are built the same way:
 
-**Writes while cleared:** descendants remain full `SignalState` nodes. `.set()` on a child still
-updates that child's signal; the branch computed does not read those children while `cleared` is
-set, so parent reads stay empty until restore. Subscribers that read the child directly still
-update.
+- one `Signal` of child nodes with `equals: () => false`, edited **in place** for structural
+  changes (array mutators, object `delete`) and swapped for a **new instance** on replacement;
+- `()` = `computed(() => children())` — the core's `Object.is` equality cutoff lets only a new
+  instance through (see [`../core/computed-lazy.md`](../core/computed-lazy.md));
+- `shallow()` = `children()` — every structural change;
+- `deep()` = `computed` mapping each child through `readValue`;
+- a `Proxy` for untracked child access (`list[i]`, `obj.key`).
 
-**Repeated clear:** each `cleared.set({ value: ... })` allocates a new object; default signal
-equality is referential, so clearing an already-cleared branch may notify again even when the
-semantic value unchanged.
-
-## Branch `.set(partial)` loop
-
-1. If `partial === undefined || partial === null` → set `cleared` and return (whole-branch clear).
-2. `cleared.set(false)`.
-3. For each key in `Object.keys(partial)`:
-   - Unknown key → throw (lists known keys).
-   - `child.set(value)` — **no skip for `undefined`**; explicit `undefined` in a partial is
-     forwarded to the child (leaf or branch).
-
-For a **leaf** child, `undefined`/`null` is written into the leaf signal.
-
-For a **branch** child, `child.set(undefined)` / `child.set(null)` hits step 1 on that branch
-(clear sub-branch). An object partial recurses as nested patches.
-
-## `.peek()` override
-
-`Computed.peek()` would call children's tracked `()` reads and leak dependencies. Branch
-`peek` checks `cleared.peek()` first, then recurses `children[key].peek()` for a deep untracked
-snapshot.
+`readValue(node)` calls `node.deep()` when present (containers) and `node()` otherwise (leaves), so
+containers nest without knowing each other.
 
 ## Types vs runtime
 
 | Concern | Runtime | Types (`IsBranch`, `DeepPartial`) |
 | --- | --- | --- |
-| Plain object | Branch | Branch |
-| `null` / `undefined` at init | Leaf | Leaf (`undefined` / non-object) |
-| Interface-typed object | Branch if plain at runtime | Branch (looser than `isPlainObject`) |
-| Array | `SignalArray` (see [`signal-array/design.md`](./signal-array/design.md)) | `SignalArray` |
-| Function, class instance | Leaf | Leaf |
+| Plain object | `SignalObject` | `SignalObject & Members<T>` |
+| `null` / `undefined` at init | Leaf | Leaf |
+| Interface-typed object | Object if plain at runtime | Object (looser than `isPlainObject`) |
+| Array | `SignalArray` | `SignalArray` |
+| Function, class instance | Leaf | Leaf (`Signal<T>`) |
 
-Types do not currently express “branch that may read as `undefined` | null`” after
-`.set(undefined)`; branch nodes are still typed as `T` from the initial shape.
+Members added at runtime via `set()` are not reflected in the static type.
 
 ## Consumers
 
 `createStore()` in [`../../decorators/field-store.ts`](../../decorators/field-store.ts) uses
-`signalState()` for component field backing; `@state()` / `@attribute()` Object fields share this
-path. See decorator README/design docs for wiring only — tree semantics live here.
+`signalState()` for component field backing. Generic readers that need a plain value from any store
+(`wire-reflect`, `wire-provide`, `bind`) use `readValue`.
 
 ## Notification sketch
 
 ```
-leaf.set(v)  →  leaf signal notifies  →  parent computed dirty  →  …  →  root  →  effects
-branch.set(clear)  →  cleared signal notifies  →  branch computed returns empty  →  same upward chain
-branch.set({ k: ... })  →  touched leaves/computed notify  →  partial upward dirtying
+leaf.set(v)              →  leaf notifies  →  ancestors' deep() dirty  →  effects on deep()
+obj.set({ k: v })        →  only touched members notify (record unchanged)
+obj.set({ newKey: v })   →  new record  →  (), shallow(), deep()
+obj.delete(k)            →  in-place edit  →  shallow(), deep()
+obj.set(undefined|null)  →  new record + empty flag  →  (), shallow(), deep()
 ```
-
-Sibling branches are unaffected when a partial update only touches one subtree (each leaf notifies
-independently; untouched branches' computeds may not re-run if their children's values are unchanged
-and equality allows).

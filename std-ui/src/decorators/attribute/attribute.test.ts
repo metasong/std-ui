@@ -152,7 +152,7 @@ describe('@attribute()', () => {
 		expect(el.getAttribute('config')).toBe('{"a":1}');
 
 		el.setAttribute('config', '{"a":9}');
-		expect(el.config()).toEqual({ a: 9 });
+		expect(el.config.deep()).toEqual({ a: 9 });
 
 		el.config.set({ a: 3 });
 		await flush();
@@ -172,7 +172,7 @@ describe('@attribute()', () => {
 		// The default `Object` converter falls back to `{}` on unparsable text, but writing `{}`
 		// through the `SignalState`'s `DeepPartial` merge provides no keys to overwrite, so the
 		// field's existing leaves are left as-is rather than cleared.
-		expect(el.config()).toEqual({ a: 1 });
+		expect(el.config.deep()).toEqual({ a: 1 });
 		el.remove();
 	});
 
@@ -218,7 +218,7 @@ describe('@attribute()', () => {
 		expect(el.getAttribute('config')).toBe('{"a":1}'); // JSON, like type: Object
 
 		el.setAttribute('config', '{"a":9}');
-		expect(el.config()).toEqual({ a: 9 });
+		expect(el.config.deep()).toEqual({ a: 9 });
 		el.remove();
 	});
 
@@ -255,7 +255,7 @@ describe('@attribute()', () => {
 		expect(el.getAttribute('config')).toBe('{"theme":"dark"}');
 
 		el.setAttribute('config', 'garbage');
-		expect(el.config()).toEqual({ theme: 'dark' }); // custom converter's fallback, not the type default's {}
+		expect(el.config.deep()).toEqual({ theme: 'dark' }); // custom converter's fallback, not the type default's {}
 
 		el.config.set({ theme: 'light' });
 		await flush();

@@ -1,18 +1,18 @@
-// Builds a tree of signals/computeds that mirrors a plain-object shape, so each leaf is an
-// independently-writable `Signal` and every branch is a `Computed` that reassembles its children
-// into a plain object. Reading/writing follows normal property access:
+// Builds a tree of signals that mirrors a value's shape, so each leaf is an independently-writable
+// `Signal` and every container (`./object`, `./array`) holds its children as nodes:
 //
 //   const a = signalState({ b: { c: { d: 1 } } });
-//   effect(() => console.log(a()));  // logs { b: { c: { d: 1 } } }
-//   a.b.c.d.set(2);                  // d notifies -> c dirty -> b dirty -> a dirty -> effect re-runs
+//   effect(() => console.log(a.deep())); // logs { b: { c: { d: 1 } } }
+//   a.b.c.d.set(2);                      // d notifies -> c, b, a deep() dirty -> effect re-runs
 //
-// Plain objects (`{ ... }` / `Object.create(null)`) are branches; arrays are `SignalArray`
-// collections; everything else (primitives, class instances, null, undefined, functions, ...) is a
-// leaf `Signal`.
+// Plain objects (`{ ... }` / `Object.create(null)`) become `SignalObject`s; arrays `SignalArray`s;
+// everything else (primitives, class instances, null, undefined, functions, ...) is a leaf `Signal`.
 
-import { computed, signal, type Computed, type SignalOptions, type Signal } from '../core/index.js';
+import { signal, type SignalOptions, type Signal } from '../core/index.js';
 
-import { readValue, signalArray, type ItemNode, type SignalArray } from './signal-array/index.js';
+import { signalArray, type SignalArray } from './array/index.js';
+import type { ItemNode } from './node.js';
+import { signalObject, type SignalObject } from './object/index.js';
 
 /** A plain object eligible to become a branch node; anything else is a leaf value. */
 type PlainObject = Record<string, unknown>;
@@ -44,112 +44,50 @@ export type DeepPartial<T> = IsBranch<T> extends true // is none array obj(incl.
 ? { [K in keyof T]?: DeepPartial<T[K]> } // branch → optional nested keys
 	: T; // leaf → whole value
 
-/**
- * Interface shared by every `SignalState` node, branch or leaf - identical to `Signal<T>` (callable
- * read, `.peek()`), except `.set()`/`.update()` work on `DeepPartial<T>` so branches can be patched
- * instead of replaced wholesale. For branches, `.peek()` is overridden to be a deep-untracked
- * snapshot (recursing via `.peek()` on every child), rather than `Computed`'s shallow one.
- */
-type SignalTreeNode<T> = Pick<Signal<T>, 'peek'> & {
-	/** Reads the current value and tracks it as a dependency. */
-	(): T;
-	/**
-	 * Writes `partial` into this node in place: for each provided key, recurses into branches and
-	 * calls `.set()` on leaves, leaving any keys omitted from `partial` untouched. Each touched leaf
-	 * notifies independently, so unrelated branches of the tree don't recompute.
-	 */
-	set(partial: DeepPartial<T>): void;
-	/** Updates the node by applying `fn` to its current (`.peek()`) value, then `.set()`-ing the result. */
-	update(fn: (prev: T) => DeepPartial<T>): T;
-};
+/** Member nodes of a branch, one per key. */
+type Members<T> = { readonly [K in keyof T]: SignalState<T[K]> };
 
 /**
- * The reactive mirror of `T`: every node - branch or leaf - shares the same `SignalTreeNode`
- * interface (call to read, `.peek()`, `.set()`, `.update()`); branches additionally expose one
- * child property per key, each itself a `SignalState`.
+ * The reactive mirror of `T`:
+ * - array  → `SignalArray` of `SignalState` items (see `./array`);
+ * - plain object → `SignalObject` with one `SignalState` member per key, also reachable as a
+ *   same-named property (see `./object`);
+ * - anything else → `SignalLeaf<T>`.
+ *
+ * Every node shares the same reads: `()` (child nodes, tracks replacement), `shallow()` (child
+ * nodes, tracks structure), `deep()` (plain value, tracks everything below). On a leaf all three
+ * are the same value read.
  */
 export type SignalState<T> = T extends readonly (infer U)[]
 	? SignalArray<U, SignalState<U> & ItemNode<U>>
-	: SignalTreeNode<T> &
-			(IsBranch<T> extends true ? { readonly [K in keyof T]: SignalState<T[K]> } : unknown);
+	: IsBranch<T> extends true
+		? SignalObject<T, Members<T>, DeepPartial<T>> & Members<T>
+		: SignalLeaf<T>;
+
+/** A tree leaf: a plain `Signal<T>` plus `shallow()` / `deep()`, both identical to `()`. */
+export type SignalLeaf<T> = Signal<T> & {
+	shallow(): T;
+	deep(): T;
+};
+
+/** Wraps a core `signal()` as a tree leaf; the core primitive itself stays standard-shaped. */
+function signalLeaf<T>(value: T, signalOptions?: SignalOptions<T>): SignalLeaf<T> {
+	const leaf = signal(value, signalOptions) as SignalLeaf<T>;
+	leaf.shallow = leaf;
+	leaf.deep = leaf;
+	return leaf;
+}
 
 /**
- * Converts a plain-object value into a `SignalState`: every leaf becomes a `signal()`, and every
- * branch becomes a `computed()` that reads all of its children and reassembles them into a plain
- * object, exposing each child as a same-named property for direct access (e.g. `tree.b.c.d`).
+ * Converts a value into a `SignalState`: arrays become `signalArray()`s, plain objects
+ * `signalObject()`s, and everything else a `SignalLeaf`, recursively.
  *
  * `signalOptions` is forwarded to every leaf `signal()` created in the tree (e.g. to customize
- * `equals`); it has no effect on branches, which are always `computed()`.
+ * `equals`); it has no effect on containers.
  */
 export function signalState<T>(value: T, signalOptions?: SignalOptions<unknown>): SignalState<T> {
-	if (Array.isArray(value)) {
-		// Arrays become observable collections whose elements are themselves signal-state nodes.
-		return signalArray(value, (item) =>
-			signalState(item, signalOptions),
-		) as unknown as SignalState<T>;
-	}
-	if (!isPlainObject(value)) {
-		// `Signal<T>` already provides `()`, `peek`, `set`, and `update` matching `SignalTreeNode<T>`
-		// (for leaves, `DeepPartial<T>` is just `T`, and there are no children to leak through).
-		return signal(value, signalOptions) as unknown as SignalState<T>;
-	}
-
-	const children: Record<string, SignalState<unknown>> = {};
-	for (const key of Object.keys(value)) {
-		children[key] = signalState((value as PlainObject)[key], signalOptions);
-	}
-
-	// True while the branch itself has been `.set(undefined)`; it then reads as `undefined`.
-	// Children are kept so a later object `.set()` can restore the branch.
-	// Holds which empty value (`undefined` or `null`) the branch reads as, or `false` when intact.
-	const cleared = signal<false | { value: undefined | null }>(false);
-
-	const node = computed(() => {
-		const c = cleared();
-		if (c) return c.value;
-		const result: PlainObject = {};
-		for (const key of Object.keys(children)) {
-			result[key] = readValue(children[key] as ItemNode<unknown>);
-		}
-		return result;
-	}) as Computed<T> & Partial<SignalTreeNode<T>>;
-
-	// Overrides `Computed`'s own (shallow-untracked) `.peek()`: that one still calls children's
-	// *tracked* `()` reads internally, leaking dependencies on the whole subtree. This version
-	// recurses via each child's `.peek()` instead, for a true deep-untracked snapshot.
-	node.peek = (): T => {
-		const c = cleared.peek();
-		if (c) return c.value as T;
-		const result: PlainObject = {};
-		for (const key of Object.keys(children)) {
-			result[key] = children[key].peek();
-		}
-		return result as T;
-	};
-	node.set = (partial: DeepPartial<T>): void => {
-		if (partial === undefined || partial === null) {
-			cleared.set({ value: partial as undefined | null });
-			return;
-		}
-		cleared.set(false);
-		for (const key of Object.keys(partial as object)) {
-			const value = (partial as Record<string, unknown>)[key];
-			const child = children[key];
-			if (child === undefined) {
-				const known = Object.keys(children);
-				throw new Error(
-					`signalState: cannot .set() unknown key "${key}" — the tree was built with keys [${known.join(', ')}]. ` +
-						`Tree shape is fixed at signalState() time; add the key to the initial value instead.`,
-				);
-			}
-			child.set(value as DeepPartial<unknown>);
-		}
-	};
-	node.update = (fn: (prev: T) => DeepPartial<T>): T => {
-		const next = fn(node.peek!());
-		node.set!(next);
-		return node.peek!();
-	};
-
-	return Object.assign(node, children) as SignalState<T>;
+	const child = (item: unknown) => signalState(item, signalOptions) as unknown as ItemNode<unknown>;
+	if (Array.isArray(value)) return signalArray(value, child) as unknown as SignalState<T>;
+	if (isPlainObject(value)) return signalObject(value, child) as unknown as SignalState<T>;
+	return signalLeaf(value, signalOptions as SignalOptions<T>) as unknown as SignalState<T>;
 }

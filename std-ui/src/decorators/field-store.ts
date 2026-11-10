@@ -19,7 +19,7 @@ import { signalState, type SignalState } from '../signal/index.js';
  * object's shape (see `../signal/tree/README.md`): each leaf becomes an independently-writable `Signal`,
  * and reading the field goes through the root `Computed`, which only recomputes (and so only
  * re-triggers `template()`/effects reading the whole property) when a leaf actually touched by that
- * write changes - `this.config.set({ ...this.config(), count: 1 })` doesn't spuriously dirty
+ * write changes - `this.config.set({ ...this.config.peek(), count: 1 })` doesn't spuriously dirty
  * sibling leaves the way replacing a single flat `signal()`'s value would force a full re-render on
  * identity change alone.
  *

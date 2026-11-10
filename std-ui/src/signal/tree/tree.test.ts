@@ -18,13 +18,13 @@ function makeState(): State {
 describe('signalState', () => {
 	it('mirrors a plain object: reading the root reassembles every leaf', () => {
 		const tree = signalState(makeState());
-		expect(tree()).toEqual(makeState());
+		expect(tree.deep()).toEqual(makeState());
 	});
 
 	it('exposes each branch/leaf as a same-named property', () => {
 		const tree = signalState(makeState());
 		expect(tree.count()).toBe(0);
-		expect(tree.user()).toEqual({ label: 'Ada', age: 30 });
+		expect(tree.user.deep()).toEqual({ label: 'Ada', age: 30 });
 		expect(tree.user.label()).toBe('Ada');
 	});
 
@@ -40,7 +40,7 @@ describe('signalState', () => {
 		const tree = signalState(makeState());
 		tree.tags.set(['x']);
 		expect(tree.tags.deep()).toEqual(['x']);
-		expect(tree()).toEqual({ ...makeState(), tags: ['x'] });
+		expect(tree.deep()).toEqual({ ...makeState(), tags: ['x'] });
 
 		tree.set({ tags: ['y', 'z'] });
 		expect(tree.tags.deep()).toEqual(['y', 'z']);
@@ -50,8 +50,8 @@ describe('signalState', () => {
 		const tree = signalState(makeState());
 		tree.user.label.set('Grace');
 		expect(tree.user.label()).toBe('Grace');
-		expect(tree.user()).toEqual({ label: 'Grace', age: 30 });
-		expect(tree()).toEqual({ count: 0, user: { label: 'Grace', age: 30 }, tags: ['a', 'b'] });
+		expect(tree.user.deep()).toEqual({ label: 'Grace', age: 30 });
+		expect(tree.deep()).toEqual({ count: 0, user: { label: 'Grace', age: 30 }, tags: ['a', 'b'] });
 	});
 
 	it('peek() snapshots the current value without tracking it as a dependency', async () => {
@@ -89,13 +89,13 @@ describe('signalState', () => {
 	it('set() on a branch writes only the provided leaves, leaving others untouched', () => {
 		const tree = signalState(makeState());
 		tree.user.set({ label: 'Grace' });
-		expect(tree.user()).toEqual({ label: 'Grace', age: 30 });
+		expect(tree.user.deep()).toEqual({ label: 'Grace', age: 30 });
 	});
 
 	it('set() on the root recurses into nested branches', () => {
 		const tree = signalState(makeState());
 		tree.set({ count: 5, user: { age: 31 } });
-		expect(tree()).toEqual({ count: 5, user: { label: 'Ada', age: 31 }, tags: ['a', 'b'] });
+		expect(tree.deep()).toEqual({ count: 5, user: { label: 'Ada', age: 31 }, tags: ['a', 'b'] });
 	});
 
 	it('set() forwards explicit undefined to leaf children', () => {
@@ -109,7 +109,7 @@ describe('signalState', () => {
 		const tree = signalState(makeState());
 		let userRuns = 0;
 		let countRuns = 0;
-		effect(() => { tree.user(); userRuns++; });
+		effect(() => { tree.user.deep(); userRuns++; });
 		effect(() => { tree.count(); countRuns++; });
 		await flush();
 
@@ -123,7 +123,7 @@ describe('signalState', () => {
 		const tree = signalState(makeState());
 		let userRuns = 0;
 		let countRuns = 0;
-		effect(() => { tree.user(); userRuns++; });
+		effect(() => { tree.user.deep(); userRuns++; });
 		effect(() => { tree.count(); countRuns++; });
 		await flush();
 
@@ -137,7 +137,7 @@ describe('signalState', () => {
 		const tree = signalState(makeState());
 		let rootRuns = 0;
 		effect(() => {
-			tree();
+			tree.deep();
 			rootRuns++;
 		});
 		await flush();
@@ -146,7 +146,7 @@ describe('signalState', () => {
 		tree.user.label.set('Grace');
 		await flush();
 		expect(rootRuns).toBe(2);
-		expect(tree()).toEqual({ count: 0, user: { label: 'Grace', age: 30 }, tags: ['a', 'b'] });
+		expect(tree.deep()).toEqual({ count: 0, user: { label: 'Grace', age: 30 }, tags: ['a', 'b'] });
 	});
 
 	it('branch .set() with an empty partial is a no-op for subscribers', async () => {
@@ -165,25 +165,59 @@ describe('signalState', () => {
 		const tree = signalState(value);
 		expect(tree.n()).toBe(1);
 		tree.n.set(2);
-		expect(tree()).toEqual({ n: 2 });
+		expect(tree.deep()).toEqual({ n: 2 });
 	});
 
 	it('signalState on a non-object root is a single leaf signal tree', () => {
 		const tree = signalState(42);
 		expect(tree()).toBe(42);
+		expect(tree.shallow()).toBe(42);
+		expect(tree.deep()).toBe(42);
 		expect(tree.peek()).toBe(42);
 		tree.set(7);
 		expect(tree()).toBe(7);
 	});
 
-	it('.set() throws with known keys when partial includes a key not in the tree', () => {
+	it('.set() with an unknown key adds a member; delete() removes it', () => {
 		const tree = signalState(makeState());
-		expect(() => tree.set({ extra: 1 } as State)).toThrow(
-			/cannot \.set\(\) unknown key "extra".*count, user, tags/,
-		);
-		expect(() => tree.user.set({ zip: 1 } as State['user'])).toThrow(
-			/cannot \.set\(\) unknown key "zip".*label, age/,
-		);
+		tree.user.set({ zip: 1 } as State['user']);
+		expect(tree.user.deep()).toEqual({ label: 'Ada', age: 30, zip: 1 });
+		expect((tree.user as unknown as Record<string, () => unknown>).zip()).toBe(1);
+
+		expect(tree.user.delete('zip')).toBe(true);
+		expect(tree.user.delete('zip')).toBe(false);
+		expect(tree.user.deep()).toEqual({ label: 'Ada', age: 30 });
+	});
+
+	it('object () tracks replacement only; shallow() also tracks add/delete', async () => {
+		const tree = signalState(makeState());
+		let callRuns = 0;
+		let shallowRuns = 0;
+		effect(() => { tree.user(); callRuns++; });
+		effect(() => { tree.user.shallow(); shallowRuns++; });
+		await flush();
+
+		tree.user.label.set('Grace'); // member value change: neither
+		await flush();
+		expect([callRuns, shallowRuns]).toEqual([1, 1]);
+
+		tree.user.delete('age'); // structural: shallow only
+		await flush();
+		expect([callRuns, shallowRuns]).toEqual([1, 2]);
+
+		tree.user.set({ label: 'Lin' }); // patch of existing members: neither
+		await flush();
+		expect([callRuns, shallowRuns]).toEqual([1, 2]);
+
+		tree.user.set({ age: 1 }); // new key replaces the record: both
+		await flush();
+		expect([callRuns, shallowRuns]).toEqual([2, 3]);
+	});
+
+	it('object () returns member nodes, reachable as properties', () => {
+		const tree = signalState(makeState());
+		expect(tree().user).toBe(tree.user);
+		expect(tree.user().label).toBe(tree.user.label);
 	});
 });
 

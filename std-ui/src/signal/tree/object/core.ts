@@ -1,0 +1,106 @@
+// Observable record: `signalObject()` is the signal-tree version of a plain object, mirroring
+// `../array`. Each property is its own member node (built by the supplied `makeMember`), and which
+// members exist is tracked by one signal. Consequently:
+//   - `obj()` returns the member record and re-runs only when `set()` replaces it (new key, clear);
+//   - `obj.shallow()` also re-runs when members are added (`set()` with a new key) or `delete`d;
+//   - `obj.deep()` returns the plain value and re-runs on any member's value change, recursively;
+//   - `obj.key` is the member node itself (untracked access), e.g. `obj.user.label.set('x')`.
+
+import { computed, signal, type Signal } from '../../core/index.js';
+import { readValue, type ItemNode } from '../node.js';
+
+type Members = Record<string, ItemNode<unknown>>;
+
+export interface SignalObject<T, M = Members, P = Partial<T>> {
+	/**
+	 * Reads the member record, tracking only its replacement: a `set()` that adds a key or clears /
+	 * restores the object. Use `shallow()` to also track `delete`.
+	 */
+	(): Readonly<M>;
+	/** Reads the member record, tracking any change to which members exist. */
+	shallow(): Readonly<M>;
+	/** Reads the whole object as a plain value (tracks every member, recursively). */
+	deep(): T;
+	/** Deep-untracked snapshot. */
+	peek(): T;
+	/**
+	 * Patches in place: existing members get `.set(value)` (recursing into containers), unknown keys
+	 * become new members, omitted keys are untouched. `set(undefined | null)` clears the object so
+	 * it reads as that value; members are kept so a later object `set()` restores it.
+	 */
+	set(partial: P): void;
+	update(fn: (prev: T) => P): T;
+	/** Removes the member `key`; returns whether anything was removed. */
+	delete(key: string): boolean;
+}
+
+const API = new Set(['set', 'update', 'peek', 'deep', 'shallow', 'delete']);
+const hasOwn = (o: object, key: PropertyKey): boolean => Object.prototype.hasOwnProperty.call(o, key);
+
+export function signalObject<T, M = Members, P = Partial<T>>(
+	initial: Record<string, unknown>,
+	makeMember: (value: unknown) => ItemNode<unknown>,
+): SignalObject<T, M, P> {
+	const start: Members = {};
+	for (const key of Object.keys(initial)) start[key] = makeMember(initial[key]);
+	const members: Signal<Members> = signal(start, { equals: () => false });
+	/** Which empty value the object reads as after `set(undefined | null)`, or `false` when intact. */
+	let empty: false | { value: undefined | null } = false;
+
+	const build = (m: Members, read: (n: ItemNode<unknown>) => unknown): T => {
+		if (empty) return empty.value as T;
+		const out: Record<string, unknown> = {};
+		for (const key of Object.keys(m)) out[key] = read(m[key]);
+		return out as T;
+	};
+
+	const deep = computed(() => build(members(), readValue));
+	// `delete` edits the record in place and only `set()` swaps in a new one, so with `Object.is`
+	// cutoff `()` notifies on replacement only.
+	const self = computed(() => members()) as unknown as SignalObject<T, M, P>;
+	self.deep = () => deep();
+	self.shallow = () => members() as unknown as Readonly<M>;
+	self.peek = () => build(members.peek(), (n) => n.peek());
+	// Only a membership change (new key, clear, restore) swaps in a new record; patching existing
+	// members just notifies those members, so untouched siblings keep their deep value identity.
+	self.set = (partial) => {
+		const prev = members.peek();
+		let next: Members | undefined;
+		if (partial === undefined || partial === null) {
+			if (empty && empty.value === partial) return;
+			empty = { value: partial as undefined | null };
+			next = { ...prev };
+		} else {
+			if (empty) {
+				empty = false;
+				next = { ...prev };
+			}
+			for (const [key, value] of Object.entries(partial as object)) {
+				if (hasOwn(prev, key)) prev[key].set(value);
+				else (next ??= { ...prev })[key] = makeMember(value);
+			}
+		}
+		if (next) members.set(next);
+	};
+	self.update = (fn) => {
+		self.set(fn(self.peek()));
+		return self.peek();
+	};
+	self.delete = (key) => {
+		const m = members.peek();
+		if (!hasOwn(m, key)) return false;
+		delete m[key];
+		members.set(m);
+		return true;
+	};
+
+	// Member access by property name (untracked), e.g. `obj.user`. API names win over members.
+	const isMember = (key: string | symbol): key is string =>
+		typeof key === 'string' && !API.has(key) && hasOwn(members.peek(), key);
+
+	return new Proxy(self, {
+		get: (target, key, receiver) =>
+			isMember(key) ? members.peek()[key] : Reflect.get(target, key, receiver),
+		has: (target, key) => isMember(key) || Reflect.has(target, key),
+	});
+}

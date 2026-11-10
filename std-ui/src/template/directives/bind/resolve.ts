@@ -8,6 +8,7 @@ import {
 	readProperty,
 	writeProperty,
 } from './defaults.js';
+import { readValue, type ItemNode } from '../../../signal/tree/index.js';
 import type { BindAccessor, BindOptions, BindSource, Binding, WritableSignal } from './types.js';
 
 export function isWritableSignal(value: unknown): value is WritableSignal {
@@ -28,7 +29,7 @@ export function resolveBinding(args: readonly unknown[], element: Element, prope
 	let options: BindOptions;
 
 	if (isWritableSignal(first)) {
-		model = { get: () => first(), set: v => (first as WritableSignal<unknown>).set(v as never) };
+		model = { get: () => readValue(first as ItemNode<unknown>), set: v => (first as WritableSignal<unknown>).set(v as never) };
 		options = (second as BindOptions | undefined) ?? {};
 	} else if (isAccessor(first)) {
 		const { get, set, ...rest } = first;

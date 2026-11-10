@@ -81,7 +81,7 @@ export interface AttributeOptions<V = unknown> {
  *   @state() internalOnly = 'x'; // store only, no attribute at all - use @state() for this
  *   @attribute({ type: Object, reflect: true }) config = { a: 1, b: { c: 2 } }; // tree-backed:
  *     // a plain-object value becomes a branch of signals/computeds (see `../signal/tree/README.md`), so
- *     // `this.config.set({ ...this.config(), a: 2 })` only notifies readers of the `a` leaf -
+ *     // `this.config.set({ ...this.config.peek(), a: 2 })` only notifies readers of the `a` leaf -
  *     // readers depending only on `config.b` don't re-run. `type: Object`'s default converter
  *     // reflects the object to/from the attribute as JSON text; use `@state()` instead if it
  *     // shouldn't touch the attribute at all, or pass a custom `converter` for anything else.

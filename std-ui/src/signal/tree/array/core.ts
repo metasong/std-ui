@@ -7,13 +7,7 @@
 //   - `list.at(i)()` only re-runs when that element changes (or the element at `i` is replaced).
 
 import { computed, signal, type Computed, type Signal } from '../../core/index.js';
-
-/** Minimal node contract needed from each element node (satisfied by `Signal` and branches). */
-export interface ItemNode<T> {
-	(): T;
-	peek(): T;
-	set(value: any): void;
-}
+import { readValue, type ItemNode } from '../node.js';
 
 export interface SignalArray<T, N extends ItemNode<T> = ItemNode<T>> {
 	/**
@@ -61,12 +55,6 @@ export interface SignalArray<T, N extends ItemNode<T> = ItemNode<T>> {
 	/** Removes the item at `index`; returns whether anything was removed. */
 	remove(index: number): boolean;
 	clear(): void;
-}
-
-/** Tracked value read of a node; nested `SignalArray`s are read via `deep()` since `()` yields nodes. */
-export function readValue<T>(node: ItemNode<T>): T {
-	const deep = (node as { deep?: () => T }).deep;
-	return typeof deep === 'function' ? deep() : node();
 }
 
 export function signalArray<T, N extends ItemNode<T> = ItemNode<T>>(

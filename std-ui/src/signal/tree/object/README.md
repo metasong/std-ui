@@ -1,0 +1,48 @@
+# Signal object (`signalObject`)
+
+Observable reactive records for the signal tree, the object counterpart of
+[`../array`](../array/README.md). Each property is its own member node (typically from
+`signalState()`), while a separate internal signal tracks **which members exist**.
+
+Implementation details: [`design.md`](./design.md).
+
+| Read | Returns | Re-runs on |
+| --- | --- | --- |
+| `obj()` | member record | replacement only: `set()` adding a key, clear, or restore |
+| `obj.shallow()` | member record | + `delete(key)` |
+| `obj.deep()` | plain value | + any member's value change, recursively |
+| `obj.key` | member node | never (untracked) |
+
+## Via `signalState()`
+
+Any plain object on the initial value becomes a `SignalObject` automatically:
+
+```ts
+import { signalState } from '../core.js';
+
+const user = signalState({ label: 'Ada', age: 30 });
+user.label.set('Grace');      // only `label` notifies
+user.deep();                  // { label: 'Grace', age: 30 }
+user.set({ zip: '1000' });    // adds member `zip`
+user.delete('zip');           // removes it
+user().label === user.label;  // true
+```
+
+## API
+
+| Member | Role |
+| --- | --- |
+| `obj()` | Tracked member record; notifies only when the record is replaced. |
+| `obj.shallow()` | Tracked member record; notifies on any membership change. |
+| `obj.deep()` | Tracked plain value (every member, recursively). |
+| `obj.peek()` | Untracked deep snapshot. |
+| `obj.set(partial)` | Patch existing members, add unknown keys; `set(undefined \| null)` clears. |
+| `obj.update(fn)` | `set(fn(peek()))`, returns the new snapshot. |
+| `obj.delete(key)` | Remove a member; returns whether anything was removed. |
+| `obj.key` | Untracked member node. API names win over same-named members. |
+
+## Limitations
+
+- Patching existing members does **not** replace the record, so `obj()` does not re-run for value
+  changes; read `deep()` (or the member) for those.
+- Members added at runtime are not part of the static type.

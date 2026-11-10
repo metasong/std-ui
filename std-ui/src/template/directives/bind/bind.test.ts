@@ -116,7 +116,7 @@ describe('bind()', () => {
 
 		div.document = { title: 'b' };
 		div.dispatchEvent(new Event('document-change', { bubbles: true }));
-		expect(state.payload()).toEqual({ title: 'b' });
+		expect(state.payload.deep()).toEqual({ title: 'b' });
 	});
 
 	it('supports { get, set } accessors', () => {

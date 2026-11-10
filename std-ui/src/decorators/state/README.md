@@ -70,11 +70,11 @@ class ConfigPanel extends UIElement {
 	@state() config = { theme: 'dark', limits: { max: 10 } };
 
 	protected override template() {
-		return t`<span>${this.config().theme} / ${this.config().limits.max}</span>`;
+		return t`<span>${this.config.theme()} / ${this.config.limits.max()}</span>`;
 	}
 }
 
-el.config.set({ ...el.config(), theme: 'light' }); // only `theme` notifies; `limits` keeps identity
+el.config.set({ ...el.config.peek(), theme: 'light' }); // only `theme` notifies; `limits` keeps identity
 ```
 
 Writing always takes a **whole** replacement object (`this.config.set({...})`, not a partial) —

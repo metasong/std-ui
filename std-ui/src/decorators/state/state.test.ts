@@ -62,11 +62,11 @@ describe('@state()', () => {
 
 		const el = document.createElement('state-obj-tree') as Foo;
 		document.body.appendChild(el);
-		expect(el.config()).toEqual({ a: 1, b: { c: 2 } });
+		expect(el.config.deep()).toEqual({ a: 1, b: { c: 2 } });
 
-		el.config.set({ ...el.config(), a: 2 });
+		el.config.set({ ...el.config.peek(), a: 2 });
 		await flush();
-		expect(el.config()).toEqual({ a: 2, b: { c: 2 } });
+		expect(el.config.deep()).toEqual({ a: 2, b: { c: 2 } });
 		el.remove();
 	});
 
@@ -78,11 +78,11 @@ describe('@state()', () => {
 
 		const el = document.createElement('state-obj-sibling') as Foo;
 		document.body.appendChild(el);
-		const bBefore = el.config().b;
+		const bBefore = el.config.deep().b;
 
-		el.config.set({ ...el.config(), a: 2 }); // only `a` changes; `b`'s leaf (`c`) is unchanged
+		el.config.set({ ...el.config.peek(), a: 2 }); // only `a` changes; `b`'s leaf (`c`) is unchanged
 		await flush();
-		expect(el.config().b).toBe(bBefore); // `b`'s branch never recomputed, so its identity is preserved
+		expect(el.config.deep().b).toBe(bBefore); // `b`'s branch never recomputed, so its identity is preserved
 		el.remove();
 	});
 
