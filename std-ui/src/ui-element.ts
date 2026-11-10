@@ -171,6 +171,10 @@ export abstract class UIElement extends HTMLElement {
 		));
 	}
 
+	/**
+	 * The render effect body: runs `template()` and renders it. Private; NOT lit's public
+	 * `requestUpdate()`. To re-render, write a signal - see `./doc/why-no-request-update.md`.
+	 */
 	#requestUpdate() {
 		const result = this.template?.();
 		if (result) render(result, this.renderRoot, { host: this });
