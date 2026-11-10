@@ -23,11 +23,11 @@ export interface PartDescriptor extends SlotDescriptor {
 	kind: PartKind;
 	/** Attribute/property/event name, sans its `.`/`?`/`@` sigil and any `.modifier`s. Unused for `kind: 'child'`. */
 	name: string;
-	/** `kind: 'event'` only: parsed from `.capture`/`.once`/`.passive` modifiers, e.g. `@click.once.capture="${h}"`. */
+	/** `kind: 'event'` only: parsed from `.capture`/`.once`/`.passive` modifiers, e.g. `@click.once.capture=${h}`. */
 	options?: AddEventListenerOptions;
 	/** `kind: 'attr'` only: the static text segments surrounding each interpolation in this
 	 *  attribute's value, e.g. `class="a-${x}-b-${y}"` -> `['a-', '-b-', '']`. Always has exactly
-	 *  `valueCount + 1` entries; `['', '']` for a bare `attr="${value}"` with no static text. */
+	 *  `valueCount + 1` entries; `['', '']` for a bare `attr=${value}` with no static text. */
 	literals?: string[];
 	/** Number of consecutive entries of the tagged-template's `values[]` this descriptor consumes.
 	 *  `1` for every kind except `attr`, which is `>= 1`. */

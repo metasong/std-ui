@@ -84,7 +84,7 @@ class DemoUserById extends UIElement {
 	protected override template() {
 		const p = this.profile();
 		return t`
-			<button type="button" @click="${() => this.userId.update((id) => id + 1)}">Next id</button>
+			<button type="button" @click=${() => this.userId.update((id) => id + 1)}>Next id</button>
 			${p === null ? t`<p>…</p>` : t`<p>${p.name}</p>`}
 		`;
 	}

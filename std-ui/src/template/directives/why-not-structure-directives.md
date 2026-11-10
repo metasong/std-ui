@@ -48,7 +48,7 @@ class DemoGreeting extends UIElement {
         ${this.loggedIn()
           ? t`<p class="ok">You are signed in.</p>`
           : t`<p class="hint">Please sign in.</p>`}
-        <p ?hidden="${!this.loggedIn()}">Account settings and extra details live here.</p>
+        <p ?hidden=${!this.loggedIn()}>Account settings and extra details live here.</p>
       </section>
     `;
   }
@@ -111,7 +111,7 @@ class DemoTodoList extends UIElement {
       <ul class="positional">
         ${this.todos.deep().map((todo) => t`
           <li>
-            <input type="checkbox" .checked="${todo.done}" />
+            <input type="checkbox" .checked=${todo.done} />
             ${todo.text}
           </li>
         `)}
@@ -135,8 +135,8 @@ class DemoSortableTodos extends UIElement {
           this.todos.deep(),
           (todo) => todo.id,
           (todo) => t`
-            <li data-id="${todo.id}">
-              <input type="checkbox" .checked="${todo.done}" />
+            <li data-id=${todo.id}>
+              <input type="checkbox" .checked=${todo.done} />
               ${todo.text}
             </li>
           `,
@@ -191,8 +191,8 @@ class DemoTabs extends UIElement {
   protected override template() {
     return t`
       <nav>
-        <button type="button" ?aria-current="${this.tab() === 'home'}" @click="${() => this.tab.set('home')}">Home</button>
-        <button type="button" ?aria-current="${this.tab() === 'settings'}" @click="${() => this.tab.set('settings')}">Settings</button>
+        <button type="button" ?aria-current=${this.tab() === 'home'} @click=${() => this.tab.set('home')}>Home</button>
+        <button type="button" ?aria-current=${this.tab() === 'settings'} @click=${() => this.tab.set('settings')}>Settings</button>
       </nav>
       <main>
         ${this.tab() === 'home'

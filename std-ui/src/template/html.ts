@@ -3,7 +3,7 @@
 //
 // Usage mirrors lit-html:
 //
-//   const result = t`<div class="${cls}">${label}</div>`;
+//   const result = t`<div class=${cls}>${label}</div>`;
 //   render(result, container);
 //
 // How it works (same core trick as lit-html):
@@ -28,7 +28,7 @@
 // lit-html's own - is the generic extension point for more), and MathML template handling. Plain attributes (no
 // `?`/`.`/`@` sigil) do support multi-expression/mixed-static values like `class="${a} ${b}"` or `class="static-${x}"`; the
 // `?`/`.`/`@`-prefixed kinds don't, since they bind a real JS value rather than a string - each
-// must be a single bare interpolation, e.g. `?hidden="${v}"`. SVG is supported via `svg()` below,
+// must be a single bare interpolation, e.g. `?hidden=${v}`. SVG is supported via `svg()` below,
 // for the one case plain `t` can't handle: a namespace-less fragment (no `<svg>` wrapper of its
 // own) meant to be interpolated as a child of an existing `<svg>` element.
 //
@@ -56,7 +56,7 @@ export function t(strings: TemplateStringsArray, ...values: unknown[]): Template
  * svg parent tag and namespace wrapper for svg markup that's pure SVG content with no `<svg>` wrapper of its own - e.g. a
  * reusable snippet meant to be interpolated as a child of an existing `<svg>` element:
  *
- *   const dot = (r: number) => svg`<circle r="${r}" />`;
+ *   const dot = (r: number) => svg`<circle r=${r} />`;
  *   t`<svg viewBox="0 0 10 10">${dot(3)}</svg>`;
  *
  * If your markup already includes its own top-level `<svg>...</svg>`, plain `t` works fine - the parser assigns the SVG namespace as soon as it sees the `<svg>` tag, even inside a `<template>`.

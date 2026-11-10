@@ -25,13 +25,13 @@ export class DemoTodoSection extends UIElement {
 			<ul class="demo-todo-list">
 				${todos.map(todo => t`
 					<li class="demo-todo-item">
-						<input type="checkbox" .checked="${todo.done}" @change="${() => this.#toggle(todo.id)}" />
-						<span class="${todo.done ? 'done' : ''}">${todo.text}</span>
-						<button type="button" class="tonal" style="margin-left:auto;" @click="${() => this.#remove(todo.id)}">✕</button>
+						<input type="checkbox" .checked=${todo.done} @change=${() => this.#toggle(todo.id)} />
+						<span class=${todo.done ? 'done' : ''}>${todo.text}</span>
+						<button type="button" class="tonal" style="margin-left:auto;" @click=${() => this.#remove(todo.id)}>✕</button>
 					</li>
 				`)}
 			</ul>
-			<form class="demo-todo-form" @submit="${(e: Event) => this.#onSubmit(e)}">
+			<form class="demo-todo-form" @submit=${(e: Event) => this.#onSubmit(e)}>
 				<input class="demo-outlined-field" type="text" name="text" placeholder="new todo" />
 				<button type="submit">add</button>
 			</form>

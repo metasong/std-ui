@@ -32,7 +32,7 @@ const label = computed(() => (count() === 1 ? 'click' : 'clicks'));
 const container = document.getElementById('app')!;
 const view = () => t`
 	<p>You have <strong>${count()}</strong> ${label()}.</p>
-	<button ?disabled="${count() >= 10}" @click="${() => count.update(n => n + 1)}">
+	<button ?disabled=${count() >= 10} @click=${() => count.update(n => n + 1)}>
 		Increment
 	</button>
 `;
@@ -76,8 +76,8 @@ class DemoCounter extends UIElement {
 			<span>${value()}</span> / ${max()}
 			<button
 				type="button"
-				?disabled="${value() >= max()}"
-				@click="${() => shared.counter.value.update(n => n + 1)}"
+				?disabled=${value() >= max()}
+				@click=${() => shared.counter.value.update(n => n + 1)}
 			>+</button>
 		`;
 	}
@@ -164,7 +164,7 @@ flowchart LR
 
 ## Feature checklist (demo these in the example test)
 
-- **Text and attributes** — `${count()}`, `class="${cls}"`, `?disabled="${bool}"`.
+- **Text and attributes** — `${count()}`, `class=${cls}`, `?disabled=${bool}`.
 - **Properties and events** — `.value`, `@click` (see `html.md` binding table).
 - **Nested templates** — `t` inside `${...}` for conditional fragments without a second top-level template.
 - **No-op updates** — `count.set(5)` when already `5` does not notify; DOM is not touched.

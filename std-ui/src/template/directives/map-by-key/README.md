@@ -43,14 +43,14 @@ class SortableChores extends UIElement {
   protected override template() {
     return t`
       <p>Chore list — sort and the rows move; keyed rows keep their controls.</p>
-      <button type="button" @click="${() => this.sortByLabel(1)}">A → Z</button>
-      <button type="button" @click="${() => this.sortByLabel(-1)}">Z → A</button>
+      <button type="button" @click=${() => this.sortByLabel(1)}>A → Z</button>
+      <button type="button" @click=${() => this.sortByLabel(-1)}>Z → A</button>
       <ul>
         ${mapByKey(
           this.chores.deep(),
           (c) => c.id,
           (c) => t`
-            <li data-id="${c.id}">
+            <li data-id=${c.id}>
               <label><input type="checkbox" /> ${c.id}) ${c.label}</label>
             </li>
           `,

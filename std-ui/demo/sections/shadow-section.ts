@@ -34,8 +34,8 @@ export class DemoShadowChip extends UIElement {
 			</style>
 			<button
 				type="button"
-				data-off="${this.on() ? null : ''}"
-				@click="${() => this.on.set(!this.on())}"
+				data-off=${this.on() ? null : ''}
+				@click=${() => this.on.set(!this.on())}
 			>
 				${this.on() ? 'Encapsulated (shadow)' : 'Click — themed only inside shadow'}
 			</button>

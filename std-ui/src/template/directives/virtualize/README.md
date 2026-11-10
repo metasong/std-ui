@@ -18,7 +18,7 @@ t`
 				lanes: 4,
 				keyFn: (p) => p.id,
 				controller: list,
-				renderItem: (p) => t`<img src="${p.url}" style="height: 120px" />`,
+				renderItem: (p) => t`<img src=${p.url} style="height: 120px" />`,
 			})}
 		</div>
 	</div>

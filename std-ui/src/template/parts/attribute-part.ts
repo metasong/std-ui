@@ -11,7 +11,7 @@ import { type Part } from './core.js';
 /**
  * Binds an attribute's full value, which may be composed of static text segments (`literals`)
  * interleaved with any number of interpolations - mirroring how the tagged template itself is
- * structured: `literals.length === valueCount + 1`. Defaults to `['', '']` (a bare `attr="${v}"`
+ * structured: `literals.length === valueCount + 1`. Defaults to `['', '']` (a bare `attr=${v}`
  * with no static text), the only shape that supports attribute *removal* via `null`/`undefined`,
  * since a value sitting next to static text can't be meaningfully "absent".
  */

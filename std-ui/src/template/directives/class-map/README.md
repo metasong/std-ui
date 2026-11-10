@@ -26,7 +26,7 @@ Design notes: [`design.md`](./design.md).
 
 ## Why not just a string?
 
-`class="${isActive ? 'active' : ''}"` recomposes the whole attribute each render and overwrites
+`class=${isActive ? 'active' : ''}` recomposes the whole attribute each render and overwrites
 anything else on `class`. `classMap` keeps per-binding state ("what I set last time") and only
 calls `classList.add` / `remove` for keys that changed.
 

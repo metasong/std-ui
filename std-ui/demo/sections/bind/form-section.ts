@@ -17,17 +17,17 @@ export class DemoBindFormSection extends UIElement {
 				</p>
 				<label class="demo-bind-field">
 					Text
-					<input .value="${bind(this.query)}" type="text" />
+					<input .value=${bind(this.query)} type="text" />
 				</label>
 				<p class="demo-bind-mirror">Model: <code>${this.query()}</code></p>
 				<label class="demo-bind-field demo-bind-field--inline">
-					<input type="checkbox" .checked="${bind(this.agreed)}" />
+					<input type="checkbox" .checked=${bind(this.agreed)} />
 					I agree
 				</label>
 				<p class="demo-bind-mirror">Agreed: <code>${String(this.agreed())}</code></p>
 				<div class="demo-actions">
-					<button type="button" @click="${() => this.query.set('')}">clear query from model</button>
-					<button type="button" class="tonal" @click="${() => this.renderPasses.update(n => n + 1)}">
+					<button type="button" @click=${() => this.query.set('')}>clear query from model</button>
+					<button type="button" class="tonal" @click=${() => this.renderPasses.update(n => n + 1)}>
 						bump render counter (${this.renderPasses()})
 					</button>
 				</div>

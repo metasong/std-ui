@@ -18,7 +18,7 @@ describe('render', () => {
 
 	it('reuses the same DOM across repeated renders from the same call site, patching only values', () => {
 		const container = document.createElement('div');
-		const view = (name: string) => t`<p class="${name}">${name}</p>`;
+		const view = (name: string) => t`<p class=${name}>${name}</p>`;
 		render(view('Ada'), container);
 		const p = container.querySelector('p');
 
@@ -30,7 +30,7 @@ describe('render', () => {
 
 	it('binds .-prefixed attributes to JS properties (not HTML attributes)', () => {
 		const container = document.createElement('div');
-		const view = (value: string) => t`<input .value="${value}" />`;
+		const view = (value: string) => t`<input .value=${value} />`;
 		render(view('hello'), container);
 		const input = container.querySelector('input')!;
 		expect(input.value).toBe('hello');
@@ -54,7 +54,7 @@ describe('render', () => {
 
 	it('supports rendering svg() results, with elements in the SVG namespace', () => {
 		const container = document.createElement('div');
-		render(svg`<circle r="${3}" />`, container);
+		render(svg`<circle r=${3} />`, container);
 		const circle = container.querySelector('circle')!;
 		expect(circle.namespaceURI).toBe('http://www.w3.org/2000/svg');
 	});

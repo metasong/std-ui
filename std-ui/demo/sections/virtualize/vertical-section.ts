@@ -18,10 +18,10 @@ export class DemoVirtualizeVertical extends UIElement {
 			</p>
 			<p class="demo-v-meta">Rendered nodes: about viewport ÷ itemSize (+ overscan), not 10,000.</p>
 			<div class="demo-actions">
-				<button type="button" class="tonal" @click="${() => this.#list.scrollToIndex(0)}">Top</button>
-				<button type="button" class="tonal" @click="${() => this.#list.scrollToIndex(4999)}">Middle</button>
+				<button type="button" class="tonal" @click=${() => this.#list.scrollToIndex(0)}>Top</button>
+				<button type="button" class="tonal" @click=${() => this.#list.scrollToIndex(4999)}>Middle</button>
 				<button type="button" class="tonal" @click="${() => this.#list.scrollToIndex(9999, { align: 'end' })}">End</button>
-				<button type="button" @click="${() => this.#jumpRandom()}">Random</button>
+				<button type="button" @click=${() => this.#jumpRandom()}>Random</button>
 			</div>
 			<p class="demo-v-meta">Last jump: ${this.scrollHint()}</p>
 			<div class="demo-v-scroller demo-v-scroller-y">

@@ -27,7 +27,7 @@ describe('mapByKey end-to-end', () => {
 		const container = document.createElement('div');
 		type Row = { id: string; label: string };
 		const view = (rows: Row[]) =>
-			t`<ul>${mapByKey(rows, (r) => r.id, (r) => t`<li data-id="${r.id}">${r.label}</li>`)}</ul>`;
+			t`<ul>${mapByKey(rows, (r) => r.id, (r) => t`<li data-id=${r.id}>${r.label}</li>`)}</ul>`;
 
 		render(view([{ id: 'a', label: 'A' }, { id: 'b', label: 'B' }]), container);
 		const liA = container.querySelector('li[data-id="a"]')!;

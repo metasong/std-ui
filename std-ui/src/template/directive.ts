@@ -1,4 +1,4 @@
-// --- Directive protocol: lets a bare `name="${...}"` attribute value, or a whole child-content
+// --- Directive protocol: lets a bare `name=${...}` attribute value, or a whole child-content
 // value, take over applying itself to the DOM instead of being handled the default way (stringified
 // by `AttributePart`, or text/template/array-diffed by `ChildPart`). This is the only extension
 // point `AttributePart`/`ChildPart` know about - neither has built-in knowledge of any specific
@@ -45,7 +45,7 @@ export const PartType = {
 } as const;
 export type PartType = (typeof PartType)[keyof typeof PartType];
 
-/** Metadata + live DOM access for a plain `name="${...}"` attribute binding. Passed to a
+/** Metadata + live DOM access for a plain `name=${...}` attribute binding. Passed to a
  *  `Directive`'s constructor (as `PartInfo`, for one-time validation) and to `update()` (as
  *  `Part`, for imperative DOM access) - see `Directive` below. In lit-html these are distinct
  *  interfaces (`PartInfo` is metadata-only; `Part` adds live DOM refs); they're unified here since
@@ -76,7 +76,7 @@ export interface AttributePartInfo {
 	readonly staticText?: string;
 }
 
-/** Metadata + live DOM access for a `.name="${...}"` property binding - see `PropertyPart` in
+/** Metadata + live DOM access for a `.name=${...}` property binding - see `PropertyPart` in
  *  `parts/`. */
 export interface PropertyPartInfo {
 	readonly type: typeof PartType.PROPERTY;
@@ -146,7 +146,7 @@ export type Part = AttributePartInfo | ChildPartInfo | PropertyPartInfo | Elemen
  *   	}
  *   }
  *   export const hello = directive(HelloDirective);
- *   // t`<div title="${hello('Ada')}"></div>`
+ *   // t`<div title=${hello('Ada')}></div>`
  */
 export abstract class Directive {
 	constructor(_partInfo: PartInfo) {}

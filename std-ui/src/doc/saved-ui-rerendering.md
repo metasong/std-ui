@@ -135,7 +135,7 @@ keep a single call site:
 
 ```ts
 // Good for reuse — one call site, class/text change
-t`<div class="${open ? 'open' : ''}">${label}</div>`;
+t`<div class=${open ? 'open' : ''}>${label}</div>`;
 
 // Full rebuild when branch changes — different call sites
 open ? t`<div class="open">${label}</div>` : t`<div>${label}</div>`;

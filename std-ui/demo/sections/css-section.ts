@@ -27,7 +27,7 @@ export class DemoCssChip extends UIElement {
 	@state() count = 0;
 
 	protected override template() {
-		return t`<button type="button" @click="${() => this.count.update(n => n + 1)}">clicked ${this.count()}×</button>`;
+		return t`<button type="button" @click=${() => this.count.update(n => n + 1)}>clicked ${this.count()}×</button>`;
 	}
 }
 

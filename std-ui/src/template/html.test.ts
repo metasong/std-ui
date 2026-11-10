@@ -32,7 +32,7 @@ describe('t', () => {
 
 describe('svg', () => {
 	it('captures strings/values and tags the result with type "svg"', () => {
-		const result = svg`<circle r="${3}" />`;
+		const result = svg`<circle r=${3} />`;
 		expect(result.values).toEqual([3]);
 		expect(result.type).toBe('svg');
 	});

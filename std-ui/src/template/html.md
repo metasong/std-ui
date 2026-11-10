@@ -21,15 +21,15 @@ Each `${...}` interpolation is bound based on *where* it appears in the markup:
 | Where | Syntax | Binds to |
 |---|---|---|
 | Between tags | `<div>${value}</div>` | Child content (see below) |
-| Plain attribute | `id="${value}"` | `el.setAttribute('id', String(value))` (removed if `value == null`) |
-| `?`-prefixed attribute | `?hidden="${value}"` | `el.toggleAttribute('hidden', Boolean(value))` |
-| `.`-prefixed attribute | `.value="${value}"` | `el.value = value` (a JS property, not an HTML attribute) |
-| `@`-prefixed attribute | `@click="${handler}"` | `el.addEventListener('click', handler)` |
-| `@`-prefixed attribute with modifiers | `@click.once.capture.passive="${handler}"` | `el.addEventListener('click', handler, { once: true, capture: true, passive: true })` |
+| Plain attribute | `id=${value}` | `el.setAttribute('id', String(value))` (removed if `value == null`) |
+| `?`-prefixed attribute | `?hidden=${value}` | `el.toggleAttribute('hidden', Boolean(value))` |
+| `.`-prefixed attribute | `.value=${value}` | `el.value = value` (a JS property, not an HTML attribute) |
+| `@`-prefixed attribute | `@click=${handler}` | `el.addEventListener('click', handler)` |
+| `@`-prefixed attribute with modifiers | `@click.once.capture.passive=${handler}` | `el.addEventListener('click', handler, { once: true, capture: true, passive: true })` |
 
 Event listeners accept `.capture`, `.once`, and `.passive` modifiers chained onto the event name
 (any order, any subset), mapped straight onto `addEventListener`'s options object - e.g.
-`@click.capture="${h}"` or `@scroll.once.passive="${h}"`. Unknown modifiers are silently ignored.
+`@click.capture=${h}` or `@scroll.once.passive=${h}`. Unknown modifiers are silently ignored.
 
 A plain attribute's value may mix static text with any number of interpolations - they're joined
 into one string and re-applied via `setAttribute` whenever any piece changes:
@@ -41,7 +41,7 @@ t`<div class="static-${dynamic}">`; // static text + one interpolation
 
 `?`/`.`/`@`-prefixed bindings don't support this - they bind to a real JS value (a boolean, a
 property, a listener), not a string, so each must be exactly one interpolation with no static text
-(e.g. `?hidden="${v}"`, not `?hidden="${a}${b}"` or `?hidden="x${v}"`); mixing either throws at
+(e.g. `?hidden=${v}`, not `?hidden="${a}${b}"` or `?hidden="x${v}"`); mixing either throws at
 compile time.
 
 Child content accepts:
@@ -55,14 +55,14 @@ Child content accepts:
   **directive** (see [Directives](#directives) below) bound to the child position.
 - An array of any of the above → rendered as a sibling list (not keyed - see Limitations).
 
-A plain, bare attribute binding (single interpolation, no static text, e.g. `class="${...}"`)
+A plain, bare attribute binding (single interpolation, no static text, e.g. `class=${...}`)
 accepts an **attribute directive** - a value that applies itself directly to the element instead of
 being stringified. `classMap()`/`styleMap()` are the two built in. A child-content position accepts
 a **child directive** - `html()` is the one built in. See [Directives](#directives) below.
 
 ```ts
 t`
-	<button ?disabled="${isLoading}" @click="${onSubmit}">
+	<button ?disabled=${isLoading} @click=${onSubmit}>
 		${isLoading ? t`<spinner-icon></spinner-icon>` : 'Submit'}
 	</button>
 	<ul>${items.map(item => t`<li>${item.label}</li>`)}</ul>
@@ -148,7 +148,7 @@ class HelloDirective extends Directive {
 	}
 }
 export const hello = directive(HelloDirective);
-// t`<div title="${hello('Ada')}"></div>`
+// t`<div title=${hello('Ada')}></div>`
 
 // Imperative - only update() needed, no render() required for typing. Real trailing parameters,
 // not an array to destructure - works for any number of them:
@@ -159,7 +159,7 @@ class LogAttributeDirective extends Directive {
 	}
 }
 export const logAttribute = directive(LogAttributeDirective);
-// t`<div title="${logAttribute('info', 'hi')}"></div>`
+// t`<div title=${logAttribute('info', 'hi')}></div>`
 ```
 
 One `Directive` instance is created per *binding position* (the same spot as a persistent `Part`)
@@ -270,7 +270,7 @@ reuses the previous DOM, updating only the parts whose value changed:
 
 ```ts
 function view(state: State) {
-	return t`<div class="${state.open ? 'open' : ''}">${state.label}</div>`;
+	return t`<div class=${state.open ? 'open' : ''}>${state.label}</div>`;
 }
 
 render(view(a), container); // builds DOM
@@ -332,12 +332,12 @@ and when the fast path is lost), see [`../doc/saved-ui-rerendering.md`](../doc/s
 - **SVG needs the `svg` tag for namespace-less fragments.** Markup containing its own top-level
   `<svg>...</svg>` works fine with plain `t` - the parser assigns the SVG namespace as soon as
   it sees the `<svg>` tag, even inside a `<template>`. But a reusable snippet meant to be
-  interpolated as a *child* of an existing `<svg>` (e.g. `t`<circle r="${r}" />`` with no
+  interpolated as a *child* of an existing `<svg>` (e.g. `t`<circle r=${r} />`` with no
   wrapping `<svg>`) would parse as an unnamespaced, non-rendering element - use `svg` instead:
 
   ```ts
   import { t, svg, render } from './index.js';
 
-  const dot = (r: number) => svg`<circle r="${r}" />`;
+  const dot = (r: number) => svg`<circle r=${r} />`;
   render(t`<svg viewBox="0 0 10 10">${dot(3)}</svg>`, container);
   ```

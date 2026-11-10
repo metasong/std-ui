@@ -134,7 +134,7 @@ describe('virtualize', () => {
 	const frame = () => new Promise((r) => requestAnimationFrame(() => r(null)));
 
 	function mount(extra: Record<string, unknown> = {}) {
-		const renderItem = vi.fn((d: { i: number }) => t`<div data-i="${String(d.i)}" data-cols="${String(extra.lanes ?? 1)}">${d.i}</div>`);
+		const renderItem = vi.fn((d: { i: number }) => t`<div data-i=${String(d.i)} data-cols=${String(extra.lanes ?? 1)}>${d.i}</div>`);
 		part.update([virtualize(data, { itemSize: ITEM, overscan: 1, renderItem, ...extra })]);
 		return renderItem;
 	}

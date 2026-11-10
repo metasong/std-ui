@@ -46,7 +46,7 @@ describe('ref directive', () => {
 		const a = createRef();
 		const b = createRef();
 		const host = document.createElement('div');
-		render(t`<div class="${'x'}" ${ref(a)} ${ref(b)}></div>`, host);
+		render(t`<div class=${'x'} ${ref(a)} ${ref(b)}></div>`, host);
 		expect(a.value).toBe(host.firstElementChild);
 		expect(b.value).toBe(host.firstElementChild);
 		expect(host.firstElementChild!.className).toBe('x');

@@ -27,7 +27,7 @@ describe('template `.prop` bindings with @state()', () => {
 			readonly tree = signalState<ParentState>({ count: 3 });
 
 			protected override template() {
-				return t`<bind-child .count="${this.tree.count()}"></bind-child>`;
+				return t`<bind-child .count=${this.tree.count()}></bind-child>`;
 			}
 		}
 
@@ -43,7 +43,7 @@ describe('template `.prop` bindings with @state()', () => {
 		expect(badge.querySelector('.count')!.textContent).toBe('3');
 
 		// Changing the parent's own state - not touching the child directly - should flow through
-		// the `.count="${this.tree.count()}"` binding into the child's `@state()` field and trigger
+		// the `.count=${this.tree.count()}` binding into the child's `@state()` field and trigger
 		// the child's own `template()` re-render.
 		panel.tree.count.set(9);
 		await flush();

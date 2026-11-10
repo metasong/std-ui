@@ -31,7 +31,7 @@ export class DemoVirtualizeHeaders extends UIElement {
 			</p>
 			<div class="demo-actions">
 				<button type="button" class="tonal" @click="${() => this.#list.scrollToIndex(350, { align: 'start' })}">Section “Delta”</button>
-				<button type="button" class="tonal" @click="${() => this.#list.scrollToIndex(725)}">Section “Theta”</button>
+				<button type="button" class="tonal" @click=${() => this.#list.scrollToIndex(725)}>Section “Theta”</button>
 			</div>
 			<div class="demo-v-scroller demo-v-scroller-y">
 				<div>

@@ -36,7 +36,7 @@ class BindDirective extends Directive {
 	constructor(partInfo: PartInfo) {
 		super(partInfo);
 		if (partInfo.type !== PartType.PROPERTY) {
-			throw new Error('std-ui bind(): must be used as a property binding (e.g. `.value="${bind(...)}"`).');
+			throw new Error('std-ui bind(): must be used as a property binding (e.g. `.value=${bind(...)}`).');
 		}
 		assertBindableTarget(partInfo.element, partInfo.name);
 	}
@@ -112,10 +112,10 @@ class BindDirective extends Directive {
 const bindDirective = directive(BindDirective);
 
 /**
- * Two-way property binding for `.prop="${bind(...)}"`.
+ * Two-way property binding for `.prop=${bind(...)}`.
  *
  * ```ts
- * t`<input .value="${bind(form.query)}" />`
+ * t`<input .value=${bind(form.query)} />`
  * t`<my-slider .level="${bind(form.level, { event: 'level-change' })}" />`
  * t`<input .value="${bind({ get: () => store.name, set: v => (store.name = String(v)) })}" />`
  * ```

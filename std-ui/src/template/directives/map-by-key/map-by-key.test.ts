@@ -62,7 +62,7 @@ describe('mapByKey', () => {
 			mapByKey(
 				[row('a', 'A'), row('b', 'B')],
 				(i) => i.id,
-				(i) => t`<li data-id="${i.id}">${i.label}</li>`,
+				(i) => t`<li data-id=${i.id}>${i.label}</li>`,
 			),
 		]);
 
@@ -70,7 +70,7 @@ describe('mapByKey', () => {
 			mapByKey(
 				[row('b', 'B'), row('a', 'A')],
 				(i) => i.id,
-				(i) => t`<li data-id="${i.id}">${i.label}</li>`,
+				(i) => t`<li data-id=${i.id}>${i.label}</li>`,
 			),
 		]);
 
@@ -96,13 +96,13 @@ describe('mapByKey', () => {
 					{ id: 'go', t: '2' },
 				],
 				(i) => i.id,
-				(i) => t`<p data-id="${i.id}">${i.t}</p>`,
+				(i) => t`<p data-id=${i.id}>${i.t}</p>`,
 			),
 		]);
 		expect(container.querySelectorAll('p')).toHaveLength(2);
 
 		part.update([
-			mapByKey([{ id: 'stay', t: '1' }], (i) => i.id, (i) => t`<p data-id="${i.id}">${i.t}</p>`),
+			mapByKey([{ id: 'stay', t: '1' }], (i) => i.id, (i) => t`<p data-id=${i.id}>${i.t}</p>`),
 		]);
 		expect(container.querySelectorAll('p')).toHaveLength(1);
 		expect(container.querySelector('p')!.getAttribute('data-id')).toBe('stay');

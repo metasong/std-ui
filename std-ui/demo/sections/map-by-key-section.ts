@@ -20,15 +20,15 @@ export class DemoMapByKeySection extends UIElement {
 				Sort the chores, then check a box and sort again — the checkbox stays with the same chore because rows are keyed by <code>id</code>, not list index. The todo section above uses a plain <code>.map()</code> (positional).
 			</p>
 			<div class="demo-actions">
-				<button type="button" @click="${() => this.sortByLabel(1)}">A → Z</button>
-				<button type="button" class="tonal" @click="${() => this.sortByLabel(-1)}">Z → A</button>
+				<button type="button" @click=${() => this.sortByLabel(1)}>A → Z</button>
+				<button type="button" class="tonal" @click=${() => this.sortByLabel(-1)}>Z → A</button>
 			</div>
 			<ul class="demo-chore-list">
 				${mapByKey(
 					chores,
 					(c: Chore) => c.id,
 					(c: Chore) => t`
-						<li class="demo-chore-item" data-id="${c.id}">
+						<li class="demo-chore-item" data-id=${c.id}>
 							<label>
 								<input type="checkbox" />
 								<span>${c.id}) ${c.label}</span>

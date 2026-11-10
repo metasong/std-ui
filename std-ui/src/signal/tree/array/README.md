@@ -75,15 +75,15 @@ class TagTodoPanel extends UIElement {
 			<ul class="tags">
 				${this.model.tags.deep().map((label) => t`<li>${label}</li>`)}
 			</ul>
-			<button type="button" @click="${() => this.model.tags.push('errands')}">add tag</button>
+			<button type="button" @click=${() => this.model.tags.push('errands')}>add tag</button>
 
 			<ul class="todos">
 				${this.model.todos.deep().map((todo, i) => t`
 					<li>
 						<input
 							type="checkbox"
-							.checked="${todo.done}"
-							@change="${() => this.model.todos.at(i)!.done.set(!this.model.todos.at(i)!.done())}"
+							.checked=${todo.done}
+							@change=${() => this.model.todos.at(i)!.done.set(!this.model.todos.at(i)!.done())}
 						/>
 						${todo.text}
 					</li>

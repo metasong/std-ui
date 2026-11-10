@@ -23,14 +23,14 @@ describe('doc: mapByKey keeps row DOM when a @state() list is reordered', () => 
 			protected override template() {
 				return t`
 					<p>Chore list — sort and the rows move; keyed rows keep their controls.</p>
-					<button type="button" data-action="az" @click="${() => this.sortByLabel(1)}">A → Z</button>
-					<button type="button" data-action="za" @click="${() => this.sortByLabel(-1)}">Z → A</button>
+					<button type="button" data-action="az" @click=${() => this.sortByLabel(1)}>A → Z</button>
+					<button type="button" data-action="za" @click=${() => this.sortByLabel(-1)}>Z → A</button>
 					<ul>
 						${mapByKey(
 							this.chores.deep(),
 							(c) => c.id,
 							(c) => t`
-								<li data-id="${c.id}">
+								<li data-id=${c.id}>
 									<label><input type="checkbox" /> ${c.id}) ${c.label}</label>
 								</li>
 							`,

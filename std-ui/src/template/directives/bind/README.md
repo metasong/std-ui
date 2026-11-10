@@ -1,6 +1,6 @@
 # `bind()` — two-way property directive
 
-Built-in **property directive** for `.name="${bind(...)}"` bindings. Combines:
+Built-in **property directive** for `.name=${bind(...)}` bindings. Combines:
 
 1. **Model → view** with **live** semantics (skip writing when the element already shows the model).
 2. **View → model** via a DOM event listener (no separate `@input` / `@change` in the template).
@@ -16,7 +16,7 @@ class SearchField extends UIElement {
 
 	protected override template() {
 		return t`
-			<input .value="${bind(this.query)}" placeholder="Search…" />
+			<input .value=${bind(this.query)} placeholder="Search…" />
 			<p>You typed: ${this.query()}</p>
 		`;
 	}
@@ -39,9 +39,9 @@ class SignupField extends UIElement {
 
 	protected override template() {
 		return t`
-			<input type="email" .value="${bind(this.email)}" placeholder="you@example.com" />
+			<input type="email" .value=${bind(this.email)} placeholder="you@example.com" />
 			<label>
-				<input type="checkbox" .checked="${bind(this.agreed)}" />
+				<input type="checkbox" .checked=${bind(this.agreed)} />
 				I agree
 			</label>
 			<p>${this.email()} — agreed: ${this.agreed()}</p>
@@ -64,8 +64,8 @@ during render, so model changes re-render the template.
 ```ts
 const form = signalState({ query: '', agreed: false });
 
-t`<input .value="${bind(form.query)}" />`
-t`<input type="checkbox" .checked="${bind(form.agreed)}" />`
+t`<input .value=${bind(form.query)} />`
+t`<input type="checkbox" .checked=${bind(form.agreed)} />`
 ```
 
 Override just the event (property on the element is still `.level` → default would be `level-change`):
@@ -162,7 +162,7 @@ Resolved from the **property name** on the bound element (`PropertyPart.name`):
 Parent:
 
 ```ts
-t`<my-editor .document="${bind(doc)}"></my-editor>`;
+t`<my-editor .document=${bind(doc)}></my-editor>`;
 ```
 
 Child contract (default event `document-change`):
@@ -184,8 +184,8 @@ Override the event when your component uses a different name: `bind(doc, { event
 
 | | Manual | `bind()` |
 |---|--------|----------|
-| Down | `.value="${state}"` | live compare before assign |
-| Up | `@input="${...}"` | single listener from `event` |
+| Down | `.value=${state}` | live compare before assign |
+| Up | `@input=${...}` | single listener from `event` |
 | Re-render while typing | may re-assign every keystroke | skips when DOM already matches |
 
 ## Browser demo

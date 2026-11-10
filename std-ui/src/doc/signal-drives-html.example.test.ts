@@ -16,7 +16,7 @@ describe('doc: signals drive html render', () => {
 
 		const view = () => t`
 			<p><strong>${count()}</strong> ${label()}</p>
-			<button ?disabled="${count() >= 10}">+</button>
+			<button ?disabled=${count() >= 10}>+</button>
 		`;
 
 		effect(() => {
@@ -63,8 +63,8 @@ describe('doc: signals drive html render', () => {
 					<span>${value()}</span> / ${max()}
 					<button
 						type="button"
-						?disabled="${value() >= max()}"
-						@click="${() => shared.counter.value.update(n => n + 1)}"
+						?disabled=${value() >= max()}
+						@click=${() => shared.counter.value.update(n => n + 1)}
 					>+</button>
 				`;
 			}

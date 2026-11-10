@@ -13,7 +13,7 @@ export class DemoVirtualizeHorizontal extends UIElement {
 			<h2 id="horizontal">Horizontal list</h2>
 			<p class="desc"><code>direction: 'horizontal'</code> — window follows <code>scrollLeft</code>. Fixed card width via <code>itemSize</code>.</p>
 			<div class="demo-actions">
-				<button type="button" class="tonal" @click="${() => this.#list.scrollToIndex(0)}">Start</button>
+				<button type="button" class="tonal" @click=${() => this.#list.scrollToIndex(0)}>Start</button>
 				<button type="button" class="tonal" @click="${() => this.#list.scrollToIndex(1000, { align: 'center' })}">#1000</button>
 				<button type="button" class="tonal" @click="${() => this.#list.scrollToIndex(1999, { align: 'end' })}">End</button>
 			</div>
