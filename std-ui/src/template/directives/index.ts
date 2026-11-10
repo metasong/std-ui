@@ -5,5 +5,6 @@ export { mapByKey } from './map-by-key/index.js';
 export { virtualize, VirtualizeController } from './virtualize/index.js';
 export type { VirtualizeOptions, ScrollToIndexOptions, ScrollAlign } from './virtualize/index.js';
 export { cache } from './cache/index.js';
+export { slot } from './slot/index.js';
 export { ref, createRef } from './ref/index.js';
 export type { Ref, RefCallback, RefOrCallback } from './ref/index.js';

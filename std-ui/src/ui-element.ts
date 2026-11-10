@@ -20,6 +20,7 @@ import {
 	effect as createEffect,
 	type OnCleanup,
 } from './signal/index.js';
+import { snapshotLightChildren } from './template/directives/slot/slot-content.js';
 import { render, disconnectRendered, type CSSResultGroup, type TemplateResult } from './template/index.js';
 
 export {
@@ -29,6 +30,7 @@ export {
 	query,
 	queryAll,
 	queryAsync,
+	queryAssignedNodes,
 	state,
 	tag,
 	type AttributeConverter,
@@ -98,6 +100,8 @@ export abstract class UIElement extends HTMLElement {
 	#ensureRenderRoot(): Element | DocumentFragment {
 		if (this.#renderRoot === null) {
 			this.#renderRoot = this.createRenderRoot();
+			// Light DOM: remember the parent-authored children (no DOM change) for `slot()`.
+			if (this.#renderRoot === this) snapshotLightChildren(this);
 			this.#elementStyles.apply(
 				this.#renderRoot,
 				this.tagName.toLowerCase(),

@@ -1,5 +1,5 @@
 export { tag } from './tag.decorator.js';
-export { query, queryAll, queryAsync } from './query/index.js';
+export { query, queryAll, queryAsync, queryAssignedNodes, type QueryAssignedOptions } from './query/index.js';
 export { state, type StateOptions } from './state/state.decorator.js';
 export { attribute, type AttributeOptions } from './attribute/attribute.decorator.js';
 export { type AttributeConverter, type AttributeType } from './attribute/converter.js';
