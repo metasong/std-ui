@@ -58,7 +58,9 @@ describe('ref directive', () => {
 		expect(() => render(t`<div ${'oops'}></div>`, document.createElement('div'))).toThrow();
 	});
 
-	it('rejects unquoted attribute values', () => {
-		expect(() => render(t`<div a=${1}></div>`, document.createElement('div'))).toThrow();
+	it('supports unquoted attribute values', () => {
+		const host = document.createElement('div');
+		render(t`<div a=${1}></div>`, host);
+		expect(host.firstElementChild!.getAttribute('a')).toBe('1');
 	});
 });

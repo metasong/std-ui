@@ -158,11 +158,15 @@ flowchart LR
 | Style | Example | Compile-time rule |
 |--------|----------|-------------------|
 | Plain | `class="${a} ${b}"` | Allowed: string composition, multiple `${...}`, static mix. |
-| Boolean | `?hidden="${v}"` | Exactly **one** interpolation, **no** extra static text in the value. |
-| Property | `.value="${v}"` | Same. |
-| Event | `@click="${fn}"` | Same (plus optional `.once`/`.capture`/`.passive` on the **name**). |
+| Boolean | `?hidden=${v}` | Exactly **one** interpolation, **no** extra static text in the value. |
+| Property | `.value=${v}` | Same. |
+| Event | `@click=${fn}` | Same (plus optional `.once`/`.capture`/`.passive` on the **name**). |
 
 Sigiled kinds bind a **single JS value** (boolean, property, listener), not a composed string, so the compiler rejects multiple interpolations or static glue inside the quoted value.
+
+### Unquoted values (lit-style)
+
+Any attribute kind may drop the quotes when it has a single interpolation: `class=${x}`, `.value=${v}`, `?hidden=${v}`, `@click=${fn}`. The engine detects `name=` at the end of the markup (inside a tag), calls `onAttributeOpen` with an empty quote/prefix, and immediately closes the attribute with `literals = ['', '']` and `valueCount = 1`, so no ATTR_VALUE state is entered. A quoted placeholder (`"std-ui-part"`) is emitted so the HTML parser sees a valid attribute. Static text or several interpolations require quotes: `class="a ${b}"`; `class=a-${x}` treats `a-` as a literal and is rejected.
 
 Division of labour: the engine hands the hooks the attribute's raw name (sigil and modifiers included, e.g. `@click.once`). `onAttributeOpen` in `compile.ts` parses it into kind/name/options, and `onAttributeClose` receives `literals` and `valueCount` and throws for sigiled kinds that break the rule above. The engine itself has no notion of sigils.
 

@@ -105,6 +105,9 @@ export interface EngineOptions<Type extends string> {
 /** Quoted attribute value open at the end of `markup`: `name="prefix`. */
 const ATTR_START_RE = /([^\s"'<>\/=]+)\s*=\s*(["'])((?:(?!\2).)*)$/;
 
+/** Unquoted attribute value about to start at the end of `markup`: `name=`. */
+const UNQUOTED_ATTR_RE = /([^\s"'<>\/=]+)\s*=\s*$/;
+
 /** True if `markup` currently sits inside an unclosed tag, i.e. in attribute position. */
 function isInsideTag(markup: string): boolean {
 	return markup.lastIndexOf('<') > markup.lastIndexOf('>');
@@ -185,11 +188,19 @@ export function createEngine<D extends SlotDescriptor, Part, Type extends string
 
 			// 2. Tag slot - it belongs to the tag itself, with no attribute name: `<div ${directive()}>`.
 			//    Not allowed: an unquoted attribute value (`<div a=${x}>`), or hooks without `onTagSlot`.
-			const isUnquotedValue = /=\s*$/.test(markup);
-			if (isUnquotedValue || !hooks.onTagSlot) {
+			// 1b. Unquoted attribute slot (lit-style): `<div class=${x}>` - exactly one interpolation,
+			//     closed immediately. A quoted placeholder is emitted so the parser sees a valid attribute.
+			const unquoted = UNQUOTED_ATTR_RE.exec(markup);
+			if (unquoted) {
+				const open = hooks.onAttributeOpen({ rawName: unquoted[1], quote: '', prefix: '', markup });
+				descriptors.push(closeAttr({ open, quote: '', literals: ['', ''], valueCount: 1 }));
+				return { state: TEXT, append: `"${MARKER}"`, rewind: 0 };
+			}
+
+			if (!hooks.onTagSlot) {
 				throw new Error(
 					`std-ui html: unsupported interpolation inside a tag near "...${markup.slice(-40)}" ` +
-						`- attribute values must be quoted, e.g. name="\${value}".`,
+						`- tag-level interpolations are not supported here.`,
 				);
 			}
 			descriptors.push(finalize(hooks.onTagSlot({ markup })));
