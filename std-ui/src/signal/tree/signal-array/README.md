@@ -41,6 +41,60 @@ todos.at(0)!.done.set(true);
 todos.at(0)!(); // { text: 'buy milk', done: true }
 ```
 
+## In a `UIElement` with `@state()`
+
+[`@state()`](../../../decorators/state/README.md) calls `signalState()` on the field’s initial value. Any array on that tree —
+top-level field or property on a plain-object field — is a `SignalArray`: `child()` for a tracked snapshot,
+`child.push(...)` / `child.at(i)!.set(...)` for structure and per-slot writes.
+
+```ts
+import { tag, state, UIElement } from '../../../index.js';
+import { t } from '../../../template/index.js';
+
+type Todo = { text: string; done: boolean };
+
+@tag('tag-todo-panel')
+class TagTodoPanel extends UIElement {
+	@state() model = {
+		tags: ['work', 'home'],
+		todos: [
+			{ text: 'buy milk', done: false },
+			{ text: 'walk dog', done: true },
+		] as Todo[],
+	};
+
+	protected override template() {
+		return t`
+			<ul class="tags">
+				${this.model.tags().map((label) => t`<li>${label}</li>`)}
+			</ul>
+			<button type="button" @click="${() => this.model.tags.push('errands')}">add tag</button>
+
+			<ul class="todos">
+				${this.model.todos().map((todo, i) => t`
+					<li>
+						<input
+							type="checkbox"
+							.checked="${todo.done}"
+							@change="${() => this.model.todos.at(i)!.done.set(!this.model.todos.at(i)!.done())}"
+						/>
+						${todo.text}
+					</li>
+				`)}
+			</ul>
+		`;
+	}
+}
+```
+
+On a plain-object `@state()` field, each array property is still a `SignalArray`: `this.model.tags.push(...)` /
+`this.model.todos.at(i)!.done.set(...)`. Toggling `done` updates only that row’s branch; you do not need
+`this.model.todos.set(this.model.todos().map(...))` for in-place field edits. Whole-list replace still works:
+`this.model.todos.set([...])`.
+
+For lists that reorder or splice in the middle, pair `@state()` with keyed rendering — see
+[`mapByKey`](../../../template/directives/map-by-key/README.md).
+
 ## API
 
 | Member | Role |
