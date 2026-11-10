@@ -2,7 +2,7 @@
 // `./tracking.ts` - the low-level primitive modeled on `Signal.subtle.Watcher` in the proposed
 // standard signals API.
 
-import { CycleGuard } from './cycle-guard.js';
+import { CycleGuard } from '../../dev/effect-cycle-guard.js';
 import { clearDeps, runTracked, Watcher } from './tracking.js';
 
 /** Call inside an `effect()` body to register cleanup that runs before the next re-run, and on dispose. */

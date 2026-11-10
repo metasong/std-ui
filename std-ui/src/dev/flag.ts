@@ -1,7 +1,8 @@
 declare const process: { env: Record<string, string | undefined> } | undefined;
 
 /**
- * Whether dev-only diagnostics (e.g. warnings about undefined custom elements) are enabled.
+ * Whether dev-only diagnostics (e.g. undefined custom-element warnings, effect-cycle stack traces)
+ * are enabled.
  *
  * Explicit override, highest priority - set before std-ui loads:
  *   globalThis.__STD_UI_DEV__ = true;   // force on  (e.g. debugging a production build)

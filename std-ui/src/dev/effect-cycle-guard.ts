@@ -1,17 +1,18 @@
 // Cycle guard for `effect()`: detects effects that keep re-triggering each other (A writes what B
-// reads, B writes what A reads) and throws a descriptive error instead of freezing the page in an
-// endless microtask loop. See `./effect-cycles.md`.
+// reads, B writes what A reads) and throws instead of freezing the page in an endless microtask loop.
+// See `../signal/core/effect-cycles.md`.
 
-import type { Watcher } from './tracking.js';
+import type { Watcher } from '../signal/core/tracking.js';
+import { DEV } from './flag.js';
 
 /**
  * Counts re-runs per effect across a chain of consecutive flushes. Once one effect exceeds `limit`
  * re-runs, `count()` calls `onTrip` (so the caller can drop its queue), resets itself, and throws.
  *
- * Each effect's creation site is captured as an `Error` (cheap: V8 formats `.stack` lazily) and only
- * turned into text when the error is built.
+ * When `DEV` is on, each effect's creation site is captured as an `Error` (V8 formats `.stack`
+ * lazily) and only turned into text when the error is built.
  *
- * Example of the error thrown (frames point at where each `effect(...)` was created):
+ * Example of the error thrown in dev (frames point at where each `effect(...)` was created):
  *
  * ```
  * Error: effect re-ran more than 100 times in a row: probably a cycle between effects that write
@@ -28,7 +29,7 @@ import type { Watcher } from './tracking.js';
 export class CycleGuard {
 	/** Re-run counts for the current chain; cleared once a flush leaves nothing pending. */
 	private readonly runs = new Map<Watcher, number>();
-	/** Creation-site `Error` of each live effect; its `.stack` is read only when a cycle is reported. */
+	/** Creation-site `Error` of each live effect (dev only). */
 	private readonly origins = new Map<Watcher, Error>();
 
 	constructor(
@@ -39,7 +40,7 @@ export class CycleGuard {
 
 	/** Remembers where `watcher`'s effect was created. Call from `effect()`. */
 	register(watcher: Watcher): void {
-		this.origins.set(watcher, new Error());
+		if (DEV) this.origins.set(watcher, new Error());
 	}
 
 	/** Forgets `watcher`. Call from the effect's dispose. */
@@ -66,10 +67,9 @@ export class CycleGuard {
 	}
 
 	private describe(offender: Watcher): string {
-		// Every effect that re-ran in this chain is a suspect; the offender hit the limit first.
 		const suspects = [...this.runs].filter(([w, n]) => w !== offender && n > 1);
 		const fmt = (w: Watcher, n: number): string =>
-			`  - ran ${n}x, created at:\n${originOf(this.origins.get(w))}`;
+			`  - ran ${n}x${DEV ? `, created at:\n${originOf(this.origins.get(w))}` : ''}`;
 		return [
 			`effect re-ran more than ${this.limit} times in a row: probably a cycle between effects that write signals each other reads.`,
 			`Effect that hit the limit:`,
@@ -81,13 +81,13 @@ export class CycleGuard {
 	}
 }
 
-/** First stack frames outside the signal core, i.e. the user's `effect(...)` call site. */
+/** First stack frames outside the signal core / dev helpers, i.e. the user's `effect(...)` call site. */
 function originOf(error: Error | undefined): string {
 	if (!error?.stack) return '    (unknown)';
 	return error.stack
 		.split('\n')
 		.slice(1)
-		.filter((l) => !/effect\.ts|cycle-guard\.ts/.test(l))
+		.filter((l) => !/\/(?:effect|effect-cycle-guard)\.ts/.test(l))
 		.slice(0, 3)
 		.join('\n');
 }
