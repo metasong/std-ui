@@ -8,8 +8,7 @@ import {
 	readProperty,
 	writeProperty,
 } from './defaults.js';
-import { readValue, type ItemNode } from '../../../signal/tree/index.js';
-import type { BindAccessor, BindOptions, BindSource, Binding, WritableSignal } from './types.js';
+import type { BindAccessor, BindOptions, BindTrack, BindSource, Binding, WritableSignal } from './types.js';
 
 export function isWritableSignal(value: unknown): value is WritableSignal {
 	return typeof value === 'function' && typeof (value as { set?: unknown }).set === 'function';
@@ -18,6 +17,11 @@ export function isWritableSignal(value: unknown): value is WritableSignal {
 function isAccessor(value: unknown): value is BindSource {
 	const source = value as Partial<BindSource> | null | undefined;
 	return typeof source?.get === 'function' && typeof source?.set === 'function';
+}
+
+function trackedReader(state: WritableSignal, track: BindTrack): () => unknown {
+	const read = track === 'replace' ? undefined : (state as Partial<Record<BindTrack, () => unknown>>)[track];
+	return typeof read === 'function' ? () => read.call(state) : () => state();
 }
 
 export const BIND_USAGE = 'pass a signal (`bind(sig[, options])`) or `bind({ get, set, ... })`.';
@@ -29,8 +33,8 @@ export function resolveBinding(args: readonly unknown[], element: Element, prope
 	let options: BindOptions;
 
 	if (isWritableSignal(first)) {
-		model = { get: () => readValue(first as ItemNode<unknown>), set: v => (first as WritableSignal<unknown>).set(v as never) };
 		options = (second as BindOptions | undefined) ?? {};
+		model = { get: trackedReader(first, options.track ?? 'deep'), set: v => (first as WritableSignal<unknown>).set(v as never) };
 	} else if (isAccessor(first)) {
 		const { get, set, ...rest } = first;
 		model = { get, set };

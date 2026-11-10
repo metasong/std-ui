@@ -6,8 +6,20 @@ export interface BindAccessor {
 	set: (value: unknown) => void;
 }
 
+/** Change-tracking depth for model reads; maps to a signal-tree node's `()`, `shallow()`, `deep()`. */
+export type BindTrack = 'replace' | 'shallow' | 'deep';
+
 /** View-side hooks; every one is optional and has a default derived from the element + property. */
 export interface BindOptions {
+	/**
+	 * How far model reads track changes on a signal-tree node (signal form only; ignored for `{ get, set }`):
+	 * - `'replace'` → `node()`: only replacement of the node itself.
+	 * - `'shallow'` → `node.shallow()`: + structural changes (key add/delete, push/splice/reorder).
+	 * - `'deep'` → `node.deep()`: + any value change below, recursively.
+	 * All three yield the same plain value. Plain signals without `shallow()` / `deep()` fall back to
+	 * `node()`. Default: `'deep'`.
+	 */
+	track?: BindTrack;
 	/**
 	 * DOM event that means "the user (or component) changed the bound property".
 	 * Defaults: native `.value` → `input` (`change` for `<select>`), checkbox/radio `.checked` →

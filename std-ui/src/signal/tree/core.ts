@@ -54,9 +54,9 @@ type Members<T> = { readonly [K in keyof T]: SignalState<T[K]> };
  *   same-named property (see `./object`);
  * - anything else → `SignalLeaf<T>`.
  *
- * Every node shares the same reads: `()` (child nodes, tracks replacement), `shallow()` (child
- * nodes, tracks structure), `deep()` (plain value, tracks everything below). On a leaf all three
- * are the same value read.
+ * Every node shares the same reads, all returning the plain value: `()` (tracks replacement),
+ * `shallow()` (tracks structure), `deep()` (tracks everything below). On a leaf all three are the
+ * same read.
  */
 export type SignalState<T> = T extends readonly (infer U)[]
 	? SignalArray<U, SignalState<U> & ItemNode<U>>

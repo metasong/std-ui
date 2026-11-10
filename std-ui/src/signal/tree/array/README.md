@@ -6,8 +6,8 @@ order**. That split gives three tracking depths, plus per-slot access:
 
 | Read | Returns | Re-runs on |
 | --- | --- | --- |
-| `list()` | node array | whole replacement via `set()` / `update()` only (like a plain `signal(array)`) |
-| `list.shallow()` | node array | + `push` / `pop` / `splice` / reorder |
+| `list()` | plain values | whole replacement via `set()` / `update()` only (like a plain `signal(array)`) |
+| `list.shallow()` | plain values | + `push` / `pop` / `splice` / reorder |
 | `list.deep()` | plain values | + any item's value change, recursively |
 | `list.at(i)` | node | the node at `i` being swapped |
 | `list[i]` | node | never (untracked) |
@@ -106,8 +106,8 @@ For lists that reorder or splice in the middle, pair `@state()` with keyed rende
 
 | Member | Role |
 | --- | --- |
-| `list()` | Tracked node array; notifies only on whole replacement (`set` / `update`). |
-| `list.shallow()` | Tracked node array; notifies on any structural change (replace, push, splice, reorder). |
+| `list()` | Plain values; notifies only on whole replacement (`set` / `update`). |
+| `list.shallow()` | Plain values; notifies on any structural change (replace, push, splice, reorder). |
 | `list.deep()` | Tracked plain values (structure + every item, recursively). |
 | `list[i]` | Untracked node at non-negative integer `i`. |
 | `list.peek()` | Untracked snapshot of values. |
@@ -132,9 +132,9 @@ Whole-array replacement from a parent branch still works: `tree.set({ tags: ['x'
 - `DeepPartial` for a parent object does not express per-index patches; use `tags.at(i).set(...)` or
   collection mutators.
 - The internal node list uses `equals: () => false` so in-place structural mutation of the `N[]`
-  array always notifies `shallow()`; `list()` is a computed over it whose `Object.is` cutoff only
-  passes a new array instance (from `set()`).
-- Like a plain `signal(array)`, the array returned by `list()` / `shallow()` is mutated in place by
-  `push` / `splice` etc.; copy it if you need a stable snapshot.
+  array always notifies `shallow()`; `list()` subscribes to a computed over it whose `Object.is`
+  cutoff only passes a new array instance (from `set()`).
+- `list()` and `shallow()` return the cached `deep()` value without subscribing to the items, so a
+  value read through them can be newer than the last change they notified on.
 - `makeItem` is required when constructing standalone `signalArray`; `signalState` supplies
   `(item) => signalState(item)`.

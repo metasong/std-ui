@@ -1,9 +1,10 @@
 // Observable collection: `signalArray()` is the signal-tree version of an array. Each element is its
 // own node (built by the supplied `makeItem`, so objects become branches and primitives leaves), and
 // the list structure (which nodes, in what order) is tracked by one signal. Consequently:
-//   - `list()` returns the node array and re-runs only on whole replacement via `set()`;
+//   - `list()`, `list.shallow()` and `list.deep()` all return plain values; they differ in tracking:
+//   - `list()` re-runs only on whole replacement via `set()`;
 //   - `list.shallow()` also re-runs when items are added/removed/reordered;
-//   - `list.deep()` returns plain values and re-runs on structure OR any item's value change;
+//   - `list.deep()` re-runs on structure OR any item's value change;
 //   - `list.at(i)()` only re-runs when that element changes (or the element at `i` is replaced).
 
 import { computed, signal, type Computed, type Signal } from '../../core/index.js';
@@ -11,10 +12,10 @@ import { readValue, type ItemNode } from '../node.js';
 
 export interface SignalArray<T, N extends ItemNode<T> = ItemNode<T>> {
 	/**
-	 * Reads the node array instance, tracking only whole replacement via `set()` / `update()` (like
-	 * a plain `signal(array)`). Use `shallow()` to also track push/pop/splice etc.
+	 * Reads the plain values, tracking only whole replacement via `set()` / `update()` (like a plain
+	 * `signal(array)`). Use `shallow()` to also track push/pop/splice etc.
 	 */
-	(): readonly N[];
+	(): T[];
 	/** Reads the whole array as plain values (tracks structure and every item, recursively). */
 	deep(): T[];
 	/** Deep-untracked snapshot. */
@@ -37,10 +38,10 @@ export interface SignalArray<T, N extends ItemNode<T> = ItemNode<T>> {
 	 */
 	readonly [index: number]: N | undefined;
 	/**
-	 * Reads the node array, tracking whole replacement and any structural change,
+	 * Reads the plain values, tracking whole replacement and any structural change,
 	 * even when the length is the same.
 	 */
-	shallow(): readonly N[];
+	shallow(): T[];
 
 	/**
 	 * Array-like mutators. `mutate` reads `nodes.peek()` so these do not subscribe; `nodes.set`
@@ -65,8 +66,10 @@ export function signalArray<T, N extends ItemNode<T> = ItemNode<T>>(
 
 	const deep = computed(() => nodes().map(readValue));
 	// Mutators edit the node array in place and only `set()` swaps in a new one, so with `Object.is`
-	// cutoff `()` notifies on replacement only, like a plain `signal(array)`.
-	const self = computed(() => nodes()) as unknown as SignalArray<T, N>;
+	// cutoff `instance` notifies on replacement only, like a plain `signal(array)`.
+	const instance = computed(() => nodes());
+	// All three reads return the same plain values; they differ only in what they subscribe to.
+	const self = (() => (instance(), deep.peek())) as unknown as SignalArray<T, N>;
 	self.deep = () => deep();
 
 	const snapshot = (list: readonly N[]): T[] => list.map((n) => n.peek());
@@ -112,7 +115,7 @@ export function signalArray<T, N extends ItemNode<T> = ItemNode<T>>(
 		}
 		return c();
 	};
-	self.shallow = () => nodes();
+	self.shallow = () => (nodes(), deep.peek());
 
 	self.push = (...values) => mutate((l) => l.push(...values.map(makeItem)));
 	self.unshift = (...values) => mutate((l) => l.unshift(...values.map(makeItem)));

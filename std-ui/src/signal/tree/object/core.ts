@@ -1,9 +1,10 @@
 // Observable record: `signalObject()` is the signal-tree version of a plain object, mirroring
 // `../array`. Each property is its own member node (built by the supplied `makeMember`), and which
 // members exist is tracked by one signal. Consequently:
-//   - `obj()` returns the member record and re-runs only when `set()` replaces it (new key, clear);
+//   - `obj()`, `obj.shallow()` and `obj.deep()` all return the plain value; they differ in tracking:
+//   - `obj()` re-runs only when `set()` replaces the member record (new key, clear);
 //   - `obj.shallow()` also re-runs when members are added (`set()` with a new key) or `delete`d;
-//   - `obj.deep()` returns the plain value and re-runs on any member's value change, recursively;
+//   - `obj.deep()` re-runs on any member's value change, recursively;
 //   - `obj.key` is the member node itself (untracked access), e.g. `obj.user.label.set('x')`.
 
 import { computed, signal, type Signal } from '../../core/index.js';
@@ -13,12 +14,12 @@ type Members = Record<string, ItemNode<unknown>>;
 
 export interface SignalObject<T, M = Members, P = Partial<T>> {
 	/**
-	 * Reads the member record, tracking only its replacement: a `set()` that adds a key or clears /
-	 * restores the object. Use `shallow()` to also track `delete`.
+	 * Reads the plain value, tracking only replacement of the member record: a `set()` that adds a
+	 * key or clears / restores the object. Use `shallow()` to also track `delete`.
 	 */
-	(): Readonly<M>;
-	/** Reads the member record, tracking any change to which members exist. */
-	shallow(): Readonly<M>;
+	(): T;
+	/** Reads the plain value, tracking any change to which members exist. */
+	shallow(): T;
 	/** Reads the whole object as a plain value (tracks every member, recursively). */
 	deep(): T;
 	/** Deep-untracked snapshot. */
@@ -56,10 +57,12 @@ export function signalObject<T, M = Members, P = Partial<T>>(
 
 	const deep = computed(() => build(members(), readValue));
 	// `delete` edits the record in place and only `set()` swaps in a new one, so with `Object.is`
-	// cutoff `()` notifies on replacement only.
-	const self = computed(() => members()) as unknown as SignalObject<T, M, P>;
+	// cutoff `record` notifies on replacement only.
+	const record = computed(() => members());
+	// All three reads return the same plain value; they differ only in what they subscribe to.
+	const self = (() => (record(), deep.peek())) as unknown as SignalObject<T, M, P>;
 	self.deep = () => deep();
-	self.shallow = () => members() as unknown as Readonly<M>;
+	self.shallow = () => (members(), deep.peek());
 	self.peek = () => build(members.peek(), (n) => n.peek());
 	// Only a membership change (new key, clear, restore) swaps in a new record; patching existing
 	// members just notifies those members, so untouched siblings keep their deep value identity.

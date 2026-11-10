@@ -8,8 +8,8 @@ Implementation details: [`design.md`](./design.md).
 
 | Read | Returns | Re-runs on |
 | --- | --- | --- |
-| `obj()` | member record | replacement only: `set()` adding a key, clear, or restore |
-| `obj.shallow()` | member record | + `delete(key)` |
+| `obj()` | plain value | replacement only: `set()` adding a key, clear, or restore |
+| `obj.shallow()` | plain value | + `delete(key)` |
 | `obj.deep()` | plain value | + any member's value change, recursively |
 | `obj.key` | member node | never (untracked) |
 
@@ -25,15 +25,15 @@ user.label.set('Grace');      // only `label` notifies
 user.deep();                  // { label: 'Grace', age: 30 }
 user.set({ zip: '1000' });    // adds member `zip`
 user.delete('zip');           // removes it
-user().label === user.label;  // true
+user();                       // { label: 'Grace', age: 30 } (tracks replacement only)
 ```
 
 ## API
 
 | Member | Role |
 | --- | --- |
-| `obj()` | Tracked member record; notifies only when the record is replaced. |
-| `obj.shallow()` | Tracked member record; notifies on any membership change. |
+| `obj()` | Plain value; notifies only when the member record is replaced. |
+| `obj.shallow()` | Plain value; notifies on any membership change. |
 | `obj.deep()` | Tracked plain value (every member, recursively). |
 | `obj.peek()` | Untracked deep snapshot. |
 | `obj.set(partial)` | Patch existing members, add unknown keys; `set(undefined \| null)` clears. |

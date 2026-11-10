@@ -94,9 +94,10 @@ describe('signalArray', () => {
 		expect(allRuns).toBe(3);
 	});
 
-	it('() returns the node array and tracks only set() replacement', async () => {
+	it('() returns plain values and tracks only set() replacement', async () => {
 		const list = signalArray([1, 2], signal);
-		expect(list()).toEqual([list.at(0), list.at(1)]);
+		expect(list()).toEqual([1, 2]);
+		expect(list.shallow()).toBe(list.deep());
 		let runs = 0;
 		effect(() => {
 			list();

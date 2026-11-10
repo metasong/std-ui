@@ -21,17 +21,18 @@ a.b.c.d.set(2); // d notifies -> c, b, a deep() dirty -> effect re-runs
 
 ## Three reads on every container
 
-Objects and arrays share the same tracking depths:
+Objects and arrays share the same tracking depths. Every read returns the same plain value; only
+what it re-runs on differs:
 
-| Read | Returns | Re-runs on |
-| --- | --- | --- |
-| `x()` | child nodes (member record / node array) | replacement only (like a plain `signal(value)`) |
-| `x.shallow()` | child nodes | + structural change (key add/delete, push/splice/reorder) |
-| `x.deep()` | plain value | + any value change below, recursively |
-| `x.peek()` | plain value | never (deep untracked snapshot) |
+| Read | Re-runs on |
+| --- | --- |
+| `x()` | replacement only (like a plain `signal(value)`) |
+| `x.shallow()` | + structural change (key add/delete, push/splice/reorder) |
+| `x.deep()` | + any value change below, recursively |
+| `x.peek()` | never (deep untracked snapshot) |
 
-Leaves (`SignalLeaf`) are core `Signal`s with `shallow()` / `deep()` added, all three returning the
-value. So within the tree, `x.deep()` always means "the plain value". For signals that may come
+Leaves (`SignalLeaf`) are core `Signal`s with `shallow()` / `deep()` added, all three the same read.
+Child nodes are reached through properties (`x.key`) and `list.at(i)` / `list[i]`. For signals that may come
 from outside the tree (plain `signal()` / `computed()` / `toSignal()`, or future standard
 signals), use [`readValue`](./node.ts).
 

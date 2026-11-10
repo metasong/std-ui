@@ -214,10 +214,11 @@ describe('signalState', () => {
 		expect([callRuns, shallowRuns]).toEqual([2, 3]);
 	});
 
-	it('object () returns member nodes, reachable as properties', () => {
+	it('object (), shallow() and deep() return the same plain value', () => {
 		const tree = signalState(makeState());
-		expect(tree().user).toBe(tree.user);
-		expect(tree.user().label).toBe(tree.user.label);
+		expect(tree.user()).toEqual({ label: 'Ada', age: 30 });
+		expect(tree.user.shallow()).toBe(tree.user.deep());
+		expect(tree.user()).toBe(tree.user.deep());
 	});
 });
 
