@@ -6,6 +6,8 @@ export {
 	readValue,
 	type ItemNode,
 	type Checked,
+	type Tracked,
+	type ChangeTracking,
 	type Validation,
 	type ValidationError,
 	type Validator,

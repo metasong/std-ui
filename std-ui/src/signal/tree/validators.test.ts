@@ -81,6 +81,82 @@ describe('validators', () => {
 		s.list.clear();
 		expect(s.list.check.errors()[0].kind).toBe('empty');
 	});
+
+	describe('changes.dirty / changes.reset()', () => {
+		it('leaf: dirty tracks difference from the initial value; reset restores it', () => {
+			const s = signalState({ name: 'a' });
+			expect(s.name.changes.dirty()).toBe(false);
+			s.name.set('b');
+			expect(s.name.changes.dirty()).toBe(true);
+			s.name.set('a');
+			expect(s.name.changes.dirty()).toBe(false);
+			s.name.set('z');
+			s.name.changes.reset();
+			expect(s.name()).toBe('a');
+		});
+
+		it('branch: dirty is deep and reset undoes nested edits, added and deleted members', () => {
+			const s = signalState<{ user: { name: string; extra?: number }; tags: string[]; n: number }>({
+				user: { name: 'a' },
+				tags: ['x'],
+				n: 1,
+			});
+			expect(s.changes.dirty()).toBe(false);
+			s.user.name.set('b');
+			s.tags.push('y');
+			s.user.set({ extra: 5 });
+			s.delete('n');
+			expect(s.changes.dirty()).toBe(true);
+			expect(s.user.changes.dirty()).toBe(true);
+			s.changes.reset();
+			expect(s.deep()).toEqual({ user: { name: 'a' }, tags: ['x'], n: 1 });
+			expect(s.changes.dirty()).toBe(false);
+		});
+
+		it('reset restores an object cleared with set(null)', () => {
+			const s = signalState({ a: 1 });
+			s.set(null as any);
+			expect(s.changes.dirty()).toBe(true);
+			s.changes.reset();
+			expect(s.deep()).toEqual({ a: 1 });
+		});
+
+		it('array: reorder is dirty, reset restores and keeps validators', () => {
+			const s = signalState({ list: [1, 2] });
+			s.list.check.validators.set([() => undefined]);
+			s.list.set([2, 1]);
+			expect(s.list.changes.dirty()).toBe(true);
+			s.list.changes.reset();
+			expect(s.list.deep()).toEqual([1, 2]);
+			expect(s.list.check.validators.peek()).toHaveLength(1);
+		});
+
+
+		it('reset(next) sets a new initial value and writes it, at every level', () => {
+			const s = signalState<{ user: { name: string; extra?: number }; tags: string[] }>({ user: { name: 'a' }, tags: ['x'] });
+			s.user.set({ extra: 1 });
+			s.changes.reset({ user: { name: 'b' }, tags: ['y', 'z'] });
+			expect(s.deep()).toEqual({ user: { name: 'b' }, tags: ['y', 'z'] });
+			expect(s.changes.dirty()).toBe(false);
+			expect(s.user.name.changes.dirty()).toBe(false);
+			s.user.name.set('c');
+			expect(s.changes.dirty()).toBe(true);
+			s.changes.reset(); // back to the new initial value, not the creation value
+			expect(s.user.name()).toBe('b');
+		});
+
+		it('reset(node.peek()) marks the current value as saved', () => {
+			const s = signalState({ n: 1, list: [1] });
+			s.n.set(2);
+			s.list.push(2);
+			s.changes.reset(s.peek());
+			expect(s.changes.dirty()).toBe(false);
+			s.n.set(3);
+			expect(s.n.changes.dirty()).toBe(true);
+			s.changes.reset();
+			expect(s.deep()).toEqual({ n: 2, list: [1, 2] });
+		});	});
 });
+
 
 

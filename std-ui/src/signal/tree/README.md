@@ -142,10 +142,32 @@ form.age.check.valid();  // true
 Branch validators see the raw subtree value, so cross-field checks work while a child is invalid.
 Plain signals mixed into a tree have no validation and count as valid.
 
+## Change tracking: `dirty` and `reset()`
+
+On every node under `node.changes`, next to `node.check`. Not part of the data: `deep()` never
+contains them.
+
+| Member | Role |
+| --- | --- |
+| `node.changes.dirty()` | Tracked boolean: the node's current value differs (deeply) from the value it was created with. Editing back to the original makes it clean again. |
+| `node.changes.reset(next?)` | Writes the initial value back: edited values restored, members added since removed, deleted members re-created, a cleared object restored. Validators stay. With `next`, `next` first becomes the new initial value (pushed down to every child), so `reset(node.peek())` marks the current value as saved and a later `reset()` returns to it. Not an undo: it never steps back to the state before your last edit. |
+
+```ts
+const form = signalState({ user: { name: 'a' }, tags: ['x'] });
+form.user.name.set('b');
+form.changes.dirty();       // true
+form.user.name.changes.reset();
+form.changes.dirty();       // false
+```
+
+The initial value starts as the value at creation; change it with `reset(next)`. `touched` is not
+implemented.
+
 ## Notes / gotchas
 
 - Member access (`a.b`) is untracked; it returns the node. API names (`set`, `update`, `peek`,
-  `deep`, `shallow`, `delete`, `validators`, `errors`, `valid`, `allErrors`, `_`) win over members of
+  `deep`, `shallow`, `delete`, `check`, `changes`, `_`) win over members of
   the same name; reach a shadowed member with `a._.name` (see [`object/`](./object/README.md)).
 - Object partial `.set()` assumes the value under an existing key matches that member's kind
   (object vs leaf); it does not convert a leaf into an object or vice versa.
+

@@ -42,6 +42,7 @@ user();                       // { label: 'Grace', age: 30 } (tracks replacement
 | `obj.key` | Untracked member node. API names win over same-named members. |
 | `obj._.key` | Untracked member node from a members-only view with no API names. Use it when a key collides with the API (`obj._.check`); a member named `_` is `obj._._`. |
 | `obj.check.validators` / `errors()` / `valid()` / `allErrors()` | Validation, see [`../README.md`](../README.md#validation). These names are reserved like `set` / `delete`. |
+| `obj.changes.dirty()` / `reset(next?)` | Change tracking against the initial value, see [`../README.md`](../README.md#change-tracking-dirty-and-reset). `changes` is a reserved name. |
 
 ## Limitations
 

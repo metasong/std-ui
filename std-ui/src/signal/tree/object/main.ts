@@ -8,11 +8,11 @@
 //   - `obj.key` is the member node itself (untracked access), e.g. `obj.user.label.set('x')`.
 
 import { computed, signal, type Signal } from '../../core/index.js';
-import { createValidation, readValue, type ItemNode, type Checked } from '../node.js';
+import { createChangeTracking, createValidation, readValue, type ItemNode, type Checked, type Tracked } from '../node.js';
 
 type Members = Record<string, ItemNode<unknown>>;
 
-export interface SignalObject<T, M = Members, P = Partial<T>> extends Checked<T> {
+export interface SignalObject<T, M = Members, P = Partial<T>> extends Checked<T>, Tracked<T> {
 	/**
 	 * Reads the plain value, tracking only replacement of the member record: a `set()` that adds a
 	 * key or clears / restores the object. Use `shallow()` to also track `delete`.
@@ -42,7 +42,7 @@ export interface SignalObject<T, M = Members, P = Partial<T>> extends Checked<T>
 
 // Names reserved on the node: members share its property namespace (`obj.member`), and both
 // `obj.api()` and `obj.member.api()` use the same property access, so API names must win over keys.
-const API = new Set(['set', 'update', 'peek', 'deep', 'shallow', 'delete', 'check', '_']);
+const API = new Set(['set', 'update', 'peek', 'deep', 'shallow', 'delete', 'check', 'changes', '_']);
 const hasOwn = (o: object, key: PropertyKey): boolean => Object.prototype.hasOwnProperty.call(o, key);
 
 export function signalObject<T, M = Members, P = Partial<T>>(
@@ -105,7 +105,18 @@ export function signalObject<T, M = Members, P = Partial<T>>(
 	};
 
 	const validation = createValidation<T>(() => deep(), () => Object.entries(members()));
+	const initialValue = self.peek() as Record<string, unknown>;
+	const restore = (target: T) => {
+		const base = target as Record<string, unknown>;
+		for (const key of Object.keys(members.peek())) if (!hasOwn(base, key)) self.delete(key);
+		self.set(base as P); // re-creates missing members, clears an emptied object
+		// Push the initial value down so each child agrees on it and drops its own extras.
+		for (const [key, m] of Object.entries(members.peek())) m.changes?.reset(base[key]);
+	};
 	Object.defineProperty(self, 'check', { value: validation });
+	Object.defineProperty(self, 'changes', {
+		value: createChangeTracking<T>(() => deep(), initialValue as T, restore),
+	});
 
 	// Escape hatch for members whose names collide with the API: a members-only view (`obj._.key`).
 	const membersOnly = new Proxy({} as object, {
@@ -129,3 +140,6 @@ export function signalObject<T, M = Members, P = Partial<T>>(
 		has: (target, key) => isMember(key) || Reflect.has(target, key),
 	});
 }
+
+
+
