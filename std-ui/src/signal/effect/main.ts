@@ -1,9 +1,9 @@
 // Side-effect runner: `effect()`. Re-runs are microtask-batched. Built on top of `Watcher` from
-// `./tracking.ts` - the low-level primitive modeled on `Signal.subtle.Watcher` in the proposed
-// standard signals API.
+// `../core/tracking.ts` - the low-level primitive modeled on `Signal.subtle.Watcher` in the proposed
+// standard signals API. Not part of the TC39 proposal; lives outside `core/`.
 
 import { CycleGuard } from '../../dev/effect-cycle-guard.js';
-import { runTracked, sourcesChanged, subscribe, unsubscribe, Watcher } from './tracking.js';
+import { runTracked, sourcesChanged, subscribe, unsubscribe, Watcher } from '../core/tracking.js';
 
 /** Call inside an `effect()` body to register cleanup that runs before the next re-run, and on dispose. */
 export type OnCleanup = (cleanup: () => void) => void;

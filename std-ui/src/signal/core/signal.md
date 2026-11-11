@@ -5,9 +5,11 @@ Generic, app-agnostic fine-grained reactivity primitives, Angular-signals-flavor
 [proposed standard JavaScript `Signal`s API](https://github.com/tc39/proposal-signals):
 `signal()`, `computed()`, and `effect()`. Safe to lift into any project.
 
-Implementation lives under `./core/`: [`signal.ts`](./signal.ts) (writable values),
-[`computed.ts`](./computed.ts) (derived values), [`effect.ts`](./effect.ts) (side effects),
-[`tracking.ts`](./tracking.ts) (shared dependency graph). App code imports `signalState`, `computed`, and `effect` from [`../index.js`](../index.js); leaf `signal()` lives in [`./signal.ts`](./signal.ts) (internal).
+Implementation: [`./core/`](./core/) holds the TC39-aligned primitives — [`signal.ts`](./signal.ts),
+[`computed.ts`](./computed.ts), [`tracking.ts`](./tracking.ts) (shared dependency graph).
+[`../effect/`](../effect/) adds `effect()` (not in the proposal). App code imports `signalState`,
+`computed`, and `effect` from [`../index.js`](../index.js); leaf `signal()` lives in
+[`./signal.ts`](./signal.ts) (internal).
 
 ## API at a glance
 
@@ -98,7 +100,7 @@ While a `computed`/`effect` body is running, it's the single global "active node
 that window is recorded in its `sources`. It's push-pull, as in the TC39 proposal:
 
 - **Push:** a write notifies observers that they *may* be stale. A `computed` marks itself dirty
-  and passes it on (no eager recompute); an `effect` schedules itself into a shared microtask
+  and passes it on (no eager recompute); an `effect` (see [`../effect/`](../effect/)) schedules itself into a shared microtask
   flush, so repeated writes in one tick collapse into a single re-run.
 - **Pull:** before a `computed` recomputes or an `effect` re-runs, it refreshes its sources and
   compares versions. If none moved (e.g. a computed recomputed to an equal value), the work is
@@ -113,7 +115,7 @@ previous run (e.g. a branch that's no longer read) are automatically dropped. De
 `../index.js` also exports `subtle`, grouping two low-level primitives named after
 `Signal.subtle` in the proposal. Most code should stick to `signal()`/`computed()`/`effect()` -
 reach for these only when building a custom scheduler or framework integration on top of the
-dependency graph (`effect()` itself is built on `subtle.Watcher`; see [`./effect.ts`](./effect.ts)):
+dependency graph (`effect()` itself is built on `subtle.Watcher`; see [`../effect/main.ts`](../effect/main.ts)):
 
 - **`subtle.Watcher`** (`new Watcher(notify)`) - watches a fixed set of dependencies (via
   `.watch(...)`/`.unwatch(...)`) and fires `notify` once, synchronously, the moment any of them

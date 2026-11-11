@@ -1,4 +1,4 @@
-// Writable reactive value: `signal()`. See `./computed.ts` and `./effect.ts` for derived values and
+// Writable reactive value: `signal()`. See `./computed.ts` for derived values; `../effect/` for
 // side effects; `./tracking.ts` for the shared dependency graph.
 
 import { notify, ReactiveNode, track } from './tracking.js';

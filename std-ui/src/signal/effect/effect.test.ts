@@ -1,6 +1,6 @@
 import { describe, expect, it, vi } from 'vitest';
-import { effect } from './effect.js';
-import { signal } from './signal.js';
+import { signal } from '../core/signal.js';
+import { effect } from './main.js';
 import { flushEffects } from './test-helpers.js';
 
 describe('effect', () => {

@@ -122,7 +122,7 @@ public get updateComplete(): Promise<true> {
 ```
 
 Render re-runs are microtask-batched (`effect()`'s `scheduleFlush()` in
-`../../signal/core/effect.ts` queues exactly **one** `queueMicrotask` per batch of synchronous
+`../../signal/effect/main.ts` queues exactly **one** `queueMicrotask` per batch of synchronous
 writes, then flushes every pending effect in it). `updateComplete` resolves after **two** nested
 microtask hops specifically so that, no matter when within the current synchronous turn it's
 requested, the pending flush's own single `queueMicrotask` has already had a chance to run and
@@ -150,6 +150,6 @@ silently serve a stale answer the next time it's needed.
 - [`../context/design.md`](../context/design.md#why-a-plain-field-decorator-not-an-accessor-one) —
   `@consume()`'s own "plain field, nothing to back" rationale, for the same underlying reason.
 - [`../../ui-element.ts`](../../ui-element.ts) — `UIElement.updateComplete`.
-- [`../../signal/core/effect.ts`](../../signal/core/effect.ts) — the microtask-batched `effect()`
+- [`../../signal/effect/main.ts`](../../signal/effect/main.ts) — the microtask-batched `effect()`
   re-run `updateComplete` waits on.
 - [`query.test.ts`](./query.test.ts) — behavior tests.

@@ -119,7 +119,7 @@ see additions/removals after the one you first read.
 ### Why `@queryAsync()` exists
 
 `UIElement` re-renders when signals change, but those re-runs are **microtask-batched** (see
-`../../signal/core/effect.ts` — `scheduleFlush()` queues one microtask per burst of synchronous
+`../../signal/effect/main.ts` — `scheduleFlush()` queues one microtask per burst of synchronous
 writes). A `@state()` `.set()` (or any signal write) takes effect immediately in memory; the DOM
 only catches up after that pending flush runs.
 

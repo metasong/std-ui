@@ -67,7 +67,7 @@ effect(() => console.log(parity()));
 n.set(3); // parity recomputes to 1 again -> effect does NOT re-run
 ```
 
-Effects do the same pull check before re-running (see [`./effect.ts`](./effect.ts)).
+Effects do the same pull check before re-running (see [`../effect/main.ts`](../effect/main.ts)).
 
 ## Untracked read: `.peek()`
 

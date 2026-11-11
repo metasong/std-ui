@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest';
-import { effect, signal } from '../../core/index.js';
+import { signal } from '../../core/index.js';
+import { effect } from '../../effect/index.js';
 import { signalState } from '../main.js';
 import { signalArray } from './main.js';
 

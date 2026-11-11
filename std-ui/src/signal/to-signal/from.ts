@@ -1,5 +1,5 @@
 import { computed } from '../core/computed.js';
-import { effect } from '../core/effect.js';
+import { effect } from '../effect/main.js';
 import { signal } from '../core/signal.js';
 import { assertNotInReactiveContext, untrack } from '../core/tracking.js';
 import { toSubscribable } from './subscribable.js';

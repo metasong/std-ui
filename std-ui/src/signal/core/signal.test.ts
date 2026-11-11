@@ -1,7 +1,7 @@
 import { describe, expect, it, vi } from 'vitest';
-import { effect } from './effect.js';
+import { effect } from '../effect/main.js';
+import { flushEffects } from '../effect/test-helpers.js';
 import { signal } from './signal.js';
-import { flushEffects } from './test-helpers.js';
 
 describe('signal', () => {
 	it('reads back the initial value', () => {

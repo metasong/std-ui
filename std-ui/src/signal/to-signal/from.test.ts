@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
-import { effect } from '../core/effect.js';
+import { effect } from '../effect/main.js';
 import { signal } from '../core/signal.js';
-import { flushEffects } from '../core/test-helpers.js';
+import { flushEffects } from '../effect/test-helpers.js';
 import { toSignalFrom } from './from.js';
 import type { PartialObserver, Subscribable } from './types.js';
 

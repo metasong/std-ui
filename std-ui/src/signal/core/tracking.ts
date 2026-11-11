@@ -110,8 +110,8 @@ export function untrack<T>(fn: () => T): T {
 /**
  * Low-level primitive modeled on `Signal.subtle.Watcher` from the proposed standard signals API:
  * fires `notify` (synchronously, at most once) the moment any watched node may have changed, then
- * goes inert until re-armed by `watch()` / `subscribe()` / `runTracked()`. `effect()` is built on
- * top of this.
+ * goes inert until re-armed by `watch()` / `subscribe()` / `runTracked()`. `effect()` in `../effect/`
+ * is built on top of this.
  */
 export class Watcher extends ReactiveNode {
 	constructor(private readonly notify: (this: Watcher) => void) {

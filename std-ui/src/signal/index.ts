@@ -1,10 +1,5 @@
-export {
-	computed,
-	effect,
-	type Computed,
-	type OnCleanup,
-	type SignalOptions,
-} from './core/index.js';
+export { computed, type Computed, type SignalOptions } from './core/index.js';
+export { effect, type OnCleanup } from './effect/index.js';
 
 export {
 	toSignal,

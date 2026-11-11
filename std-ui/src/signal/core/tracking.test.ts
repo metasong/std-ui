@@ -1,6 +1,7 @@
 import { describe, expect, it, vi } from 'vitest';
 import { computed } from './computed.js';
-import { effect } from './effect.js';
+import { effect } from '../effect/main.js';
+import { flushEffects } from '../effect/test-helpers.js';
 import { signal } from './signal.js';
 import { ReactiveNode, runTracked, untrack, Watcher } from './tracking.js';
 

@@ -17,7 +17,8 @@ Implementation details: [`design.md`](./design.md).
 ## Standalone usage
 
 ```ts
-import { signal, effect } from '../../core/index.js';
+import { signal } from '../../core/index.js';
+import { effect } from '../../effect/index.js';
 import { signalArray } from './index.js';
 
 const list = signalArray([1, 2, 3], (n) => signal(n));
