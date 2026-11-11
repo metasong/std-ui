@@ -22,8 +22,12 @@ export type AttributeType =
  * would otherwise select.
  */
 export interface AttributeConverter<V = unknown> {
-	/** Converts the HTML attribute string (or `null` if absent/removed) into the property value. */
-	fromAttribute(value: string | null): V;
+	/**
+	 * Converts the HTML attribute string (or `null` if absent/removed) into the property value.
+	 * `oldValue` is the previous attribute string (`null` if it was absent), as passed to
+	 * `attributeChangedCallback`.
+	 */
+	fromAttribute(value: string | null, oldValue: string | null): V;
 	/**
 	 * Converts the property value into attribute text, `null` to remove the attribute, or
 	 * `undefined` to leave the host attribute unchanged (property → attribute reflection only).
@@ -104,8 +108,8 @@ export function resolveConverter<V>(type: AttributeType | undefined, converter: 
 }
 
 /** Parses an attribute string (or `null` if absent/removed) into a property value, via `converter`. */
-export function parseAttribute(value: string | null, converter: AttributeConverter): unknown {
-	return converter.fromAttribute(value);
+export function parseAttribute(value: string | null, oldValue: string | null, converter: AttributeConverter): unknown {
+	return converter.fromAttribute(value, oldValue);
 }
 
 /**

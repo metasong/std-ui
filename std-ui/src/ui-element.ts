@@ -228,11 +228,11 @@ export abstract class UIElement extends HTMLElement {
 	 * writing back the same (serialized) text is a no-op: `signal.set` only notifies on an actual
 	 * value change.
 	 */
-	private attributeChangedCallback(name: string, _oldValue: string | null, newValue: string | null): void {
+	private attributeChangedCallback(name: string, oldValue: string | null, newValue: string | null): void {
 		const def = getAttributeDefs(this.constructor).find(def => def.attribute === name);
 		if (!def) return;
 
-		const parsed = parseAttribute(newValue, def.converter);
+		const parsed = parseAttribute(newValue, oldValue, def.converter);
 		if (parsed === undefined) return; // a converter's `fromAttribute` returning `undefined` means "leave untouched"
 		(this as unknown as Record<PropertyKey, { set(value: unknown): void }>)[def.key].set(parsed);
 	}
