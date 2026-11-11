@@ -8,9 +8,10 @@
 // Plain objects (`{ ... }` / `Object.create(null)`) become `SignalObject`s; arrays `SignalArray`s;
 // everything else (primitives, class instances, null, undefined, functions, ...) is a leaf `Signal`.
 
-import { signal, type SignalOptions, type Signal } from '../core/index.js';
+import type { SignalOptions } from '../core/index.js';
 
 import { signalArray, type SignalArray } from './array/index.js';
+import { signalLeaf, type SignalLeaf } from './leaf.js';
 import type { ItemNode } from './node.js';
 import { signalObject, type SignalObject } from './object/index.js';
 
@@ -63,20 +64,6 @@ export type SignalState<T> = T extends readonly (infer U)[]
 	: IsBranch<T> extends true
 		? SignalObject<T, Members<T>, DeepPartial<T>> & Members<T>
 		: SignalLeaf<T>;
-
-/** A tree leaf: a plain `Signal<T>` plus `shallow()` / `deep()`, both identical to `()`. */
-export type SignalLeaf<T> = Signal<T> & {
-	shallow(): T;
-	deep(): T;
-};
-
-/** Wraps a core `signal()` as a tree leaf; the core primitive itself stays standard-shaped. */
-function signalLeaf<T>(value: T, signalOptions?: SignalOptions<T>): SignalLeaf<T> {
-	const leaf = signal(value, signalOptions) as SignalLeaf<T>;
-	leaf.shallow = leaf;
-	leaf.deep = leaf;
-	return leaf;
-}
 
 /**
  * Converts a value into a `SignalState`: arrays become `signalArray()`s, plain objects

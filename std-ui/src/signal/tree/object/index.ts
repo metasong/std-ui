@@ -1,1 +1,1 @@
-export { signalObject, type SignalObject } from './core.js';
+export { signalObject, type SignalObject } from './main.js';

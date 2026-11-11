@@ -1,1 +1,1 @@
-export { signalArray, type SignalArray } from './core.js';
+export { signalArray, type SignalArray } from './main.js';
