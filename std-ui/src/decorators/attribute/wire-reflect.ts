@@ -16,9 +16,12 @@ import { getAttributeDefs } from './metadata.js';
 export function wireReflectedAttributes(host: HTMLElement, registerEffectDisposer: (dispose: () => void) => void): void {
 	for (const def of getAttributeDefs(host.constructor)) {
 		if (!def.reflect) continue;
+		let prev: unknown; // previous property value; `undefined` on the first run
 		registerEffectDisposer(createEffect(() => {
 			const value = readValue((host as unknown as Record<PropertyKey, ItemNode<unknown>>)[def.key]);
-			const serialized = serializeAttribute(value, def.converter);
+			const oldValue = prev;
+			prev = value;
+			const serialized = serializeAttribute(value, oldValue, def.converter);
 			if (serialized === undefined) return; // `toAttribute` returning `undefined` means leave untouched
 			if (serialized === null) host.removeAttribute(def.attribute);
 			else host.setAttribute(def.attribute, serialized);

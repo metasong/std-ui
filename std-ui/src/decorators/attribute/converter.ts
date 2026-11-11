@@ -32,7 +32,7 @@ export interface AttributeConverter<V = unknown> {
 	 * Converts the property value into attribute text, `null` to remove the attribute, or
 	 * `undefined` to leave the host attribute unchanged (property → attribute reflection only).
 	 */
-	toAttribute(value: V): string | null | undefined;
+	toAttribute(value: V, oldValue: V | undefined): string | null | undefined;
 }
 
 const stringConverter: AttributeConverter<string> = {
@@ -116,8 +116,8 @@ export function parseAttribute(value: string | null, oldValue: string | null, co
  * Serializes a property value back into attribute text via `converter`: `null` removes the
  * attribute; `undefined` means do not touch the attribute.
  */
-export function serializeAttribute(value: unknown, converter: AttributeConverter): string | null | undefined {
-	return converter.toAttribute(value);
+export function serializeAttribute(value: unknown, oldValue: unknown, converter: AttributeConverter): string | null | undefined {
+	return converter.toAttribute(value, oldValue);
 }
 
 /** `maxCount` -> `max-count`: default attribute name for a camelCase (or plain) field name. */
