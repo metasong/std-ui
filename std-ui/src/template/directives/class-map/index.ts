@@ -1,1 +1,1 @@
-export { classMap } from './core.js';
+export { classMap } from './main.js';

@@ -1,1 +1,1 @@
-export { KeyedRows, type KeyedEntries } from './core.js';
+export { KeyedRows, type KeyedEntries } from './main.js';

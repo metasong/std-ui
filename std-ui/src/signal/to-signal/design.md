@@ -86,7 +86,7 @@ Internal `state` uses custom `equals` on the **wrapped** state objects: when bot
 |------|------|
 | [`types.ts`](./types.ts) | Public `Subscribable`, options, `ToSignal` type. |
 | [`subscribable.ts`](./subscribable.ts) | Detection helpers + `toSubscribable()`. |
-| [`core.ts`](./core.ts) | State machine + `toSignal()` overloads. |
+| [`main.ts`](./main.ts) | State machine + `toSignal()` overloads. |
 | [`index.ts`](./index.ts) | Re-exports. |
 | [`to-signal.test.ts`](./to-signal.test.ts) | Promise, sync emit, error, dispose, `onCleanup`. |
 

@@ -7,7 +7,7 @@ usage and API, see [`README.md`](./README.md).
 
 | File | Owns |
 |---|---|
-| [`core.ts`](./core.ts) | `MapByKeyDirective`, `export const mapByKey`, duplicate-key validation, building `{ key, value }[]`. |
+| [`main.ts`](./main.ts) | `MapByKeyDirective`, `export const mapByKey`, duplicate-key validation, building `{ key, value }[]`. |
 | [`map-by-key-committer.ts`](./map-by-key-committer.ts) | `MapByKeyCommitter`, keyed DOM create / move / remove. |
 | [`index.ts`](./index.ts) | Public re-export of `mapByKey`. |
 | [`map-by-key.test.ts`](./map-by-key.test.ts) | Behavior through `ChildPart` (and committer edge cases). |

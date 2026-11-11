@@ -6,13 +6,13 @@ Implementation of the built-in `class` attribute directive. Usage: [`README.md`]
 
 | File | Owns |
 |---|---|
-| [`core.ts`](./core.ts) | `ClassMapDirective` + `export const classMap = directive(ClassMapDirective)`. |
+| [`main.ts`](./main.ts) | `ClassMapDirective` + `export const classMap = directive(ClassMapDirective)`. |
 | [`index.ts`](./index.ts) | Re-export. |
 | [`class-map.test.ts`](./class-map.test.ts) | Behavior tests through `AttributePart` directly. |
 | [`../index.ts`](../index.ts) | Public re-export with other directives. |
 | [`../directives.test.ts`](../directives.test.ts) | End-to-end tests through `t()` / `render()`. |
 
-`core.ts` does not import `../../parts/` or `../../compile.ts`; dispatch is generic — see
+`main.ts` does not import `../../parts/` or `../../compile.ts`; dispatch is generic — see
 [`../../directive.ts`](../../directive.ts).
 
 ## Why `update()`, not `render()`

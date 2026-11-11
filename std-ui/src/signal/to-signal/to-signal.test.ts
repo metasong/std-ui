@@ -2,7 +2,7 @@ import { describe, expect, it } from 'vitest';
 import { effect } from '../core/effect.js';
 import { untrack } from '../core/tracking.js';
 import { flushEffects } from '../core/test-helpers.js';
-import { toSignal } from './core.js';
+import { toSignal } from './main.js';
 import type { PartialObserver, Subscribable } from './types.js';
 
 function makeSource<T>() {

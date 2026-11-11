@@ -17,7 +17,7 @@ Shared with `@attribute()`:
 | [`../context/metadata.ts`](../context/metadata.ts) | `registerProvidedContextDef()` when `{ contextKey }` is passed. |
 
 Complex-object behavior (`SignalTree` per plain-object initializer) is entirely in
-[`../../signal/tree/core.ts`](../../signal/tree/core.ts) / [`../../signal/tree/README.md`](../../signal/tree/README.md) &
+[`../../signal/tree/main.ts`](../../signal/tree/main.ts) / [`../../signal/tree/README.md`](../../signal/tree/README.md) &
 [`../../signal/tree/design.md`](../../signal/tree/design.md); both
 decorators use the same `createStore()` path.
 

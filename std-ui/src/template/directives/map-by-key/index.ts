@@ -1,1 +1,1 @@
-export { mapByKey } from './core.js';
+export { mapByKey } from './main.js';

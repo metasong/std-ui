@@ -7,7 +7,7 @@ Windowed rendering for large lists/grids as a `commitWith()` child directive, li
 
 ```
 virtualize/
-  core.ts                 VirtualizeDirective: arg validation, commitWith(VirtualizeCommitter, …)
+  main.ts                 VirtualizeDirective: arg validation, commitWith(VirtualizeCommitter, …)
   options.ts              VirtualizeOptions, VirtualizeValue (public types)
   controller.ts           VirtualizeController handle (+ pre-attach pending call)
   layout.ts               RowModel + pure window / scroll-target math (no DOM)

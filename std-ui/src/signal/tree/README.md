@@ -1,6 +1,6 @@
 # Signal tree (`signalState`)
 
-`core.ts` builds a reactive tree out of a value: plain objects become a
+`main.ts` builds a reactive tree out of a value: plain objects become a
 [`SignalObject`](./object/README.md), arrays a [`SignalArray`](./array/README.md), and everything
 else a leaf `signal()`, recursively. Members are reachable as properties, so you navigate and
 write the tree like the original object.

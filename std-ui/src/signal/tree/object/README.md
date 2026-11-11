@@ -18,7 +18,7 @@ Implementation details: [`design.md`](./design.md).
 Any plain object on the initial value becomes a `SignalObject` automatically:
 
 ```ts
-import { signalState } from '../core.js';
+import { signalState } from '../main.js';
 
 const user = signalState({ label: 'Ada', age: 30 });
 user.label.set('Grace');      // only `label` notifies

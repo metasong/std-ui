@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { effect, signal } from '../../core/index.js';
-import { signalState } from '../core.js';
-import { signalArray } from './core.js';
+import { signalState } from '../main.js';
+import { signalArray } from './main.js';
 
 describe('signalArray', () => {
 	it('reads initial values and peek snapshots without tracking', () => {

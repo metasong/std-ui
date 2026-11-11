@@ -1,6 +1,6 @@
 import type { TemplateResult } from '../../html.js';
 import { getTemplate, instantiate } from '../../compiler/index.js';
-import { type Part, updateParts } from '../core.js';
+import { type Part, updateParts } from '../main.js';
 import { Committer } from './committer.js';
 
 export class TemplateCommitter extends Committer<TemplateResult> {

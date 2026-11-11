@@ -6,7 +6,7 @@ Implementation of the built-in `style` attribute directive. Usage: [`README.md`]
 
 | File | Owns |
 |---|---|
-| [`core.ts`](./core.ts) | `toCssPropertyName()`, `StyleMapDirective` + `export const styleMap = directive(StyleMapDirective)`. |
+| [`main.ts`](./main.ts) | `toCssPropertyName()`, `StyleMapDirective` + `export const styleMap = directive(StyleMapDirective)`. |
 | [`index.ts`](./index.ts) | Re-export. |
 | [`style-map.test.ts`](./style-map.test.ts) | Behavior tests through `AttributePart` directly. |
 | [`../index.ts`](../index.ts) | Public re-export with other directives. |

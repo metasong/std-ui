@@ -32,7 +32,7 @@ list.push(4);                           // shallow() / deep() / length readers, 
 Any array on the initial value becomes a `SignalArray` automatically:
 
 ```ts
-import { signalState } from '../core.js';
+import { signalState } from '../main.js';
 
 const state = signalState({ tags: ['a', 'b'] });
 state.tags.push('c');

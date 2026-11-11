@@ -1,4 +1,4 @@
-export { toSignal } from './core.js';
+export { toSignal } from './main.js';
 export { toSignalFrom } from './from.js';
 export type {
 	InteropObservable,

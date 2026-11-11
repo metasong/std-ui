@@ -1,6 +1,6 @@
 # Signal object — internal design
 
-How `signalObject()` in [`core.ts`](./core.ts) is implemented. For usage, see [`README.md`](./README.md).
+How `signalObject()` in [`main.ts`](./main.ts) is implemented. For usage, see [`README.md`](./README.md).
 
 ## Data model
 

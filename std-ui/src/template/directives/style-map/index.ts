@@ -1,1 +1,1 @@
-export { styleMap, toCssPropertyName } from './core.js';
+export { styleMap, toCssPropertyName } from './main.js';

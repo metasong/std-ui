@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { effect } from '../core/index.js';
-import { signalState } from './core.js';
+import { signalState } from './main.js';
 
 interface State {
 	count: number;

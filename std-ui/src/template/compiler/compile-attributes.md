@@ -203,7 +203,7 @@ flowchart LR
 | `compile.ts` | std-ui syntax: sigils, descriptor kinds, `createPart`, SVG, dev warnings |
 | `design.md` | Engine/hook architecture |
 | `parts/attribute-part.ts` | `AttributePart` |
-| `parts/core.ts` | `updateParts` |
+| `parts/main.ts` | `updateParts` |
 | `render.ts` | Root `render()` calling `updateParts` |
 
 ---

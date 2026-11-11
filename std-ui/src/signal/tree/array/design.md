@@ -1,12 +1,12 @@
 # Signal array — internal design
 
-How `signalArray()` in [`core.ts`](./core.ts) is implemented. For usage, see [`README.md`](./README.md).
+How `signalArray()` in [`main.ts`](./main.ts) is implemented. For usage, see [`README.md`](./README.md).
 
 ## Module layout
 
 | File | Role |
 | --- | --- |
-| [`core.ts`](./core.ts) | `signalArray`, `SignalArray` (`ItemNode` / `readValue` live in [`../node.ts`](../node.ts)) |
+| [`main.ts`](./main.ts) | `signalArray`, `SignalArray` (`ItemNode` / `readValue` live in [`../node.ts`](../node.ts)) |
 | [`index.ts`](./index.ts) | Re-exports |
 | [`array.test.ts`](./array.test.ts) | Behavior and granularity tests |
 
@@ -32,7 +32,7 @@ Item nodes are opaque except for `ItemNode<T>` (`()`, `.peek()`, `.set()`). `sig
 ## `readValue(node)`
 
 Reads a node's plain value, tracked: `node.deep()` if present (nested `SignalArray`), else `node()`.
-Used by `deep()`, by object branches in [`../core.ts`](../core.ts), and by attribute reflection, since
+Used by `deep()`, by object branches in [`../main.ts`](../main.ts), and by attribute reflection, since
 a `SignalArray`'s `()` yields nodes, not values.
 
 ## `mutate(fn)`
@@ -71,7 +71,7 @@ instance is what notifies `()`.
 
 ## Integration with `signalState`
 
-In [`../core.ts`](../core.ts), `Array.isArray(value)` dispatches to:
+In [`../main.ts`](../main.ts), `Array.isArray(value)` dispatches to:
 
 ```ts
 signalArray(value, (item) => signalState(item, signalOptions));

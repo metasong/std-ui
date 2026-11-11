@@ -20,4 +20,4 @@ t`<input ${ref(el => el?.focus())}>`;   // callback form
   (`UIElement` passes itself; default: none). `@event` handlers get the same `this` (default: the element).
 
 Implementation: element slots are the engine's `onTagSlot` hook (see [`../../compiler/design.md`](../../compiler/design.md)),
-backed by `ElementPart` in `parts/core.ts`.
+backed by `ElementPart` in `parts/main.ts`.

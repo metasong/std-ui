@@ -2,7 +2,7 @@ import { describe, expect, it } from 'vitest';
 import { t } from '../../html.js';
 import { AttributePart, ChildPart } from '../../parts/index.js';
 import { MapByKeyCommitter } from './map-by-key-committer.js';
-import { mapByKey } from './core.js';
+import { mapByKey } from './main.js';
 
 describe('mapByKey', () => {
 	function makeChildPart(): { part: ChildPart; container: HTMLElement } {

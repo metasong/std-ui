@@ -95,5 +95,5 @@ use an `effect` that creates the `toSignal` inside `subtle.untrack` and passes `
 |------|------|
 | [`types.ts`](./types.ts) | Public types |
 | [`subscribable.ts`](./subscribable.ts) | Promise / `Symbol.observable` normalization |
-| [`core.ts`](./core.ts) | `toSignal()` implementation |
+| [`main.ts`](./main.ts) | `toSignal()` implementation |
 | [`index.ts`](./index.ts) | Package exports |

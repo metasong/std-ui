@@ -10,7 +10,7 @@ import { signalState, type SignalState } from '../signal/index.js';
 
 /**
  * Picks the reactive store that backs a `@state()`/`@attribute()` field's value: `signalState()`
- * (see `../signal/tree/core.ts`) for *any* initial value, not just plain objects.
+ * (see `../signal/tree/main.ts`) for *any* initial value, not just plain objects.
  *
  * For a primitive/array/class-instance/etc. initial value, `signalState()` already degrades to
  * a plain `signal()` internally - so a `number`/`string`/`boolean` field behaves exactly as

@@ -7,7 +7,7 @@ import {
 	type ChildPartInfo,
 	type Directive,
 } from '../directive.js';
-import type { Part } from './core.js';
+import type { Part } from './main.js';
 import {
 	isCommitWith,
 	ListCommitter,

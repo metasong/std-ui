@@ -1,12 +1,12 @@
 # Signal tree — internal design
 
-How `signalState()` in [`core.ts`](./core.ts) is implemented. For usage and API, see [`README.md`](./README.md).
+How `signalState()` in [`main.ts`](./main.ts) is implemented. For usage and API, see [`README.md`](./README.md).
 
 ## Module layout
 
 | File | Role |
 | --- | --- |
-| [`core.ts`](./core.ts) | `signalState`, `DeepPartial`, `SignalState`: dispatch to array / object / leaf |
+| [`main.ts`](./main.ts) | `signalState`, `DeepPartial`, `SignalState`: dispatch to array / object / leaf |
 | [`node.ts`](./node.ts) | `ItemNode` (child contract) and `readValue` (plain-value read of any node) |
 | [`array/`](./array/) | `signalArray` (see [`array/design.md`](./array/design.md)) |
 | [`object/`](./object/) | `signalObject` (see [`object/design.md`](./object/design.md)) |
