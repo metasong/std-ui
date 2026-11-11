@@ -16,32 +16,33 @@ export interface SignalArray<T, N extends ItemNode<T> = ItemNode<T>> {
 	 * `signal(array)`). Use `shallow()` to also track push/pop/splice etc.
 	 */
 	(): T[];
+	/**
+	 * Reads the plain values, tracking whole replacement and any structural change,
+	 * even when the length is the same.
+	 */
+	shallow(): T[];
 	/** Reads the whole array as plain values (tracks structure and every item, recursively). */
 	deep(): T[];
-	/** Deep-untracked snapshot. */
-	peek(): T[];
-	/** Replaces the contents; existing nodes are reused by index, extras are created/dropped. */
-	set(values: T[]): void;
-	update(fn: (prev: T[]) => T[]): T[];
-
 	/** Tracked length. */
 	readonly length: Computed<number>;
 	/**
 	 * Tracked node at `index`, or `undefined` if out of range. Only notifies when the node at that
 	 * index changes. Negative `index` counts from the end and is tracked separately from the positive
 	 * index it currently resolves to (`-1` follows the last slot as the length changes).
-	 */
+	*/
 	at(index: number): N | undefined;
+
 	/**
 	 * Untracked node at `index` (`array[1]`), read via `nodes.peek()`. Only non-negative integer
 	 * indices; use `at()` for tracked or negative-index access.
 	 */
 	readonly [index: number]: N | undefined;
-	/**
-	 * Reads the plain values, tracking whole replacement and any structural change,
-	 * even when the length is the same.
-	 */
-	shallow(): T[];
+	/** Deep-untracked snapshot. */
+	peek(): T[];
+
+	/** Replaces the contents; existing nodes are reused by index, extras are created/dropped. */
+	set(values: T[]): void;
+	update(fn: (prev: T[]) => T[]): T[];
 
 	/**
 	 * Array-like mutators. `mutate` reads `nodes.peek()` so these do not subscribe; `nodes.set`
