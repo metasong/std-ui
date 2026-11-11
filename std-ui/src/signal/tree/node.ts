@@ -1,6 +1,6 @@
 // Shared contract between the tree's container nodes (`./array`, `./object`) and their children.
 
-import { computed, signal, type Computed, type Signal } from '../core/index.js';
+import { computed, signal, untrack, type Computed, type Signal } from '../core/index.js';
 
 export interface ValidationError {
 	kind: string;
@@ -32,6 +32,12 @@ export interface Validation<T> {
 	/** Tracked; errors of this node and all descendants, each with its path below this node.
 	 * Post-order: each child's subtree (deepest first), then this node's own errors. */
 	readonly allErrors: Computed<PathError[]>;
+	/**
+	 * Attaches errors from outside the validators (e.g. an API response) to this node. They show up
+	 * in `errors` / `valid` / `allErrors` until this node's value changes (they then no longer apply)
+	 * or `setExtraErrors([])` is called. Replaces earlier external errors; `[]` clears them.
+	 */
+	setExtraErrors(errors: ValidationError | readonly ValidationError[]): void;
 }
 
 /** Mixin carried by every tree node: its validation members under check. */
@@ -91,10 +97,13 @@ export function createValidation<T>(
 	children: () => readonly (readonly [string | number, ItemNode<unknown>])[] = () => [],
 ): Validation<T> {
 	const validators = signal<Validator<T>[]>([], { equals: () => false });
+	const external = signal<{ errors: ValidationError[]; at: T } | null>(null);
 	const errors = computed<ValidationError[]>(
 		() => {
 			const value = read();
 			const out: ValidationError[] = [];
+			const ext = external();
+			if (ext && deepEqual(ext.at, value)) out.push(...ext.errors);
 			for (const validate of validators()) {
 				const result = validate(value);
 				if (!result) continue;
@@ -120,7 +129,11 @@ export function createValidation<T>(
 		for (const e of errors()) out.push({ ...e, path: [] });
 		return out;
 	});
-	return { validators, errors, valid, allValid, allErrors };
+	const setExtraErrors = (e: ValidationError | readonly ValidationError[]) => {
+		const list = Array.isArray(e) ? [...(e as ValidationError[])] : [e as ValidationError];
+		external.set(list.length ? { errors: list, at: untrack(read) } : null);
+	};
+	return { validators, errors, valid, allValid, allErrors, setExtraErrors };
 }
 
 
