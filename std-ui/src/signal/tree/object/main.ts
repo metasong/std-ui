@@ -8,11 +8,11 @@
 //   - `obj.key` is the member node itself (untracked access), e.g. `obj.user.label.set('x')`.
 
 import { computed, signal, type Signal } from '../../core/index.js';
-import { readValue, type ItemNode } from '../node.js';
+import { createValidation, readValue, type ItemNode, type Checked } from '../node.js';
 
 type Members = Record<string, ItemNode<unknown>>;
 
-export interface SignalObject<T, M = Members, P = Partial<T>> {
+export interface SignalObject<T, M = Members, P = Partial<T>> extends Checked<T> {
 	/**
 	 * Reads the plain value, tracking only replacement of the member record: a `set()` that adds a
 	 * key or clears / restores the object. Use `shallow()` to also track `delete`.
@@ -33,9 +33,16 @@ export interface SignalObject<T, M = Members, P = Partial<T>> {
 	update(fn: (prev: T) => P): T;
 	/** Removes the member `key`; returns whether anything was removed. */
 	delete(key: string): boolean;
+	/**
+	 * Members only, with no API names: `obj._.check` is the member `check` even though `obj.check`
+	 * is the validation API. Untracked, like `obj.key`. A member named `_` is `obj._._`.
+	 */
+	readonly _: M;
 }
 
-const API = new Set(['set', 'update', 'peek', 'deep', 'shallow', 'delete']);
+// Names reserved on the node: members share its property namespace (`obj.member`), and both
+// `obj.api()` and `obj.member.api()` use the same property access, so API names must win over keys.
+const API = new Set(['set', 'update', 'peek', 'deep', 'shallow', 'delete', 'check', '_']);
 const hasOwn = (o: object, key: PropertyKey): boolean => Object.prototype.hasOwnProperty.call(o, key);
 
 export function signalObject<T, M = Members, P = Partial<T>>(
@@ -96,6 +103,21 @@ export function signalObject<T, M = Members, P = Partial<T>>(
 		members.set(m);
 		return true;
 	};
+
+	const validation = createValidation<T>(() => deep(), () => Object.entries(members()));
+	Object.defineProperty(self, 'check', { value: validation });
+
+	// Escape hatch for members whose names collide with the API: a members-only view (`obj._.key`).
+	const membersOnly = new Proxy({} as object, {
+		get: (_, key) => (typeof key === 'string' && hasOwn(members.peek(), key) ? members.peek()[key] : undefined),
+		has: (_, key) => typeof key === 'string' && hasOwn(members.peek(), key),
+		ownKeys: () => Object.keys(members.peek()),
+		getOwnPropertyDescriptor: (_, key) =>
+			typeof key === 'string' && hasOwn(members.peek(), key)
+				? { value: members.peek()[key], enumerable: true, configurable: true }
+				: undefined,
+	});
+	Object.defineProperty(self, '_', { value: membersOnly });
 
 	// Member access by property name (untracked), e.g. `obj.user`. API names win over members.
 	const isMember = (key: string | symbol): key is string =>

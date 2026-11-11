@@ -40,6 +40,8 @@ user();                       // { label: 'Grace', age: 30 } (tracks replacement
 | `obj.update(fn)` | `set(fn(peek()))`, returns the new snapshot. |
 | `obj.delete(key)` | Remove a member; returns whether anything was removed. |
 | `obj.key` | Untracked member node. API names win over same-named members. |
+| `obj._.key` | Untracked member node from a members-only view with no API names. Use it when a key collides with the API (`obj._.check`); a member named `_` is `obj._._`. |
+| `obj.check.validators` / `errors()` / `valid()` / `allErrors()` | Validation, see [`../README.md`](../README.md#validation). These names are reserved like `set` / `delete`. |
 
 ## Limitations
 

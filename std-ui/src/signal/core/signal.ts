@@ -8,7 +8,7 @@ import { notify, ReactiveNode, track } from './tracking.js';
 export interface SignalOptions<T> {
 	/** Decides whether a `.set()`/`.update()` value counts as a change (and should notify
 	 * subscribers). Defaults to `Object.is`, same as the proposal's default. */
-	equals?(a: T, b: T): boolean;
+	equals?(prev: T, next: T): boolean;
 }
 
 /** A reactive value: call it to read (and track), call `.set`/`.update` to write. */

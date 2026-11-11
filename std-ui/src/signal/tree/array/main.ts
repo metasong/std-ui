@@ -8,9 +8,9 @@
 //   - `list.at(i)()` only re-runs when that element changes (or the element at `i` is replaced).
 
 import { computed, signal, type Computed, type Signal } from '../../core/index.js';
-import { readValue, type ItemNode } from '../node.js';
+import { createValidation, readValue, type ItemNode, type Checked } from '../node.js';
 
-export interface SignalArray<T, N extends ItemNode<T> = ItemNode<T>> {
+export interface SignalArray<T, N extends ItemNode<T> = ItemNode<T>> extends Checked<T[]> {
 	/**
 	 * Reads the plain values, tracking only whole replacement via `set()` / `update()` (like a plain
 	 * `signal(array)`). Use `shallow()` to also track push/pop/splice etc.
@@ -135,6 +135,9 @@ export function signalArray<T, N extends ItemNode<T> = ItemNode<T>>(
 	self.clear = () => {
 		if (nodes.peek().length) mutate((l) => void (l.length = 0));
 	};
+
+	const validation = createValidation<T[]>(() => deep(), () => nodes().map((n, i) => [i, n] as const));
+	Object.defineProperty(self, 'check', { value: validation });
 
 	const isIndex = (key: string | symbol): key is string =>
 		typeof key === 'string' && /^(0|[1-9]\d*)$/.test(key);
