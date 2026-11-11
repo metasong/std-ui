@@ -109,7 +109,8 @@ return the plain value; errors live on the node, not on the value.
 | --- | --- |
 | `node.check.validators` | `Signal<Validator<T>[]>`; `node.check.validators.set([...])`. A validator takes the node's raw value and returns an error, an array of errors, or nothing. |
 | `node.check.errors()` | Tracked `{ kind, message }[]` from this node's **own** validators (`[]` when valid). |
-| `node.check.valid()` | Tracked boolean: this node and every descendant has no errors. Same as `allErrors().length === 0`, but cheaper and only notifies when the boolean flips. |
+| `node.check.valid()` | Tracked boolean: this node's **own** validators report no errors. |
+| `node.check.allValid()` | Tracked boolean: this node and every descendant has no errors. Same as `allErrors().length === 0`, but cheaper and only notifies when the boolean flips. |
 | `node.check.allErrors()` | Tracked `{ kind, message, path }[]` for the node and all descendants, leaf first (each subtree in key/index order, then the node's own errors). `path` is relative to this node (`[]` = itself). |
 
 ```ts
@@ -120,7 +121,7 @@ form.user.name.check.validators.set([required]);
 form.check.validators.set([(v) => (v.tags.length ? undefined : { kind: 'empty', message: 'No tags' })]);
 
 form.user.name();   // '' (plain value)
-form.user.check.valid();  // false
+form.user.check.allValid();  // false (descendant `name` has an error)
 form.check.allErrors();   // [{ kind: 'required', message: 'Required', path: ['user', 'name'] }]
 ```
 

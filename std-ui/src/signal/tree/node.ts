@@ -21,12 +21,14 @@ export interface Validation<T> {
 	readonly validators: Signal<Validator<T>[]>;
 	/** Tracked errors from this node's own validators only (`[]` when valid). */
 	readonly errors: Computed<ValidationError[]>;
+	/** Tracked; true when this node's own validators report no errors (descendants ignored). */
+	readonly valid: Computed<boolean>;
 	/**
 	 * Tracked; true when this node and every descendant has no errors. Same as
 	 * `allErrors().length === 0`, but cheaper (stops at the first error, builds no list) and only
 	 * notifies when the boolean flips, not on every error change.
 	 */
-	readonly valid: Computed<boolean>;
+	readonly allValid: Computed<boolean>;
 	/** Tracked; errors of this node and all descendants, each with its path below this node.
 	 * Post-order: each child's subtree (deepest first), then this node's own errors. */
 	readonly allErrors: Computed<PathError[]>;
@@ -64,7 +66,7 @@ export interface ItemNode<T> {
 	peek(): T;
 	set(value: any): void;
 	/** Present on tree nodes; plain signals have none and count as valid. */
-	check?: { valid: () => boolean; allErrors: () => PathError[] };
+	check?: { allValid: () => boolean; allErrors: () => PathError[] };
 	changes?: { reset: (next?: any) => void };
 }
 
@@ -103,9 +105,10 @@ export function createValidation<T>(
 		},
 		{ equals: sameErrors },
 	);
-	const valid = computed(() => {
+	const valid = computed(() => errors().length === 0);
+	const allValid = computed(() => {
 		if (errors().length) return false;
-		for (const [, child] of children()) if (child.check && !child.check.valid()) return false;
+		for (const [, child] of children()) if (child.check && !child.check.allValid()) return false;
 		return true;
 	});
 	const allErrors = computed<PathError[]>(() => {
@@ -117,7 +120,7 @@ export function createValidation<T>(
 		for (const e of errors()) out.push({ ...e, path: [] });
 		return out;
 	});
-	return { validators, errors, valid, allErrors };
+	return { validators, errors, valid, allValid, allErrors };
 }
 
 

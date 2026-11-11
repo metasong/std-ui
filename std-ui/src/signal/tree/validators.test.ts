@@ -16,17 +16,18 @@ describe('validators', () => {
 		expect(s.name.check.errors()).toEqual([]);
 	});
 
-	it('aggregates valid() over descendants but errors() stays own-only', () => {
+	it('aggregates allValid() over descendants but valid()/errors() stay own-only', () => {
 		const s = signalState({ user: { name: '' }, tags: ['a', ''] });
 		s.user.name.check.validators.set([required]);
 		s.tags[1]!.check.validators.set([required as Validator<any>]);
 		expect(s.user.check.errors()).toEqual([]);
-		expect(s.user.check.valid()).toBe(false);
-		expect(s.tags.check.valid()).toBe(false);
-		expect(s.check.valid()).toBe(false);
+		expect(s.user.check.valid()).toBe(true);
+		expect(s.user.check.allValid()).toBe(false);
+		expect(s.tags.check.allValid()).toBe(false);
+		expect(s.check.allValid()).toBe(false);
 		s.user.name.set('n');
 		s.tags[1]!.set('b');
-		expect(s.check.valid()).toBe(true);
+		expect(s.check.allValid()).toBe(true);
 	});
 
 	it('branch validators see the raw subtree and are reactive', async () => {
