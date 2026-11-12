@@ -1,5 +1,5 @@
-export { toSignal } from './main.js';
-export { toSignalFrom } from './from.js';
+export { toSignal } from './to-signal.js';
+export { toSignalFrom } from './to-signal-from.js';
 export type {
 	InteropObservable,
 	PartialObserver,
