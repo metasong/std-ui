@@ -1,5 +1,5 @@
-import type { Validator } from '../../node.js';
-import { flags } from '../../flags.js';
+import type { Validator } from '../../main.js';
+import { flags } from '../../../flags.js';
 
 /** Fails for `null`, `undefined`, `''` and `[]`. Everything else (`0`, `false`, `' '`) counts as filled. */
 export function required<T = unknown>(message = 'Required'): Validator<T> {

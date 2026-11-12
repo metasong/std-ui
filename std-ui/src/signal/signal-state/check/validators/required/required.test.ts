@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { signalState } from '../../main.js';
+import { signalState } from '../../../main.js';
 import { required } from './main.js';
 
 describe('required', () => {

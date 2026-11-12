@@ -1,6 +1,7 @@
-import { signal } from '../../../core/index.js';
-import { deepEqual, type ValidationError, type Validator } from '../../node.js';
-import { flags } from '../../flags.js';
+import { signal } from '../../../../core/index.js';
+import type { ValidationError, Validator } from '../../main.js';
+import { deepEqual } from '../../../node.js';
+import { flags } from '../../../flags.js';
 
 /** A message (flag `customError`) or an error with one of the well-known flags. */
 export type ManualError = string | ValidationError;

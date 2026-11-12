@@ -63,7 +63,7 @@ Wrap the function in a factory so rules can take options and a custom message. F
 
 ```ts
 import { flags } from '../../flags.js';
-import type { Validator } from '../../node.js';
+import type { Validator } from '../../main.js';
 
 /** Fails when a non-empty string does not start with `prefix`. */
 export function startsWith<T extends string | null | undefined = string>(

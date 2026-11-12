@@ -1,7 +1,7 @@
 # Validator tracking: design
 
 How validators interact with the reactive graph. User-facing docs: [`README.md`](./README.md).
-The wiring lives in `createValidation` in [`../node.ts`](../node.ts).
+The wiring lives in `createValidation` in [`../main.ts`](../main.ts).
 
 ## Graph
 

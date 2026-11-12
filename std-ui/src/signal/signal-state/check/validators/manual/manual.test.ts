@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
-import { flags } from '../../flags.js';
-import { signalState } from '../../main.js';
+import { flags } from '../../../flags.js';
+import { signalState } from '../../../main.js';
 import { manualValidator } from './main.js';
 
 const err = (message: string) => ({ flag: 'customError', message });

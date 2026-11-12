@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { signalState } from '../../main.js';
+import { signalState } from '../../../main.js';
 import { maxLength, minLength } from './main.js';
 
 describe('length validators', () => {

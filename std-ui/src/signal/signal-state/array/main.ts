@@ -8,7 +8,8 @@
 //   - `list.at(i)()` only re-runs when that element changes (or the element at `i` is replaced).
 
 import { computed, signal, type Computed, type Signal } from '../../core/index.js';
-import { createChangeTracking, createValidation, readValue, type ItemNode, type Checked, type Tracked } from '../node.js';
+import { attachCheck, type Checked } from '../check/index.js';
+import { createChangeTracking, readValue, type ItemNode, type Tracked } from '../node.js';
 
 export interface SignalArray<T, N extends ItemNode<T> = ItemNode<T>> extends Checked<T[]>, Tracked<T[]> {
 	/**
@@ -136,9 +137,8 @@ export function signalArray<T, N extends ItemNode<T> = ItemNode<T>>(
 		if (nodes.peek().length) mutate((l) => void (l.length = 0));
 	};
 
-	const validation = createValidation<T[]>(() => deep(), () => nodes().map((n, i) => [i, n] as const));
+	attachCheck<T[]>(self, () => deep(), () => nodes().map((n, i) => [i, n] as const));
 	const initialValues = self.peek();
-	Object.defineProperty(self, 'check', { value: validation });
 	Object.defineProperty(self, 'changes', {
 		value: createChangeTracking<T[]>(() => deep(), initialValues, (base) => {
 			self.set(base);

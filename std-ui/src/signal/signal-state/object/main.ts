@@ -8,7 +8,8 @@
 //   - `obj.key` is the member node itself (untracked access), e.g. `obj.user.label.set('x')`.
 
 import { computed, signal, type Signal } from '../../core/index.js';
-import { createChangeTracking, createValidation, readValue, type ItemNode, type Checked, type Tracked } from '../node.js';
+import { attachCheck, type Checked } from '../check/index.js';
+import { createChangeTracking, readValue, type ItemNode, type Tracked } from '../node.js';
 
 type Members = Record<string, ItemNode<unknown>>;
 
@@ -104,7 +105,7 @@ export function signalObject<T, M = Members, P = Partial<T>>(
 		return true;
 	};
 
-	const validation = createValidation<T>(() => deep(), () => Object.entries(members()));
+	attachCheck<T>(self, () => deep(), () => Object.entries(members()));
 	const initialValue = self.peek() as Record<string, unknown>;
 	const restore = (target: T) => {
 		const base = target as Record<string, unknown>;
@@ -113,7 +114,6 @@ export function signalObject<T, M = Members, P = Partial<T>>(
 		// Push the initial value down so each child agrees on it and drops its own extras.
 		for (const [key, m] of Object.entries(members.peek())) m.changes?.reset(base[key]);
 	};
-	Object.defineProperty(self, 'check', { value: validation });
 	Object.defineProperty(self, 'changes', {
 		value: createChangeTracking<T>(() => deep(), initialValue as T, restore),
 	});

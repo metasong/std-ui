@@ -1,5 +1,6 @@
 import { signal, type SignalOptions, type Signal } from '../core/index.js';
-import { createChangeTracking, createValidation, type Checked, type Tracked } from './node.js';
+import { attachCheck, type Checked } from './check/index.js';
+import { createChangeTracking, type Tracked } from './node.js';
 
 /** A tree leaf: a plain `Signal<T>` plus `shallow()` / `deep()` (both identical to `()`) and validation. */
 export type SignalLeaf<T> = Signal<T> &
@@ -15,7 +16,7 @@ export function signalLeaf<T>(value: T, signalOptions?: SignalOptions<T>): Signa
 	const leaf = signal(value, signalOptions) as SignalLeaf<T>;
 	leaf.shallow = leaf;
 	leaf.deep = leaf;
-	Object.defineProperty(leaf, 'check', { value: createValidation<T>(() => leaf()) });
+	attachCheck<T>(leaf, () => leaf());
 	Object.defineProperty(leaf, 'changes', {
 		value: createChangeTracking(() => leaf(), initial, (base) => leaf.set(base)),
 	});

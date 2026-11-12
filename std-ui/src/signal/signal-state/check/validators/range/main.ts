@@ -1,5 +1,5 @@
-import type { Validator } from '../../node.js';
-import { flags } from '../../flags.js';
+import type { Validator } from '../../main.js';
+import { flags } from '../../../flags.js';
 
 type Num = number | null | undefined;
 

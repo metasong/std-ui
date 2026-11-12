@@ -3,17 +3,12 @@ export type { SignalLeaf } from './leaf.js';
 export { flags, type ValidityFlag } from './flags.js';
 export { signalArray, type SignalArray } from './array/index.js';
 export { signalObject, type SignalObject } from './object/index.js';
+export { readValue, type ItemNode, type Tracked, type ChangeTracking } from './node.js';
 export {
-	readValue,
-	type ItemNode,
 	type Checked,
-	type Tracked,
-	type ChangeTracking,
 	type Validation,
 	type ValidationError,
 	type Validator,
-} from './node.js';
-export {
 	manualValidator,
 	type ManualValidator,
 	asyncValidator,
@@ -26,4 +21,4 @@ export {
 	max,
 	pattern,
 	email,
-} from './validators/index.js';
+} from './check/index.js';

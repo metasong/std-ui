@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
-import { signal } from '../../../core/index.js';
-import { signalState } from '../../main.js';
+import { signal } from '../../../../core/index.js';
+import { signalState } from '../../../main.js';
 import { asyncValidator } from './main.js';
 
 const tick = (ms = 10) => new Promise((r) => setTimeout(r, ms));
