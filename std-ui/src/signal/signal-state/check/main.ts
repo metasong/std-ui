@@ -161,7 +161,7 @@ function errorsOf(child: ItemNode<unknown>): PathError[] {
  */
 export function attachCheck<T>(node: object, read: () => T, children?: () => Entries): void {
 	const state: CheckState = { children };
-	Object.defineProperty(node, STATE, { value: state });
+	(node as { [STATE]?: CheckState })[STATE] = state; // plain assignment: far cheaper than defineProperty
 	Object.defineProperty(node, 'check', {
 		get: () => {
 			if (!state.built) {
