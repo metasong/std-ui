@@ -1,6 +1,6 @@
 import { signal } from '../../../core/index.js';
 import { deepEqual, type ValidationError, type Validator } from '../../node.js';
-import { kinds } from '../../kinds.js';
+import { flags } from '../../flags.js';
 
 type Result = ValidationError | readonly ValidationError[] | null | undefined | void;
 
@@ -71,7 +71,7 @@ export function asyncValidator<T = unknown, D = undefined>(
 				errors = toList(await check(key.value, { abortSignal: c.signal, deps: key.deps }));
 			} catch (e) {
 				if (c.signal.aborted) return;
-				errors = toList(onError ? onError(e) : { kind: kinds.customError, message: 'Validation failed' });
+				errors = toList(onError ? onError(e) : { flag: flags.customError, message: 'Validation failed' });
 			}
 			if (requested === mine && !c.signal.aborted) settled.set({ key, errors });
 		}, debounce);

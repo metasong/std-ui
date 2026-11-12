@@ -2,7 +2,7 @@
  * Validity flag names: the keys of `ValidityStateFlags` accepted by `ElementInternals.setValidity()`.
  * @see https://developer.mozilla.org/en-US/docs/Web/API/ElementInternals/setValidity
  */
-export const kinds = {
+export const flags = {
 	valueMissing: 'valueMissing',
 	typeMismatch: 'typeMismatch',
 	patternMismatch: 'patternMismatch',
@@ -15,6 +15,6 @@ export const kinds = {
 	customError: 'customError',
 } as const;
 
-/** One of the well-known kinds, e.g. `'tooShort'`. */
-export type ValidityKind = (typeof kinds)[keyof typeof kinds];
+/** One of the well-known flags, e.g. `'tooShort'`. */
+export type ValidityFlag = (typeof flags)[keyof typeof flags];
 

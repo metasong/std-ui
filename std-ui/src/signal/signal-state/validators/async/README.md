@@ -7,7 +7,7 @@ A validator whose result comes from an async check, e.g. a server round trip. It
 const unique = asyncValidator<string>(
 	async (email, { abortSignal }) => {
 		const taken = await api.emailTaken(email, { abortSignal });
-		return taken ? { kind: kinds.customError, message: 'Email taken' } : null;
+		return taken ? { flag: flags.customError, message: 'Email taken' } : null;
 	},
 	{ debounce: 300 },
 );
@@ -23,8 +23,8 @@ last asked the validator to check: it is `false` until the node has read the val
 follows a value change one microtask later. `node.check.pending` updates immediately and is the one
 to use for gating submit.
 
-The check returns an error, an array of errors, or nothing, like any validator. Its `kind` is one of
-the [`kinds`](../../kinds.ts).
+The check returns an error, an array of errors, or nothing, like any validator. Its `flag` is one of
+the [`flags`](../../flags.ts).
 
 ## Cancellation (`abortSignal`)
 
@@ -39,7 +39,7 @@ Pass it to whatever you call so the request is really cancelled instead of just 
 ```ts
 async (email, { abortSignal }) => {
 	const res = await fetch(`/api/email-taken?e=${encodeURIComponent(email)}`, { abortSignal });
-	return (await res.json()).taken ? { kind: kinds.customError, message: 'Email taken' } : null;
+	return (await res.json()).taken ? { flag: flags.customError, message: 'Email taken' } : null;
 }
 ```
 
@@ -76,7 +76,7 @@ const country = signal('NL');
 const vat = asyncValidator<string, string>(
 	async (number, { abortSignal, deps: countryCode }) => {
 		const ok = await api.vatValid(number, countryCode, { abortSignal });
-		return ok ? null : { kind: kinds.customError, message: 'Invalid VAT number' };
+		return ok ? null : { flag: flags.customError, message: 'Invalid VAT number' };
 	},
 	{ deps: () => country() },
 );

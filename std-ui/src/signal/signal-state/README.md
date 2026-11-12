@@ -108,21 +108,21 @@ return the plain value; errors live on the node, not on the value.
 | Member | Role |
 | --- | --- |
 | `node.check.validators` | `Signal<Validator<T>[]>`; `node.check.validators.set([...])`. A validator takes the node's raw value and returns an error, an array of errors, or nothing. |
-| `node.check.errors()` | Tracked `{ kind, message }[]` from this node's **own** validators (`[]` when valid). |
+| `node.check.errors()` | Tracked `{ flag, message }[]` from this node's **own** validators (`[]` when valid). |
 | `node.check.valid()` | Tracked boolean: this node's **own** validators report no errors. |
 | `node.check.allValid()` | Tracked boolean: this node and every descendant has no errors. Same as `allErrors().length === 0`, but cheaper and only notifies when the boolean flips. |
-| `node.check.allErrors()` | Tracked `{ kind, message, path }[]` for the node and all descendants, leaf first (each subtree in key/index order, then the node's own errors). `path` is relative to this node (`[]` = itself). |
+| `node.check.allErrors()` | Tracked `{ flag, message, path }[]` for the node and all descendants, leaf first (each subtree in key/index order, then the node's own errors). `path` is relative to this node (`[]` = itself). |
 
 ```ts
-const required: Validator<string> = (v) => (v ? undefined : { kind: 'valueMissing', message: 'Required' });
+const required: Validator<string> = (v) => (v ? undefined : { flag: 'valueMissing', message: 'Required' });
 
 const form = signalState({ user: { name: '' }, tags: ['a', ''] });
 form.user.name.check.validators.set([required]);
-form.check.validators.set([(v) => (v.tags.length ? undefined : { kind: 'valueMissing', message: 'No tags' })]);
+form.check.validators.set([(v) => (v.tags.length ? undefined : { flag: 'valueMissing', message: 'No tags' })]);
 
 form.user.name();   // '' (plain value)
 form.user.check.allValid();  // false (descendant `name` has an error)
-form.check.allErrors();   // [{ kind: 'valueMissing', message: 'Required', path: ['user', 'name'] }]
+form.check.allErrors();   // [{ flag: 'valueMissing', message: 'Required', path: ['user', 'name'] }]
 ```
 
 A `Validator` takes only the node's value. To configure one (limits, message), write a factory that
@@ -130,12 +130,12 @@ closes over the config and returns the validator:
 
 ```ts
 const range = (min: number, max: number, message = `Must be between ${min} and ${max}`): Validator<number> =>
-	(value) => (value >= min && value <= max ? undefined : { kind: 'customError', message });
+	(value) => (value >= min && value <= max ? undefined : { flag: 'customError', message });
 
 const form = signalState({ age: 1 });
 form.age.check.validators.set([range(2, 8, 'value must be between 2 and 8')]);
 
-form.age.check.errors(); // [{ kind: 'customError', message: 'value must be between 2 and 8' }]
+form.age.check.errors(); // [{ flag: 'customError', message: 'value must be between 2 and 8' }]
 form.age.set(5);
 form.age.check.valid();  // true
 ```

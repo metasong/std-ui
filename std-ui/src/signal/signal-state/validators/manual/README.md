@@ -12,24 +12,24 @@ const server = manualValidator<string>();
 form.email.check.validators.set([server]);
 
 server.set('Email taken');       // replaces its earlier errors
-form.email.check.errors();       // [{ kind: 'customError', message: 'Email taken' }]
+form.email.check.errors();       // [{ flag: 'customError', message: 'Email taken' }]
 server.clear();                  // removes them
 ```
 
 | Member | Effect |
 | --- | --- |
-| `set(error \| errors)` | Replaces this validator's errors; an empty list clears them. Each item is a message or `{ kind, message }` |
+| `set(error \| errors)` | Replaces this validator's errors; an empty list clears them. Each item is a message or `{ flag, message }` |
 | `clear()` | Removes this validator's errors |
 
-A plain message gets `kind: kinds.customError`. To choose the kind, pass an error object, alone or
+A plain message gets `flag: flags.customError`. To choose the flag, pass an error object, alone or
 mixed with messages in a list:
 
 ```ts
-server.set({ kind: kinds.tooLong, message: 'Max 50 characters' });
-server.set(['Try again', { kind: kinds.badInput, message: 'Not a valid email' }]);
+server.set({ flag: flags.tooLong, message: 'Max 50 characters' });
+server.set(['Try again', { flag: flags.badInput, message: 'Not a valid email' }]);
 ```
 
-`kind` is limited to the well-known `kinds` (the `ValidityState` flag names); free-form strings do
+`flag` is limited to the well-known `flags` (the `ValidityState` flag names); free-form strings do
 not compile.
 
 ## Expiry

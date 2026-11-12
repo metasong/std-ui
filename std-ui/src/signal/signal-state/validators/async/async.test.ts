@@ -4,7 +4,7 @@ import { signalState } from '../../main.js';
 import { asyncValidator } from './main.js';
 
 const tick = (ms = 10) => new Promise((r) => setTimeout(r, ms));
-const taken = { kind: 'customError', message: 'taken' } as const;
+const taken = { flag: 'customError', message: 'taken' } as const;
 
 function setup(check = async (v: string) => (v === 'bob' ? taken : null), debounce = 0) {
 	const calls: string[] = [];
@@ -126,14 +126,14 @@ describe('asyncValidator', () => {
 		s.n.check.validators.set([asyncValidator<string>(fail)]);
 		s.n.check.pending();
 		await tick();
-		expect(s.n.check.errors()).toEqual([{ kind: 'customError', message: 'Validation failed' }]);
+		expect(s.n.check.errors()).toEqual([{ flag: 'customError', message: 'Validation failed' }]);
 
 		const s2 = signalState({ n: 'x' });
 		s2.n.check.validators.set([
-			asyncValidator<string>(fail, { onError: () => ({ kind: 'customError', message: 'offline' }) }),
+			asyncValidator<string>(fail, { onError: () => ({ flag: 'customError', message: 'offline' }) }),
 		]);
 		s2.n.check.pending();
 		await tick();
-		expect(s2.n.check.errors()).toEqual([{ kind: 'customError', message: 'offline' }]);
+		expect(s2.n.check.errors()).toEqual([{ flag: 'customError', message: 'offline' }]);
 	});
 });

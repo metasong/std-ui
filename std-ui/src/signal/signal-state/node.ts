@@ -1,11 +1,11 @@
 // Shared contract between the tree's container nodes (`./array`, `./object`) and their children.
 
 import { computed, signal, type Computed, type Signal } from '../core/index.js';
-import type { ValidityKind } from './kinds.js';
+import type { ValidityFlag } from './flags.js';
 
 export interface ValidationError {
-	/** One of the well-known `kinds` (the `ValidityState` flag names), e.g. `kinds.tooShort`. */
-	kind: ValidityKind;
+	/** One of the well-known `flags` (the `ValidityState` flag names), e.g. `flags.tooShort`. */
+	flag: ValidityFlag;
 	message: string;
 }
 
@@ -97,7 +97,7 @@ export function readValue<T>(node: ItemNode<T>): T {
 }
 
 const sameErrors = (a: ValidationError[], b: ValidationError[]): boolean =>
-	a.length === b.length && a.every((e, i) => e.kind === b[i].kind && e.message === b[i].message);
+	a.length === b.length && a.every((e, i) => e.flag === b[i].flag && e.message === b[i].message);
 
 /**
  * Builds the validation members for a node. `read` is the tracked plain value the validators see;

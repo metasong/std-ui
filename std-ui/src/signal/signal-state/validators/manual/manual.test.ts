@@ -1,9 +1,9 @@
 import { describe, expect, it } from 'vitest';
-import { kinds } from '../../kinds.js';
+import { flags } from '../../flags.js';
 import { signalState } from '../../main.js';
 import { manualValidator } from './main.js';
 
-const err = (message: string) => ({ kind: 'customError', message });
+const err = (message: string) => ({ flag: 'customError', message });
 
 describe('manualValidator', () => {
 	it('reports set messages as customError and removes them on clear', () => {
@@ -18,16 +18,16 @@ describe('manualValidator', () => {
 		expect(s.email.check.errors()).toEqual([]);
 	});
 
-	it('accepts errors with their own kind, mixed with messages', () => {
+	it('accepts errors with their own flag, mixed with messages', () => {
 		const s = signalState({ n: 'x' });
 		const v = manualValidator<string>();
 		s.n.check.validators.set([v]);
-		v.set({ kind: kinds.tooLong, message: 'long' });
-		expect(s.n.check.errors()).toEqual([{ kind: 'tooLong', message: 'long' }]);
-		v.set(['plain', { kind: kinds.badInput, message: 'bad' }]);
-		expect(s.n.check.errors()).toEqual([err('plain'), { kind: 'badInput', message: 'bad' }]);
-		// @ts-expect-error free-form kinds are not allowed
-		v.set({ kind: 'server', message: 'nope' });
+		v.set({ flag: flags.tooLong, message: 'long' });
+		expect(s.n.check.errors()).toEqual([{ flag: 'tooLong', message: 'long' }]);
+		v.set(['plain', { flag: flags.badInput, message: 'bad' }]);
+		expect(s.n.check.errors()).toEqual([err('plain'), { flag: 'badInput', message: 'bad' }]);
+		// @ts-expect-error free-form flags are not allowed
+		v.set({ flag: 'server', message: 'nope' });
 	});
 
 	it('set replaces earlier errors; empty list clears', () => {

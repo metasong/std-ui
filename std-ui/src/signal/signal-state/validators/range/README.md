@@ -2,7 +2,7 @@
 
 Inclusive numeric bounds.
 
-| Validator | `kind` | Fails when |
+| Validator | `flag` | Fails when |
 | --- | --- | --- |
 | `min(n, message?)` | `rangeUnderflow` | the number is below `n` |
 | `max(n, message?)` | `rangeOverflow` | the number is above `n` |
@@ -13,4 +13,4 @@ form.age.check.validators.set([min(0), max(120)]);
 
 `null` / `undefined` pass; add `required` to reject them.
 
-The `kind` values are the `ValidityState` flag names, as accepted by `ElementInternals.setValidity()`.
+The `flag` values are the `ValidityState` flag names, as accepted by `ElementInternals.setValidity()`.

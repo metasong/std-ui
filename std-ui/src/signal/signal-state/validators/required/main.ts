@@ -1,5 +1,5 @@
 import type { Validator } from '../../node.js';
-import { kinds } from '../../kinds.js';
+import { flags } from '../../flags.js';
 
 /** Fails for `null`, `undefined`, `''` and `[]`. Everything else (`0`, `false`, `' '`) counts as filled. */
 export function required<T = unknown>(message = 'Required'): Validator<T> {
@@ -9,6 +9,6 @@ export function required<T = unknown>(message = 'Required'): Validator<T> {
 			value === undefined ||
 			(typeof value === 'string' && value === '') ||
 			(Array.isArray(value) && value.length === 0);
-		return empty ? { kind: kinds.valueMissing, message } : null;
+		return empty ? { flag: flags.valueMissing, message } : null;
 	};
 }

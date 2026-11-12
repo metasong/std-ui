@@ -18,7 +18,7 @@ validators + value + pending() reads ─► pending (computed) ─► allPending
   every signal or computed it reads becomes a dependency of `errors`.
 - `validators` is a signal created with `equals: () => false`, so `validators.set([...])` always
   re-runs `errors`, even with an equal-looking list.
-- `errors` uses `sameErrors` (kind + message, in order) as its `equals`, so a re-run that produces
+- `errors` uses `sameErrors` (flag + message, in order) as its `equals`, so a re-run that produces
   the same errors does not notify `valid` / `allErrors` / effects.
 - `valid` = no errors **and** not pending. `allValid` adds the same rule for every descendant and
   stops at the first failure.

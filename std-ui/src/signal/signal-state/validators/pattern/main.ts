@@ -1,5 +1,5 @@
 import type { ValidationError, Validator } from '../../node.js';
-import { kinds } from '../../kinds.js';
+import { flags } from '../../flags.js';
 
 /** Fails when a non-empty string does not match `regex`. Empty and nullish values pass (use `required`). */
 export function pattern<T extends string | null | undefined = string>(
@@ -9,7 +9,7 @@ export function pattern<T extends string | null | undefined = string>(
 	return (value) => {
 		if (!value) return null;
 		regex.lastIndex = 0; // global / sticky regexes keep state between tests
-		return regex.test(value) ? null : { kind: kinds.patternMismatch, message };
+		return regex.test(value) ? null : { flag: flags.patternMismatch, message };
 	};
 }
 
@@ -18,6 +18,6 @@ export function email<T extends string | null | undefined = string>(message = 'I
 	const check = pattern<T>(/^[^\s@]+@[^\s@]+\.[^\s@]+$/, message);
 	return (value) => {
 		const e = check(value) as ValidationError | null;
-		return e ? { kind: kinds.typeMismatch, message: e.message } : null;
+		return e ? { flag: flags.typeMismatch, message: e.message } : null;
 	};
 }

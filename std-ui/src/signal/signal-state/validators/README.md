@@ -5,11 +5,11 @@ nothing when the value is valid:
 
 ```ts
 type Validator<T> = (value: T) => ValidationError | readonly ValidationError[] | null | undefined | void;
-interface ValidationError { kind: ValidityKind; message: string }
+interface ValidationError { flag: ValidityFlag; message: string }
 ```
 
-`kind` is restricted to the well-known names; use the `kinds` object for autocompletion:
-`kinds.valueMissing`, `typeMismatch`, `patternMismatch`, `tooLong`, `tooShort`, `rangeUnderflow`,
+`flag` is restricted to the well-known names; use the `flags` object for autocompletion:
+`flags.valueMissing`, `typeMismatch`, `patternMismatch`, `tooLong`, `tooShort`, `rangeUnderflow`,
 `rangeOverflow`, `stepMismatch`, `badInput`, `customError` (the `ValidityState` flag names accepted
 by `ElementInternals.setValidity()`).
 
@@ -21,7 +21,7 @@ How validators are tracked (and why async checks are not): [`design.md`](./desig
 
 ## Built-in validators
 
-| Folder | Validators | `kind` |
+| Folder | Validators | `flag` |
 | --- | --- | --- |
 | [`required`](./required/README.md) | `required` | `valueMissing` |
 | [`length`](./length/README.md) | `minLength`, `maxLength` | `tooShort`, `tooLong` |
@@ -31,29 +31,29 @@ How validators are tracked (and why async checks are not): [`design.md`](./desig
 | [`async`](./async/README.md) | `asyncValidator` (pending state, `deps`) | any |
 
 Built-ins use the `ValidityState` flag names (as accepted by `ElementInternals.setValidity()`) for
-`kind`, and treat empty values as valid so `required` stays the only rule about presence.
+`flag`, and treat empty values as valid so `required` stays the only rule about presence.
 
 ## Writing your own
 
 ### Inline
 
 ```ts
-import { signalState, kinds, type Validator } from '../index.js';
+import { signalState, flags, type Validator } from '../index.js';
 
 const form = signalState({ name: 'Ada', a: 1, b: 2 });
 
 const noSpaces: Validator<string> = (v) =>
-	v.includes(' ') ? { kind: kinds.patternMismatch, message: 'No spaces allowed' } : null;
+	v.includes(' ') ? { flag: flags.patternMismatch, message: 'No spaces allowed' } : null;
 form.name.check.validators.set([noSpaces]);
 
 // On an object node the validator sees the whole raw object, so it can compare fields.
 form.check.validators.set([
-	(v) => (v.a < v.b ? null : { kind: kinds.customError, message: 'a must be below b' }),
+	(v) => (v.a < v.b ? null : { flag: flags.customError, message: 'a must be below b' }),
 ]);
 ```
 
 - Return `null` / `undefined` / nothing when valid, one error, or an array for several.
-- Pick a `kind` from `kinds`; use `kinds.customError` for rules of your own.
+- Pick a `flag` from `flags`; use `flags.customError` for rules of your own.
 - Validators on an object or array see the whole raw subtree, so they can compare fields.
 
 ### As a reusable factory
@@ -62,7 +62,7 @@ Wrap the function in a factory so rules can take options and a custom message. F
 (see [`length/main.ts`](./length/main.ts)):
 
 ```ts
-import { kinds } from '../../kinds.js';
+import { flags } from '../../flags.js';
 import type { Validator } from '../../node.js';
 
 /** Fails when a non-empty string does not start with `prefix`. */
@@ -70,7 +70,7 @@ export function startsWith<T extends string | null | undefined = string>(
 	prefix: string,
 	message = `Must start with ${prefix}`,
 ): Validator<T> {
-	return (value) => (value && !value.startsWith(prefix) ? { kind: kinds.patternMismatch, message } : null);
+	return (value) => (value && !value.startsWith(prefix) ? { flag: flags.patternMismatch, message } : null);
 }
 
 // usage
