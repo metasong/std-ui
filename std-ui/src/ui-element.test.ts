@@ -1,6 +1,6 @@
 import { describe, expect, it, vi } from 'vitest';
 import { tag, UIElement } from './ui-element.js';
-import { signalState } from './signal/tree/index.js';
+import { signalState } from './signal/signal-state/index.js';
 import { t } from './template/html.js';
 import { css } from './template/css.js';
 

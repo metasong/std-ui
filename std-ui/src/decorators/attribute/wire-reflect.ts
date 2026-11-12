@@ -4,7 +4,7 @@
 // fields never appear here).
 
 import { effect as createEffect } from '../../signal/index.js';
-import { readValue, type ItemNode } from '../../signal/tree/index.js';
+import { readValue, type ItemNode } from '../../signal/signal-state/index.js';
 import { serializeAttribute } from './converter.js';
 import { getAttributeDefs } from './metadata.js';
 

@@ -3,7 +3,7 @@
 // `stopPropagation()` on a match gives nearest-provider-wins — see `./request-event.ts`.
 
 import { effect as createEffect } from '../../signal/index.js';
-import { readValue, type ItemNode } from '../../signal/tree/index.js';
+import { readValue, type ItemNode } from '../../signal/signal-state/index.js';
 import { getProvidedContextDefs } from './metadata.js';
 import { CONTEXT_REQUEST_EVENT, ContextRequestEvent } from './request-event.js';
 
