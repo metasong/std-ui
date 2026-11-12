@@ -1,6 +1,6 @@
 /**
- * Error kinds: the `ValidityState` flag names accepted by `ElementInternals.setValidity()`.
- * @see https://developer.mozilla.org/en-US/docs/Web/API/ValidityState
+ * Validity flag names: the keys of `ValidityStateFlags` accepted by `ElementInternals.setValidity()`.
+ * @see https://developer.mozilla.org/en-US/docs/Web/API/ElementInternals/setValidity
  */
 export const kinds = {
 	valueMissing: 'valueMissing',
