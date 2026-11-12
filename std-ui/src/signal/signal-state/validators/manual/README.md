@@ -21,6 +21,9 @@ server.clear();                                         // removes them
 | `set(error \| errors)` | Replaces this validator's errors; an empty list clears them |
 | `clear()` | Removes this validator's errors |
 
+`kind` is whatever you pass; use `'customError'` to match the `ValidityState` flag used by
+`ElementInternals.setValidity()`.
+
 ## Expiry
 
 Errors apply to the node's value at the time of `set` and drop as soon as it changes. They stay

@@ -1,0 +1,21 @@
+import { describe, expect, it } from 'vitest';
+import { signalState } from '../../main.js';
+import { required } from './main.js';
+
+describe('required', () => {
+	it('fails for empty values only', () => {
+		const v = required();
+		for (const empty of [null, undefined, '', []]) {
+			expect(v(empty)).toEqual({ kind: 'valueMissing', message: 'Required' });
+		}
+		for (const filled of [0, false, ' ', 'a', [0]]) expect(v(filled)).toBeNull();
+	});
+
+	it('uses a custom message and works on a node', () => {
+		const s = signalState({ name: '' });
+		s.name.check.validators.set([required<string>('Name needed')]);
+		expect(s.name.check.errors()).toEqual([{ kind: 'valueMissing', message: 'Name needed' }]);
+		s.name.set('x');
+		expect(s.name.check.valid()).toBe(true);
+	});
+});
