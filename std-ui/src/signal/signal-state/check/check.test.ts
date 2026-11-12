@@ -159,5 +159,36 @@ describe('validators', () => {
 		});	});
 });
 
+describe('lazy check', () => {
+	it('picks up a validator added to a deep descendant after the parent aggregate was read', async () => {
+		const s = signalState({ a: { b: { c: '' } }, list: [''] });
+		let valid = 0;
+		let errs = 0;
+		effect(() => void (valid = s.check.allValid() ? 1 : 2));
+		effect(() => void (errs = s.check.allErrors().length));
+		await flushEffects();
+		expect([valid, errs]).toEqual([1, 0]);
 
+		s.a.b.c.check.validators.set([required]);
+		await flushEffects();
+		expect([valid, errs]).toEqual([2, 1]);
+		expect(s.check.allErrors()[0]!.path).toEqual(['a', 'b', 'c']);
 
+		s.a.b.c.set('x');
+		await flushEffects();
+		expect([valid, errs]).toEqual([1, 0]);
+
+		s.list[0]!.check.validators.set([required as Validator<any>]);
+		await flushEffects();
+		expect([valid, errs]).toEqual([2, 1]);
+	});
+
+	it('does not build descendants when a parent aggregate is read', () => {
+		const s = signalState({ a: { b: '' } });
+		expect(s.check.allValid()).toBe(true);
+		const own = Object.getOwnPropertyDescriptor(s.a.b, 'check')!;
+		expect(typeof own.get).toBe('function');
+		expect(s.check.allErrors()).toEqual([]);
+		expect(s.check.allPending()).toBe(false);
+	});
+});

@@ -93,20 +93,20 @@ export function createValidation<T>(
 	});
 	const allPending = computed(() => {
 		if (pending()) return true;
-		for (const [, child] of children()) if (child.check?.allPending?.()) return true;
+		for (const [, child] of children()) if (anyPending(child)) return true;
 		return false;
 	});
 	const valid = computed(() => errors().length === 0 && !pending());
 	const allValid = computed(() => {
 		if (errors().length || pending()) return false;
-		for (const [, child] of children()) if (child.check && !child.check.allValid()) return false;
+		for (const [, child] of children()) if (!isAllValid(child)) return false;
 		return true;
 	});
 	const allErrors = computed<PathError[]>(() => {
 		// Post-order: each child's subtree (deepest first), then this node's own errors.
 		const out: PathError[] = [];
 		for (const [key, child] of children()) {
-			for (const e of child.check?.allErrors() ?? []) out.push({ ...e, path: [key, ...e.path] });
+			for (const e of errorsOf(child)) out.push({ ...e, path: [key, ...e.path] });
 		}
 		for (const e of errors()) out.push({ ...e, path: [] });
 		return out;
@@ -114,17 +114,61 @@ export function createValidation<T>(
 	return { validators, errors, pending, allPending, valid, allValid, allErrors };
 }
 
+type Entries = readonly (readonly [string | number, ItemNode<unknown>])[];
+
+// Per-node record of the lazy `check`: whether it was built yet, and how to list the node's children.
+const STATE = Symbol('check-state');
+interface CheckState {
+	built?: Validation<any>;
+	children?: () => Entries;
+}
+/** Bumped whenever any node builds its `check`, so aggregates that skipped it re-evaluate. */
+const builtVersion = signal(0);
+
+/**
+ * How a parent aggregate sees a child without forcing it to build `check`: its built validation,
+ * or (when none was built) the child's own children, which are valid unless one of them built one.
+ */
+function view(child: ItemNode<unknown>): { check?: Validation<any>; nested: Entries } {
+	const state = (child as { [STATE]?: CheckState })[STATE];
+	if (!state) return { check: child.check as Validation<any> | undefined, nested: [] }; // custom node
+	builtVersion(); // tracked: a later build must re-run the aggregate
+	if (state.built) return { check: state.built, nested: [] };
+	return { nested: state.children?.() ?? [] };
+}
+function isAllValid(child: ItemNode<unknown>): boolean {
+	const v = view(child);
+	if (v.check) return v.check.allValid();
+	return v.nested.every(([, c]) => isAllValid(c));
+}
+function anyPending(child: ItemNode<unknown>): boolean {
+	const v = view(child);
+	if (v.check) return !!v.check.allPending?.();
+	return v.nested.some(([, c]) => anyPending(c));
+}
+function errorsOf(child: ItemNode<unknown>): PathError[] {
+	const v = view(child);
+	if (v.check) return v.check.allErrors();
+	const out: PathError[] = [];
+	for (const [key, c] of v.nested) for (const e of errorsOf(c)) out.push({ ...e, path: [key, ...e.path] });
+	return out;
+}
+
 /**
  * Defines `node.check` as a lazy getter: the validation members are built on the first read and
- * cached. `read` / `children` are the same arguments as for `createValidation`.
+ * cached. `read` / `children` are the same arguments as for `createValidation`. Parent aggregates
+ * look through unbuilt nodes, so reading a parent's `allValid` etc. does not build its descendants.
  */
-export function attachCheck<T>(
-	node: object,
-	read: () => T,
-	children?: () => readonly (readonly [string | number, ItemNode<unknown>])[],
-): void {
-	let built: Validation<T> | undefined;
+export function attachCheck<T>(node: object, read: () => T, children?: () => Entries): void {
+	const state: CheckState = { children };
+	Object.defineProperty(node, STATE, { value: state });
 	Object.defineProperty(node, 'check', {
-		get: () => (built ??= createValidation(read, children)),
+		get: () => {
+			if (!state.built) {
+				state.built = createValidation(read, children);
+				builtVersion.set(builtVersion.peek() + 1);
+			}
+			return state.built;
+		},
 	});
 }

@@ -7,7 +7,8 @@ How `signalState()` in [`main.ts`](./main.ts) is implemented. For usage and API,
 | File | Role |
 | --- | --- |
 | [`main.ts`](./main.ts) | `signalState`, `DeepPartial`, `SignalState`: dispatch to array / object / leaf |
-| [`node.ts`](./node.ts) | `ItemNode` (child contract) and `readValue` (plain-value read of any node) |
+| [`node.ts`](./node.ts) | `ItemNode` (child contract), `readValue` (plain-value read of any node), change tracking (`dirty` / `reset`) |
+| [`check/`](./check/) | Validation: lazy `node.check` and its aggregates (see [`check/design.md`](./check/design.md)) |
 | [`array/`](./array/) | `signalArray` (see [`array/design.md`](./array/design.md)) |
 | [`object/`](./object/) | `signalObject` (see [`object/design.md`](./object/design.md)) |
 | [`index.ts`](./index.ts) | Re-exports |
