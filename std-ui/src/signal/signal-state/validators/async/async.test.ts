@@ -1,4 +1,5 @@
 import { describe, expect, it } from 'vitest';
+import { signal } from '../../../core/index.js';
 import { signalState } from '../../main.js';
 import { asyncValidator } from './main.js';
 
@@ -42,6 +43,30 @@ describe('asyncValidator', () => {
 		expect(v.pending()).toBe(true);
 		await tick();
 		expect(v.pending()).toBe(false);
+	});
+
+	it('re-checks when a signal read in deps changes', async () => {
+		const country = signal('NL');
+		const calls: string[] = [];
+		const s = signalState({ name: 'bob' });
+		s.name.check.validators.set([
+			asyncValidator<string, string>(
+				async (value, { deps }) => {
+					calls.push(`${value}@${deps}`);
+					return null;
+				},
+				{ deps: () => country() },
+			),
+		]);
+		s.name.check.pending();
+		await tick();
+		expect(s.name.check.valid()).toBe(true);
+		country.set('BE');
+		expect(s.name.check.pending()).toBe(true);
+		expect(s.name.check.valid()).toBe(false);
+		await tick();
+		expect(s.name.check.valid()).toBe(true);
+		expect(calls).toEqual(['bob@NL', 'bob@BE']);
 	});
 
 	it('becomes valid when the check passes', async () => {

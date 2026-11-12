@@ -26,7 +26,7 @@ the value or those signals change.
 | [`range`](./range/README.md) | `min`, `max` | `rangeUnderflow`, `rangeOverflow` |
 | [`pattern`](./pattern/README.md) | `pattern`, `email` | `patternMismatch`, `typeMismatch` |
 | [`manual`](./manual/README.md) | `manualValidator` | `customError` |
-| [`async`](./async/README.md) | `asyncValidator` (pending state) | any |
+| [`async`](./async/README.md) | `asyncValidator` (pending state, `deps`) | any |
 
 Built-ins use the `ValidityState` flag names (as accepted by `ElementInternals.setValidity()`) for
 `kind`, and treat empty values as valid so `required` stays the only rule about presence.
