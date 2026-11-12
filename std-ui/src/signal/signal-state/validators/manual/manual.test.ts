@@ -2,15 +2,15 @@ import { describe, expect, it } from 'vitest';
 import { signalState } from '../../main.js';
 import { manualValidator } from './main.js';
 
-const err = (message: string) => ({ kind: 'server', message });
+const err = (message: string) => ({ kind: 'customError', message });
 
 describe('manualValidator', () => {
-	it('reports set errors and removes them on clear', () => {
+	it('reports set messages as customError and removes them on clear', () => {
 		const s = signalState({ email: 'a@b.c' });
 		const v = manualValidator<string>();
 		s.email.check.validators.set([v]);
 		expect(s.email.check.valid()).toBe(true);
-		v.set(err('taken'));
+		v.set('taken');
 		expect(s.email.check.errors()).toEqual([err('taken')]);
 		expect(s.check.allErrors()).toEqual([{ ...err('taken'), path: ['email'] }]);
 		v.clear();
@@ -21,8 +21,9 @@ describe('manualValidator', () => {
 		const s = signalState({ n: 'x' });
 		const v = manualValidator<string>();
 		s.n.check.validators.set([v]);
-		v.set([err('a'), err('b')]);
-		v.set(err('c'));
+		v.set(['a', 'b']);
+		expect(s.n.check.errors()).toEqual([err('a'), err('b')]);
+		v.set('c');
 		expect(s.n.check.errors()).toEqual([err('c')]);
 		v.set([]);
 		expect(s.n.check.errors()).toEqual([]);
@@ -32,7 +33,7 @@ describe('manualValidator', () => {
 		const s = signalState({ n: 'x' });
 		const v = manualValidator<string>();
 		s.n.check.validators.set([v]);
-		v.set(err('bad'));
+		v.set('bad');
 		expect(s.n.check.valid()).toBe(false);
 		s.n.set('y');
 		expect(s.n.check.valid()).toBe(true);
@@ -45,8 +46,8 @@ describe('manualValidator', () => {
 		const a = manualValidator<string>();
 		const b = manualValidator<string>();
 		s.n.check.validators.set([a, b]);
-		a.set(err('a'));
-		b.set(err('b'));
+		a.set('a');
+		b.set('b');
 		expect(s.n.check.errors()).toEqual([err('a'), err('b')]);
 		a.clear();
 		expect(s.n.check.errors()).toEqual([err('b')]);

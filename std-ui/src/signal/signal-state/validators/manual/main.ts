@@ -4,10 +4,11 @@ import { deepEqual, type ValidationError, type Validator } from '../../node.js';
 /** A validator driven by calls instead of a rule: `set` its errors, `clear` them. */
 export interface ManualValidator<T> extends Validator<T> {
 	/**
-	 * Sets this validator's errors, replacing its earlier ones. They apply to the node's value at
-	 * that moment and stop once it changes. An empty list clears them.
+	 * Sets this validator's error message(s), replacing its earlier ones. Each becomes a
+	 * `customError`. They apply to the node's value at that moment and stop once it changes. An
+	 * empty list clears them.
 	 */
-	set(errors: ValidationError | readonly ValidationError[]): void;
+	set(messages: string | readonly string[]): void;
 	/** Removes this validator's errors. */
 	clear(): void;
 }
@@ -31,7 +32,8 @@ export function manualValidator<T = unknown>(): ManualValidator<T> {
 		return null;
 	}) as ManualValidator<T>;
 	validator.set = (e) => {
-		const list = Array.isArray(e) ? [...(e as ValidationError[])] : [e as ValidationError];
+		const messages = typeof e === 'string' ? [e] : [...e];
+		const list = messages.map((message): ValidationError => ({ kind: 'customError', message }));
 		at = null;
 		expired = false;
 		state.set(list.length ? list : null);

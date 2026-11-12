@@ -11,18 +11,18 @@ const form = signalState({ email: 'a@b.c' });
 const server = manualValidator<string>();
 form.email.check.validators.set([server]);
 
-server.set({ kind: 'server', message: 'Email taken' }); // replaces its earlier errors
-form.email.check.errors();                              // [{ kind: 'server', ... }]
-server.clear();                                         // removes them
+server.set('Email taken');       // replaces its earlier errors
+form.email.check.errors();       // [{ kind: 'customError', message: 'Email taken' }]
+server.clear();                  // removes them
 ```
 
 | Member | Effect |
 | --- | --- |
-| `set(error \| errors)` | Replaces this validator's errors; an empty list clears them |
+| `set(message \| messages)` | Replaces this validator's errors; an empty list clears them |
 | `clear()` | Removes this validator's errors |
 
-`kind` is whatever you pass; use `'customError'` to match the `ValidityState` flag used by
-`ElementInternals.setValidity()`.
+You only provide messages: every error gets `kind: 'customError'`, the `ValidityState` flag used by
+`ElementInternals.setValidity()`. The kind cannot be changed.
 
 ## Expiry
 
