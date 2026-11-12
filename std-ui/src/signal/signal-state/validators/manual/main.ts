@@ -1,14 +1,18 @@
 import { signal } from '../../../core/index.js';
 import { deepEqual, type ValidationError, type Validator } from '../../node.js';
+import { kinds } from '../../kinds.js';
+
+/** A message (kind `customError`) or an error with one of the well-known kinds. */
+export type ManualError = string | ValidationError;
 
 /** A validator driven by calls instead of a rule: `set` its errors, `clear` them. */
 export interface ManualValidator<T> extends Validator<T> {
 	/**
-	 * Sets this validator's error message(s), replacing its earlier ones. Each becomes a
-	 * `customError`. They apply to the node's value at that moment and stop once it changes. An
-	 * empty list clears them.
+	 * Sets this validator's errors, replacing its earlier ones. A plain message becomes a
+	 * `customError`; pass `{ kind, message }` to choose one of the `kinds`. They apply to the node's value at
+	 * that moment and stop once it changes. An empty list clears them.
 	 */
-	set(messages: string | readonly string[]): void;
+	set(errors: ManualError | readonly ManualError[]): void;
 	/** Removes this validator's errors. */
 	clear(): void;
 }
@@ -32,8 +36,11 @@ export function manualValidator<T = unknown>(): ManualValidator<T> {
 		return null;
 	}) as ManualValidator<T>;
 	validator.set = (e) => {
-		const messages = typeof e === 'string' ? [e] : [...e];
-		const list = messages.map((message): ValidationError => ({ kind: 'customError', message }));
+		const items: readonly ManualError[] = typeof e === 'string' || !Array.isArray(e) ? [e as ManualError] : e;
+		const list = items.map(
+			(item): ValidationError =>
+				typeof item === 'string' ? { kind: kinds.customError, message: item } : { ...item },
+		);
 		at = null;
 		expired = false;
 		state.set(list.length ? list : null);

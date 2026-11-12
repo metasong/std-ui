@@ -18,11 +18,19 @@ server.clear();                  // removes them
 
 | Member | Effect |
 | --- | --- |
-| `set(message \| messages)` | Replaces this validator's errors; an empty list clears them |
+| `set(error \| errors)` | Replaces this validator's errors; an empty list clears them. Each item is a message or `{ kind, message }` |
 | `clear()` | Removes this validator's errors |
 
-You only provide messages: every error gets `kind: 'customError'`, the `ValidityState` flag used by
-`ElementInternals.setValidity()`. The kind cannot be changed.
+A plain message gets `kind: kinds.customError`. To choose the kind, pass an error object, alone or
+mixed with messages in a list:
+
+```ts
+server.set({ kind: kinds.tooLong, message: 'Max 50 characters' });
+server.set(['Try again', { kind: kinds.badInput, message: 'Not a valid email' }]);
+```
+
+`kind` is limited to the well-known `kinds` (the `ValidityState` flag names); free-form strings do
+not compile.
 
 ## Expiry
 

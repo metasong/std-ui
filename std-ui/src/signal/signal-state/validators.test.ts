@@ -4,14 +4,14 @@ import { flushEffects } from '../effect/test-helpers.js';
 import { signalState } from './main.js';
 import type { Validator } from './node.js';
 
-const required: Validator<string> = (v) => (v ? undefined : { kind: 'required', message: 'Required' });
+const required: Validator<string> = (v) => (v ? undefined : { kind: 'valueMissing', message: 'Required' });
 
 describe('validators', () => {
 	it('keeps reads raw and reports own errors on a leaf', () => {
 		const s = signalState({ name: '' });
 		s.name.check.validators.set([required]);
 		expect(s.name()).toBe('');
-		expect(s.name.check.errors()).toEqual([{ kind: 'required', message: 'Required' }]);
+		expect(s.name.check.errors()).toEqual([{ kind: 'valueMissing', message: 'Required' }]);
 		s.name.set('x');
 		expect(s.name.check.errors()).toEqual([]);
 	});
@@ -32,7 +32,7 @@ describe('validators', () => {
 
 	it('branch validators see the raw subtree and are reactive', async () => {
 		const s = signalState({ a: 1, b: 2 });
-		s.check.validators.set([(v) => (v.a < v.b ? undefined : [{ kind: 'order', message: 'a<b' }])]);
+		s.check.validators.set([(v) => (v.a < v.b ? undefined : [{ kind: 'customError', message: 'a<b' }])]);
 		const seen: number[] = [];
 		effect(() => void seen.push(s.check.errors().length));
 		s.a.set(5);
@@ -46,11 +46,11 @@ describe('validators', () => {
 		const s = signalState({ user: { name: '' }, tags: ['a', ''] });
 		s.user.name.check.validators.set([required]);
 		s.tags[1]!.check.validators.set([required as Validator<any>]);
-		s.check.validators.set([() => ({ kind: 'root', message: 'r' })]);
+		s.check.validators.set([() => ({ kind: 'customError', message: 'r' })]);
 		expect(s.check.allErrors().map((e) => [e.kind, e.path])).toEqual([
-			['required', ['user', 'name']],
-			['required', ['tags', 1]],
-			['root', []],
+    ['valueMissing', ['user', 'name']],
+    ['valueMissing', ['tags', 1]],
+			['customError', []],
 		]);
 		expect(s.user.check.allErrors()[0].path).toEqual(['name']);
 	});
@@ -67,20 +67,20 @@ describe('validators', () => {
 
 	it('configurable validators are plain factories', () => {
 		const range = (min: number, max: number, message = `Must be between ${min} and ${max}`): Validator<number> =>
-			(value) => (value >= min && value <= max ? undefined : { kind: 'range', message });
+			(value) => (value >= min && value <= max ? undefined : { kind: 'customError', message });
 		const form = signalState({ age: 1 });
 		form.age.check.validators.set([range(2, 8, 'value must be between 2 and 8')]);
-		expect(form.age.check.errors()).toEqual([{ kind: 'range', message: 'value must be between 2 and 8' }]);
+		expect(form.age.check.errors()).toEqual([{ kind: 'customError', message: 'value must be between 2 and 8' }]);
 		form.age.set(5);
 		expect(form.age.check.valid()).toBe(true);
 	});
 
 	it('array validators', () => {
 		const s = signalState({ list: [1] });
-		s.list.check.validators.set([(v) => (v.length ? undefined : { kind: 'empty', message: 'empty' })]);
+		s.list.check.validators.set([(v) => (v.length ? undefined : { kind: 'valueMissing', message: 'empty' })]);
 		expect(s.list.check.valid()).toBe(true);
 		s.list.clear();
-		expect(s.list.check.errors()[0].kind).toBe('empty');
+		expect(s.list.check.errors()[0].kind).toBe('valueMissing');
 	});
 
 	describe('changes.dirty / changes.reset()', () => {

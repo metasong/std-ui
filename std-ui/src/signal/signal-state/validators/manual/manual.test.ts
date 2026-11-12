@@ -1,4 +1,5 @@
 import { describe, expect, it } from 'vitest';
+import { kinds } from '../../kinds.js';
 import { signalState } from '../../main.js';
 import { manualValidator } from './main.js';
 
@@ -15,6 +16,18 @@ describe('manualValidator', () => {
 		expect(s.check.allErrors()).toEqual([{ ...err('taken'), path: ['email'] }]);
 		v.clear();
 		expect(s.email.check.errors()).toEqual([]);
+	});
+
+	it('accepts errors with their own kind, mixed with messages', () => {
+		const s = signalState({ n: 'x' });
+		const v = manualValidator<string>();
+		s.n.check.validators.set([v]);
+		v.set({ kind: kinds.tooLong, message: 'long' });
+		expect(s.n.check.errors()).toEqual([{ kind: 'tooLong', message: 'long' }]);
+		v.set(['plain', { kind: kinds.badInput, message: 'bad' }]);
+		expect(s.n.check.errors()).toEqual([err('plain'), { kind: 'badInput', message: 'bad' }]);
+		// @ts-expect-error free-form kinds are not allowed
+		v.set({ kind: 'server', message: 'nope' });
 	});
 
 	it('set replaces earlier errors; empty list clears', () => {

@@ -1,9 +1,11 @@
 // Shared contract between the tree's container nodes (`./array`, `./object`) and their children.
 
 import { computed, signal, type Computed, type Signal } from '../core/index.js';
+import type { ValidityKind } from './kinds.js';
 
 export interface ValidationError {
-	kind: string;
+	/** One of the well-known `kinds` (the `ValidityState` flag names), e.g. `kinds.tooShort`. */
+	kind: ValidityKind;
 	message: string;
 }
 
@@ -13,7 +15,15 @@ export interface PathError extends ValidationError {
 }
 
 /** Returns the error(s) for `value`, or nothing when it is valid. Runs on plain (raw) values. */
-export type Validator<T> = (value: T) => ValidationError | readonly ValidationError[] | null | undefined | void;
+export type Validator<T> = ((
+	value: T,
+) => ValidationError | readonly ValidationError[] | null | undefined | void) & {
+	/**
+	 * Optional, for async validators: tracked; true while the result for `value` is not known yet.
+	 * Pending validators make the node's `valid` / `allValid` false.
+	 */
+	readonly pending?: (value: T) => boolean;
+};
 
 /** Validation members, grouped under `node.check` on every tree node. Reads of the node itself stay plain `T`. */
 export interface Validation<T> {
@@ -21,11 +31,18 @@ export interface Validation<T> {
 	readonly validators: Signal<Validator<T>[]>;
 	/** Tracked errors from this node's own validators only (`[]` when valid). */
 	readonly errors: Computed<ValidationError[]>;
-	/** Tracked; true when this node's own validators report no errors (descendants ignored). */
+	/** Tracked; true while any of this node's own validators is still waiting for a result (async). */
+	readonly pending: Computed<boolean>;
+	/** Tracked; true while this node or any descendant is pending. */
+	readonly allPending: Computed<boolean>;
+	/**
+	 * Tracked; true when this node's own validators report no errors and none is pending
+	 * (descendants ignored).
+	 */
 	readonly valid: Computed<boolean>;
 	/**
-	 * Tracked; true when this node and every descendant has no errors. Same as
-	 * `allErrors().length === 0`, but cheaper (stops at the first error, builds no list) and only
+	 * Tracked; true when this node and every descendant has no errors and nothing is pending. Without
+	 * async validators it equals `allErrors().length === 0`, but cheaper (stops at the first error, builds no list) and only
 	 * notifies when the boolean flips, not on every error change.
 	 */
 	readonly allValid: Computed<boolean>;
@@ -66,7 +83,7 @@ export interface ItemNode<T> {
 	peek(): T;
 	set(value: any): void;
 	/** Present on tree nodes; plain signals have none and count as valid. */
-	check?: { allValid: () => boolean; allErrors: () => PathError[] };
+	check?: { allValid: () => boolean; allErrors: () => PathError[]; allPending?: () => boolean };
 	changes?: { reset: (next?: any) => void };
 }
 
@@ -105,9 +122,21 @@ export function createValidation<T>(
 		},
 		{ equals: sameErrors },
 	);
-	const valid = computed(() => errors().length === 0);
+	const pending = computed(() => {
+		const value = read();
+		let any = false;
+		// No early exit: every pending() call also (re)starts that validator's request for `value`.
+		for (const v of validators()) if (v.pending?.(value)) any = true;
+		return any;
+	});
+	const allPending = computed(() => {
+		if (pending()) return true;
+		for (const [, child] of children()) if (child.check?.allPending?.()) return true;
+		return false;
+	});
+	const valid = computed(() => errors().length === 0 && !pending());
 	const allValid = computed(() => {
-		if (errors().length) return false;
+		if (errors().length || pending()) return false;
 		for (const [, child] of children()) if (child.check && !child.check.allValid()) return false;
 		return true;
 	});
@@ -120,7 +149,7 @@ export function createValidation<T>(
 		for (const e of errors()) out.push({ ...e, path: [] });
 		return out;
 	});
-	return { validators, errors, valid, allValid, allErrors };
+	return { validators, errors, pending, allPending, valid, allValid, allErrors };
 }
 
 /** Structural equality for plain data: arrays and plain objects recurse, `Date` by time, else `Object.is`. */
