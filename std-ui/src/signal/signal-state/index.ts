@@ -12,3 +12,4 @@ export {
 	type ValidationError,
 	type Validator,
 } from './node.js';
+export { manualValidator, type ManualValidator } from './validators/index.js';
