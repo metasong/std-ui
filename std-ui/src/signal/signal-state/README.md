@@ -171,6 +171,32 @@ implemented.
   the same name; reach a shadowed member with `a._.name` (see [`object/`](./object/README.md)).
 - Object partial `.set()` assumes the value under an existing key matches that member's kind
   (object vs leaf); it does not convert a leaf into an object or vice versa.
+- **Existing nodes are adopted (composition).** A member that is already a tree node, e.g.
+  `signalState({ a: signalState({ x: 1 }) })`, is used as-is: the parent's `deep()`, `check` and
+  `changes` include it, so you can build a tree from independently owned nodes. The node is
+  **shared, not copied**; writes through either owner affect both, and it can sit under several
+  parents (a node under two keys reports its validation errors under both paths). Plain core
+  signals (`signal()`, `computed()`) are not nodes and stay leaf values.
+- **A node is plain data to its parent.** Adoption only happens when a member is *built*:
+  at construction, or for a new key / item. From the parent's view, `address` in
+  `signalState({ address: addr })` has the type `{ city: string }` (`Plain<T>`), so `set()` takes
+  plain data and cannot swap in another node. `user.set({ address: { city: 'Rome' } })` writes
+  into the adopted node (and so into everything sharing it); `user.changes.reset()` writes the
+  initial plain value back into it the same way. To change which node is used, build a new tree.
+- **Cycles through nodes are rejected.** A new key / item that is, or contains, its prospective
+  parent (e.g. a node holding the parent) throws a `TypeError`.
+- **A node can't be written into an existing member.** `set()` on an existing key (object) or
+  index (array) with a node throws a `TypeError` instead of storing it. Without the guard a leaf
+  would keep the node *function* as its value (not reactive, dropped by `JSON.stringify`), and
+  an object member would read the node's method names (`deep`, `peek`, ...) as keys. The check
+  runs before anything is written, so a rejected `set()` leaves the tree unchanged.
+
+  ```ts
+  const c = signalState<Record<string, unknown>>({ link: undefined });
+  const d = signalState({ x: 1 });
+  c.set({ link: d });  // TypeError: `link` already exists; use a new key to adopt `d`
+  c.set({ other: d }); // OK: new key, `d` is adopted (c.other === d)
+  ```
 - **Circular references are rejected.** `signalState()` (and `set()` with a new key) throws a
   `TypeError` if an object/array contains itself, e.g. `b.parent === a` where `a.b === b`. Why:
   the tree is finite plain data, so a back-reference can't be a node (infinite tree), and

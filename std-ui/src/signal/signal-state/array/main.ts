@@ -9,7 +9,7 @@
 
 import { computed, signal, type Computed, type Signal } from '../../core/index.js';
 import { attachCheck, type Checked } from '../check/index.js';
-import { createChangeTracking, readValue, type ItemNode, type Tracked } from '../node.js';
+import { assertAcyclic, assertNotNode, createChangeTracking, readValue, type ItemNode, type Tracked } from '../node.js';
 
 export interface SignalArray<T, N extends ItemNode<T> = ItemNode<T>> extends Checked<T[]>, Tracked<T[]> {
 	/**
@@ -65,7 +65,13 @@ export function signalArray<T, N extends ItemNode<T> = ItemNode<T>>(
 	makeItem: (value: T) => N,
 ): SignalArray<T, N> {
 	const nodes: Signal<N[]> = signal(initial.map(makeItem), { equals: () => false });
-
+	let proxy: SignalArray<T, N>; // the node users hold; assigned at the end
+	/** Builds an item for a later insert (a node inside `value` is adopted), rejecting a cycle. */
+	const make = (value: T): N => {
+		const node = makeItem(value);
+		assertAcyclic(proxy, node);
+		return node;
+	};
 	const deep = computed(() => nodes().map(readValue));
 	// Mutators edit the node array in place and only `set()` swaps in a new one, so with `Object.is`
 	// cutoff `instance` notifies on replacement only, like a plain `signal(array)`.
@@ -86,7 +92,9 @@ export function signalArray<T, N extends ItemNode<T> = ItemNode<T>>(
 	self.peek = () => snapshot(nodes.peek());
 	self.set = (values) => {
 		const prev = nodes.peek();
-		nodes.set(values.map((v, i) => (i < prev.length ? (prev[i].set(v), prev[i]) : makeItem(v))));
+		// Validate first so a rejected value leaves earlier items unwritten.
+		values.forEach((v, i) => i < prev.length && assertNotNode(v));
+		nodes.set(values.map((v, i) => (i < prev.length ? (prev[i].set(v), prev[i]) : make(v))));
 	};
 	self.update = (fn) => {
 		self.set(fn(self.peek()));
@@ -119,13 +127,13 @@ export function signalArray<T, N extends ItemNode<T> = ItemNode<T>>(
 	};
 	self.shallow = () => (nodes(), deep.peek());
 
-	self.push = (...values) => mutate((l) => l.push(...values.map(makeItem)));
-	self.unshift = (...values) => mutate((l) => l.unshift(...values.map(makeItem)));
+	self.push = (...values) => mutate((l) => l.push(...values.map(make)));
+	self.unshift = (...values) => mutate((l) => l.unshift(...values.map(make)));
 	self.pop = () => mutate((l) => l.pop()?.peek());
 	self.shift = () => mutate((l) => l.shift()?.peek());
 	self.splice = (start, deleteCount, ...values) =>
 		mutate((l) =>
-			l.splice(start, deleteCount ?? l.length, ...values.map(makeItem))
+			l.splice(start, deleteCount ?? l.length, ...values.map(make))
 			 .map((n) => n.peek()),
 		);
 	self.remove = (index) => {
@@ -149,12 +157,13 @@ export function signalArray<T, N extends ItemNode<T> = ItemNode<T>>(
 	const isIndex = (key: string | symbol): key is string =>
 		typeof key === 'string' && /^(0|[1-9]\d*)$/.test(key);
 
-	return new Proxy(self, {
+	proxy = new Proxy(self, {
 		get: (target, key, receiver) => // key can be number or any string or symbol
 			isIndex(key) ? nodes.peek()[Number(key)] : Reflect.get(target, key, receiver),
 		has: (target, key) => // `1 in array` is true when that index exists
 			isIndex(key) ? Number(key) < nodes.peek().length : Reflect.has(target, key),
 	});
+	return proxy;
 }
 
 

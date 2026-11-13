@@ -9,7 +9,7 @@
 
 import { computed, signal, type Signal } from '../../core/index.js';
 import { attachCheck, type Checked } from '../check/index.js';
-import { createChangeTracking, readValue, type ItemNode, type Tracked } from '../node.js';
+import { assertAcyclic, assertNotNode, createChangeTracking, readValue, type ItemNode, type Tracked } from '../node.js';
 
 type Members = Record<string, ItemNode<unknown>>;
 
@@ -82,13 +82,21 @@ export function signalObject<T, M = Members, P = Partial<T>>(
 			empty = { value: partial as undefined | null };
 			next = { ...prev };
 		} else {
+			const entries = Object.entries(partial as object);
+			// Validate first so a rejected value leaves the object untouched.
+			for (const [key, value] of entries) if (hasOwn(prev, key)) assertNotNode(value);
 			if (empty) {
 				empty = false;
 				next = { ...prev };
 			}
-			for (const [key, value] of Object.entries(partial as object)) {
+			for (const [key, value] of entries) {
 				if (hasOwn(prev, key)) prev[key].set(value);
-				else (next ??= { ...prev })[key] = makeMember(value);
+				else {
+					// A new member is built like at construction; a node inside `value` is adopted.
+					const member = makeMember(value);
+					assertAcyclic(proxy, member);
+					(next ??= { ...prev })[key] = member;
+				}
 			}
 		}
 		if (next) members.set(next);
@@ -134,11 +142,12 @@ export function signalObject<T, M = Members, P = Partial<T>>(
 	const isMember = (key: string | symbol): key is string =>
 		typeof key === 'string' && !API.has(key) && hasOwn(members.peek(), key);
 
-	return new Proxy(self, {
+	const proxy: SignalObject<T, M, P> = new Proxy(self, {
 		get: (target, key, receiver) =>
 			isMember(key) ? members.peek()[key] : Reflect.get(target, key, receiver),
 		has: (target, key) => isMember(key) || Reflect.has(target, key),
 	});
+	return proxy;
 }
 
 

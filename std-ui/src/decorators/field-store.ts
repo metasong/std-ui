@@ -31,7 +31,9 @@ import { signalState, type SignalState } from '../signal/index.js';
  * value didn't actually change.
  */
 function createStore<V>(initial: V): SignalState<V> {
-	return signalState(initial);
+	// Field values are plain data (no embedded nodes), so `Plain<V>` is `V`; the cast sidesteps the
+	// unresolved conditional type for a generic `V`.
+	return signalState(initial) as unknown as SignalState<V>;
 }
 
 // `@state()` and `@attribute()` aren't meant to be stacked on the same field, but rather than

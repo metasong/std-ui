@@ -43,6 +43,63 @@ export function readValue<T>(node: ItemNode<T>): T {
 	return typeof deep === 'function' ? deep() : node();
 }
 
+/** Type of a node built by this module (`signalState()`, `signalObject()`, `signalArray()`, leaves). */
+export interface TreeNode {
+	(): unknown;
+	peek(): unknown;
+	deep(): unknown;
+	set(value: any): void;
+	readonly changes: unknown;
+}
+
+/** Runtime check for `TreeNode`: a function with `deep()` and `changes` (plain core signals have neither). */
+export function isTreeNode(value: unknown): value is TreeNode {
+	return (
+		typeof value === 'function' &&
+		typeof (value as { deep?: unknown }).deep === 'function' &&
+		(value as { changes?: unknown }).changes !== undefined
+	);
+}
+
+/**
+ * Guards writes into an *existing* member: a node there would be stored as a function (leaf) or
+ * have its method names read as keys (object), so it is rejected. A node is adopted only when a
+ * member is built (construction, new key, new item).
+ */
+export function assertNotNode(value: unknown): void {
+	if (isTreeNode(value)) {
+		throw new TypeError(
+			'signalState: cannot write a signalState node into an existing member; nodes are adopted at construction or as a new key / item',
+		);
+	}
+}
+
+/** Member nodes of a container node (object members via `_`, array items by index); none for a leaf. */
+function childNodes(node: object): unknown[] {
+	const members = (node as { _?: object })._;
+	if (members) return Object.values(members);
+	const out: unknown[] = [];
+	for (let i = 0, c; (c = (node as Record<number, unknown>)[i]) !== undefined; i++) out.push(c);
+	return out;
+}
+
+function reaches(node: unknown, target: object, seen: Set<unknown>): boolean {
+	if (node === target) return true;
+	if (!isTreeNode(node) || seen.has(node)) return false;
+	seen.add(node);
+	return childNodes(node).some((c) => reaches(c, target, seen));
+}
+
+/**
+ * Throws if attaching `child` under `parent` would create a cycle, i.e. `child` is `parent` or
+ * already contains it (directly or through adopted nodes). Pass the node a user holds (the proxy).
+ */
+export function assertAcyclic(parent: object, child: unknown): void {
+	if (reaches(child, parent, new Set())) {
+		throw new TypeError('signalState: circular reference detected; a node cannot contain itself');
+	}
+}
+
 
 /** Structural equality for plain data: arrays and plain objects recurse, `Date` by time, else `Object.is`. */
 export function deepEqual(a: unknown, b: unknown): boolean {
