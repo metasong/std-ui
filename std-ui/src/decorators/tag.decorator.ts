@@ -31,7 +31,11 @@ export function tag(name: string) {
 		// `context.metadata` is always populated for a class decorator (TC39 stage-3 decorators) -
 		// the `?? {}` only satisfies this lib's `DecoratorMetadata | undefined` typing.
 		(ctor as unknown as Record<symbol, object>)[metadataSymbol] = context.metadata ?? {};
-		customElements.define(name, ctor);
+		// Defined from a class initializer, which runs once the class is fully built - *after* its static
+		// fields (`static styles`, `static shadowRootOptions`, ...) are assigned. Defining right here would
+		// upgrade elements already in the page's markup before those exist, so they would render into the
+		// light DOM, unstyled. Still synchronous within the class definition.
+		context.addInitializer(() => customElements.define(name, ctor));
 		return ctor;
 	};
 }
