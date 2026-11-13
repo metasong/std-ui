@@ -71,10 +71,32 @@ export type SignalState<T> = T extends readonly (infer U)[]
  *
  * `signalOptions` is forwarded to every leaf `signal()` created in the tree (e.g. to customize
  * `equals`); it has no effect on containers.
+ *
+ * Throws a `TypeError` on a circular reference (an object or array that contains itself, directly
+ * or through descendants). The tree models finite plain data: a back-reference can't be a node
+ * (it would be an infinite tree) and, as a leaf, would hold a stale raw copy that silently drifts
+ * from the reactive tree. Shared, non-circular references are fine; each occurrence becomes its
+ * own independent node.
  */
 export function signalState<T>(value: T, signalOptions?: SignalOptions<unknown>): SignalState<T> {
-	const child = (item: unknown) => signalState(item, signalOptions) as unknown as ItemNode<unknown>;
-	if (Array.isArray(value)) return signalArray(value, child) as unknown as SignalState<T>;
-	if (isPlainObject(value)) return signalObject(value, child) as unknown as SignalState<T>;
-	return signalLeaf(value, signalOptions as SignalOptions<T>) as unknown as SignalState<T>;
+	return build(value, signalOptions, new Set());
+}
+
+/** `ancestors` holds the containers on the current construction path (not every visited one). */
+function build<T>(value: T, signalOptions: SignalOptions<unknown> | undefined, ancestors: Set<object>): SignalState<T> {
+	const container = Array.isArray(value) || isPlainObject(value);
+	if (container) {
+		if (ancestors.has(value as object)) {
+			throw new TypeError('signalState: circular reference detected; state must be a finite tree of plain data');
+		}
+		ancestors.add(value as object);
+	}
+	try {
+		const child = (item: unknown) => build(item, signalOptions, ancestors) as unknown as ItemNode<unknown>;
+		if (Array.isArray(value)) return signalArray(value, child) as unknown as SignalState<T>;
+		if (isPlainObject(value)) return signalObject(value, child) as unknown as SignalState<T>;
+		return signalLeaf(value, signalOptions as SignalOptions<T>) as unknown as SignalState<T>;
+	} finally {
+		if (container) ancestors.delete(value as object);
+	}
 }

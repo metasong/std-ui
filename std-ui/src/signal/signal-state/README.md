@@ -171,4 +171,11 @@ implemented.
   the same name; reach a shadowed member with `a._.name` (see [`object/`](./object/README.md)).
 - Object partial `.set()` assumes the value under an existing key matches that member's kind
   (object vs leaf); it does not convert a leaf into an object or vice versa.
+- **Circular references are rejected.** `signalState()` (and `set()` with a new key) throws a
+  `TypeError` if an object/array contains itself, e.g. `b.parent === a` where `a.b === b`. Why:
+  the tree is finite plain data, so a back-reference can't be a node (infinite tree), and
+  treating it as a leaf would hold a raw, non-reactive copy that goes stale and makes
+  `deep()` / `check` / `changes` skip everything behind it. Store an id instead, or keep the
+  back-reference outside the state. Shared non-circular references are fine; each occurrence
+  becomes its own independent node (identity is not preserved).
 
