@@ -60,7 +60,7 @@ function writeProperty(el: Element, name: string, value: unknown): void {
 		&& current !== value
 		&& typeof (current as { set?: unknown }).set === 'function'
 	) {
-		(current as { set: (v: unknown) => void }).set(value);
+		(current as unknown as { set: (v: unknown) => void }).set(value);
 		return;
 	}
 	host[name] = value;

@@ -16,10 +16,10 @@ export class ListCommitter extends Committer<readonly unknown[]> {
 		for (let i = 0; i < values.length; i++) items[i].update([values[i]]);
 		return true;
 	}
-	disconnect(): void {
+	override disconnect(): void {
 		for (const item of this.#items) item.disconnect();
 	}
-	dispose(): void {
+	override dispose(): void {
 		for (const item of this.#items) item.dispose();
 		this.#items = [];
 	}

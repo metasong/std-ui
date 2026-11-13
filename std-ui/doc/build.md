@@ -10,8 +10,8 @@
 
 | File | Format | Minified | Gzip |
 |---|---|---|---|
-| `std-ui.min.js` | ES module | 64.1 kB | 18.3 kB |
-| `std-ui.iife.min.js` | IIFE (global `StdUI`) | 49.4 kB | 16.9 kB |
+| `std-ui.min.js` | ES module | 76.4 kB | 21.9 kB |
+| `std-ui.iife.min.js` | IIFE (global `StdUI`) | 59.0 kB | 20.1 kB |
 
 Sizes as of v0.1.0; `npm run build:bundle` prints current numbers. The ES build is larger because its top-level export names can't be mangled.
 

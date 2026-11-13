@@ -21,10 +21,10 @@ export class TemplateCommitter extends Committer<TemplateResult> {
 		this.#parts = parts;
 		return true;
 	}
-	disconnect(): void {
+	override disconnect(): void {
 		for (const p of this.#parts) p.disconnect?.();
 	}
-	dispose(): void {
+	override dispose(): void {
 		this.disconnect();
 		for (const n of this.#nodes) n.remove();
 	}
