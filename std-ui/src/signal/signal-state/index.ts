@@ -1,4 +1,12 @@
-export { signalState, type DeepPartial, type SignalState } from './main.js';
+export {
+	signalState,
+	type DeepPartial,
+	type SignalDepth,
+	type SignalState,
+	type SignalStateOf,
+	type SignalStateOptions,
+	type SignalStateShallow,
+} from './main.js';
 export type { SignalLeaf } from './leaf.js';
 export { flags, type ValidityFlag } from './flags.js';
 export { signalArray, type SignalArray } from './array/index.js';

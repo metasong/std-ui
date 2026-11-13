@@ -46,7 +46,7 @@ signals), use [`readValue`](./node.ts).
 
 ## API
 
-### `signalState(value, signalOptions?)`
+### `signalState(value, options?)`
 
 Converts a value into its `SignalState`. Reach into leaves to read or write them:
 
@@ -57,8 +57,58 @@ a.deep();       // { b: { c: { d: 5 } } } (tracked read)
 a().b === a.b;  // true: `()` on a container returns its child nodes
 ```
 
-`signalOptions` is forwarded to every leaf `signal()` (e.g. custom `equals`); it has no effect on
-containers.
+`options` is forwarded to every leaf `signal()` (e.g. custom `equals`); it has no effect on
+containers. `options.depth` controls how deep the tree is built:
+
+| `depth` | Result | Notifies when |
+|---|---|---|
+| `'deep'` (default) | Every nested object / array is a node | any leaf changes (`deep()`), or structure (`shallow()`) |
+| `'shallow'` | Root is a `SignalObject` / `SignalArray`; each member is a **leaf** holding its value as-is | a member is replaced, or a member is added / removed |
+| `'value'` | The whole value is **one leaf** `Signal`, whatever its shape | the value is replaced |
+
+```ts
+const data = { id: 1, user: { name: 'Ada', tags: ['a'] } };
+
+const deep = signalState(data);                         // default
+deep.user.name.set('Bob');                              // notifies readers of user.name
+
+const shallow = signalState(data, { depth: 'shallow' });
+shallow.user();                                         // data.user (raw reference, not walked)
+shallow.user.set({ name: 'Bob', tags: [] });            // replace the member: notifies
+shallow.user().name = 'Zed';                            // in-place mutation: no signal
+shallow.set({ id: 2 });                                 // patches members, like any container
+shallow.deep();                                         // { id: 2, user: ... }
+
+const value = signalState(data, { depth: 'value' });    // a plain Signal<typeof data>
+value.set({ ...data, id: 2 });                          // only replacement notifies
+```
+
+Use `'shallow'` / `'value'` for large or opaque data you replace wholesale (rows from a server, a
+parsed document) and don't want a node per field. Notes:
+
+- A shallow or value tree does not walk its members, so **circular references inside a raw value
+  are not rejected** (deep trees still reject them), and calling `changes.dirty` on such a value
+  would recurse forever when comparing it.
+- Reads collapse with the depth. On a **`'value'`** tree, `()`, `shallow()` and `deep()` are the
+  same read, `valid` / `errors` / `pending` equal their `all*` aggregates (a leaf has no children),
+  and `changes.dirty` is the single deep comparison of the value. On a **`'shallow'`** tree
+  `deep()` is `shallow()`: both track structure (keys / items added or removed) and replacement
+  of a member. A raw object / array member is not walked: mutating it in place does not notify.
+  An **adopted deep node** is the exception: it is still a deep node, so writes inside it notify
+  the shallow parent through its own `deep()`. `()` tracks only replacement of the member record.
+- Depth is fixed at build time and applies to members created later too (`set()` with a new key,
+  `push()`): in a shallow tree they are leaves.
+- Depth composes: an existing node passed as a member is adopted with the depth it was built
+  with, so a deep parent can hold shallow children:
+
+  ```ts
+  const big = signalState({ rows: [...] }, { depth: 'shallow' });
+  const page = signalState({ title: 'T', big });  // deep parent, `big` stays shallow
+  page.big.rows();                                // raw array (one leaf)
+  page.deep();                                    // includes big's rows
+  ```
+- Types follow the depth: `SignalStateOf<T, D>` (members of a shallow tree are `SignalLeaf`s;
+  `'value'` gives `SignalLeaf<T>`). Shallow `set()` takes `Partial<T>`.
 
 ### `node.set(partial)`
 

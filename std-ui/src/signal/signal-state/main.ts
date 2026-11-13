@@ -88,12 +88,51 @@ export type SignalState<T> = T extends readonly (infer U)[]
 		? SignalObject<T, Members<T>, DeepPartial<T>> & Members<T>
 		: SignalLeaf<T>;
 
+/** How far a tree is built: `'value'` = one leaf, `'shallow'` = container + leaf members, `'deep'` = full tree. */
+export type SignalDepth = 'value' | 'shallow' | 'deep';
+
+/** `signalState()` options: the leaf `signal()` options plus how deep to build. */
+export interface SignalStateOptions<T = unknown> extends SignalOptions<T> {
+	/**
+	 * - `'deep'` (default): every nested object / array becomes a node.
+	 * - `'shallow'`: the root is a container node (`SignalObject` / `SignalArray`) but each member is
+	 *   a leaf holding its value as-is, so nested objects are not walked and only replacing a
+	 *   member notifies. Existing nodes passed as members are still adopted.
+	 * - `'value'`: the whole value is a single leaf `Signal`, whatever its shape.
+	 *
+	 * Reads collapse with the depth: on a `'value'` tree `()`, `shallow()` and `deep()` are the same
+	 * read, and `valid` / `errors` / `pending` equal their `all*` aggregates (a leaf has no children);
+	 * on a `'shallow'` tree `deep()` is `shallow()`, tracking structure and member replacement.
+	 */
+	depth?: SignalDepth;
+}
+
+/** Members of a shallow container: one plain leaf per key. */
+type LeafMembers<T> = { readonly [K in keyof T]: SignalLeaf<T[K]> };
+
+/** The tree `signalState()` builds with `depth: 'shallow'`. */
+export type SignalStateShallow<T> = T extends readonly (infer U)[]
+	? SignalArray<U, SignalLeaf<U> & ItemNode<U>>
+	: IsBranch<T> extends true
+		? SignalObject<T, LeafMembers<T>, Partial<T>> & LeafMembers<T>
+		: SignalLeaf<T>;
+
+/** What `signalState(value, { depth: D })` returns for a value of type `T`. */
+export type SignalStateOf<T, D extends SignalDepth> = D extends 'value'
+	? SignalLeaf<Plain<T>>
+	: D extends 'shallow'
+		? SignalStateShallow<Plain<T>>
+		: SignalState<Plain<T>>;
+
 /**
  * Converts a value into a `SignalState`: arrays become `signalArray()`s, plain objects
  * `signalObject()`s, and everything else a `SignalLeaf`, recursively.
  *
- * `signalOptions` is forwarded to every leaf `signal()` created in the tree (e.g. to customize
- * `equals`); it has no effect on containers.
+ * `options` is forwarded to every leaf `signal()` created in the tree (e.g. to customize
+ * `equals`); it has no effect on containers. `options.depth` limits how deep the tree is built
+ * (`'deep'` default, `'shallow'`, `'value'`; see `SignalStateOptions`). A shallow or value tree
+ * does not walk its members, so a circular reference inside a raw member value is not rejected
+ * (and a dirty check (`changes`) on such a value would recurse forever).
  *
  * Composition: a member that is already a tree node (built by `signalState()` etc.) is adopted
  * as-is, not wrapped: the parent tracks it, and `deep()`, `check` and `changes` include it. The
@@ -108,14 +147,25 @@ export type SignalState<T> = T extends readonly (infer U)[]
  * from the reactive tree. Shared, non-circular plain references are fine; each occurrence becomes
  * its own independent node.
  */
-export function signalState<T>(value: T, signalOptions?: SignalOptions<unknown>): SignalState<Plain<T>> {
-	return build<unknown>(value, signalOptions, new Set()) as unknown as SignalState<Plain<T>>;
+export function signalState<T, D extends SignalDepth = 'deep'>(
+	value: T,
+	options?: SignalStateOptions & { depth?: D },
+): SignalStateOf<T, D> {
+	const { depth = 'deep', ...leafOptions } = options ?? {};
+	return build<unknown>(value, leafOptions, depth, new Set()) as unknown as SignalStateOf<T, D>;
 }
 
 /** `ancestors` holds the containers on the current construction path (not every visited one). */
-function build<T>(value: T, signalOptions: SignalOptions<unknown> | undefined, ancestors: Set<object>): SignalState<T> {
+function build<T>(
+	value: T,
+	signalOptions: SignalOptions<unknown> | undefined,
+	depth: SignalDepth,
+	ancestors: Set<object>,
+): SignalState<T> {
 	// Composition: an existing tree node is adopted as-is, so the parent reads, validates and tracks it.
 	if (isTreeNode(value)) return value as SignalState<T>;
+	// `'value'` stops here: whatever the shape, it is one leaf holding the value as-is.
+	if (depth === 'value') return signalLeaf(value, signalOptions as SignalOptions<T>) as unknown as SignalState<T>;
 	const container = Array.isArray(value) || isPlainObject(value);
 	if (container) {
 		if (ancestors.has(value as object)) {
@@ -124,9 +174,17 @@ function build<T>(value: T, signalOptions: SignalOptions<unknown> | undefined, a
 		ancestors.add(value as object);
 	}
 	try {
-		const child = (item: unknown) => build(item, signalOptions, ancestors) as unknown as ItemNode<unknown>;
-		if (Array.isArray(value)) return signalArray(value, child) as unknown as SignalState<T>;
-		if (isPlainObject(value)) return signalObject(value, child) as unknown as SignalState<T>;
+		// Members of a shallow container are leaves (`'value'`); a deep tree recurses.
+		const memberDepth: SignalDepth = depth === 'shallow' ? 'value' : 'deep';
+		const child = (item: unknown) => build(item, signalOptions, memberDepth, ancestors) as unknown as ItemNode<unknown>;
+		if (Array.isArray(value) || isPlainObject(value)) {
+			const node = Array.isArray(value) ? signalArray(value, child) : signalObject(value as PlainObject, child);
+			// Members built here are leaves, whose `deep()` is just their replacement, so `deep()` is
+			// structure + member replacement and equals `shallow()`. An adopted deep node is still
+			// tracked through its own `deep()` (this is the one place a shallow parent reaches inside).
+			if (depth === 'shallow') (node as { shallow(): unknown }).shallow = node.deep;
+			return node as unknown as SignalState<T>;
+		}
 		return signalLeaf(value, signalOptions as SignalOptions<T>) as unknown as SignalState<T>;
 	} finally {
 		if (container) ancestors.delete(value as object);
