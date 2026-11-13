@@ -25,6 +25,8 @@ export {
 	type PartInfo,
 	type CSSResultGroup,
 } from './template/index.js';
+export { FormElement, type ValidationResult } from './form/element.js';
+export { FormGroup, type ValidationErrorTarget } from './form/group.js';
 export { bind, classMap, styleMap, mapByKey, slot, ref, createRef, virtualize, VirtualizeController } from './template/directives/index.js';
 export type { BindAccessor, BindOptions, BindSource, Ref, RefCallback, RefOrCallback } from './template/directives/index.js';
 export type { VirtualizeOptions, ScrollToIndexOptions, ScrollAlign } from './template/directives/index.js';

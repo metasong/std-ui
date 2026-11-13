@@ -17,6 +17,7 @@ import {
 import { assertBindableTarget, isRadio } from './defaults.js';
 import { pullRadioSiblings, registerRadio, unregisterRadio } from './radio-group.js';
 import { BIND_USAGE, isWritableSignal, resolveBinding } from './resolve.js';
+import { wireValidity } from './validity.js';
 import type { BindOptions, BindSource, Binding, WritableSignal } from './types.js';
 
 /** DOM wiring for one binding position; torn down as a unit. */
@@ -32,6 +33,9 @@ class BindDirective extends Directive {
 	#property = '';
 	/** Listener + element + event: only rebuilt when the element or event name changes. */
 	#wiring: Wiring | undefined;
+	/** Disposer for the validation → element mirror (see `./validity.ts`). */
+	#stopValidity: (() => void) | undefined;
+	#validityElement: Element | undefined;
 
 	constructor(partInfo: PartInfo) {
 		super(partInfo);
@@ -49,10 +53,21 @@ class BindDirective extends Directive {
 		this.#ensureWired(element, this.#binding.view.event);
 		this.#syncToView();
 		this.#resyncSelectAfterOptionsRender(element);
+		this.#ensureValidity(element);
 		return noChange;
 	}
 
+	/** Validation errors → element; one effect per element, always reading the latest binding. */
+	#ensureValidity(element: Element): void {
+		if (this.#validityElement === element) return;
+		this.#stopValidity?.();
+		this.#validityElement = element;
+		this.#stopValidity = wireValidity(element, this.#property, () => this.#binding?.errors);
+	}
+
 	override disconnected(): void {
+		this.#stopValidity?.();
+		this.#stopValidity = this.#validityElement = undefined;
 		this.#unwire();
 		this.#binding = undefined;
 	}
