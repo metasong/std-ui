@@ -37,59 +37,6 @@ body {
 	color: var(--md-sys-color-on-surface-variant);
 }
 
-/* Sticky top navigation: related demos on the left, in-page section anchors after the divider. */
-.demo-nav {
-	position: sticky;
-	top: 0;
-	z-index: 10;
-	display: flex;
-	align-items: center;
-	gap: 0.25rem;
-	padding: 0.5rem 1.5rem;
-	overflow-x: auto;
-	scrollbar-width: none;
-	white-space: nowrap;
-	background: var(--md-sys-color-surface-container);
-	border-bottom: 1px solid var(--md-sys-color-outline-variant);
-}
-
-.demo-nav a {
-	flex: none;
-	padding: 0.35rem 0.75rem;
-	border-radius: var(--md-shape-corner-full);
-	font-size: 0.875rem;
-	font-weight: 500;
-	color: var(--md-sys-color-on-surface-variant);
-	text-decoration: none;
-}
-
-.demo-nav a:hover {
-	background: color-mix(in srgb, var(--md-sys-color-primary) 10%, transparent);
-	color: var(--md-sys-color-primary);
-}
-
-.demo-nav a[aria-current] {
-	background: var(--md-sys-color-secondary-container, color-mix(in srgb, var(--md-sys-color-primary) 16%, transparent));
-	color: var(--md-sys-color-primary);
-}
-
-.demo-nav .sep {
-	flex: none;
-	width: 1px;
-	height: 1.25rem;
-	margin: 0 0.5rem;
-	background: var(--md-sys-color-outline-variant);
-}
-
-.demo-nav .label {
-	flex: none;
-	padding: 0 0.5rem;
-	font-size: 0.75rem;
-	letter-spacing: 0.04em;
-	text-transform: uppercase;
-	color: var(--md-sys-color-outline);
-}
-
 .demo-main {
 	max-width: 52rem;
 	margin: 0 auto;
@@ -349,26 +296,3 @@ demo-shadow-section p {
 demo-bind-merged { position: relative; display: inline-block; }
 demo-bind-merged .error-icon { position: absolute; left: 100%; top: 50%; translate: 0 -50%; display: inline-flex; align-items: center; justify-content: center; width: 18px; height: 18px; margin-left: 8px; border-radius: 50%; background: #b3261e; color: #fff; font: 700 12px/1 sans-serif; vertical-align: middle; opacity: 0; pointer-events: none; outline: none; }
 demo-bind-merged:state(touched):invalid .error-icon, demo-bind-merged[touched]:invalid .error-icon { opacity: 1; }
-
-/* In-page link row under the header (bind / slot / virtualize / integration pages). */
-.demo-page-nav {
-	display: flex;
-	flex-wrap: wrap;
-	gap: 0.75rem;
-	margin: 0 0 1.25rem;
-	padding: 0 0 1rem;
-	border-bottom: 1px solid var(--md-sys-color-outline-variant);
-}
-
-.demo-page-nav a {
-	font-size: 0.875rem;
-	font-weight: 500;
-	color: var(--md-sys-color-primary);
-	text-decoration: none;
-	padding: 0.35rem 0.65rem;
-	border-radius: var(--md-shape-corner-full);
-}
-
-.demo-page-nav a:hover {
-	background: color-mix(in srgb, var(--md-sys-color-primary) 10%, transparent);
-}
