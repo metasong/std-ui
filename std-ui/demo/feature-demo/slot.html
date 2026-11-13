@@ -13,6 +13,10 @@
 		.demo-slot-card { border: 2px solid var(--md-sys-color-primary, #6750a4); border-radius: 12px; padding: 1rem; margin-block: 1rem; }
 		.demo-slot-card h3 { color: var(--md-sys-color-primary, #6750a4); margin: 0 0 0.5rem; }
 	</style>
+	<style>
+		/* Wider so each code block can show the rendered demo beside it. */
+		.demo-main { max-width: none; width: 90%; box-sizing: border-box; }
+	</style>
 </head>
 <body>
 	<header class="demo-app-bar">
@@ -23,13 +27,12 @@
 		</p>
 	</header>
 	<main class="demo-main">
-		<nav class="demo-v-nav" aria-label="On this page">
+		<nav class="demo-page-nav" aria-label="On this page">
 			<a href="./index.html">← Feature tour</a>
 			<a href="#light">Light DOM</a>
 			<a href="#shadow">Shadow DOM</a>
 		</nav>
-		<demo-slot-light-section></demo-slot-light-section>
-		<demo-slot-shadow-section></demo-slot-shadow-section>
+		<demo-slot-page></demo-slot-page>
 	</main>
 
 	<script type="module" src="./slot-main.ts"></script>

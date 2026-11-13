@@ -5,7 +5,7 @@ Two folders:
 - [`feature-demo/`](./feature-demo/): one feature per demo, nothing mixed (tour, `bind`, `slot`, `virtualize` pages).
 - [`integration-demo/`](./integration-demo/): several features working together (e.g. the people directory: `bind()` + validation + `virtualize()`).
 
-Shared styles (`material-theme.css`, `demo-components.css`, `virtualize.css`) live in `demo/`; `index.html` links to both demos.
+Shared styles (`material-theme.css`, `demo-components.css`, `virtualize-list.css`) live in `demo/`; `index.html` links to both demos.
 
 A small Vite app that mounts one custom element per feature area (`demo-*-section` tags in
 [`index.html`](./feature-demo/index.html)). Each section’s source lives under [`feature-demo/sections/`](./feature-demo/sections/).

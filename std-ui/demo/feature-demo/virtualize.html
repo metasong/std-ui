@@ -9,25 +9,27 @@
 	<link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&family=Roboto+Mono:wght@400&display=swap" rel="stylesheet" />
 	<link rel="stylesheet" href="../material-theme.css" />
 	<link rel="stylesheet" href="../demo-components.css" />
-	<link rel="stylesheet" href="../virtualize.css" />
+	<link rel="stylesheet" href="../virtualize-list.css" />
+	<link rel="stylesheet" href="./virtualize.css" />
+	<style>
+		/* Wider so each code block can show the rendered demo beside it. */
+		.demo-main { max-width: none; width: 90%; box-sizing: border-box; }
+	</style>
 </head>
-<body class="demo-v-page">
+<body>
 	<header class="demo-app-bar">
 		<h1><code>virtualize</code></h1>
 		<p class="lead">Windowed lists and grids — large collections with a tiny DOM. Each block is its own custom element.</p>
 	</header>
 	<main class="demo-main">
-		<nav class="demo-v-nav" aria-label="On this page">
+		<nav class="demo-page-nav" aria-label="On this page">
 			<a href="./index.html">← Feature tour</a>
 			<a href="#vertical">Vertical</a>
 			<a href="#headers">Headers</a>
 			<a href="#grid">Grid</a>
 			<a href="#horizontal">Horizontal</a>
 		</nav>
-		<demo-virtualize-vertical></demo-virtualize-vertical>
-		<demo-virtualize-headers></demo-virtualize-headers>
-		<demo-virtualize-grid></demo-virtualize-grid>
-		<demo-virtualize-horizontal></demo-virtualize-horizontal>
+		<demo-virtualize-page></demo-virtualize-page>
 	</main>
 
 	<script type="module" src="./virtualize-main.ts"></script>
