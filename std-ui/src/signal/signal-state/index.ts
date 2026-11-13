@@ -1,7 +1,7 @@
 export {
 	signalState,
 	type DeepPartial,
-	type SignalDepth,
+	type StateDepth,
 	type SignalState,
 	type SignalStateOf,
 	type SignalStateOptions,

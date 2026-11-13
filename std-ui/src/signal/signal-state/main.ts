@@ -89,7 +89,7 @@ export type SignalState<T> = T extends readonly (infer U)[]
 		: SignalLeaf<T>;
 
 /** How far a tree is built: `'value'` = one leaf, `'shallow'` = container + leaf members, `'deep'` = full tree. */
-export type SignalDepth = 'value' | 'shallow' | 'deep';
+export type StateDepth = 'value' | 'shallow' | 'deep';
 
 /** `signalState()` options: the leaf `signal()` options plus how deep to build. */
 export interface SignalStateOptions<T = unknown> extends SignalOptions<T> {
@@ -104,7 +104,7 @@ export interface SignalStateOptions<T = unknown> extends SignalOptions<T> {
 	 * read, and `valid` / `errors` / `pending` equal their `all*` aggregates (a leaf has no children);
 	 * on a `'shallow'` tree `deep()` is `shallow()`, tracking structure and member replacement.
 	 */
-	depth?: SignalDepth;
+	depth?: StateDepth;
 }
 
 /** Members of a shallow container: one plain leaf per key. */
@@ -118,7 +118,7 @@ export type SignalStateShallow<T> = T extends readonly (infer U)[]
 		: SignalLeaf<T>;
 
 /** What `signalState(value, { depth: D })` returns for a value of type `T`. */
-export type SignalStateOf<T, D extends SignalDepth> = D extends 'value'
+export type SignalStateOf<T, D extends StateDepth> = D extends 'value'
 	? SignalLeaf<Plain<T>>
 	: D extends 'shallow'
 		? SignalStateShallow<Plain<T>>
@@ -147,7 +147,7 @@ export type SignalStateOf<T, D extends SignalDepth> = D extends 'value'
  * from the reactive tree. Shared, non-circular plain references are fine; each occurrence becomes
  * its own independent node.
  */
-export function signalState<T, D extends SignalDepth = 'deep'>(
+export function signalState<T, D extends StateDepth = 'deep'>(
 	value: T,
 	options?: SignalStateOptions & { depth?: D },
 ): SignalStateOf<T, D> {
@@ -159,7 +159,7 @@ export function signalState<T, D extends SignalDepth = 'deep'>(
 function build<T>(
 	value: T,
 	signalOptions: SignalOptions<unknown> | undefined,
-	depth: SignalDepth,
+	depth: StateDepth,
 	ancestors: Set<object>,
 ): SignalState<T> {
 	// Composition: an existing tree node is adopted as-is, so the parent reads, validates and tracks it.
@@ -175,7 +175,7 @@ function build<T>(
 	}
 	try {
 		// Members of a shallow container are leaves (`'value'`); a deep tree recurses.
-		const memberDepth: SignalDepth = depth === 'shallow' ? 'value' : 'deep';
+		const memberDepth: StateDepth = depth === 'shallow' ? 'value' : 'deep';
 		const child = (item: unknown) => build(item, signalOptions, memberDepth, ancestors) as unknown as ItemNode<unknown>;
 		if (Array.isArray(value) || isPlainObject(value)) {
 			const node = Array.isArray(value) ? signalArray(value, child) : signalObject(value as PlainObject, child);

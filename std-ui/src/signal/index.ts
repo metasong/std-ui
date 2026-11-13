@@ -18,6 +18,7 @@ export {
 	signalState,
 	type DeepPartial,
 	type SignalState,
+	type StateDepth,
 } from './signal-state/index.js';
 
 import {
