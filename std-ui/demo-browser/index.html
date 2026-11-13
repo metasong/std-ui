@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="UTF-8" />
+	<title>std-ui — browser IIFE bundle demo</title>
+	<meta name="viewport" content="width=device-width, initial-scale=1" />
+	<link rel="stylesheet" href="./styles.css" />
+</head>
+<body>
+	<header>
+		<h1>std-ui in the browser</h1>
+		<p>
+			This page loads the prebuilt
+			<code>dist/browser/std-ui.iife.min.js</code> with a plain <code>&lt;script&gt;</code> tag and uses
+			the <code>StdUI</code> global — no modules, no bundler. App code is plain <code>app.js</code>
+			(no <code>@decorator</code> syntax; use <code>customElements.define</code>, or see the Babel demo).
+		</p>
+		<p><a href="./babel.html">decorators via Babel standalone →</a></p>
+	</header>
+
+	<main>
+		<section class="card">
+			<h2>Inline <code>render()</code></h2>
+			<p class="hint">Module-level <code>signalState</code> + <code>t</code> into a mount node.</p>
+			<div id="inline-root"></div>
+		</section>
+
+		<section class="card">
+			<h2><code>UIElement</code> custom element</h2>
+			<p class="hint">Subclass + <code>customElements.define</code> (same runtime as <code>@tag()</code>).</p>
+			<browser-bundle-counter></browser-bundle-counter>
+		</section>
+	</main>
+
+	<!-- Classic scripts, in order: the library defines the `StdUI` global, then the app uses it. -->
+	<script src="../dist/browser/std-ui.iife.min.js"></script>
+	<script src="./app.js"></script>
+</body>
+</html>

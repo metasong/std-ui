@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="UTF-8" />
+	<title>std-ui — decorators in the browser (Babel standalone)</title>
+	<meta name="viewport" content="width=device-width, initial-scale=1" />
+	<link rel="stylesheet" href="./styles.css" />
+</head>
+<body>
+	<header>
+		<h1>Decorators in the browser</h1>
+		<p>
+			<code>@tag</code>, <code>@attribute</code> and <code>@state</code> in an inline script, transpiled
+			at load time by <code>@babel/standalone</code> (~2.9 MB, ~0.6 MB gzip). Demo only — use a build step in production.
+		</p>
+		<p><a href="./index.html">← IIFE demo (no decorators)</a></p>
+	</header>
+
+	<main>
+		<section class="card">
+			<h2><code>@attribute</code> from markup</h2>
+			<p class="hint">Attributes are parsed at upgrade; <code>reflect: true</code> writes <code>count</code> back.</p>
+			<user-badge count="3" label="Ada"></user-badge>
+			<p class="hint">Attribute now: <code id="attr-readout"></code></p>
+		</section>
+	</main>
+
+	<!-- 1. std-ui first: it defines Symbol.metadata, which Babel's decorator output must share. -->
+	<script src="../dist/browser/std-ui.iife.min.js"></script>
+
+	<!-- 2. Babel standalone, with the 2023-11 decorators plugin registered as a preset. -->
+	<script src="https://unpkg.com/@babel/standalone@7.24.0/babel.min.js"></script>
+	<script>
+		Babel.registerPreset('tc39-decorators', {
+			plugins: [[Babel.availablePlugins['proposal-decorators'], { version: '2023-11' }]],
+		});
+	</script>
+
+	<!-- 3. App code with real @decorators. `data-plugins=""` is required. -->
+	<script type="text/babel" data-presets="tc39-decorators" data-plugins="">
+		const { UIElement, tag, attribute, state, t } = StdUI;
+
+		@tag('user-badge')
+		class UserBadge extends UIElement {
+			@attribute({ type: Number, reflect: true }) count = 0;
+			@attribute() label = 'Guest';
+			@state() clicks = 0;
+
+			template() {
+				return t`
+					<p class="metric"><strong>${this.label()}</strong>: ${this.count()} (clicked ${this.clicks()}x)</p>
+					<div class="actions">
+						<button type="button" class="primary" @click=${() => { this.count.update((n) => n + 1); this.clicks.update((n) => n + 1); }}>+1</button>
+						<button type="button" @click=${() => this.setAttribute('label', 'Grace')}>label = Grace</button>
+					</div>
+				`;
+			}
+		}
+
+		const badge = document.querySelector('user-badge');
+		const readout = document.getElementById('attr-readout');
+		const show = () => (readout.textContent = `count="${badge.getAttribute('count')}" label="${badge.getAttribute('label')}"`);
+		show();
+		new MutationObserver(show).observe(badge, { attributes: true });
+	</script>
+</body>
+</html>

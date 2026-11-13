@@ -23,6 +23,8 @@ Sizes as of v0.1.0; `npm run build:bundle` prints current numbers. The ES build 
   </script>
   ```
 
+  Runnable example: [`demo-browser/`](../demo-browser/) (`npm run build && npm run demo:browser`).
+
 - `std-ui.iife.min.js` — classic script exposing the global `StdUI`:
 
   ```html

@@ -3,6 +3,17 @@
 A small Vite app that mounts one custom element per feature area (`demo-*-section` tags in
 [`index.html`](./index.html)). Each section’s source lives under [`sections/`](./sections/).
 
+## Browser bundle only (no Vite on std-ui)
+
+Prebuilt `dist/browser/` bundles loaded directly live in [`../demo-browser/`](../demo-browser/):
+
+```bash
+npm run build
+npm run demo:browser
+```
+
+See [`../demo-browser/README.md`](../demo-browser/README.md).
+
 ## How to run
 
 From the **`src/std-ui`** package directory (where [`package.json`](../package.json) lives):

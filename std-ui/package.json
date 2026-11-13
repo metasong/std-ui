@@ -45,7 +45,8 @@
 		"prepublishOnly": "npm run build",
 		"test": "vitest run --root ../.. --config vitest.config.ts std-ui",
 		"typecheck": "tsc --noEmit -p ../../tsconfig.json",
-		"demo": "vite --config demo/vite.config.ts"
+		"demo": "vite --config demo/vite.config.ts",
+		"demo:browser": "vite --config demo-browser/vite.config.ts"
 	},
 	"devDependencies": {
 		"typescript": "^7.0.2",
