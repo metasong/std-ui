@@ -4,17 +4,12 @@
 //   - FormElement (merged)   → first/last errors unioned into the host's single validity state
 //   - FormGroup (range)      → each property's errors routed to its own inner input
 // The browser's own submit validation then blocks the submit while any control is invalid.
-import { bind, t, state, tag, UIElement, signalState } from '../../../src/index.js';
+import { bind, t, state, tag, UIElement, signalState, required, email } from '../../../src/index.js';
 import '../../feature-demo/sections/bind/validation/merged-control.js';
 import '../../feature-demo/sections/bind/validation/range-control.js';
 
-const required = (message: string) => (v: unknown) => (v ? undefined : { flag: 'valueMissing' as const, message });
-
 const model = signalState({ email: '', first: '', last: '', start: '', end: '' });
-model.email.check.validators.set([
-	required('Email is required'),
-	v => (/^\S+@\S+\.\S+$/.test(String(v)) ? undefined : { flag: 'typeMismatch' as const, message: 'Not a valid email' }),
-]);
+model.email.check.validators.set([required('Email is required'), email('Not a valid email')]);
 model.first.check.validators.set([required('First name required')]);
 model.last.check.validators.set([required('Last name required')]);
 model.start.check.validators.set([required('Start required')]);
@@ -54,7 +49,7 @@ export class DemoIntegrationSignup extends UIElement {
 				<form @submit=${(e: Event) => this.#submit(e)}>
 					<label class="demo-bind-field">
 						Email (native input)
-						<input type="text" .value=${bind(model.email)} />
+						<input type="text" .value=${bind(model.email)} title=${model.email.check.errors().map(e => e.message).join('\n')} />
 					</label>
 
 					<p class="desc">Name (<code>FormElement</code>, errors merged into one state)</p>

@@ -9,22 +9,39 @@
 	<link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&family=Roboto+Mono:wght@400&display=swap" rel="stylesheet" />
 	<link rel="stylesheet" href="../material-theme.css" />
 	<link rel="stylesheet" href="../demo-components.css" />
+	<style>
+		/* Wider so each code block can show the rendered demo beside it. */
+		.demo-main { max-width: none; width: 90%; box-sizing: border-box; }
+		code-preview { scroll-margin-top: 4rem; }
+		html { scroll-behavior: smooth; }
+	</style>
 </head>
 <body>
 	<header class="demo-app-bar">
 		<h1>std-ui</h1>
-		<p class="lead">Minimal UI on web standards — a tour of every feature, each in its own custom element. See also <a href="./bind.html" style="color: var(--md-sys-color-primary)">bind demo</a>, <a href="./virtualize.html" style="color: var(--md-sys-color-primary)">virtualize demo</a>, <a href="./slot.html" style="color: var(--md-sys-color-primary)">slot demo</a>, <a href="../../demo-browser/index.html" style="color: var(--md-sys-color-primary)">browser ESM bundle</a>.</p>
+		<p class="lead">Minimal UI on web standards — a tour of every feature, each in its own custom element.</p>
 	</header>
+	<nav class="demo-nav" aria-label="Demos and sections">
+		<a href="../index.html">← Demos</a>
+		<a href="./bind.html">bind</a>
+		<a href="./virtualize.html">virtualize</a>
+		<a href="./slot.html">slot</a>
+		<a href="../integration-demo/index.html">integration</a>
+		<a href="../browser-bundle/index.html">browser bundle</a>
+		<span class="sep"></span>
+		<span class="label">On this page</span>
+		<a href="#counter">Signals</a>
+		<a href="#attribute">Attributes</a>
+		<a href="#context">Context</a>
+		<a href="#query">Queries</a>
+		<a href="#shadow">Shadow DOM</a>
+		<a href="#css">CSS</a>
+		<a href="#directives">Directives</a>
+		<a href="#todo">Todo</a>
+		<a href="#map-by-key">Keyed lists</a>
+	</nav>
 	<main class="demo-main">
-		<demo-counter-section></demo-counter-section>
-		<demo-attribute-section theme="light" count="3"></demo-attribute-section>
-		<demo-context-section></demo-context-section>
-		<demo-query-section></demo-query-section>
-		<demo-shadow-section></demo-shadow-section>
-		<demo-css-section></demo-css-section>
-		<demo-directives-section></demo-directives-section>
-		<demo-todo-section></demo-todo-section>
-		<demo-map-by-key-section></demo-map-by-key-section>
+		<demo-feature-page></demo-feature-page>
 	</main>
 
 	<script type="module" src="./main.ts"></script>

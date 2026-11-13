@@ -12,14 +12,9 @@ A small Vite app that mounts one custom element per feature area (`demo-*-sectio
 
 ## Browser bundle only (no Vite on std-ui)
 
-Prebuilt `dist/browser/` bundles loaded directly live in [`../demo-browser/`](../demo-browser/):
+Prebuilt `dist/browser/` bundles loaded directly live in [`browser-bundle/`](./browser-bundle/) (static pages, served by `npm run demo`).
 
-```bash
-npm run build
-npm run demo:browser
-```
-
-See [`../demo-browser/README.md`](../demo-browser/README.md).
+See [`browser-bundle/README.md`](./browser-bundle/README.md).
 
 ## How to run
 

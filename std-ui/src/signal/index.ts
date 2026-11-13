@@ -19,6 +19,17 @@ export {
 	type DeepPartial,
 	type SignalState,
 	type StateDepth,
+	flags,
+	type ValidityFlag,
+	type ValidationError,
+	type Validator,
+	required,
+	minLength,
+	maxLength,
+	min,
+	max,
+	pattern,
+	email,
 } from './signal-state/index.js';
 
 import {
