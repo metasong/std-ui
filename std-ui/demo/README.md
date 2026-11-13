@@ -1,7 +1,14 @@
-# std-ui feature demo
+# std-ui demos
+
+Two folders:
+
+- [`feature-demo/`](./feature-demo/): one feature per demo, nothing mixed (tour, `bind`, `slot`, `virtualize` pages).
+- [`integration-demo/`](./integration-demo/): several features working together (e.g. the people directory: `bind()` + validation + `virtualize()`).
+
+Shared styles (`material-theme.css`, `demo-components.css`, `virtualize.css`) live in `demo/`; `index.html` links to both demos.
 
 A small Vite app that mounts one custom element per feature area (`demo-*-section` tags in
-[`index.html`](./index.html)). Each section’s source lives under [`sections/`](./sections/).
+[`index.html`](./feature-demo/index.html)). Each section’s source lives under [`feature-demo/sections/`](./feature-demo/sections/).
 
 ## Browser bundle only (no Vite on std-ui)
 
@@ -45,7 +52,7 @@ Two-way property binding — native form fields and a custom element with `level
 npm run demo
 ```
 
-Open [http://localhost:5174/bind.html](http://localhost:5174/bind.html). Sources: [`bind.html`](./bind.html), [`sections/bind/`](./sections/bind/).
+Open [http://localhost:5174/feature-demo/bind.html](http://localhost:5174/feature-demo/bind.html). Sources: [`feature-demo/bind.html`](./feature-demo/bind.html), [`feature-demo/sections/bind/`](./feature-demo/sections/bind/).
 
 API notes: [`../src/template/directives/bind/README.md`](../src/template/directives/bind/README.md).
 
@@ -57,14 +64,14 @@ Large-list examples live on a separate page so the main tour stays short:
 npm run demo
 ```
 
-Then open [http://localhost:5174/virtualize.html](http://localhost:5174/virtualize.html) (or use the link on the home page). Sources: [`virtualize.html`](./virtualize.html), [`sections/virtualize/`](./sections/virtualize/).
+Then open [http://localhost:5174/feature-demo/virtualize.html](http://localhost:5174/feature-demo/virtualize.html) (or use the link on the home page). Sources: [`feature-demo/virtualize.html`](./feature-demo/virtualize.html), [`feature-demo/sections/virtualize/`](./feature-demo/sections/virtualize/).
 
 | Block | Module | What it shows |
 |-------|--------|----------------|
-| Vertical | [`sections/virtualize/vertical-section.ts`](./sections/virtualize/vertical-section.ts) | 10k fixed-height rows, `VirtualizeController` / `scrollToIndex` |
-| Headers | [`sections/virtualize/headers-section.ts`](./sections/virtualize/headers-section.ts) | Variable heights, `isHeader` sticky sections |
-| Grid | [`sections/virtualize/grid-section.ts`](./sections/virtualize/grid-section.ts) | `lanes: 4` grid |
-| Horizontal | [`sections/virtualize/horizontal-section.ts`](./sections/virtualize/horizontal-section.ts) | `direction: 'horizontal'` |
+| Vertical | [`feature-demo/sections/virtualize/vertical-section.ts`](./feature-demo/sections/virtualize/vertical-section.ts) | 10k fixed-height rows, `VirtualizeController` / `scrollToIndex` |
+| Headers | [`feature-demo/sections/virtualize/headers-section.ts`](./feature-demo/sections/virtualize/headers-section.ts) | Variable heights, `isHeader` sticky sections |
+| Grid | [`feature-demo/sections/virtualize/grid-section.ts`](./feature-demo/sections/virtualize/grid-section.ts) | `lanes: 4` grid |
+| Horizontal | [`feature-demo/sections/virtualize/horizontal-section.ts`](./feature-demo/sections/virtualize/horizontal-section.ts) | `direction: 'horizontal'` |
 
 API notes: [`../src/template/directives/virtualize/README.md`](../src/template/directives/virtualize/README.md).
 
@@ -72,15 +79,15 @@ API notes: [`../src/template/directives/virtualize/README.md`](../src/template/d
 
 | Tag | Module | What it shows |
 |-----|--------|----------------|
-| `demo-counter-section` | [`sections/counter-section.ts`](./sections/counter-section.ts) | Signals, `UIElement`, `template()` |
-| `demo-attribute-section` | [`sections/attribute-section.ts`](./sections/attribute-section.ts) | `@attribute()` |
-| `demo-context-section` | [`sections/context-section.ts`](./sections/context-section.ts) | `@consume()` / provide |
-| `demo-query-section` | [`sections/query-section.ts`](./sections/query-section.ts) | `@query()` |
-| `demo-shadow-section` | [`sections/shadow-section.ts`](./sections/shadow-section.ts) | Shadow DOM + `static styles` |
-| `demo-css-section` | [`sections/css-section.ts`](./sections/css-section.ts) | `css` tagged styles in light DOM |
-| `demo-directives-section` | [`sections/directives-section.ts`](./sections/directives-section.ts) | `classMap`, `styleMap`, `html` |
-| `demo-todo-section` | [`sections/todo-section.ts`](./sections/todo-section.ts) | Composition; positional list via `.map()` |
-| `demo-map-by-key-section` | [`sections/map-by-key-section.ts`](./sections/map-by-key-section.ts) | Keyed lists via `mapByKey` (sort + checkboxes) |
+| `demo-counter-section` | [`feature-demo/sections/counter-section.ts`](./feature-demo/sections/counter-section.ts) | Signals, `UIElement`, `template()` |
+| `demo-attribute-section` | [`feature-demo/sections/attribute-section.ts`](./feature-demo/sections/attribute-section.ts) | `@attribute()` |
+| `demo-context-section` | [`feature-demo/sections/context-section.ts`](./feature-demo/sections/context-section.ts) | `@consume()` / provide |
+| `demo-query-section` | [`feature-demo/sections/query-section.ts`](./feature-demo/sections/query-section.ts) | `@query()` |
+| `demo-shadow-section` | [`feature-demo/sections/shadow-section.ts`](./feature-demo/sections/shadow-section.ts) | Shadow DOM + `static styles` |
+| `demo-css-section` | [`feature-demo/sections/css-section.ts`](./feature-demo/sections/css-section.ts) | `css` tagged styles in light DOM |
+| `demo-directives-section` | [`feature-demo/sections/directives-section.ts`](./feature-demo/sections/directives-section.ts) | `classMap`, `styleMap`, `html` |
+| `demo-todo-section` | [`feature-demo/sections/todo-section.ts`](./feature-demo/sections/todo-section.ts) | Composition; positional list via `.map()` |
+| `demo-map-by-key-section` | [`feature-demo/sections/map-by-key-section.ts`](./feature-demo/sections/map-by-key-section.ts) | Keyed lists via `mapByKey` (sort + checkboxes) |
 
 ## `mapByKey` — sortable chore list
 

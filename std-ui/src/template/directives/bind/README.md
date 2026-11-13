@@ -51,7 +51,7 @@ class SignupField extends UIElement {
 ```
 
 `@attribute()` fields work the same (`bind(this.age)` on an `@attribute()` number field). Browser demo:
-[`demo/sections/bind/form-section.ts`](../../../../demo/sections/bind/form-section.ts).
+[`demo/feature-demo/sections/bind/form-section.ts`](../../../../demo/feature-demo/sections/bind/form-section.ts).
 
 ## API
 
@@ -190,7 +190,7 @@ Override the event when your component uses a different name: `bind(doc, { event
 
 ## Browser demo
 
-From `src/std-ui`: `npm run demo` → [bind demo](../../../../demo/bind.html) (see [`../../../../demo/README.md`](../../../../demo/README.md)).
+From `src/std-ui`: `npm run demo` → [bind demo](../../../../demo/feature-demo/bind.html) (see [`../../../../demo/README.md`](../../../../demo/README.md)).
 
 ## Related reading
 

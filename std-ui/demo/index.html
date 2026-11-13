@@ -2,31 +2,22 @@
 <html lang="en">
 <head>
 	<meta charset="UTF-8" />
-	<title>std-ui — feature demo</title>
+	<title>std-ui — demos</title>
 	<meta name="viewport" content="width=device-width, initial-scale=1" />
-	<link rel="preconnect" href="https://fonts.googleapis.com" />
-	<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-	<link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&family=Roboto+Mono:wght@400&display=swap" rel="stylesheet" />
 	<link rel="stylesheet" href="./material-theme.css" />
 	<link rel="stylesheet" href="./demo-components.css" />
 </head>
 <body>
 	<header class="demo-app-bar">
 		<h1>std-ui</h1>
-		<p class="lead">Minimal UI on web standards — a tour of every feature, each in its own custom element. See also <a href="./bind.html" style="color: var(--md-sys-color-primary)">bind demo</a>, <a href="./virtualize.html" style="color: var(--md-sys-color-primary)">virtualize demo</a>, <a href="./slot.html" style="color: var(--md-sys-color-primary)">slot demo</a>, <a href="../demo-browser/index.html" style="color: var(--md-sys-color-primary)">browser ESM bundle</a>.</p>
+		<p class="lead">Minimal UI on web standards.</p>
 	</header>
 	<main class="demo-main">
-		<demo-counter-section></demo-counter-section>
-		<demo-attribute-section theme="light" count="3"></demo-attribute-section>
-		<demo-context-section></demo-context-section>
-		<demo-query-section></demo-query-section>
-		<demo-shadow-section></demo-shadow-section>
-		<demo-css-section></demo-css-section>
-		<demo-directives-section></demo-directives-section>
-		<demo-todo-section></demo-todo-section>
-		<demo-map-by-key-section></demo-map-by-key-section>
+		<ul>
+			<li><a href="./feature-demo/index.html">Feature demo</a> — one feature per section, nothing mixed (<a href="./feature-demo/bind.html">bind</a>, <a href="./feature-demo/virtualize.html">virtualize</a>, <a href="./feature-demo/slot.html">slot</a>).</li>
+			<li><a href="./integration-demo/index.html">Integration demo</a> — several features working together.</li>
+			<li><a href="../demo-browser/index.html">Browser ESM bundle</a> — no build step.</li>
+		</ul>
 	</main>
-
-	<script type="module" src="./main.ts"></script>
 </body>
 </html>

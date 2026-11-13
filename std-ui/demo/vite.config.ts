@@ -18,8 +18,12 @@ export default defineConfig({
 	build: {
 		rollupOptions: {
 			input: {
-				main: `${dirname}/index.t`,
-				virtualize: `${dirname}/virtualize.t`,
+				main: `${dirname}/index.html`,
+				features: `${dirname}/feature-demo/index.html`,
+				bind: `${dirname}/feature-demo/bind.html`,
+				slot: `${dirname}/feature-demo/slot.html`,
+				virtualize: `${dirname}/feature-demo/virtualize.html`,
+				integration: `${dirname}/integration-demo/index.html`,
 			},
 		},
 	},

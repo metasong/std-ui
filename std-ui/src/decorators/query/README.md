@@ -66,7 +66,7 @@ what `shadowRootOptions` provides. The render root is created once, before `conn
 connect.
 
 See [`../../ui-element.ts`](../../ui-element.ts) (`shadowRootOptions`, `renderRoot`,
-`createRenderRoot`) and the demo [`../../../demo/sections/shadow-section.ts`](../../../demo/sections/shadow-section.ts).
+`createRenderRoot`) and the demo [`../../../demo/feature-demo/sections/shadow-section.ts`](../../../demo/feature-demo/sections/shadow-section.ts).
 
 ## Requirements
 
