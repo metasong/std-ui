@@ -71,7 +71,7 @@ double.peek();  // same value, but does not track this computed as a dependency
 Runs `fn` immediately, then re-runs it whenever any signal/computed it read changes. Re-runs are
 batched into a microtask, so multiple synchronous writes in the same tick only trigger one
 re-run. Use this for side effects (DOM writes, logging, subscriptions) - not for deriving values
-(use `computed` for that).
+(use `computed` for that). Details: [`../effect/README.md`](../effect/README.md).
 
 ```ts
 import { effect } from '../index.js';
@@ -90,7 +90,8 @@ dispose();
 
 - The first run happens synchronously (not deferred a tick), so initial DOM sync isn't delayed.
 - Call `onCleanup(fn)` inside the effect body to register teardown logic; it runs right before
-  the next re-run and on `dispose()`.
+  the next re-run and on `dispose()` (outside this effect’s tracked window — reads in `fn` are not
+  dependencies).
 
 ## How dependency tracking works
 
