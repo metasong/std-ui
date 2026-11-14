@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { signal } from '../../../../core/index.js';
-import { signalState } from '../../../main.js';
+import { state } from '../../../main.js';
 import { asyncValidator } from './main.js';
 
 const tick = (ms = 10) => new Promise((r) => setTimeout(r, ms));
@@ -8,7 +8,7 @@ const taken = { flag: 'customError', message: 'taken' } as const;
 
 function setup(check = async (v: string) => (v === 'bob' ? taken : null), debounce = 0) {
 	const calls: string[] = [];
-	const s = signalState({ name: 'bob' });
+	const s = state({ name: 'bob' });
 	const v = asyncValidator<string>(async (value, ctx) => {
 		calls.push(value);
 		return check(value);
@@ -48,7 +48,7 @@ describe('asyncValidator', () => {
 	it('re-checks when a signal read in deps changes', async () => {
 		const country = signal('NL');
 		const calls: string[] = [];
-		const s = signalState({ name: 'bob' });
+		const s = state({ name: 'bob' });
 		s.name.check.validators.set([
 			asyncValidator<string, string>(
 				async (value, { deps }) => {
@@ -108,7 +108,7 @@ describe('asyncValidator', () => {
 	});
 
 	it('aggregates into allValid / allPending on parents', async () => {
-		const s = signalState({ user: { name: 'ann' } });
+		const s = state({ user: { name: 'ann' } });
 		s.user.name.check.validators.set([asyncValidator<string>(async () => null)]);
 		expect(s.check.allPending()).toBe(true);
 		expect(s.check.allValid()).toBe(false);
@@ -119,7 +119,7 @@ describe('asyncValidator', () => {
 	});
 
 	it('maps a rejected check through onError, or a default error', async () => {
-		const s = signalState({ n: 'x' });
+		const s = state({ n: 'x' });
 		const fail = async (): Promise<never> => {
 			throw new Error('net');
 		};
@@ -128,7 +128,7 @@ describe('asyncValidator', () => {
 		await tick();
 		expect(s.n.check.errors()).toEqual([{ flag: 'customError', message: 'Validation failed' }]);
 
-		const s2 = signalState({ n: 'x' });
+		const s2 = state({ n: 'x' });
 		s2.n.check.validators.set([
 			asyncValidator<string>(fail, { onError: () => ({ flag: 'customError', message: 'offline' }) }),
 		]);

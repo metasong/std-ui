@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { tag, UIElement } from '../ui-element.js';
-import { signalState } from '../signal/signal-state/index.js';
+import { state } from '../signal/signal-state/index.js';
 import { t } from '../template/html.js';
 
 interface ParentState {
@@ -11,11 +11,11 @@ function flush(): Promise<void> {
 	return new Promise(resolve => queueMicrotask(() => queueMicrotask(resolve)));
 }
 
-describe('template `.prop` bindings with signalState fields', () => {
+describe('template `.prop` bindings with state fields', () => {
 	it('binds a parent property directly to a child `.prop` and re-renders the child template on change', async () => {
 		@tag('bind-child')
 		class Badge extends UIElement {
-			readonly count = signalState(0);
+			readonly count = state(0);
 
 			protected override template() {
 				return t`<span class="count">${this.count()}</span>`;
@@ -24,7 +24,7 @@ describe('template `.prop` bindings with signalState fields', () => {
 
 		@tag('bind-panel')
 		class Panel extends UIElement {
-			readonly tree = signalState<ParentState>({ count: 3 });
+			readonly tree = state<ParentState>({ count: 3 });
 
 			protected override template() {
 				return t`<bind-child .count=${this.tree.count()}></bind-child>`;
@@ -43,7 +43,7 @@ describe('template `.prop` bindings with signalState fields', () => {
 		expect(badge.querySelector('.count')!.textContent).toBe('3');
 
 		// Changing the parent's own state - not touching the child directly - should flow through
-		// the `.count=${this.tree.count()}` binding into the child's `signalState` field and trigger
+		// the `.count=${this.tree.count()}` binding into the child's `state` field and trigger
 		// the child's own `template()` re-render.
 		panel.tree.count.set(9);
 		await flush();

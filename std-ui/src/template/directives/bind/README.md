@@ -8,11 +8,11 @@ Built-in **property directive** for `.name=${bind(...)}` bindings. Combines:
 Roughly “Angular two-way on one property,” with Lit-style `live` on the down direction only.
 
 ```ts
-import { t, bind, signalState, tag, UIElement } from 'std-ui';
+import { t, bind, state, tag, UIElement } from 'std-ui';
 
 @tag('search-field')
 class SearchField extends UIElement {
-	query = signalState('');
+	query = state('');
 
 	protected override template() {
 		return t`
@@ -57,12 +57,12 @@ class SignupField extends UIElement {
 
 ### `bind(signal[, options])`
 
-Binds a `signal()`, `signalState()` node, or `@state()` / `@attribute()` field directly — the model
+Binds a `signal()`, `state()` node, or `@state()` / `@attribute()` field directly — the model
 is that store, not a separate signal variable. Any callable with `.set()` works. The read happens
 during render, so model changes re-render the template.
 
 ```ts
-const form = signalState({ query: '', agreed: false });
+const form = state({ query: '', agreed: false });
 
 t`<input .value=${bind(form.query)} />`
 t`<input type="checkbox" .checked=${bind(form.agreed)} />`
@@ -71,7 +71,7 @@ t`<input type="checkbox" .checked=${bind(form.agreed)} />`
 Override just the event (property on the element is still `.level` → default would be `level-change`):
 
 ```ts
-const level = signalState(0);
+const level = state(0);
 
 t`<legacy-dial .level="${bind(level, { event: 'levelinput' })}" />`
 ```

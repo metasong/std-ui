@@ -19,7 +19,7 @@ Sizes as of v0.1.0; `npm run build:bundle` prints current numbers. The ES build 
 
   ```html
   <script type="module">
-    import { signalState, t, render } from './dist/browser/std-ui.min.js';
+    import { state, t, render } from './dist/browser/std-ui.min.js';
   </script>
   ```
 
@@ -30,7 +30,7 @@ Sizes as of v0.1.0; `npm run build:bundle` prints current numbers. The ES build 
   ```html
   <script src="./dist/browser/std-ui.iife.min.js"></script>
   <script>
-    const { signalState, t, render } = StdUI;
+    const { state, t, render } = StdUI;
   </script>
   ```
 

@@ -7,7 +7,7 @@
 // It renders the links to the other demo pages itself (the current page is marked), a divider, and then the
 // slotted anchors. The anchor for the section in `location.hash` gets `aria-current`. Sticky positioning is
 // built in: put the element directly under `<body>` (not inside an `overflow` container).
-import { css, t, tag, UIElement, signalState } from '../../src/index.js';
+import { css, t, tag, UIElement, state } from '../../src/index.js';
 
 // Relative to any page one level below `demo/` (feature-demo/, integration-demo/, browser-bundle/).
 const pages = [
@@ -50,7 +50,7 @@ export class DemoNav extends UIElement {
 		slot { display: contents; }
 	`;
 
-	private readonly hash = signalState(location.hash);
+	private readonly hash = state(location.hash);
 
 	protected override firstRendered(): void {
 		const sync = () => {

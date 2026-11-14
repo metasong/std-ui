@@ -6,7 +6,7 @@ folder has its own `README.md` and `design.md`.
 
 ## Principles
 
-1. **A field is just a store.** `count = signalState(0)` is typed `SignalState<number>` from its
+1. **A field is just a store.** `count = state(0)` is typed `SignalState<number>` from its
    declaration. A decorator can never change a field's declared type, so no decorator wraps or
    replaces a store (this is why `@state()` and `field-store.ts` were removed).
 2. **Everything else is opt-in registration**: "this field mirrors an attribute / provides a context /
@@ -24,7 +24,7 @@ folder has its own `README.md` and `design.md`.
 | [`context/`](./context/) | `@provide()`, `@consume()`, the request event - see [`context/design.md`](./context/design.md). |
 | [`tag/`](./tag/) | `@tag()` and `defineElement()` - see [`tag/README.md`](./tag/README.md). |
 | [`query/`](./query/) | `@query*()` and the decorator-free query functions - see [`query/design.md`](./query/design.md). |
-| [`state/`](./state/) | Docs only: plain `signalState()` fields (no code). |
+| [`state/`](./state/) | Docs only: plain `state()` fields (no code). |
 | [`index.ts`](./index.ts) | Public re-exports. |
 
 [`../ui-element.ts`](../ui-element.ts) owns `attributeChangedCallback` and `connectedCallback`, which
@@ -86,7 +86,7 @@ initializer).
 | Phase | What happens |
 |---|---|
 | Class evaluation | Decorators register into `context.metadata`; `@tag()` sets `observedAttributes` and calls `customElements.define()`. `defineElement()` registers into `ownMetadata(ctor)`, then does the same. |
-| Instance creation | Field initializers create the stores (`signalState(...)`). |
+| Instance creation | Field initializers create the stores (`state(...)`). |
 | Upgrade / attribute change | `attributeChangedCallback` parses and `.set()`s the matching store. |
 | `connectedCallback` | `wireProvidedContextListeners` -> `connect()` -> `wireReflectedAttributes` -> `wireConsumedContexts` -> render effect. |
 | Store write | Render and reflection effects re-run (microtask-batched); context consumers update through their signal. |

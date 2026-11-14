@@ -6,15 +6,15 @@ import { describe, expect, it } from 'vitest';
 import { mapByKey } from '../template/directives/map-by-key/index.js';
 import { t } from '../template/html.js';
 import { tag, UIElement } from '../ui-element.js';
-import { signalState } from '../signal/index.js';
+import { state } from '../signal/index.js';
 
 type Chore = { id: string; label: string };
 
-describe('doc: mapByKey keeps row DOM when a signalState list is reordered', () => {
+describe('doc: mapByKey keeps row DOM when a state list is reordered', () => {
 	it('checkbox and <li> stay tied to chore id after sort', async () => {
 		@tag('sortable-chores')
 		class SortableChores extends UIElement {
-			readonly chores = signalState<Chore[]>([
+			readonly chores = state<Chore[]>([
 				{ id: 'wash', label: 'Wash dishes' },
 				{ id: 'mail', label: 'Check mail' },
 				{ id: 'walk', label: 'Walk the dog' },

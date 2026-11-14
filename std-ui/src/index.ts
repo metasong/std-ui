@@ -37,7 +37,7 @@ export { bind, classMap, styleMap, mapByKey, slot, ref, createRef, virtualize, V
 export type { BindAccessor, BindOptions, BindSource, Ref, RefCallback, RefOrCallback } from './template/directives/index.js';
 export type { VirtualizeOptions, ScrollToIndexOptions, ScrollAlign } from './template/directives/index.js';
 export {
-	signalState,
+	state,
 	toSignal,
 	toSignalFrom,
 	computed,

@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { consume, createContextKey, defineElement, provide, tag, UIElement } from '../../ui-element.js';
-import { signalState } from '../../signal/index.js';
+import { state } from '../../signal/index.js';
 
 function flush(): Promise<void> {
 	return new Promise(resolve => queueMicrotask(() => queueMicrotask(resolve)));
@@ -21,7 +21,7 @@ describe('@provide(key) + @consume(key)', () => {
 
 		@tag('ctx-root-basic')
 		class Root extends UIElement {
-			@provide(ThemeKey) readonly theme = signalState<Theme>({ mode: 'dark' });
+			@provide(ThemeKey) readonly theme = state<Theme>({ mode: 'dark' });
 			protected override connect(): void {
 				this.appendChild(document.createElement('ctx-child-basic'));
 			}
@@ -48,7 +48,7 @@ describe('@provide(key) + @consume(key)', () => {
 
 		@tag('ctx-root-deco')
 		class Root extends UIElement {
-			@provide(ThemeKey) readonly theme = signalState<Theme>({ mode: 'dark' });
+			@provide(ThemeKey) readonly theme = state<Theme>({ mode: 'dark' });
 			protected override connect(): void {
 				this.appendChild(document.createElement('ctx-child-deco'));
 			}
@@ -88,7 +88,7 @@ describe('@provide(key) + @consume(key)', () => {
 
 		@tag('ctx-root-fn')
 		class Root extends UIElement {
-			@provide(FnKey) readonly greet = signalState<() => string>(() => 'hi');
+			@provide(FnKey) readonly greet = state<() => string>(() => 'hi');
 			protected override connect(): void {
 				this.appendChild(document.createElement('ctx-child-fn'));
 			}
@@ -113,7 +113,7 @@ describe('@provide(key) + @consume(key)', () => {
 		defineElement('ctx-child-plain', Child, { consume: { theme: ThemeKey } });
 
 		class Root extends UIElement {
-			readonly theme = signalState<Theme>({ mode: 'dark' });
+			readonly theme = state<Theme>({ mode: 'dark' });
 			protected override connect(): void {
 				this.appendChild(document.createElement('ctx-child-plain'));
 			}
@@ -178,7 +178,7 @@ describe('@provide(key) + @consume(key)', () => {
 
 		@tag('ctx-child-nearest')
 		class Child extends UIElement {
-			@provide(ThemeKey) readonly theme = signalState<Theme>({ mode: 'light' });
+			@provide(ThemeKey) readonly theme = state<Theme>({ mode: 'light' });
 			protected override connect(): void {
 				this.appendChild(document.createElement('ctx-grandchild-nearest'));
 			}
@@ -186,7 +186,7 @@ describe('@provide(key) + @consume(key)', () => {
 
 		@tag('ctx-root-nearest')
 		class Root extends UIElement {
-			@provide(ThemeKey) readonly theme = signalState<Theme>({ mode: 'dark' });
+			@provide(ThemeKey) readonly theme = state<Theme>({ mode: 'dark' });
 			protected override connect(): void {
 				this.appendChild(document.createElement('ctx-child-nearest'));
 			}
@@ -210,7 +210,7 @@ describe('@provide(key) + @consume(key)', () => {
 
 		@tag('ctx-root-inherit')
 		class Root extends UIElement {
-			@provide(ThemeKey) readonly theme = signalState<Theme>({ mode: 'dark' });
+			@provide(ThemeKey) readonly theme = state<Theme>({ mode: 'dark' });
 			protected override connect(): void {
 				this.appendChild(document.createElement('ctx-child-inherit'));
 			}

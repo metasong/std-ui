@@ -38,9 +38,9 @@ Built-ins use the `ValidityState` flag names (as accepted by `ElementInternals.s
 ### Inline
 
 ```ts
-import { signalState, flags, type Validator } from '../index.js';
+import { state, flags, type Validator } from '../index.js';
 
-const form = signalState({ name: 'Ada', a: 1, b: 2 });
+const form = state({ name: 'Ada', a: 1, b: 2 });
 
 const noSpaces: Validator<string> = (v) =>
 	v.includes(' ') ? { flag: flags.patternMismatch, message: 'No spaces allowed' } : null;
@@ -74,7 +74,7 @@ export function startsWith<T extends string | null | undefined = string>(
 }
 
 // usage
-const order = signalState({ code: '' });
+const order = state({ code: '' });
 order.code.check.validators.set([required(), startsWith('AB-')]);
 ```
 

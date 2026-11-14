@@ -8,14 +8,14 @@ Both do the same three things, in order: collect the class's registrations, set
 // Decorator form (optional sugar)
 @tag('user-badge')
 class UserBadge extends UIElement {
-	@attribute({ type: Number, reflect: true }) readonly count = signalState(0);
-	@provide(ThemeKey) readonly theme = signalState<Theme>({ mode: 'dark' });
+	@attribute({ type: Number, reflect: true }) readonly count = state(0);
+	@provide(ThemeKey) readonly theme = state<Theme>({ mode: 'dark' });
 }
 
 // Decorator-free form: same registries, declared in one typed map
 class UserBadge extends UIElement {
-	readonly count = signalState(0);
-	readonly theme = signalState<Theme>({ mode: 'dark' });
+	readonly count = state(0);
+	readonly theme = state<Theme>({ mode: 'dark' });
 }
 defineElement('user-badge', UserBadge, {
 	attributes: { count: { type: Number, reflect: true } },

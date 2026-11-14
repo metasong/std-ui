@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { signal } from '../../core/index.js';
 import { effect } from '../../effect/index.js';
-import { signalState } from '../main.js';
+import { state } from '../main.js';
 import { signalArray } from './main.js';
 
 describe('signalArray', () => {
@@ -146,9 +146,9 @@ describe('signalArray', () => {
 	});
 });
 
-describe('signalArray via signalState', () => {
+describe('signalArray via state', () => {
 	it('exposes tags as an observable collection', () => {
-		const tree = signalState({ tags: ['a', 'b'] as string[] });
+		const tree = state({ tags: ['a', 'b'] as string[] });
 		expect(tree.tags.deep()).toEqual(['a', 'b']);
 		expect(typeof tree.tags.push).toBe('function');
 		tree.tags.push('c');
@@ -156,20 +156,20 @@ describe('signalArray via signalState', () => {
 	});
 
 	it('updates a tag in place via at()', () => {
-		const tree = signalState({ tags: ['a', 'b'] });
+		const tree = state({ tags: ['a', 'b'] });
 		tree.tags.at(0)!.set('z');
 		expect(tree.deep()).toEqual({ tags: ['z', 'b'] });
 	});
 
 	it('accepts whole-array replace from root .set({ tags })', () => {
-		const tree = signalState({ count: 0, tags: ['a'] });
+		const tree = state({ count: 0, tags: ['a'] });
 		tree.set({ tags: ['x', 'y'] });
 		expect(tree.tags.deep()).toEqual(['x', 'y']);
 		expect(tree.count()).toBe(0);
 	});
 
-	it('object elements are signalState branches', () => {
-		const todos = signalState([{ text: 'a', done: false }]);
+	it('object elements are state branches', () => {
+		const todos = state([{ text: 'a', done: false }]);
 		expect(todos.at(0)!.text()).toBe('a');
 		todos.at(0)!.done.set(true);
 		expect(todos.at(0)!.deep()).toEqual({ text: 'a', done: true });

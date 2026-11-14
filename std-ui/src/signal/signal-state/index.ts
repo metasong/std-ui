@@ -1,5 +1,5 @@
 export {
-	signalState,
+	state,
 	type DeepPartial,
 	type StateDepth,
 	type SignalState,

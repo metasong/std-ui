@@ -14,7 +14,7 @@ effect, so any signal it reads re-renders the element (batched in one microtask)
 | lit | std-ui |
 |---|---|
 | `this.count++; ` (reactive property) | `this.count.set(n)` / `this.count.update(fn)` |
-| mutate array/object, then `requestUpdate()` | `signalState` / `this.field.deep()` tree writes, or `.set()` a new value |
+| mutate array/object, then `requestUpdate()` | `state` / `this.field.deep()` tree writes, or `.set()` a new value |
 | external mutable source, then `requestUpdate()` | bridge it with `toSignal` / `toSignalFrom`, or a small `signal` you write on change |
 | `await this.updateComplete` | `await this.updateComplete` (same) |
 

@@ -1,7 +1,7 @@
 # `@attribute()` - internal design
 
 How attribute registration, conversion, and property <-> attribute sync are implemented. The field
-itself is a plain `signalState()` store and is never touched. For usage and API, see
+itself is a plain `state()` store and is never touched. For usage and API, see
 [`README.md`](./README.md); for the registration mechanism shared with context, see
 [`../design.md`](../design.md).
 

@@ -1,9 +1,9 @@
 // Integration: a people directory combining several features at once.
-//   - `signalState` + validators      → the "add person" form model
+//   - `state` + validators      → the "add person" form model
 //   - `bind()`                        → two-way search box and form fields, validation mirrored onto the inputs
 //   - `virtualize()`                  → the (filtered) list stays windowed however many people exist
-//   - `signalState` + `UIElement`/`t` → the list itself and re-rendering
-import { bind, t, tag, UIElement, signalState, virtualize } from '../../../src/index.js';
+//   - `state` + `UIElement`/`t` → the list itself and re-rendering
+import { bind, t, tag, UIElement, state, virtualize } from '../../../src/index.js';
 
 type Person = { id: number; name: string; age: number };
 
@@ -11,7 +11,7 @@ const NAMES = ['Ada', 'Alan', 'Grace', 'Linus', 'Margaret', 'Dennis', 'Barbara',
 const seed = (): Person[] =>
 	Array.from({ length: 5_000 }, (_, id) => ({ id, name: `${NAMES[id % NAMES.length]} #${id}`, age: 18 + (id % 60) }));
 
-const draft = signalState({ name: '', age: 30 });
+const draft = state({ name: '', age: 30 });
 draft.name.check.validators.set([
 	v => (v ? undefined : { flag: 'valueMissing' as const, message: 'Name is required' }),
 	v => (String(v).length >= 3 ? undefined : { flag: 'tooShort' as const, message: 'At least 3 characters' }),
@@ -22,8 +22,8 @@ draft.age.check.validators.set([
 
 @tag('demo-integration-directory')
 export class DemoIntegrationDirectory extends UIElement {
-	readonly people = signalState<Person[]>(seed());
-	readonly search = signalState('');
+	readonly people = state<Person[]>(seed());
+	readonly search = state('');
 	#nextId = 5_000;
 
 	#visible(): Person[] {

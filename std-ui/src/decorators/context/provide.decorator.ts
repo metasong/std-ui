@@ -1,4 +1,4 @@
-// `@provide(key)` field decorator (optional sugar): exposes a `signalState(...)` field of a
+// `@provide(key)` field decorator (optional sugar): exposes a `state(...)` field of a
 // `UIElement` subclass (see `../../ui-element.ts`) to descendants that `@consume(key)` - the
 // "provide" half of this codebase's context protocol. The decorator-free equivalent is
 // `defineElement(name, Class, { provide: { field: key } })`, which feeds the same registry.
@@ -20,7 +20,7 @@ import { providedContexts } from './metadata.js';
  * export const ThemeKey = createContextKey<Theme>('theme');
  *
  * class RootPanel extends UIElement {
- *   @provide(ThemeKey) readonly theme = signalState<Theme>({ mode: 'dark' });
+ *   @provide(ThemeKey) readonly theme = state<Theme>({ mode: 'dark' });
  * }
  *
  * class ChildPanel extends UIElement {
@@ -33,7 +33,7 @@ import { providedContexts } from './metadata.js';
 export function provide<V>(contextKey: ContextKey<V>) {
 	return function provideDecorator(_value: undefined, ctx: ClassFieldDecoratorContext<object, SignalState<V>>): void {
 		if (ctx.kind !== 'field') {
-			throw new Error("@provide() can only decorate a plain class field, e.g. `@provide(key) foo = signalState(0);` (no 'accessor').");
+			throw new Error("@provide() can only decorate a plain class field, e.g. `@provide(key) foo = state(0);` (no 'accessor').");
 		}
 		providedContexts.register(ctx.metadata as object, { key: ctx.name, contextKey: contextKey as ContextKey<unknown> });
 	};

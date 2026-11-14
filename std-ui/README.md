@@ -13,7 +13,7 @@ Guides for the library under `src/` (`signal/`, `template/`, `ui-element.ts`):
 | CSS templates (`css`, `static styles`) | [`src/template/css.md`](./src/template/css.md) |
 | `classMap` | [`src/template/directives/class-map/README.md`](./src/template/directives/class-map/README.md) · [design](./src/template/directives/class-map/design.md) |
 | `styleMap` | [`src/template/directives/style-map/README.md`](./src/template/directives/style-map/README.md) · [design](./src/template/directives/style-map/design.md) |
-| Component fields (`signalState`, `@attribute`, `defineElement`) | [`src/decorators/README.md`](./src/decorators/README.md) · [design](./src/decorators/design.md) |
+| Component fields (`state`, `@attribute`, `defineElement`) | [`src/decorators/README.md`](./src/decorators/README.md) · [design](./src/decorators/design.md) |
 | Context (`@provide` / `this.provide`, `this.consume`) | [`src/decorators/context/README.md`](./src/decorators/context/README.md) · [design](./src/decorators/context/design.md) |
 | **Signals driving template render** (end-to-end) | [`src/doc/signal-drives-html.md`](./src/doc/signal-drives-html.md) |
 | **Saved re-rendering** (`strings` identity, `UIElement` updates) | [`src/doc/saved-ui-rerendering.md`](./src/doc/saved-ui-rerendering.md) |

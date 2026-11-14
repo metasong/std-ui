@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { attribute, tag, UIElement } from '../../ui-element.js';
-import { signalState } from '../../signal/index.js';
+import { state } from '../../signal/index.js';
 
 function flush(): Promise<void> {
 	return new Promise(resolve => queueMicrotask(() => queueMicrotask(resolve)));
@@ -10,7 +10,7 @@ describe('@attribute()', () => {
 	it('reflects the initial field value onto the attribute on connect when reflect: true', () => {
 		@tag('attr-reflect-init')
 		class Foo extends UIElement {
-			@attribute({ type: Number, reflect: true }) readonly count = signalState(5);
+			@attribute({ type: Number, reflect: true }) readonly count = state(5);
 		}
 
 		const el = document.createElement('attr-reflect-init') as Foo;
@@ -22,7 +22,7 @@ describe('@attribute()', () => {
 	it('seeds the property/signal from a pre-existing attribute (upgrade), overriding the field default', () => {
 		@tag('attr-seed-attr')
 		class Foo extends UIElement {
-			@attribute({ type: Number }) readonly count = signalState(0);
+			@attribute({ type: Number }) readonly count = state(0);
 		}
 
 		const el = document.createElement('attr-seed-attr') as Foo;
@@ -35,7 +35,7 @@ describe('@attribute()', () => {
 	it('does not reflect the property onto the attribute by default', async () => {
 		@tag('attr-no-reflect')
 		class Foo extends UIElement {
-			@attribute() readonly label = signalState('hi');
+			@attribute() readonly label = state('hi');
 		}
 
 		const el = document.createElement('attr-no-reflect') as Foo;
@@ -52,7 +52,7 @@ describe('@attribute()', () => {
 	it('updates the attribute when the property is set from JS, with reflect: true', async () => {
 		@tag('attr-reflect-js')
 		class Foo extends UIElement {
-			@attribute({ reflect: true }) readonly label = signalState('hi');
+			@attribute({ reflect: true }) readonly label = state('hi');
 		}
 
 		const el = document.createElement('attr-reflect-js') as Foo;
@@ -68,7 +68,7 @@ describe('@attribute()', () => {
 	it('updates the property when the attribute is set/changed on the tag (native attributeChangedCallback)', async () => {
 		@tag('attr-attr-change')
 		class Foo extends UIElement {
-			@attribute({ type: Number }) readonly count = signalState(0);
+			@attribute({ type: Number }) readonly count = state(0);
 		}
 
 		const el = document.createElement('attr-attr-change') as Foo;
@@ -82,7 +82,7 @@ describe('@attribute()', () => {
 	it('supports boolean attributes: presence-based, removed when false', async () => {
 		@tag('attr-boolean')
 		class Foo extends UIElement {
-			@attribute({ type: Boolean, reflect: true }) readonly active = signalState(false);
+			@attribute({ type: Boolean, reflect: true }) readonly active = state(false);
 		}
 
 		const el = document.createElement('attr-boolean') as Foo;
@@ -99,10 +99,10 @@ describe('@attribute()', () => {
 		el.remove();
 	});
 
-	it('a plain signalState() field (no @attribute()) never touches an attribute', async () => {
+	it('a plain state() field (no @attribute()) never touches an attribute', async () => {
 		@tag('attr-use-state-instead')
 		class Foo extends UIElement {
-			readonly internalOnly = signalState('secret');
+			readonly internalOnly = state('secret');
 		}
 
 		const el = document.createElement('attr-use-state-instead') as Foo;
@@ -120,7 +120,7 @@ describe('@attribute()', () => {
 	it('defaults the attribute name to kebab-case of the field name', () => {
 		@tag('attr-kebab')
 		class Foo extends UIElement {
-			@attribute({ reflect: true }) readonly maxCount = signalState('ten');
+			@attribute({ reflect: true }) readonly maxCount = state('ten');
 		}
 
 		const el = document.createElement('attr-kebab') as Foo;
@@ -132,7 +132,7 @@ describe('@attribute()', () => {
 	it('supports a custom name option, overriding the kebab-case default (the old `attribute` option)', () => {
 		@tag('attr-custom-name')
 		class Foo extends UIElement {
-			@attribute({ name: 'data-max', reflect: true }) readonly maxCount = signalState('ten');
+			@attribute({ name: 'data-max', reflect: true }) readonly maxCount = state('ten');
 		}
 
 		const el = document.createElement('attr-custom-name') as Foo;
@@ -145,7 +145,7 @@ describe('@attribute()', () => {
 	it('supports type: Object to reflect a complex-object field to/from the attribute as JSON', async () => {
 		@tag('attr-obj-json')
 		class Foo extends UIElement {
-			@attribute({ type: Object, reflect: true }) readonly config = signalState({ a: 1 });
+			@attribute({ type: Object, reflect: true }) readonly config = state({ a: 1 });
 		}
 
 		const el = document.createElement('attr-obj-json') as Foo;
@@ -164,7 +164,7 @@ describe('@attribute()', () => {
 	it('leaves an object field untouched when the attribute is absent/unparsable (empty-object merge is a no-op)', () => {
 		@tag('attr-obj-bad')
 		class Foo extends UIElement {
-			@attribute({ type: Object }) readonly config = signalState({ a: 1 });
+			@attribute({ type: Object }) readonly config = state({ a: 1 });
 		}
 
 		const el = document.createElement('attr-obj-bad') as Foo;
@@ -180,7 +180,7 @@ describe('@attribute()', () => {
 	it('infers type: Number from a numeric initial value when type/converter are omitted', () => {
 		@tag('attr-inf-num')
 		class Foo extends UIElement {
-			@attribute({ reflect: true }) readonly count = signalState(5); // no `type` - inferred as Number from `5`
+			@attribute({ reflect: true }) readonly count = state(5); // no `type` - inferred as Number from `5`
 		}
 
 		const el = document.createElement('attr-inf-num') as Foo;
@@ -195,7 +195,7 @@ describe('@attribute()', () => {
 	it('infers type: Boolean from a boolean initial value when type/converter are omitted', async () => {
 		@tag('attr-inf-bool')
 		class Foo extends UIElement {
-			@attribute({ reflect: true }) readonly active = signalState(false);
+			@attribute({ reflect: true }) readonly active = state(false);
 		}
 
 		const el = document.createElement('attr-inf-bool') as Foo;
@@ -211,7 +211,7 @@ describe('@attribute()', () => {
 	it('infers type: Object from a plain-object initial value when type/converter are omitted', () => {
 		@tag('attr-inf-obj')
 		class Foo extends UIElement {
-			@attribute({ reflect: true }) readonly config = signalState({ a: 1 });
+			@attribute({ reflect: true }) readonly config = state({ a: 1 });
 		}
 
 		const el = document.createElement('attr-inf-obj') as Foo;
@@ -226,7 +226,7 @@ describe('@attribute()', () => {
 	it('infers type: Array from an array initial value when type/converter are omitted', () => {
 		@tag('attr-inf-arr')
 		class Foo extends UIElement {
-			@attribute({ reflect: true }) readonly tags = signalState<string[]>(['a', 'b']);
+			@attribute({ reflect: true }) readonly tags = state<string[]>(['a', 'b']);
 		}
 
 		const el = document.createElement('attr-inf-arr') as Foo;
@@ -248,7 +248,7 @@ describe('@attribute()', () => {
 					toAttribute: (value: unknown) => (value ? JSON.stringify(value) : ''),
 				},
 			})
-			readonly config = signalState({ theme: 'dark' });
+			readonly config = state({ theme: 'dark' });
 		}
 
 		const el = document.createElement('attr-converter') as Foo;
@@ -274,7 +274,7 @@ describe('@attribute()', () => {
 					toAttribute: (value: unknown) => (value === 'skip' ? undefined : String(value)),
 				},
 			})
-			readonly label = signalState('hi');
+			readonly label = state('hi');
 		}
 
 		const el = document.createElement('attr-toattr-skip') as Foo;

@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { signalState } from '../../../main.js';
+import { state } from '../../../main.js';
 import { max, min } from './main.js';
 
 describe('range validators', () => {
@@ -13,7 +13,7 @@ describe('range validators', () => {
 	});
 
 	it('works on a node', () => {
-		const s = signalState({ age: -1 });
+		const s = state({ age: -1 });
 		s.age.check.validators.set([min<number>(0), max<number>(120)]);
 		expect(s.age.check.errors().map((e) => e.flag)).toEqual(['rangeUnderflow']);
 		s.age.set(121);

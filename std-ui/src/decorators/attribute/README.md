@@ -1,6 +1,6 @@
 # `@attribute()` — attribute-synced, store-backed component fields
 
-Field decorator for `UIElement` (see `../../ui-element.ts`) subclasses: it marks a `signalState()` store field so it is also
+Field decorator for `UIElement` (see `../../ui-element.ts`) subclasses: it marks a `state()` store field so it is also
 kept in sync with an HTML attribute via the platform's custom-element mechanism
 (`observedAttributes` / `attributeChangedCallback`) — not `MutationObserver` or polling.
 
@@ -16,8 +16,8 @@ import { t } from '../../template/index.js';
 
 @tag('user-badge')
 class UserBadge extends UIElement {
-	@attribute({ type: Number, reflect: true }) readonly count = signalState(0);
-	@attribute() readonly label = signalState('Guest');
+	@attribute({ type: Number, reflect: true }) readonly count = state(0);
+	@attribute() readonly label = state('Guest');
 }
 ```
 
@@ -25,8 +25,8 @@ Decorator-free equivalent (same registrations, no build step needed for decorato
 
 ```ts
 class UserBadge extends UIElement {
-	readonly count = signalState(0);
-	readonly label = signalState('Guest');
+	readonly count = state(0);
+	readonly label = state('Guest');
 }
 defineElement('user-badge', UserBadge, {
 	attributes: { count: { type: Number, reflect: true }, label: {} }, // keys limited to the class's store fields
@@ -49,12 +49,12 @@ el.setAttribute('count', '9'); // attributeChangedCallback → store
 
 ## Requirements
 
-- **Plain store field only** - a plain class field (no `accessor`) holding a `signalState()`; anything else is a compile error.
+- **Plain store field only** - a plain class field (no `accessor`) holding a `state()`; anything else is a compile error.
 - **`@tag()` or `defineElement()`** — either sets `observedAttributes` before
   `customElements.define()`. `@tag()` reads `@attribute()` registrations from `context.metadata`;
   `defineElement()` registers its `attributes` map and reads it (and any decorator registrations) the same way - see [`../tag/README.md`](../tag/README.md).
 
-Leave the field a plain [`signalState()`](../state/README.md) (no decorator) for fields that should never touch an attribute.
+Leave the field a plain [`state()`](../state/README.md) (no decorator) for fields that should never touch an attribute.
 
 ## `AttributeOptions`
 
@@ -70,8 +70,8 @@ Leave the field a plain [`signalState()`](../state/README.md) (no decorator) for
 `type` takes the constructor (`String`, `Number`, `Boolean`, `Object`, `Array`), matching `lit` —
 a hint for the default converter, not a runtime `typeof` check. If omitted (and no `converter`),
 the converter is **inferred from the field's initial value** at first-instance construction
-(`inferAttributeType()` in [`converter.ts`](./converter.ts)) — so `@attribute() count = signalState(0)` matches
-`@attribute({ type: Number }) count = signalState(0)`:
+(`inferAttributeType()` in [`converter.ts`](./converter.ts)) — so `@attribute() count = state(0)` matches
+`@attribute({ type: Number }) count = state(0)`:
 
 | Initial value | Inferred `type` |
 |---|---|
@@ -106,7 +106,7 @@ For anything the five defaults do not cover — non-empty JSON fallback, `Date`,
 		toAttribute: (value: unknown) => (value ? JSON.stringify(value) : ''),
 	},
 })
-readonly config = signalState({ theme: 'dark' });
+readonly config = state({ theme: 'dark' });
 ```
 
 `type` alongside `converter` is a readability hint only (no runtime effect once `converter` is set).
@@ -117,11 +117,11 @@ skips `.set`). `toAttribute` may return `undefined` to mean "leave the host attr
 
 ## Complex-object fields
 
-Same [`SignalTree`](../../signal/signal-state/README.md) backing as any `signalState()` field — use `type: Object` when the
+Same [`SignalTree`](../../signal/signal-state/README.md) backing as any `state()` field — use `type: Object` when the
 attribute should mirror JSON:
 
 ```ts
-@attribute({ type: Object, reflect: true }) readonly config = signalState({ theme: 'dark' });
+@attribute({ type: Object, reflect: true }) readonly config = state({ theme: 'dark' });
 ```
 
 ```html

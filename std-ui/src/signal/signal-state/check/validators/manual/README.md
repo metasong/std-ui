@@ -5,9 +5,9 @@ rule. It is a normal `Validator`, so add it to `node.check.validators` like any 
 as you need, each keeps its own errors.
 
 ```ts
-import { signalState, manualValidator } from '../../index.js';
+import { state, manualValidator } from '../../index.js';
 
-const form = signalState({ email: 'a@b.c' });
+const form = state({ email: 'a@b.c' });
 const server = manualValidator<string>();
 form.email.check.validators.set([server]);
 

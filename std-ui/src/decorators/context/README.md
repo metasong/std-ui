@@ -4,7 +4,7 @@ Lets a `UIElement` (see `../../ui-element.ts`) expose one of its stores to **any
 just direct children — without threading it through attributes/properties of every intermediate
 element. Two halves:
 
-- **Provide** — `@provide(key)` on a `signalState(...)` field, or the decorator-free
+- **Provide** — `@provide(key)` on a `state(...)` field, or the decorator-free
   `defineElement(name, Class, { provide: { theme: key } })`.
 - **Consume** — `@consume(key) readonly theme!: Theme`: a read-only, reactive property holding the
   nearest ancestor's value, read as `this.theme.mode`. The decorator-free form is
@@ -14,14 +14,14 @@ Both halves are registered **per class** (decorator metadata, or `defineElement`
 nothing is registered per instance.
 
 ```ts
-import { tag, provide, consume, createContextKey, signalState, UIElement } from '../../index.js';
+import { tag, provide, consume, createContextKey, state, UIElement } from '../../index.js';
 
 interface Theme { mode: 'light' | 'dark'; }
 export const ThemeKey = createContextKey<Theme>('theme'); // identity both sides link through
 
 @tag('app-root')
 class AppRoot extends UIElement {
-	@provide(ThemeKey) readonly theme = signalState<Theme>({ mode: 'dark' });
+	@provide(ThemeKey) readonly theme = state<Theme>({ mode: 'dark' });
 	// decorator-free: defineElement('app-root', AppRoot, { provide: { theme: ThemeKey } });
 
 	protected override connect() {

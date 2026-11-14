@@ -14,12 +14,12 @@ Three read-only field decorators for `UIElement` (see `../../ui-element.ts`) sub
   by a render/effect that's still pending at the time it's read.
 
 ```ts
-import { tag, signalState, query, queryAll, queryAsync, UIElement } from '../../index.js';
+import { tag, state, query, queryAll, queryAsync, UIElement } from '../../index.js';
 import { t } from '../../template/index.js';
 
 @tag('todo-list')
 class TodoList extends UIElement {
-	readonly items = signalState(['Buy milk', 'Walk dog']);
+	readonly items = state(['Buy milk', 'Walk dog']);
 
 	@query('.title') title!: HTMLElement | null; // re-queried every read
 	@query('form', true) form!: HTMLFormElement | null; // resolved once, then cached
@@ -155,7 +155,7 @@ time. How `updateComplete` aligns with the effect flush (two nested microtasks) 
 ## Related reading
 
 - [`./design.md`](./design.md) — why these need no initializer, and why they're plain-field-only.
-- [`../design.md`](../design.md) / [`../state/README.md`](../state/README.md) — `signalState`/`@attribute()` shared
+- [`../design.md`](../design.md) / [`../state/README.md`](../state/README.md) — `state`/`@attribute()` shared
   field mechanics, which this folder's `addInitializer` technique borrows.
 - [`../../ui-element.ts`](../../ui-element.ts) — `UIElement.updateComplete`, which `@queryAsync()`
   waits on.

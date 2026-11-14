@@ -2,7 +2,7 @@
 
 Observable reactive records for the signal tree, the object counterpart of
 [`../array`](../array/README.md). Each property is its own member node (typically from
-`signalState()`), while a separate internal signal tracks **which members exist**.
+`state()`), while a separate internal signal tracks **which members exist**.
 
 Implementation details: [`design.md`](./design.md).
 
@@ -13,14 +13,14 @@ Implementation details: [`design.md`](./design.md).
 | `obj.deep()` | plain value | + any member's value change, recursively |
 | `obj.key` | member node | never (untracked) |
 
-## Via `signalState()`
+## Via `state()`
 
 Any plain object on the initial value becomes a `SignalObject` automatically:
 
 ```ts
-import { signalState } from '../main.js';
+import { state } from '../main.js';
 
-const user = signalState({ label: 'Ada', age: 30 });
+const user = state({ label: 'Ada', age: 30 });
 user.label.set('Grace');      // only `label` notifies
 user.deep();                  // { label: 'Grace', age: 30 }
 user.set({ zip: '1000' });    // adds member `zip`

@@ -1,14 +1,14 @@
 import { describe, expect, it, vi } from 'vitest';
 import { t } from '../../html.js';
 import { render } from '../../render.js';
-import { signalState } from '../../../signal/index.js';
+import { state } from '../../../signal/index.js';
 import { attribute, tag, UIElement } from '../../../ui-element.js';
 import { bind } from './index.js';
 
 describe('bind()', () => {
-	it('binds a signalState node directly, keeping numeric models numeric', () => {
+	it('binds a state node directly, keeping numeric models numeric', () => {
 		const container = document.createElement('div');
-		const form = signalState({ query: 'hi', age: 3 });
+		const form = state({ query: 'hi', age: 3 });
 		const view = () =>
 			t`<input .value=${bind(form.query)} /><input type="number" .value=${bind(form.age)} />`;
 		render(view(), container);
@@ -27,8 +27,8 @@ describe('bind()', () => {
 
 	it('syncs .value both ways with live skip on redundant render', () => {
 		const container = document.createElement('div');
-		const state = signalState({ query: 'hi' });
-		const view = () => t`<input .value=${bind(state.query)} />`;
+		const store = state({ query: 'hi' });
+		const view = () => t`<input .value=${bind(store.query)} />`;
 
 		render(view(), container);
 		const input = container.querySelector('input')! as HTMLInputElement;
@@ -40,17 +40,17 @@ describe('bind()', () => {
 
 		input.value = 'hello';
 		input.dispatchEvent(new Event('input', { bubbles: true }));
-		expect(state.query()).toBe('hello');
+		expect(store.query()).toBe('hello');
 
-		state.query.set('reset');
+		store.query.set('reset');
 		render(view(), container);
 		expect(input.value).toBe('reset');
 	});
 
 	it('syncs .checked via change', () => {
 		const container = document.createElement('div');
-		const state = signalState({ on: false });
-		const view = () => t`<input type="checkbox" .checked=${bind(state.on)} />`;
+		const store = state({ on: false });
+		const view = () => t`<input type="checkbox" .checked=${bind(store.on)} />`;
 
 		render(view(), container);
 		const input = container.querySelector('input')! as HTMLInputElement;
@@ -58,17 +58,17 @@ describe('bind()', () => {
 
 		input.checked = true;
 		input.dispatchEvent(new Event('change', { bubbles: true }));
-		expect(state.on()).toBe(true);
+		expect(store.on()).toBe(true);
 
-		state.on.set(false);
+		store.on.set(false);
 		render(view(), container);
 		expect(input.checked).toBe(false);
 	});
 
 	it('binds arbitrary properties with default `${property}-change` event', () => {
 		const container = document.createElement('div');
-		const state = signalState({ level: 1 });
-		const view = () => t`<div .level=${bind(state.level)}></div>`;
+		const store = state({ level: 1 });
+		const view = () => t`<div .level=${bind(store.level)}></div>`;
 
 		render(view(), container);
 		const div = container.querySelector('div')! as HTMLDivElement & { level: number };
@@ -76,25 +76,25 @@ describe('bind()', () => {
 
 		div.level = 5;
 		div.dispatchEvent(new Event('level-change', { bubbles: true }));
-		expect(state.level()).toBe(5);
+		expect(store.level()).toBe(5);
 
-		state.level.set(2);
+		store.level.set(2);
 		render(view(), container);
 		expect(div.level).toBe(2);
 	});
 
 	it('throws when .checked is bound to a non-checkable <input>', () => {
 		const container = document.createElement('div');
-		const state = signalState({ on: false });
+		const store = state({ on: false });
 		expect(() =>
-			render(t`<input type="text" .checked=${bind(state.on)} />`, container),
+			render(t`<input type="text" .checked=${bind(store.on)} />`, container),
 		).toThrow(/type="checkbox"/i);
 	});
 
 	it('uses checked-change on non-input elements', () => {
 		const container = document.createElement('div');
-		const state = signalState({ on: false });
-		const view = () => t`<div .checked=${bind(state.on)}></div>`;
+		const store = state({ on: false });
+		const view = () => t`<div .checked=${bind(store.on)}></div>`;
 
 		render(view(), container);
 		const div = container.querySelector('div')! as HTMLDivElement & { checked: boolean };
@@ -102,13 +102,13 @@ describe('bind()', () => {
 
 		div.checked = true;
 		div.dispatchEvent(new Event('checked-change', { bubbles: true }));
-		expect(state.on()).toBe(true);
+		expect(store.on()).toBe(true);
 	});
 
 	it('uses property name for default event (`.document` → `document-change`)', () => {
 		const container = document.createElement('div');
-		const state = signalState({ payload: { title: 'a' } });
-		const view = () => t`<div .document=${bind(state.payload)}></div>`;
+		const store = state({ payload: { title: 'a' } });
+		const view = () => t`<div .document=${bind(store.payload)}></div>`;
 
 		render(view(), container);
 		const div = container.querySelector('div')! as HTMLDivElement & { document: unknown };
@@ -116,7 +116,7 @@ describe('bind()', () => {
 
 		div.document = { title: 'b' };
 		div.dispatchEvent(new Event('document-change', { bubbles: true }));
-		expect(state.payload.deep()).toEqual({ title: 'b' });
+		expect(store.payload.deep()).toEqual({ title: 'b' });
 	});
 
 	it('supports { get, set } accessors', () => {
@@ -131,8 +131,8 @@ describe('bind()', () => {
 
 	it('uses the latest accessor on re-render (no stale closures)', () => {
 		const container = document.createElement('div');
-		const a = signalState({ v: 'a' });
-		const b = signalState({ v: 'b' });
+		const a = state({ v: 'a' });
+		const b = state({ v: 'b' });
 		const view = (s: typeof a) => t`<input .value=${bind(s.v)} />`;
 		render(view(a), container);
 		const input = container.querySelector('input')! as HTMLInputElement;
@@ -146,44 +146,44 @@ describe('bind()', () => {
 
 	it('kebab-cases camelCase properties for the default event', () => {
 		const container = document.createElement('div');
-		const state = signalState({ minValue: 1 });
-		render(t`<div .minValue=${bind(state.minValue)}></div>`, container);
+		const store = state({ minValue: 1 });
+		render(t`<div .minValue=${bind(store.minValue)}></div>`, container);
 		const div = container.querySelector('div')! as HTMLDivElement & { minValue: number };
 		div.minValue = 9;
 		div.dispatchEvent(new Event('min-value-change', { bubbles: true }));
-		expect(state.minValue()).toBe(9);
+		expect(store.minValue()).toBe(9);
 	});
 
 	it('re-syncs sibling radios in the same group', () => {
 		const container = document.createElement('div');
-		const state = signalState({ a: true, b: false });
+		const store = state({ a: true, b: false });
 		const view = () =>
-			t`<input type="radio" name="g" .checked=${bind(state.a)} /><input type="radio" name="g" .checked=${bind(state.b)} />`;
+			t`<input type="radio" name="g" .checked=${bind(store.a)} /><input type="radio" name="g" .checked=${bind(store.b)} />`;
 		render(view(), container);
 		const [ra, rb] = Array.from(container.querySelectorAll('input')) as HTMLInputElement[];
 		rb.checked = true;
 		rb.dispatchEvent(new Event('change', { bubbles: true }));
-		expect(state.b()).toBe(true);
-		expect(state.a()).toBe(false);
+		expect(store.b()).toBe(true);
+		expect(store.a()).toBe(false);
 		expect(ra.checked).toBe(false);
 	});
 
 	it('stops listening after the template is torn down', () => {
 		const container = document.createElement('div');
-		const state = signalState({ query: 'x' });
-		render(t`<input .value=${bind(state.query)} />`, container);
+		const store = state({ query: 'x' });
+		render(t`<input .value=${bind(store.query)} />`, container);
 		const input = container.querySelector('input')! as HTMLInputElement;
 		render(t`<p>gone</p>`, container);
 		input.value = 'late';
 		input.dispatchEvent(new Event('input', { bubbles: true }));
-		expect(state.query()).toBe('x');
+		expect(store.query()).toBe('x');
 	});
 
-	it('binds signalState and @attribute() fields directly', () => {
+	it('binds state and @attribute() fields directly', () => {
 		@tag('bind-decorated-fields')
 		class Host extends UIElement {
-			readonly text = signalState('hi');
-			@attribute() readonly age = signalState(3);
+			readonly text = state('hi');
+			@attribute() readonly age = state(3);
 		}
 		const host = document.createElement('bind-decorated-fields') as Host;
 		const container = document.createElement('div');

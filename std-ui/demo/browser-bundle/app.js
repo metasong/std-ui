@@ -1,11 +1,11 @@
 // App entry — a classic script using the `StdUI` global from the prebuilt IIFE bundle
 // (`../dist/browser/std-ui.iife.min.js`, loaded first in index.html; run `npm run build` first).
 (() => {
-	const { signalState, computed, effect, t, render, UIElement, classMap } = StdUI;
+	const { state, computed, effect, t, render, UIElement, classMap } = StdUI;
 
 	// --- Inline render (no custom element) -----------------------------------------------------
 
-	const inlineCount = signalState(0);
+	const inlineCount = state(0);
 	const inlineLabel = computed(() => (inlineCount() === 1 ? 'click' : 'clicks'));
 
 	function inlineView() {
@@ -33,7 +33,7 @@
 
 	// --- Custom element (decorator-free equivalent of @tag + UIElement) ------------------------
 
-	const count = signalState(0);
+	const count = state(0);
 	const label = computed(() => (count() === 1 ? 'click' : 'clicks'));
 
 	class BrowserBundleCounter extends UIElement {

@@ -1,11 +1,11 @@
 // Demonstrates: `mapByKey` — keyed list reconciliation when the list store changes order.
-import { tag, t, UIElement, mapByKey, signalState } from '../../../src/index.js';
+import { tag, t, UIElement, mapByKey, state } from '../../../src/index.js';
 
 type Chore = { id: string; label: string };
 
 @tag('demo-map-by-key-section')
 export class DemoMapByKeySection extends UIElement {
-	readonly chores = signalState<Chore[]>([
+	readonly chores = state<Chore[]>([
 		{ id: 'wash', label: 'Wash dishes' },
 		{ id: 'mail', label: 'Check mail' },
 		{ id: 'walk', label: 'Walk the dog' },

@@ -1,12 +1,12 @@
 # Reactive store fields (formerly `@state()`)
 
 There is no `@state()` decorator anymore. A reactive field of a `UIElement` is simply a
-`signalState(...)` (see [`../../signal/signal-state/README.md`](../../signal/signal-state/README.md)):
+`state(...)` (see [`../../signal/signal-state/README.md`](../../signal/signal-state/README.md)):
 
 ```ts
 class CounterChip extends UIElement {
-	readonly count = signalState(0);
-	readonly config = signalState({ theme: 'dark', limits: { max: 10 } });
+	readonly count = state(0);
+	readonly config = state({ theme: 'dark', limits: { max: 10 } });
 
 	protected override template() {
 		return t`<span>${this.count()} ${this.config.theme()}</span>`;

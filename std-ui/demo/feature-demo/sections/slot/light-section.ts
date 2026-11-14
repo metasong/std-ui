@@ -1,10 +1,10 @@
 // Light-DOM slots: `slot()` directive + `@queryAssignedNodes` reading the same content.
-import { slot, t, tag, UIElement, signalState } from '../../../../src/index.js';
+import { slot, t, tag, UIElement, state } from '../../../../src/index.js';
 import { queryAssignedNodes } from '../../../../src/ui-element.js';
 
 @tag('demo-light-card')
 export class DemoLightCard extends UIElement {
-	readonly slotted = signalState('');
+	readonly slotted = state('');
 
 	@queryAssignedNodes<HTMLElement>({ selector: '*' }) defaultChildren!: HTMLElement[];
 	@queryAssignedNodes<HTMLElement>({ slot: 'title', selector: '*' }) titleChildren!: HTMLElement[];

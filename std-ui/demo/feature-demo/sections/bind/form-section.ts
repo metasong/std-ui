@@ -1,11 +1,11 @@
 // Two-way bind on native form controls: .value, .checked, programmatic reset, re-render while typing.
-import { bind, t, tag, UIElement, signalState } from '../../../../src/index.js';
+import { bind, t, tag, UIElement, state } from '../../../../src/index.js';
 
 @tag('demo-bind-form-section')
 export class DemoBindFormSection extends UIElement {
-	readonly search = signalState('hello');
-	readonly agreed = signalState(false);
-	readonly renderPasses = signalState(0);
+	readonly search = state('hello');
+	readonly agreed = state(false);
+	readonly renderPasses = state(0);
 
 	protected override template() {
 		return t`

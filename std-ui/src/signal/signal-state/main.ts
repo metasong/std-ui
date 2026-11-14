@@ -1,7 +1,7 @@
 // Builds a tree of signals that mirrors a value's shape, so each leaf is an independently-writable
 // `Signal` and every container (`./object`, `./array`) holds its children as nodes:
 //
-//   const a = signalState({ b: { c: { d: 1 } } });
+//   const a = state({ b: { c: { d: 1 } } });
 //   effect(() => console.log(a.deep())); // logs { b: { c: { d: 1 } } }
 //   a.b.c.d.set(2);                      // d notifies -> c, b, a deep() dirty -> effect re-runs
 //
@@ -93,7 +93,7 @@ export type SignalState<T> = [T] extends [boolean] // `boolean` is `true | false
 /** How far a tree is built: `'value'` = one leaf, `'shallow'` = container + leaf members, `'deep'` = full tree. */
 export type StateDepth = 'value' | 'shallow' | 'deep';
 
-/** `signalState()` options: the leaf `signal()` options plus how deep to build. */
+/** `state()` options: the leaf `signal()` options plus how deep to build. */
 export interface SignalStateOptions<T = unknown> extends SignalOptions<T> {
 	/**
 	 * - `'deep'` (default): every nested object / array becomes a node.
@@ -112,14 +112,14 @@ export interface SignalStateOptions<T = unknown> extends SignalOptions<T> {
 /** Members of a shallow container: one plain leaf per key. */
 type LeafMembers<T> = { readonly [K in keyof T]: SignalLeaf<T[K]> };
 
-/** The tree `signalState()` builds with `depth: 'shallow'`. */
+/** The tree `state()` builds with `depth: 'shallow'`. */
 export type SignalStateShallow<T> = T extends readonly (infer U)[]
 	? SignalArray<U, SignalLeaf<U> & ItemNode<U>>
 	: IsBranch<T> extends true
 		? SignalObject<T, LeafMembers<T>, Partial<T>> & LeafMembers<T>
 		: SignalLeaf<T>;
 
-/** What `signalState(value, { depth: D })` returns for a value of type `T`. */
+/** What `state(value, { depth: D })` returns for a value of type `T`. */
 export type SignalStateOf<T, D extends StateDepth> = D extends 'value'
 	? SignalLeaf<Plain<T>>
 	: D extends 'shallow'
@@ -136,7 +136,7 @@ export type SignalStateOf<T, D extends StateDepth> = D extends 'value'
  * does not walk its members, so a circular reference inside a raw member value is not rejected
  * (and a dirty check (`changes`) on such a value would recurse forever).
  *
- * Composition: a member that is already a tree node (built by `signalState()` etc.) is adopted
+ * Composition: a member that is already a tree node (built by `state()` etc.) is adopted
  * as-is, not wrapped: the parent tracks it, and `deep()`, `check` and `changes` include it. The
  * node is shared, not copied, so writing through either owner affects both. Adoption happens when
  * a member is *built* (construction, or a new key / item); from the parent's view that member is
@@ -149,7 +149,7 @@ export type SignalStateOf<T, D extends StateDepth> = D extends 'value'
  * from the reactive tree. Shared, non-circular plain references are fine; each occurrence becomes
  * its own independent node.
  */
-export function signalState<T, D extends StateDepth = 'deep'>(
+export function state<T, D extends StateDepth = 'deep'>(
 	value: T,
 	options?: SignalStateOptions & { depth?: D },
 ): SignalStateOf<T, D> {
@@ -171,7 +171,7 @@ function build<T>(
 	const container = Array.isArray(value) || isPlainObject(value);
 	if (container) {
 		if (ancestors.has(value as object)) {
-			throw new TypeError('signalState: circular reference detected; state must be a finite tree of plain data');
+			throw new TypeError('state: circular reference detected; state must be a finite tree of plain data');
 		}
 		ancestors.add(value as object);
 	}

@@ -1,4 +1,4 @@
-# Signal tree (`signalState`)
+# Signal tree (`state`)
 
 `main.ts` builds a reactive tree out of a value: plain objects become a
 [`SignalObject`](./object/README.md), arrays a [`SignalArray`](./array/README.md), and everything
@@ -8,9 +8,9 @@ write the tree like the original object.
 For implementation, see [`design.md`](./design.md).
 
 ```ts
-import { signalState, effect } from '../index.js';
+import { state, effect } from '../index.js';
 
-const a = signalState({ b: { c: { d: 1 } } });
+const a = state({ b: { c: { d: 1 } } });
 
 effect(() => {
 	console.log(a.deep()); // { b: { c: { d: 1 } } }
@@ -46,7 +46,7 @@ signals), use [`readValue`](./node.ts).
 
 ## API
 
-### `signalState(value, options?)`
+### `state(value, options?)`
 
 Converts a value into its `SignalState`. Reach into leaves to read or write them:
 
@@ -69,17 +69,17 @@ containers. `options.depth` controls how deep the tree is built:
 ```ts
 const data = { id: 1, user: { name: 'Ada', tags: ['a'] } };
 
-const deep = signalState(data);                         // default
+const deep = state(data);                         // default
 deep.user.name.set('Bob');                              // notifies readers of user.name
 
-const shallow = signalState(data, { depth: 'shallow' });
+const shallow = state(data, { depth: 'shallow' });
 shallow.user();                                         // data.user (raw reference, not walked)
 shallow.user.set({ name: 'Bob', tags: [] });            // replace the member: notifies
 shallow.user().name = 'Zed';                            // in-place mutation: no signal
 shallow.set({ id: 2 });                                 // patches members, like any container
 shallow.deep();                                         // { id: 2, user: ... }
 
-const value = signalState(data, { depth: 'value' });    // a plain Signal<typeof data>
+const value = state(data, { depth: 'value' });    // a plain Signal<typeof data>
 value.set({ ...data, id: 2 });                          // only replacement notifies
 ```
 
@@ -102,8 +102,8 @@ parsed document) and don't want a node per field. Notes:
   with, so a deep parent can hold shallow children:
 
   ```ts
-  const big = signalState({ rows: [...] }, { depth: 'shallow' });
-  const page = signalState({ title: 'T', big });  // deep parent, `big` stays shallow
+  const big = state({ rows: [...] }, { depth: 'shallow' });
+  const page = state({ title: 'T', big });  // deep parent, `big` stays shallow
   page.big.rows();                                // raw array (one leaf)
   page.deep();                                    // includes big's rows
   ```
@@ -166,7 +166,7 @@ return the plain value; errors live on the node, not on the value.
 ```ts
 const required: Validator<string> = (v) => (v ? undefined : { flag: 'valueMissing', message: 'Required' });
 
-const form = signalState({ user: { name: '' }, tags: ['a', ''] });
+const form = state({ user: { name: '' }, tags: ['a', ''] });
 form.user.name.check.validators.set([required]);
 form.check.validators.set([(v) => (v.tags.length ? undefined : { flag: 'valueMissing', message: 'No tags' })]);
 
@@ -182,7 +182,7 @@ closes over the config and returns the validator:
 const range = (min: number, max: number, message = `Must be between ${min} and ${max}`): Validator<number> =>
 	(value) => (value >= min && value <= max ? undefined : { flag: 'customError', message });
 
-const form = signalState({ age: 1 });
+const form = state({ age: 1 });
 form.age.check.validators.set([range(2, 8, 'value must be between 2 and 8')]);
 
 form.age.check.errors(); // [{ flag: 'customError', message: 'value must be between 2 and 8' }]
@@ -204,7 +204,7 @@ contains them.
 | `node.changes.reset(next?)` | Writes the initial value back: edited values restored, members added since removed, deleted members re-created, a cleared object restored. Validators stay. With `next`, `next` first becomes the new initial value (pushed down to every child), so `reset(node.peek())` marks the current value as saved and a later `reset()` returns to it. Not an undo: it never steps back to the state before your last edit. |
 
 ```ts
-const form = signalState({ user: { name: 'a' }, tags: ['x'] });
+const form = state({ user: { name: 'a' }, tags: ['x'] });
 form.user.name.set('b');
 form.changes.dirty();       // true
 form.user.name.changes.reset();
@@ -222,14 +222,14 @@ implemented.
 - Object partial `.set()` assumes the value under an existing key matches that member's kind
   (object vs leaf); it does not convert a leaf into an object or vice versa.
 - **Existing nodes are adopted (composition).** A member that is already a tree node, e.g.
-  `signalState({ a: signalState({ x: 1 }) })`, is used as-is: the parent's `deep()`, `check` and
+  `state({ a: state({ x: 1 }) })`, is used as-is: the parent's `deep()`, `check` and
   `changes` include it, so you can build a tree from independently owned nodes. The node is
   **shared, not copied**; writes through either owner affect both, and it can sit under several
   parents (a node under two keys reports its validation errors under both paths). Plain core
   signals (`signal()`, `computed()`) are not nodes and stay leaf values.
 - **A node is plain data to its parent.** Adoption only happens when a member is *built*:
   at construction, or for a new key / item. From the parent's view, `address` in
-  `signalState({ address: addr })` has the type `{ city: string }` (`Plain<T>`), so `set()` takes
+  `state({ address: addr })` has the type `{ city: string }` (`Plain<T>`), so `set()` takes
   plain data and cannot swap in another node. `user.set({ address: { city: 'Rome' } })` writes
   into the adopted node (and so into everything sharing it); `user.changes.reset()` writes the
   initial plain value back into it the same way. To change which node is used, build a new tree.
@@ -242,12 +242,12 @@ implemented.
   runs before anything is written, so a rejected `set()` leaves the tree unchanged.
 
   ```ts
-  const c = signalState<Record<string, unknown>>({ link: undefined });
-  const d = signalState({ x: 1 });
+  const c = state<Record<string, unknown>>({ link: undefined });
+  const d = state({ x: 1 });
   c.set({ link: d });  // TypeError: `link` already exists; use a new key to adopt `d`
   c.set({ other: d }); // OK: new key, `d` is adopted (c.other === d)
   ```
-- **Circular references are rejected.** `signalState()` (and `set()` with a new key) throws a
+- **Circular references are rejected.** `state()` (and `set()` with a new key) throws a
   `TypeError` if an object/array contains itself, e.g. `b.parent === a` where `a.b === b`. Why:
   the tree is finite plain data, so a back-reference can't be a node (infinite tree), and
   treating it as a leaf would hold a raw, non-reactive copy that goes stale and makes

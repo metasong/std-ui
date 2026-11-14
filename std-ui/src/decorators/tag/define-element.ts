@@ -4,8 +4,8 @@
 //
 // ```ts
 // class MyBadge extends UIElement {
-//   readonly count = signalState(0);
-//   readonly label = signalState('hi');
+//   readonly count = state(0);
+//   readonly label = state('hi');
 // }
 // defineElement('my-badge', MyBadge, { attributes: { count: { type: Number, reflect: true }, label: {} } });
 // ```

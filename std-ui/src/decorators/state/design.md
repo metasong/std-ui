@@ -1,7 +1,7 @@
 # Plain store fields - design
 
 There is no `@state()` decorator and no code in this folder: a reactive field of a `UIElement` is a
-plain `signalState(...)` class field. For usage, see [`README.md`](./README.md).
+plain `state(...)` class field. For usage, see [`README.md`](./README.md).
 
 ## Why there is no decorator
 
@@ -19,15 +19,15 @@ That also removed the machinery that existed to swap a field for an accessor (`f
 
 | Old responsibility | Now |
 |---|---|
-| Create the store from the initial value | The field initializer: `signalState(initial)` |
+| Create the store from the initial value | The field initializer: `state(initial)` |
 | Per-instance store | Each instance runs the initializer, so each gets its own store |
-| Plain objects / arrays become a signal tree | `signalState()` itself ([`../../signal/signal-state/`](../../signal/signal-state/)) |
+| Plain objects / arrays become a signal tree | `state()` itself ([`../../signal/signal-state/`](../../signal/signal-state/)) |
 | `contextKey` on `@state()` | `@provide(key)` / `defineElement({ provide })` - [`../context/design.md`](../context/design.md) |
 | Attribute inference from the initial value | `resolveInferredConverter()` reads `this[key].peek()` on first use - [`../attribute/design.md`](../attribute/design.md) |
 
 ## Rules this implies
 
-- The store must be created **per instance**: declare `signalState(...)` in the class body, not at
+- The store must be created **per instance**: declare `state(...)` in the class body, not at
   module level, unless sharing is intended.
 - Writing goes through `.set()`. Template `.prop` bindings forward plain values into `.set()`
   (`PropertyPart`) rather than replacing the field.
@@ -38,4 +38,4 @@ That also removed the machinery that existed to swap a field for an accessor (`f
 
 - [`README.md`](./README.md) - usage.
 - [`../design.md`](../design.md) - the shared registration mechanism.
-- [`../../signal/signal-state/design.md`](../../signal/signal-state/design.md) - how `signalState()` works.
+- [`../../signal/signal-state/design.md`](../../signal/signal-state/design.md) - how `state()` works.

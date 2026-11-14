@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { signalState } from '../../../main.js';
+import { state } from '../../../main.js';
 import { maxLength, minLength } from './main.js';
 
 describe('length validators', () => {
@@ -21,7 +21,7 @@ describe('length validators', () => {
 	});
 
 	it('works together on a node', () => {
-		const s = signalState({ pw: 'a' });
+		const s = state({ pw: 'a' });
 		s.pw.check.validators.set([minLength<string>(3), maxLength<string>(5)]);
 		expect(s.pw.check.errors().map((e) => e.flag)).toEqual(['tooShort']);
 		s.pw.set('abcdef');

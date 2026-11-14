@@ -7,7 +7,7 @@ Generic, app-agnostic fine-grained reactivity primitives, Angular-signals-flavor
 
 Implementation: [`./core/`](./core/) holds the TC39-aligned primitives — [`signal.ts`](./signal.ts),
 [`computed.ts`](./computed.ts), [`tracking.ts`](./tracking.ts) (shared dependency graph).
-[`../effect/`](../effect/) adds `effect()` (not in the proposal). App code imports `signalState`,
+[`../effect/`](../effect/) adds `effect()` (not in the proposal). App code imports `state`,
 `computed`, and `effect` from [`../index.js`](../index.js); leaf `signal()` lives in
 [`./signal.ts`](./signal.ts) (internal).
 
@@ -127,7 +127,7 @@ dependency graph (`effect()` itself is built on `subtle.Watcher`; see [`../effec
 
 ## Where this fits in std-ui
 
-- `../signal-state/main.ts`'s `signalState()` mirrors a plain-object state shape into a tree of these
+- `../signal-state/main.ts`'s `state()` mirrors a plain-object state shape into a tree of these
   `Signal`/`Computed` nodes - that's what backs an app's state (e.g. `core/store.ts`'s `appState`).
 - `../../ui-element.ts`'s `UIElement` reads its `state` (a `SignalState<S>`) inside an `effect()` to
   drive `template()` on every change. `UIElement.effect()` itself wraps `effect()` from this folder,

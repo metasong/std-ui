@@ -1,13 +1,13 @@
 import { describe, expect, it } from 'vitest';
 import { flags } from '../../../flags.js';
-import { signalState } from '../../../main.js';
+import { state } from '../../../main.js';
 import { manualValidator } from './main.js';
 
 const err = (message: string) => ({ flag: 'customError', message });
 
 describe('manualValidator', () => {
 	it('reports set messages as customError and removes them on clear', () => {
-		const s = signalState({ email: 'a@b.c' });
+		const s = state({ email: 'a@b.c' });
 		const v = manualValidator<string>();
 		s.email.check.validators.set([v]);
 		expect(s.email.check.valid()).toBe(true);
@@ -19,7 +19,7 @@ describe('manualValidator', () => {
 	});
 
 	it('accepts errors with their own flag, mixed with messages', () => {
-		const s = signalState({ n: 'x' });
+		const s = state({ n: 'x' });
 		const v = manualValidator<string>();
 		s.n.check.validators.set([v]);
 		v.set({ flag: flags.tooLong, message: 'long' });
@@ -31,7 +31,7 @@ describe('manualValidator', () => {
 	});
 
 	it('set replaces earlier errors; empty list clears', () => {
-		const s = signalState({ n: 'x' });
+		const s = state({ n: 'x' });
 		const v = manualValidator<string>();
 		s.n.check.validators.set([v]);
 		v.set(['a', 'b']);
@@ -43,7 +43,7 @@ describe('manualValidator', () => {
 	});
 
 	it('errors drop once the value changes and do not come back', () => {
-		const s = signalState({ n: 'x' });
+		const s = state({ n: 'x' });
 		const v = manualValidator<string>();
 		s.n.check.validators.set([v]);
 		v.set('bad');
@@ -55,7 +55,7 @@ describe('manualValidator', () => {
 	});
 
 	it('several manual validators are independent', () => {
-		const s = signalState({ n: 'x' });
+		const s = state({ n: 'x' });
 		const a = manualValidator<string>();
 		const b = manualValidator<string>();
 		s.n.check.validators.set([a, b]);

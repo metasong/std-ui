@@ -13,7 +13,7 @@ export interface BindAccessor {
 export interface BindOptions {
 	/**
 	 * How deep model reads track changes on a signal-tree node (signal form only; ignored for
-	 * `{ get, set }`). Same option name and values as `signalState`'s `depth`:
+	 * `{ get, set }`). Same option name and values as `state`'s `depth`:
 	 * - `'value'` → `node()`: only replacement of the node's value.
 	 * - `'shallow'` → `node.shallow()`: + structural changes (key add/delete, push/splice/reorder).
 	 * - `'deep'` → `node.deep()`: + any value change below, recursively.
@@ -46,7 +46,7 @@ export interface BindOptions {
 /** `bind({ get, set, ...options })` — accessor and options in one object. */
 export type BindSource = BindAccessor & BindOptions;
 
-/** Anything callable to read with a `.set()` to write: `signal()` or a `signalState()` node. */
+/** Anything callable to read with a `.set()` to write: `signal()` or a `state()` node. */
 export interface WritableSignal<T = unknown> {
 	(): T;
 	set(value: never): void;

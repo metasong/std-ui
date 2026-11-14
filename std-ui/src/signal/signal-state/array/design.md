@@ -24,8 +24,8 @@ One signal plus derived reads:
 3. **`shallow()`** — reads `nodes()` directly: every structural change.
 4. **`deep()`** — `computed(() => nodes().map(readValue))`: structure plus every item, recursively.
 
-Item nodes are opaque except for `ItemNode<T>` (`()`, `.peek()`, `.set()`). `signalState` passes
-`(item) => signalState(item)` so elements can be branches or leaves.
+Item nodes are opaque except for `ItemNode<T>` (`()`, `.peek()`, `.set()`). `state` passes
+`(item) => state(item)` so elements can be branches or leaves.
 
 `[i]` is a `Proxy` `get` trap returning `nodes.peek()[i]` (untracked).
 
@@ -69,12 +69,12 @@ instance is what notifies `()`.
   length (stale) or a tracked one (defeats the cache).
 - `length` is `computed(() => nodes().length)` — does **not** read item values, only structure.
 
-## Integration with `signalState`
+## Integration with `state`
 
 In [`../main.ts`](../main.ts), `Array.isArray(value)` dispatches to:
 
 ```ts
-signalArray(value, (item) => signalState(item, signalOptions));
+signalArray(value, (item) => state(item, signalOptions));
 ```
 
 `SignalState<T>` when `T` is an array type resolves to `SignalArray<U, SignalState<U> & ItemNode<U>>`.

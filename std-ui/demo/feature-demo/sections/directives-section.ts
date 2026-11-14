@@ -1,11 +1,11 @@
 // Demonstrates: `classMap` / `styleMap` attribute directives, and `html`.
-import { tag, t, UIElement, html, signalState } from '../../../src/index.js';
+import { tag, t, UIElement, html, state } from '../../../src/index.js';
 import { classMap, styleMap } from '../../../src/template/directives/index.js';
 
 @tag('demo-directives-section')
 export class DemoDirectivesSection extends UIElement {
-	readonly active = signalState(false);
-	readonly big = signalState(false);
+	readonly active = state(false);
+	readonly big = state(false);
 
 	protected override template() {
 		const classes = { active: this.active(), 'demo-box': true };

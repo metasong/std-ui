@@ -57,7 +57,7 @@ export function render(
 	unmount(container);
 	const { fragment, parts } = instantiate(getTemplate(result.strings, result.type), host);
 	container.appendChild(fragment);
-	// After connect so custom elements are upgraded before `.prop` bindings forward into `signalState()`/`@attribute()` stores.
+	// After connect so custom elements are upgraded before `.prop` bindings forward into `state()`/`@attribute()` stores.
 	updateParts(parts, result.values);
 	renderedInstances.set(container, { strings: result.strings, parts });
 }

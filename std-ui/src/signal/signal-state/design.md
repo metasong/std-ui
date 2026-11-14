@@ -1,12 +1,12 @@
 # Signal tree — internal design
 
-How `signalState()` in [`main.ts`](./main.ts) is implemented. For usage and API, see [`README.md`](./README.md).
+How `state()` in [`main.ts`](./main.ts) is implemented. For usage and API, see [`README.md`](./README.md).
 
 ## Module layout
 
 | File | Role |
 | --- | --- |
-| [`main.ts`](./main.ts) | `signalState`, `DeepPartial`, `SignalState`: dispatch to array / object / leaf |
+| [`main.ts`](./main.ts) | `state`, `DeepPartial`, `SignalState`: dispatch to array / object / leaf |
 | [`node.ts`](./node.ts) | `ItemNode` (child contract), `readValue` (plain-value read of any node), change tracking (`dirty` / `reset`) |
 | [`check/`](./check/) | Validation: lazy `node.check` and its aggregates (see [`check/design.md`](./check/design.md)) |
 | [`array/`](./array/) | `signalArray` (see [`array/design.md`](./array/design.md)) |
@@ -17,7 +17,7 @@ How `signalState()` in [`main.ts`](./main.ts) is implemented. For usage and API,
 ## Build algorithm
 
 ```ts
-const child = (item) => signalState(item, signalOptions);
+const child = (item) => state(item, signalOptions);
 if (Array.isArray(value)) return signalArray(value, child);
 if (isPlainObject(value)) return signalObject(value, child);
 return signal(value, signalOptions);
@@ -56,7 +56,7 @@ Members added at runtime via `set()` are not reflected in the static type.
 ## Consumers
 
 `createStore()` in [`../../decorators/field-store.ts`](../../decorators/field-store.ts) uses
-`signalState()` for component field backing. Generic readers that need a plain value from any store
+`state()` for component field backing. Generic readers that need a plain value from any store
 (`wire-reflect`, `wire-provide`, `bind`) use `readValue`.
 
 ## Notification sketch

@@ -1,14 +1,14 @@
 // Integration: one <form> mixing a native control, a plain FormElement and a FormGroup, all bound to the
-// same `signalState` model whose validators drive every control's constraint validation.
+// same `state` model whose validators drive every control's constraint validation.
 //   - native <input>         → bind() mirrors errors via setCustomValidity
 //   - FormElement (merged)   → first/last errors unioned into the host's single validity state
 //   - FormGroup (range)      → each property's errors routed to its own inner input
 // The browser's own submit validation then blocks the submit while any control is invalid.
-import { bind, t, tag, UIElement, signalState, required, email } from '../../../src/index.js';
+import { bind, t, tag, UIElement, state, required, email } from '../../../src/index.js';
 import '../../feature-demo/sections/bind/validation/merged-control.js';
 import '../../feature-demo/sections/bind/validation/range-control.js';
 
-const model = signalState({ email: '', first: '', last: '', start: '', end: '' });
+const model = state({ email: '', first: '', last: '', start: '', end: '' });
 model.email.check.validators.set([required('Email is required'), email('Not a valid email')]);
 model.first.check.validators.set([required('First name required')]);
 model.last.check.validators.set([required('Last name required')]);
@@ -20,7 +20,7 @@ model.end.check.validators.set([
 
 @tag('demo-integration-signup')
 export class DemoIntegrationSignup extends UIElement {
-	readonly submitted = signalState('');
+	readonly submitted = state('');
 
 	#submit(e: Event): void {
 		e.preventDefault();

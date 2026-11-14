@@ -43,7 +43,7 @@ export function readValue<T>(node: ItemNode<T>): T {
 	return typeof deep === 'function' ? deep() : node();
 }
 
-/** Type of a node built by this module (`signalState()`, `signalObject()`, `signalArray()`, leaves). */
+/** Type of a node built by this module (`state()`, `signalObject()`, `signalArray()`, leaves). */
 export interface TreeNode {
 	(): unknown;
 	peek(): unknown;
@@ -69,7 +69,7 @@ export function isTreeNode(value: unknown): value is TreeNode {
 export function assertNotNode(value: unknown): void {
 	if (isTreeNode(value)) {
 		throw new TypeError(
-			'signalState: cannot write a signalState node into an existing member; nodes are adopted at construction or as a new key / item',
+			'state: cannot write a state node into an existing member; nodes are adopted at construction or as a new key / item',
 		);
 	}
 }
@@ -96,7 +96,7 @@ function reaches(node: unknown, target: object, seen: Set<unknown>): boolean {
  */
 export function assertAcyclic(parent: object, child: unknown): void {
 	if (reaches(child, parent, new Set())) {
-		throw new TypeError('signalState: circular reference detected; a node cannot contain itself');
+		throw new TypeError('state: circular reference detected; a node cannot contain itself');
 	}
 }
 

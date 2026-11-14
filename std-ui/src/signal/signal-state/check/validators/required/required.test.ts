@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { signalState } from '../../../main.js';
+import { state } from '../../../main.js';
 import { required } from './main.js';
 
 describe('required', () => {
@@ -12,7 +12,7 @@ describe('required', () => {
 	});
 
 	it('uses a custom message and works on a node', () => {
-		const s = signalState({ name: '' });
+		const s = state({ name: '' });
 		s.name.check.validators.set([required<string>('Name needed')]);
 		expect(s.name.check.errors()).toEqual([{ flag: 'valueMissing', message: 'Name needed' }]);
 		s.name.set('x');

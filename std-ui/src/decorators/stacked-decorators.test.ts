@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { attribute, consume, createContextKey, defineElement, provide, tag, UIElement } from '../ui-element.js';
-import { signalState } from '../signal/index.js';
+import { state } from '../signal/index.js';
 
 // `@attribute()` and `@provide()` only register metadata about a field that already is a store, so
 // stacking them on one field (in either order) must keep working, and the decorator-free
@@ -23,11 +23,11 @@ describe('@attribute() + @provide() stacked on the same store field', () => {
 		class Foo extends UIElement {
 			@attribute({ type: Number, reflect: true })
 			@provide(KeyA)
-			readonly count = signalState(5);
+			readonly count = state(5);
 
 			@provide(KeyB)
 			@attribute({ type: Number, reflect: true })
-			readonly other = signalState(3);
+			readonly other = state(3);
 		}
 
 		const el = document.createElement('stack-attr-ctx') as Foo;
@@ -48,7 +48,7 @@ describe('@attribute() + @provide() stacked on the same store field', () => {
 		@tag('stack-single-def')
 		class Foo extends UIElement {
 			@attribute({ reflect: true })
-			readonly label = signalState('hi');
+			readonly label = state('hi');
 		}
 
 		expect((Foo as unknown as { observedAttributes?: string[] }).observedAttributes).toEqual(['label']);
@@ -58,9 +58,9 @@ describe('@attribute() + @provide() stacked on the same store field', () => {
 describe('defineElement() - the decorator-free path', () => {
 	it('registers the element and mirrors attribute fields, same as @tag + @attribute', async () => {
 		class Foo extends UIElement {
-			readonly count = signalState(5);
-			readonly label = signalState('hi');
-			readonly internalOnly = signalState('x');
+			readonly count = state(5);
+			readonly label = state('hi');
+			readonly internalOnly = state('x');
 		}
 		defineElement('define-el-basic', Foo, {
 			attributes: { count: { type: Number, reflect: true }, label: {} },
@@ -87,8 +87,8 @@ describe('defineElement() - the decorator-free path', () => {
 
 	it('infers the converter from the store value when neither type nor converter is given', () => {
 		class Foo extends UIElement {
-			readonly active = signalState(false);
-			readonly config = signalState({ a: 1 });
+			readonly active = state(false);
+			readonly config = state({ a: 1 });
 		}
 		defineElement('define-el-infer', Foo, { attributes: { active: { reflect: true }, config: { reflect: true } } });
 
@@ -107,7 +107,7 @@ describe('defineElement() - the decorator-free path', () => {
 		document.body.appendChild(host);
 
 		class Foo extends UIElement {
-			readonly count = signalState(0);
+			readonly count = state(0);
 		}
 		defineElement('define-el-upgrade', Foo, { attributes: { count: { type: Number } } });
 
@@ -118,7 +118,7 @@ describe('defineElement() - the decorator-free path', () => {
 
 	it('rejects a non-store field in the attributes map at compile time', () => {
 		class Foo extends UIElement {
-			readonly count = signalState(0);
+			readonly count = state(0);
 			plain = 3;
 		}
 		// @ts-expect-error - `plain` is not a store, so it can't mirror an attribute
@@ -127,10 +127,10 @@ describe('defineElement() - the decorator-free path', () => {
 
 	it('shares attribute defs with subclasses', () => {
 		class Base extends UIElement {
-			readonly count = signalState(1);
+			readonly count = state(1);
 		}
 		class Child extends Base {
-			readonly label = signalState('a');
+			readonly label = state('a');
 		}
 		defineElement('define-el-child', Child, { attributes: { count: { type: Number }, label: {} } });
 
@@ -154,8 +154,8 @@ describe('defineElement({ provide }) alongside @provide()', () => {
 		}
 
 		class Root extends UIElement {
-			@provide(KeyA) readonly a = signalState<Theme>({ mode: 'a' });
-			readonly b = signalState<Theme>({ mode: 'b' });
+			@provide(KeyA) readonly a = state<Theme>({ mode: 'a' });
+			readonly b = state<Theme>({ mode: 'b' });
 			protected override connect(): void {
 				this.appendChild(document.createElement('both-child'));
 			}

@@ -1,6 +1,6 @@
 // Demonstrates: `createContextKey`, `@provide(key)` / `@consume(key)` (read) —
 // a descendant reads an ancestor's reactive value with no prop-drilling.
-import { tag, t, UIElement, consume, provide, createContextKey, signalState } from '../../../src/index.js';
+import { tag, t, UIElement, consume, provide, createContextKey, state } from '../../../src/index.js';
 
 interface Theme { mode: 'light' | 'dark'; }
 const ThemeKey = createContextKey<Theme>('demo-theme');
@@ -16,7 +16,7 @@ class DemoThemeChild extends UIElement {
 
 @tag('demo-context-section')
 export class DemoContextSection extends UIElement {
-	@provide(ThemeKey) readonly theme = signalState<Theme>({ mode: 'light' });
+	@provide(ThemeKey) readonly theme = state<Theme>({ mode: 'light' });
 
 	protected override template() {
 		return t`

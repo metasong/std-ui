@@ -1,18 +1,18 @@
 import { describe, expect, it } from 'vitest';
 import { tag, UIElement } from '../../ui-element.js';
-import { signalState } from '../../signal/index.js';
+import { state } from '../../signal/index.js';
 
 function flush(): Promise<void> {
 	return new Promise(resolve => queueMicrotask(() => queueMicrotask(resolve)));
 }
 
-// There is no `@state()` decorator anymore: a reactive field is just a `signalState(...)`, so its
+// There is no `@state()` decorator anymore: a reactive field is just a `state(...)`, so its
 // type (`SignalState<T>`) is right from the declaration and needs no decorator to wire it.
-describe('signalState() fields on a UIElement', () => {
+describe('state() fields on a UIElement', () => {
 	it('never touches the host attribute', async () => {
 		@tag('state-no-attr')
 		class Foo extends UIElement {
-			readonly label = signalState('hi');
+			readonly label = state('hi');
 		}
 
 		const el = document.createElement('state-no-attr') as Foo;
@@ -31,7 +31,7 @@ describe('signalState() fields on a UIElement', () => {
 
 		@tag('state-template')
 		class Foo extends UIElement {
-			readonly label = signalState('a');
+			readonly label = state('a');
 			protected override template(): void {
 				rendered.push(this.label());
 			}
@@ -50,7 +50,7 @@ describe('signalState() fields on a UIElement', () => {
 	it('gives each instance its own store', () => {
 		@tag('state-per-instance')
 		class Foo extends UIElement {
-			readonly count = signalState(0);
+			readonly count = state(0);
 		}
 
 		const a = document.createElement('state-per-instance') as Foo;
@@ -61,10 +61,10 @@ describe('signalState() fields on a UIElement', () => {
 
 	it('types a boolean field as a writable store (set(true) / set(false))', () => {
 		class Foo extends UIElement {
-			readonly on = signalState(false);
+			readonly on = state(false);
 		}
 		void Foo;
-		const store = signalState(false);
+		const store = state(false);
 		store.set(true);
 		expect(store()).toBe(true);
 	});
@@ -72,7 +72,7 @@ describe('signalState() fields on a UIElement', () => {
 	it('backs a complex-object field with a tree, reading/writing the whole object', async () => {
 		@tag('state-obj-tree')
 		class Foo extends UIElement {
-			readonly config = signalState({ a: 1, b: { c: 2 } });
+			readonly config = state({ a: 1, b: { c: 2 } });
 		}
 
 		const el = document.createElement('state-obj-tree') as Foo;
@@ -88,7 +88,7 @@ describe('signalState() fields on a UIElement', () => {
 	it('leaves an unrelated nested branch untouched (same object identity) when only a sibling leaf changes', async () => {
 		@tag('state-obj-sibling')
 		class Foo extends UIElement {
-			readonly config = signalState({ a: 1, b: { c: 2 } });
+			readonly config = state({ a: 1, b: { c: 2 } });
 		}
 
 		const el = document.createElement('state-obj-sibling') as Foo;
@@ -104,7 +104,7 @@ describe('signalState() fields on a UIElement', () => {
 	it('works for an array field', () => {
 		@tag('state-array')
 		class Foo extends UIElement {
-			readonly tags = signalState<string[]>(['a', 'b']);
+			readonly tags = state<string[]>(['a', 'b']);
 		}
 
 		const el = document.createElement('state-array') as Foo;
@@ -116,8 +116,8 @@ describe('signalState() fields on a UIElement', () => {
 	it('registers no observedAttributes at all for a store-only class', () => {
 		@tag('state-only-class')
 		class Foo extends UIElement {
-			readonly a = signalState(1);
-			readonly b = signalState(2);
+			readonly a = state(1);
+			readonly b = state(2);
 		}
 
 		expect((Foo as unknown as { observedAttributes?: string[] }).observedAttributes ?? []).toEqual([]);
