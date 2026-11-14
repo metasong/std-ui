@@ -1,6 +1,6 @@
 // bind() mirrors a state's validator errors into the element's constraint validation.
 // Three targets: native controls, a plain FormElement (merged state) and a FormGroup (routed to inner controls).
-import { bind, t, state, tag, UIElement, signalState } from '../../../../../src/index.js';
+import { bind, t, tag, UIElement, signalState } from '../../../../../src/index.js';
 import './range-control.js';
 import './merged-control.js';
 
@@ -31,7 +31,7 @@ type Validatable = HTMLElement & { checkValidity(): boolean; reportValidity(): b
 @tag('demo-bind-validation-section')
 export class DemoBindValidationSection extends UIElement {
 	/** Snapshot of an element's validity, rendered under it (host `validationMessage` shows the grouped format). */
-	@state() status = '';
+	readonly status = signalState('');
 
 	#snapshot(selector: string): void {
 		const el = this.querySelector<Validatable>(selector);

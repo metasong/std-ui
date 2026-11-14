@@ -1,7 +1,7 @@
 // `@query()` field decorator — read-only accessor over `this.renderRoot.querySelector`
 // (see `../../ui-element.ts` — light DOM by default, or shadow when `shadowRootOptions` is set).
 //
-// Like `@state()`/`@attribute()` (`../field-store.ts`), this decorates a *plain* field only (no
+// This decorates a *plain* field only (no
 // `accessor`) and wires up via the same `addInitializer` + `Object.defineProperty` technique - but
 // unlike those, there's no reactive store: each access runs a fresh DOM query (or, with
 // `@query(selector, true)`, returns a cached result after the first).
@@ -12,14 +12,16 @@
 
 import type { UIElement } from '../../ui-element.js';
 import { assertPlainField } from './assert-plain-field.js';
+import { queryElement } from './query-functions.js';
 
 /**
  * Read-only field that resolves to `this.renderRoot.querySelector(selector)` every time it's read, or - with
- * `cache: true` - only once, the first time it's read (safe only for a node that's never replaced).
+ * `cache: true` - only until it first finds a node, which is then kept (safe only for a node that's
+ * never replaced; a `null` miss is never cached).
  *
  * ```ts
  * @query('#input') input!: HTMLInputElement | null;
- * @query('.title', true) title!: HTMLElement | null; // resolved once, then cached
+ * @query('.title', true) title!: HTMLElement | null; // cached once found
  * ```
  */
 export function query<T extends Element = HTMLElement>(selector: string, cache = false) {
@@ -27,15 +29,8 @@ export function query<T extends Element = HTMLElement>(selector: string, cache =
 		assertPlainField(context, 'query');
 		const key = context.name;
 		context.addInitializer(function (this: UIElement): void {
-			let cached: T | null | undefined;
 			Object.defineProperty(this, key, {
-				get(this: UIElement): T | null {
-					if (cache) {
-						if (cached === undefined) cached = this.renderRoot.querySelector<T>(selector);
-						return cached;
-					}
-					return this.renderRoot.querySelector<T>(selector);
-				},
+				get: (): T | null => queryElement<T>(this, selector, cache), // shared with the decorator-free form
 				enumerable: true,
 				configurable: true,
 			});

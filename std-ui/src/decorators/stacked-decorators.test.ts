@@ -1,31 +1,83 @@
 import { describe, expect, it } from 'vitest';
-import { attribute, state, tag, UIElement } from '../ui-element.js';
+import { attribute, consume, createContextKey, defineElement, provide, tag, UIElement } from '../ui-element.js';
+import { signalState } from '../signal/index.js';
 
-// `@state()` and `@attribute()` are allowed to be stacked on the same field, but stacking them
-// shouldn't throw or corrupt the field either - whichever decorator is closer to the field (runs
-// first) owns the actual store; the other is a transparent no-op for storage, while `@attribute()`
-// still always registers its `AttributeDef` regardless of order (see `./field-store.ts`).
+// `@attribute()` and `@provide()` only register metadata about a field that already is a store, so
+// stacking them on one field (in either order) must keep working, and the decorator-free
+// `defineElement()` must register exactly the same attribute defs.
 
 function flush(): Promise<void> {
 	return new Promise(resolve => queueMicrotask(() => queueMicrotask(resolve)));
 }
 
-describe('@state() + @attribute() stacked on the same field', () => {
-	it('@attribute() closer to the field (runs first) still syncs the attribute', async () => {
-		@tag('stack-state-over-attr-plain')
+interface Theme {
+	mode: string;
+}
+
+describe('@attribute() + @provide() stacked on the same store field', () => {
+	it('works in either order', async () => {
+		const KeyA = createContextKey<number>('stack-a');
+		const KeyB = createContextKey<number>('stack-b');
+
+		@tag('stack-attr-ctx')
 		class Foo extends UIElement {
-			@state()
 			@attribute({ type: Number, reflect: true })
-			count = 5;
+			@provide(KeyA)
+			readonly count = signalState(5);
+
+			@provide(KeyB)
+			@attribute({ type: Number, reflect: true })
+			readonly other = signalState(3);
 		}
 
-		const el = document.createElement('stack-state-over-attr-plain') as Foo;
+		const el = document.createElement('stack-attr-ctx') as Foo;
 		document.body.appendChild(el);
-		expect(el.count()).toBe(5);
-		expect(el.getAttribute('count')).toBe('5'); // reflect: true, via @attribute()'s own wiring
+		expect(el.getAttribute('count')).toBe('5');
+		expect(el.getAttribute('other')).toBe('3');
 
 		el.setAttribute('count', '9');
 		expect(el.count()).toBe(9);
+
+		el.other.set(4);
+		await flush();
+		expect(el.getAttribute('other')).toBe('4');
+		el.remove();
+	});
+
+	it('registers exactly one observed attribute per field', () => {
+		@tag('stack-single-def')
+		class Foo extends UIElement {
+			@attribute({ reflect: true })
+			readonly label = signalState('hi');
+		}
+
+		expect((Foo as unknown as { observedAttributes?: string[] }).observedAttributes).toEqual(['label']);
+	});
+});
+
+describe('defineElement() - the decorator-free path', () => {
+	it('registers the element and mirrors attribute fields, same as @tag + @attribute', async () => {
+		class Foo extends UIElement {
+			readonly count = signalState(5);
+			readonly label = signalState('hi');
+			readonly internalOnly = signalState('x');
+		}
+		defineElement('define-el-basic', Foo, {
+			attributes: { count: { type: Number, reflect: true }, label: {} },
+		});
+
+		expect((Foo as unknown as { observedAttributes?: string[] }).observedAttributes).toEqual(['count', 'label']);
+
+		const el = document.createElement('define-el-basic') as Foo;
+		document.body.appendChild(el);
+		expect(el.getAttribute('count')).toBe('5'); // reflect: true
+		expect(el.hasAttribute('label')).toBe(false); // reflect defaults to false
+		expect(el.hasAttribute('internal-only')).toBe(false);
+
+		el.setAttribute('count', '9');
+		expect(el.count()).toBe(9);
+		el.setAttribute('label', 'yo');
+		expect(el.label()).toBe('yo');
 
 		el.count.set(2);
 		await flush();
@@ -33,36 +85,88 @@ describe('@state() + @attribute() stacked on the same field', () => {
 		el.remove();
 	});
 
-	it('@state() closer to the field (runs first) - @attribute() still registers and syncs through it', async () => {
-		@tag('stack-attr-over-state-plain')
+	it('infers the converter from the store value when neither type nor converter is given', () => {
 		class Foo extends UIElement {
-			@attribute({ type: Number, reflect: true })
-			@state()
-			count = 3;
+			readonly active = signalState(false);
+			readonly config = signalState({ a: 1 });
 		}
+		defineElement('define-el-infer', Foo, { attributes: { active: { reflect: true }, config: { reflect: true } } });
 
-		const el = document.createElement('stack-attr-over-state-plain') as Foo;
+		const el = document.createElement('define-el-infer') as Foo;
 		document.body.appendChild(el);
-		expect(el.count()).toBe(3);
-		expect(el.getAttribute('count')).toBe('3'); // @attribute() still registered reflect + the def
-
-		el.setAttribute('count', '7');
-		expect(el.count()).toBe(7); // attributeChangedCallback writes through @state()'s store-backed accessor
-
-		el.count.set(4);
-		await flush();
-		expect(el.getAttribute('count')).toBe('4');
+		expect(el.hasAttribute('active')).toBe(false); // Boolean converter
+		expect(el.getAttribute('config')).toBe('{"a":1}'); // Object converter
+		el.setAttribute('active', '');
+		expect(el.active()).toBe(true);
 		el.remove();
 	});
 
-	it('registers exactly one AttributeDef (no duplicate) regardless of stacking order', () => {
-		@tag('stack-single-def')
+	it('picks up attributes the element already carries in markup (upgrade path)', () => {
+		const host = document.createElement('div');
+		host.innerHTML = '<define-el-upgrade count="7"></define-el-upgrade>';
+		document.body.appendChild(host);
+
 		class Foo extends UIElement {
-			@state()
-			@attribute({ reflect: true })
-			label = 'hi';
+			readonly count = signalState(0);
+		}
+		defineElement('define-el-upgrade', Foo, { attributes: { count: { type: Number } } });
+
+		const el = host.firstElementChild as Foo;
+		expect(el.count()).toBe(7);
+		host.remove();
+	});
+
+	it('rejects a non-store field in the attributes map at compile time', () => {
+		class Foo extends UIElement {
+			readonly count = signalState(0);
+			plain = 3;
+		}
+		// @ts-expect-error - `plain` is not a store, so it can't mirror an attribute
+		void (() => defineElement('define-el-bad', Foo, { attributes: { plain: {} } }));
+	});
+
+	it('shares attribute defs with subclasses', () => {
+		class Base extends UIElement {
+			readonly count = signalState(1);
+		}
+		class Child extends Base {
+			readonly label = signalState('a');
+		}
+		defineElement('define-el-child', Child, { attributes: { count: { type: Number }, label: {} } });
+
+		const el = document.createElement('define-el-child') as Child;
+		el.setAttribute('count', '4');
+		el.setAttribute('label', 'z');
+		expect(el.count()).toBe(4);
+		expect(el.label()).toBe('z');
+	});
+});
+
+describe('defineElement({ provide }) alongside @provide()', () => {
+	it('both feed the same listeners', () => {
+		const KeyA = createContextKey<Theme>('both-a');
+		const KeyB = createContextKey<Theme>('both-b');
+
+		@tag('both-child')
+		class Child extends UIElement {
+			@consume(KeyA) readonly a!: Theme;
+			@consume(KeyB) readonly b!: Theme;
 		}
 
-		expect((Foo as unknown as { observedAttributes?: string[] }).observedAttributes).toEqual(['label']);
+		class Root extends UIElement {
+			@provide(KeyA) readonly a = signalState<Theme>({ mode: 'a' });
+			readonly b = signalState<Theme>({ mode: 'b' });
+			protected override connect(): void {
+				this.appendChild(document.createElement('both-child'));
+			}
+		}
+		defineElement('both-root', Root, { provide: { b: KeyB } });
+
+		const root = document.createElement('both-root') as Root;
+		document.body.appendChild(root);
+		const child = root.querySelector('both-child') as Child;
+		expect(child.a.mode).toBe('a');
+		expect(child.b.mode).toBe('b');
+		root.remove();
 	});
 });

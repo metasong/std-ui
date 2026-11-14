@@ -1,11 +1,17 @@
 export {
 	tag,
 	attribute,
-	state,
+	consume,
+	provide,
+	createContextKey,
+	defineElement,
 	UIElement,
 	type AttributeConverter,
 	type AttributeOptions,
+	type AttributesMap,
 	type AttributeType,
+	type ContextKey,
+	type DefineElementOptions,
 } from './ui-element.js';
 export {
 	t,

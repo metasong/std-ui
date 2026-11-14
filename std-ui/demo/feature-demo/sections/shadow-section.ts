@@ -1,12 +1,12 @@
 // Demonstrates: `static shadowRootOptions`, encapsulated styles, `@query()` against `renderRoot`.
-import { tag, t, UIElement, state } from '../../../src/index.js';
+import { tag, t, UIElement, signalState } from '../../../src/index.js';
 import { query } from '../../../src/ui-element.js';
 
 @tag('demo-shadow-chip')
 export class DemoShadowChip extends UIElement {
 	static override shadowRootOptions = { mode: 'open' } as const;
 
-	@state() on = false;
+	readonly on = signalState(false);
 
 	@query('button') toggle!: HTMLButtonElement | null;
 

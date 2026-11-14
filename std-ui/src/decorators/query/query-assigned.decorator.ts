@@ -32,6 +32,18 @@ function assignedNodes(host: UIElement, { slot = '', flatten = false }: QueryAss
 }
 
 /**
+ * Nodes currently assigned to a slot of `host`, optionally narrowed by `selector` and/or `filter` -
+ * the shared read behind `@queryAssignedNodes()` and `this.queryAssignedNodes()`.
+ */
+export function readAssignedNodes<T extends Node = Node>(host: UIElement, options: QueryAssignedOptions<T> = {}): T[] {
+	const { selector, filter } = options;
+	let nodes = assignedNodes(host, options);
+	if (selector) nodes = nodes.filter(n => n instanceof Element && n.matches(selector));
+	if (filter) nodes = nodes.filter(filter);
+	return nodes as T[];
+}
+
+/**
  * Read-only field: nodes assigned to a slot, re-read on every access, optionally narrowed by
  * `selector` and/or `filter`.
  *
@@ -44,15 +56,9 @@ export function queryAssignedNodes<T extends Node = Node>(options: QueryAssigned
 	return function queryAssignedNodesDecorator(_value: undefined, context: ClassFieldDecoratorContext<UIElement, T[]>): void {
 		assertPlainField(context, 'queryAssignedNodes');
 		const key = context.name;
-		const { selector, filter } = options;
 		context.addInitializer(function (this: UIElement): void {
 			Object.defineProperty(this, key, {
-				get: (): T[] => {
-					let nodes = assignedNodes(this, options);
-					if (selector) nodes = nodes.filter(n => n instanceof Element && n.matches(selector));
-					if (filter) nodes = nodes.filter(filter);
-					return nodes as T[];
-				},
+				get: (): T[] => readAssignedNodes(this, options),
 				enumerable: true,
 				configurable: true,
 			});

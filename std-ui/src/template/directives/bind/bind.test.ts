@@ -2,7 +2,7 @@ import { describe, expect, it, vi } from 'vitest';
 import { t } from '../../html.js';
 import { render } from '../../render.js';
 import { signalState } from '../../../signal/index.js';
-import { attribute, state, tag, UIElement } from '../../../ui-element.js';
+import { attribute, tag, UIElement } from '../../../ui-element.js';
 import { bind } from './index.js';
 
 describe('bind()', () => {
@@ -179,26 +179,26 @@ describe('bind()', () => {
 		expect(state.query()).toBe('x');
 	});
 
-	it('binds @state() and @attribute() fields directly', () => {
+	it('binds signalState and @attribute() fields directly', () => {
 		@tag('bind-decorated-fields')
 		class Host extends UIElement {
-			@state() query = 'hi';
-			@attribute() age = 3;
+			readonly text = signalState('hi');
+			@attribute() readonly age = signalState(3);
 		}
 		const host = document.createElement('bind-decorated-fields') as Host;
 		const container = document.createElement('div');
 		const view = () =>
-			t`<input .value=${bind(host.query)} /><input type="number" .value=${bind(host.age)} />`;
+			t`<input .value=${bind(host.text)} /><input type="number" .value=${bind(host.age)} />`;
 		render(view(), container);
 		const [a, b] = Array.from(container.querySelectorAll('input')) as HTMLInputElement[];
 		expect(a.value).toBe('hi');
 		a.value = 'yo';
 		a.dispatchEvent(new Event('input', { bubbles: true }));
-		expect(host.query()).toBe('yo');
+		expect(host.text()).toBe('yo');
 		b.value = '7';
 		b.dispatchEvent(new Event('input', { bubbles: true }));
 		expect(host.age()).toBe(7);
-		host.query.set('reset');
+		host.text.set('reset');
 		render(view(), container);
 		expect(a.value).toBe('reset');
 	});

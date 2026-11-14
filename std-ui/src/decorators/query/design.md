@@ -8,16 +8,19 @@ For usage and API, see [`README.md`](./README.md).
 | File | Owns |
 |---|---|
 | [`assert-plain-field.ts`](./assert-plain-field.ts) | `assertPlainField()` — the one piece of validation all three decorators share: throw unless `context.kind === 'field'`. |
+| [`query-functions.ts`](./query-functions.ts) | The decorator-free `queryElement` / `queryElements` / `queryElementAsync` / `queryAssigned` - the **single implementation** of each query. |
 | [`query.decorator.ts`](./query.decorator.ts) | `@query(selector, cache?)`. |
 | [`query-all.decorator.ts`](./query-all.decorator.ts) | `@queryAll(selector)`. |
 | [`query-async.decorator.ts`](./query-async.decorator.ts) | `@queryAsync(selector)`. |
+| [`query-assigned.decorator.ts`](./query-assigned.decorator.ts) | `@queryAssignedNodes(options)` and `readAssignedNodes()` (see [`query-assigned.decorator.md`](./query-assigned.decorator.md)). |
 | [`index.ts`](./index.ts) | Public re-exports, re-exported again from `../index.ts` / `../../ui-element.ts`. |
 | [`query.test.ts`](./query.test.ts) | Behavior tests, through `UIElement`/`tag()`. |
 
-Each decorator is its own file (unlike `@state()`/`@attribute()`, which share `../field-store.ts`'s
-accessor/plain-field branching) because there's no shared *storage* mechanics here to extract -
-only the `context.kind` check is common, and that's small enough to be a single function rather
-than a module.
+Each decorator is its own file because there is no shared *storage* mechanics to extract - only the
+`context.kind` check is common, and that is small enough to be one function. The decorators contain no
+query logic: each getter just calls the matching function in `query-functions.ts`, so a decorated
+property and the decorator-free function can never drift apart (including `@query(sel, true)` and
+`queryElement(host, sel, true)` sharing one cache that keeps only successful results).
 
 ## Why a plain field decorator, not an accessor one
 
@@ -25,22 +28,20 @@ Every field decorated by one of these three never holds a value of its own - rea
 runs a fresh `renderRoot.querySelector`/`querySelectorAll` (or, for `@query(selector, true)`, returns a
 closed-over cache variable) against `this.renderRoot`. An `accessor` decorator's whole purpose is handing
 back a replacement `get`/`set`/`init` triple backed by a *per-field storage slot* the `accessor`
-keyword allocates - exactly what `@state()`/`@attribute()` need (see
-[`../design.md`](../design.md)) and exactly what these three don't: there's no slot to back,
-because there's no value to store. Requiring `accessor foo` here would add ceremony
+keyword allocates - which is what a store needs and what these decorators don't: there's no slot to
+back, because there's no value to store. Requiring `accessor foo` here would add ceremony
 (`@query('#x') accessor foo;` instead of `@query('#x') foo!;`) for no behavioral gain, and would
 diverge from how read-only derived fields read elsewhere in this codebase (e.g. `@consume()`,
 `../context/consume.decorator.ts`, which is plain-field-only for the same "nothing to back" reason).
 
 So each decorator's returned function is called with a plain `ClassFieldDecoratorContext`, checked
 by `assertPlainField()`, and wires up via `context.addInitializer()` + `Object.defineProperty()` -
-the exact same technique `../field-store.ts` uses for a plain (non-`accessor`) `@state()`/
-`@attribute()` field, minus any store:
+a field-initializer hook that runs once per instance, with no store involved:
 
 ```ts
 context.addInitializer(function (this: UIElement): void {
 	Object.defineProperty(this, key, {
-		get(this: UIElement): T | null { return this.renderRoot.querySelector<T>(selector); },
+		get: (): T | null => queryElement<T>(this, selector, cache),
 		enumerable: true,
 		configurable: true,
 	});
@@ -129,12 +130,10 @@ requested, the pending flush's own single `queueMicrotask` has already had a cha
 complete before `updateComplete` resolves - one hop to "catch up" to whatever flush is already
 queued, a second to run *after* that flush's own body (which is itself synchronous) has finished.
 
-`@queryAsync()`'s getter is then just:
+`@queryAsync()`'s getter is then just `queryElementAsync(this, selector)`, which is:
 
 ```ts
-get(this: UIElement): Promise<T | null> {
-	return this.updateComplete.then(() => this.renderRoot.querySelector<T>(selector));
-}
+return host.updateComplete.then(() => host.renderRoot.querySelector<T>(selector));
 ```
 
 Each read returns a fresh promise (no caching option, unlike `@query()`) - the field is meant to be
@@ -144,11 +143,8 @@ silently serve a stale answer the next time it's needed.
 ## Related reading
 
 - [`README.md`](./README.md) — public API and examples.
-- [`../design.md`](../design.md) — `@state()`/`@attribute()`'s own field/accessor mechanics;
-  `../field-store.ts`'s plain-field branch is where this folder's `addInitializer` +
-  `Object.defineProperty` technique comes from.
-- [`../context/design.md`](../context/design.md#why-a-plain-field-decorator-not-an-accessor-one) —
-  `@consume()`'s own "plain field, nothing to back" rationale, for the same underlying reason.
+- [`../design.md`](../design.md) - the registration mechanism the other decorators share (queries register nothing).
+- [`../context/design.md`](../context/design.md) - `@consume()`, which is also plain-field-only for the same "nothing to back at decoration time" reason.
 - [`../../ui-element.ts`](../../ui-element.ts) — `UIElement.updateComplete`.
 - [`../../signal/effect/main.ts`](../../signal/effect/main.ts) — the microtask-batched `effect()`
   re-run `updateComplete` waits on.

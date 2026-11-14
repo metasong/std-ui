@@ -4,7 +4,7 @@
 //   - FormElement (merged)   → first/last errors unioned into the host's single validity state
 //   - FormGroup (range)      → each property's errors routed to its own inner input
 // The browser's own submit validation then blocks the submit while any control is invalid.
-import { bind, t, state, tag, UIElement, signalState, required, email } from '../../../src/index.js';
+import { bind, t, tag, UIElement, signalState, required, email } from '../../../src/index.js';
 import '../../feature-demo/sections/bind/validation/merged-control.js';
 import '../../feature-demo/sections/bind/validation/range-control.js';
 
@@ -20,7 +20,7 @@ model.end.check.validators.set([
 
 @tag('demo-integration-signup')
 export class DemoIntegrationSignup extends UIElement {
-	@state() submitted = '';
+	readonly submitted = signalState('');
 
 	#submit(e: Event): void {
 		e.preventDefault();

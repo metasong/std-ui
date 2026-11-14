@@ -1,12 +1,12 @@
 // Shadow-DOM slots: native `<slot>` + `@queryAssignedNodes` (delegates to `slot.assignedNodes()`).
-import { state, t, tag, UIElement } from '../../../../src/index.js';
+import { t, tag, UIElement, signalState } from '../../../../src/index.js';
 import { queryAssignedNodes } from '../../../../src/ui-element.js';
 
 @tag('demo-shadow-card')
 export class DemoShadowCard extends UIElement {
 	static override shadowRootOptions = { mode: 'open' } as const;
 
-	@state() slotted = '';
+	readonly slotted = signalState('');
 
 	@queryAssignedNodes<HTMLElement>({ selector: '*' }) defaultChildren!: HTMLElement[];
 	@queryAssignedNodes<HTMLElement>({ slot: 'title', selector: '*' }) titleChildren!: HTMLElement[];

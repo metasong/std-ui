@@ -1,28 +1,26 @@
-// `@attribute()` field decorator: turns a class field on a `UIElement` subclass (see
-// `../ui-element.ts`) into a store accessor - exactly like `@state()` (`../state/state.decorator.ts`) - and
-// additionally keeps it in sync with an HTML attribute via the platform's own custom-element
-// "attribute changed" monitoring mechanism (`observedAttributes` + `attributeChangedCallback`,
-// wired through `./metadata.ts`), rather than polling or a `MutationObserver`.
+// `@attribute()` field decorator (optional sugar): marks a `signalState(...)` field of a `UIElement`
+// subclass (see `../ui-element.ts`) as mirrored to/from an HTML attribute via the platform's own
+// custom-element "attribute changed" monitoring mechanism (`observedAttributes` +
+// `attributeChangedCallback`, wired through `./metadata.ts`), rather than polling or a `MutationObserver`.
 //
 //   attribute set/changed on the tag  --(attributeChangedCallback, native)-->  store.set(parsed)
 //   store set from anywhere in JS     --(effect in UIElement.connectedCallback)-->  setAttribute(serialized)
 //
-// `@attribute()` is deliberately "everything `@state()` does, plus attribute registration/sync" -
-// it reuses `../field-store.ts`'s exact field wiring (the same function `@state()` calls) instead
-// of duplicating it, and layers `./converter.ts` (attribute<->value conversion) and `./metadata.ts`
-// (attribute registration/lookup) on top. `../ui-element.ts` wires the two native-facing halves
-// (attribute -> property, property -> attribute) using `./metadata.ts` and `./converter.ts`.
+// The field is just the store (`count = signalState(0)`) - this decorator only *registers* an
+// `AttributeDef` (via `createAttributeDef()` in `./metadata.ts`), it never touches the field. It can
+// only be applied to a store-typed field. The decorator-free equivalent is
+// `defineElement(name, Class, { attributes: { count: options } })` (`../define-element.ts`), which
+// registers the very same def.
 
-import { type AttributeConverter, type AttributeType, inferAttributeType, resolveConverter, toAttributeName } from './converter.js';
-import { applyFieldStore } from '../field-store.js';
-import { type AttributeDef, registerAttributeDef } from './metadata.js';
+import { type AttributeConverter, type AttributeType } from './converter.js';
+import { attributeDefs, createAttributeDef } from './metadata.js';
 
 export interface AttributeOptions<V = unknown> {
 	/**
 	 * HTML attribute name mirrored to/from this property. Defaults to the kebab-case of the field
 	 * name (`maxCount` -> `max-count`). This is the `attribute` option `@property()` used to have -
-	 * now that attribute syncing is its own decorator, there's no `false` case: use `@state()`
-	 * instead of `@attribute()` for a field that shouldn't touch an attribute at all.
+	 * now that attribute syncing is its own decorator, there's no `false` case: leave the field
+	 * undecorated (a plain `signalState()`) if it shouldn't touch an attribute at all.
 	 */
 	name?: string;
 	/**
@@ -64,66 +62,36 @@ export interface AttributeOptions<V = unknown> {
 	converter?: AttributeConverter<V>;
 }
 
+/** A store a field can be mirrored through: anything `signalState()` returns (readable, writable). */
+export type AttributeStore = { (): unknown; peek(): unknown; set(value: never): void };
+
 /**
- * Class field decorator that backs the field with a reactive store - exactly like `@state()`
- * (`../state/state.decorator.ts`), via the shared `applyFieldStore()` - and registers it to be mirrored to/from an
- * HTML attribute by `UIElement` (see `../ui-element.ts`): `this.field()` / `this.field.set(...)`
- * match `@state()`; the store's value is reflected onto the host's attribute when the attribute being set
- * (including by the browser while parsing static markup) parses back into the store.
- *
- * Works for plain values exactly like `@state()`, and for complex (plain-object) values too - a
- * complex field gets per-leaf reactivity, not just whole-field identity comparison:
+ * Field decorator that registers a `signalState(...)` field to be mirrored to/from an HTML
+ * attribute by `UIElement` (see `../ui-element.ts`): the attribute being set (including by the
+ * browser while parsing static markup) parses into `this.field.set(...)`, and - with
+ * `reflect: true` - writes to the store are reflected back onto the host attribute.
  *
  * ```ts
  * class MyBadge extends UIElement {
- *   @attribute({ type: Number }) count = 0; // attribute -> property only (no reflect back)
- *   @attribute({ type: Number, reflect: true }) age = 0; // also mirrors `age` back onto the attribute
- *   @state() internalOnly = 'x'; // store only, no attribute at all - use @state() for this
- *   @attribute({ type: Object, reflect: true }) config = { a: 1, b: { c: 2 } }; // tree-backed:
- *     // a plain-object value becomes a branch of signals/computeds (see `../../signal/signal-state/README.md`), so
- *     // `this.config.set({ ...this.config.peek(), a: 2 })` only notifies readers of the `a` leaf -
- *     // readers depending only on `config.b` don't re-run. `type: Object`'s default converter
- *     // reflects the object to/from the attribute as JSON text; use `@state()` instead if it
- *     // shouldn't touch the attribute at all, or pass a custom `converter` for anything else.
+ *   @attribute({ type: Number }) count = signalState(0); // attribute -> property only (no reflect back)
+ *   @attribute({ type: Number, reflect: true }) age = signalState(0); // also mirrors `age` back
+ *   internalOnly = signalState('x'); // no decorator: store only, no attribute at all
+ *   @attribute({ type: Object, reflect: true }) config = signalState({ a: 1, b: { c: 2 } }); // tree-backed:
+ *     // per-leaf reactivity (see `../../signal/signal-state/README.md`); `type: Object`'s default
+ *     // converter reflects the object to/from the attribute as JSON text.
  * }
  * ```
  *
- * Plain field only (no `accessor`) - see `../field-store.ts` for why.
+ * Applying it to a field that is not a store is a compile error. Plain field only (no `accessor`).
  */
-export function attribute<T, V>(options: AttributeOptions<V> = {}) {
-	return function attributeDecorator(_value: undefined, context: ClassFieldDecoratorContext<T, V>): void {
+export function attribute(options: AttributeOptions = {}) {
+	return function attributeDecorator<S extends AttributeStore>(_value: undefined, context: ClassFieldDecoratorContext<object, S>): void {
 		if (context.kind !== 'field') {
-			throw new Error("@attribute() can only decorate a plain class field, e.g. `@attribute() foo = 0;` (no 'accessor').");
+			throw new Error("@attribute() can only decorate a plain class field, e.g. `@attribute() foo = signalState(0);` (no 'accessor').");
 		}
-
-		const key = context.name;
-		const attributeName = options.name ?? toAttributeName(key);
-
-		// If neither `type` nor `converter` was given, the real converter can't be picked yet - it
-		// depends on the field's initial value, which isn't known until the instance initializes
-		// (via `onInitialValue` below). Register a placeholder (`String`) def now, for
-		// `observedAttributes`'s sake, and patch `def.converter` in place once the initial value is
-		// known - same `def` object, shared by every instance of this class, so the first instance to
-		// initialize resolves it for all.
-		const needsTypeInference = !options.type && !options.converter;
-		const converter = needsTypeInference ? resolveConverter(String, undefined) : resolveConverter(options.type, options.converter);
-		const def: AttributeDef = {
-			key,
-			attribute: attributeName,
-			reflect: options.reflect ?? false,
-			converter: converter as AttributeConverter,
-		};
-		// Patches `def.converter` from the real (non-`String`-placeholder) default converter for
-		// `initial`'s own runtime type - a no-op once a prior instance has already resolved it.
-		function resolveInferredConverter(initial: V): void {
-			if (!needsTypeInference) return;
-			def.converter = resolveConverter(inferAttributeType(initial), undefined) as AttributeConverter;
-		}
-
-		// Registered regardless of whether this decorator's own field-store wiring (below) actually
-		// runs or is a no-op (see `applyFieldStore()`'s stacking note in `../field-store.ts`) - the
-		// attribute still needs to parse/reflect through whichever store ends up backing the field.
-		registerAttributeDef(context.metadata as object, def);
-		applyFieldStore(context, resolveInferredConverter);
+		// Registered per class (shared by every instance); if neither `type` nor `converter` was
+		// given, the def's converter is inferred from the store's value on first use - see
+		// `resolveInferredConverter()` in `./metadata.ts`.
+		attributeDefs.register(context.metadata as object, createAttributeDef(context.name, options));
 	};
 }

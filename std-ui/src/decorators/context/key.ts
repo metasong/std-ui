@@ -1,14 +1,14 @@
-// A `ContextKey<T>` is the identity used to link a `@state({ contextKey })` provider (see
-// `../state/state.decorator.ts`) to a `@consume(contextKey)` field (`./consume.decorator.ts`) on some
+// A `ContextKey<T>` is the identity used to link a provider (`@provide(key)` /
+// `defineElement({ provide })`, see `./provide.decorator.ts`) to a `@consume(key)` field on some
 // descendant element - the context equivalent of an attribute name, except matched by identity,
 // not by string, so two unrelated features can never collide just because they picked the same
 // name.
 //
 // Deliberately *not* a plain `string`/`symbol`: those give uniqueness (symbol) or readability
-// (string) but neither lets `@consume(key)` infer the field's value type - every call site would
-// need an explicit, unchecked `@consume<Theme>(key)`. A `ContextKey<T>` instead carries `T` as a
+// (string) but neither lets `@consume(key)` infer the value type - every call site would
+// need an explicit, unchecked `this.consume<Theme>(key)`. A `ContextKey<T>` instead carries `T` as a
 // phantom type (`__type` below is never actually set - it exists purely for TS to read), so
-// `V` in both `@state<T, V>({ contextKey: ContextKey<V> })` and `@consume<T, V>(ContextKey<V>)`
+// `V` in `@provide(key)`, `defineElement({ provide })` and `@consume(key)`
 // is inferred/checked automatically from whichever key is passed in. Also deliberately *not* "use
 // the provider's class as the key" (the Angular-DI-token style): that only works when the context
 // value is itself a class instance, and loses the readable `description` used in error messages
@@ -26,9 +26,9 @@ export interface ContextKey<T> {
 
 /**
  * Creates a fresh, globally-unique context key carrying `T` as its value type. Pair one
- * `@state({ contextKey: TheKey })` provider with one or more `@consume(TheKey)` fields on any
- * descendant (through any number of intermediate elements/shadow roots) - see `../state/state.decorator.ts`
- * and `./consume.decorator.ts`.
+ * `@provide(TheKey)` / `defineElement({ provide })` provider with one or more `@consume(TheKey)`
+ * stores on any descendant (through any number of intermediate elements/shadow roots) - see
+ * `./provide.decorator.ts` and `./wire-consume.ts`.
  *
  * ```ts
  * export const ThemeKey = createContextKey<Theme>('theme');

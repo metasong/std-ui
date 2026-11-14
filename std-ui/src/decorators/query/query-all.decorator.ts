@@ -1,5 +1,6 @@
 import type { UIElement } from '../../ui-element.js';
 import { assertPlainField } from './assert-plain-field.js';
+import { queryElements } from './query-functions.js';
 
 /**
  * Read-only field that resolves to `this.renderRoot.querySelectorAll(selector)` every time it's read - always
@@ -15,9 +16,7 @@ export function queryAll<T extends Element = HTMLElement>(selector: string) {
 		const key = context.name;
 		context.addInitializer(function (this: UIElement): void {
 			Object.defineProperty(this, key, {
-				get(this: UIElement): NodeListOf<T> {
-					return this.renderRoot.querySelectorAll<T>(selector);
-				},
+				get: (): NodeListOf<T> => queryElements<T>(this, selector),
 				enumerable: true,
 				configurable: true,
 			});

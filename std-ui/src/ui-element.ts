@@ -9,9 +9,10 @@
 // anywhere.
 
 import {
-	getAttributeDefs,
+	attributeDefs,
 	parseAttribute,
-	wireConsumedContextFields,
+	resolveInferredConverter,
+	wireConsumedContexts,
 	wireProvidedContextListeners,
 	wireReflectedAttributes,
 } from './decorators/index.js';
@@ -26,18 +27,24 @@ import { render, disconnectRendered, type CSSResultGroup, type TemplateResult } 
 export {
 	attribute,
 	consume,
+	provide,
 	createContextKey,
+	defineElement,
 	query,
 	queryAll,
 	queryAsync,
+	queryAssigned,
 	queryAssignedNodes,
-	state,
+	queryElement,
+	queryElementAsync,
+	queryElements,
 	tag,
 	type AttributeConverter,
 	type AttributeOptions,
 	type AttributeType,
+	type AttributesMap,
 	type ContextKey,
-	type StateOptions,
+	type DefineElementOptions,
 } from './decorators/index.js';
 
 export abstract class UIElement extends HTMLElement {
@@ -46,7 +53,6 @@ export abstract class UIElement extends HTMLElement {
 	#effectDisposers: Array<() => void> = [];
 	#contextListenerDisposers: Array<() => void> = [];
 	#renderRoot: Element | DocumentFragment | null = null;
-
 	/**
 	 * When set on a subclass, `template()` renders into a shadow root (`attachShadow`) instead of
 	 * the host's light DOM. Omit or leave unset for light DOM (default).
@@ -193,7 +199,7 @@ export abstract class UIElement extends HTMLElement {
 			dispose => this.#contextListenerDisposers.push(dispose),
 		);
 
-		// Runs after the listeners above so descendants appended here(in `connect()`) can `@consume()` synchronously.
+		// Runs after the listeners above so descendants appended here(in `connect()`) can consume synchronously.
 		if (!this.#connected) {
 			this.#connected = true;
 			this.#ensureRenderRoot();
@@ -201,7 +207,7 @@ export abstract class UIElement extends HTMLElement {
 		}
 
 		wireReflectedAttributes(this, dispose => this.#effectDisposers.push(dispose));
-		wireConsumedContextFields(this);
+		wireConsumedContexts(this);
 		this.#wireTemplateRenderEffect();
 	}
 
@@ -229,9 +235,10 @@ export abstract class UIElement extends HTMLElement {
 	 * value change.
 	 */
 	private attributeChangedCallback(name: string, oldValue: string | null, newValue: string | null): void {
-		const def = getAttributeDefs(this.constructor).find(def => def.attribute === name);
+		const def = attributeDefs.get(this.constructor).find(def => def.attribute === name);
 		if (!def) return;
 
+		resolveInferredConverter(this, def);
 		const parsed = parseAttribute(newValue, oldValue, def.converter);
 		if (parsed === undefined) return; // a converter's `fromAttribute` returning `undefined` means "leave untouched"
 		(this as unknown as Record<PropertyKey, { set(value: unknown): void }>)[def.key].set(parsed);

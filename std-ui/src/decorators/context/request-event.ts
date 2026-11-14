@@ -1,5 +1,5 @@
-// The event a `@consume()` field (`./consume.decorator.ts`) dispatches to find its value, and a
-// `@state({ contextKey })` provider (`../state/state.decorator.ts`) listens for - wired together by
+// The event a `@consume()` field (`./wire-consume.ts`) dispatches to find its value, and a
+// `@provide(key)` provider (`./wire-provide.ts`) listens for - wired together by
 // `../../ui-element.ts`. Modeled on `lit`'s `context-request` protocol (same event name/shape) because
 // it already solves the hard part for free: a `bubbles: true, composed: true` DOM event walks up
 // through the actual rendered tree - including across shadow-root boundaries - and visits the

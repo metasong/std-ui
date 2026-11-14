@@ -1,11 +1,11 @@
 // Two-way bind on native form controls: .value, .checked, programmatic reset, re-render while typing.
-import { bind, t, state, tag, UIElement } from '../../../../src/index.js';
+import { bind, t, tag, UIElement, signalState } from '../../../../src/index.js';
 
 @tag('demo-bind-form-section')
 export class DemoBindFormSection extends UIElement {
-	@state() query = 'hello';
-	@state() agreed = false;
-	@state() renderPasses = 0;
+	readonly search = signalState('hello');
+	readonly agreed = signalState(false);
+	readonly renderPasses = signalState(0);
 
 	protected override template() {
 		return t`
@@ -17,16 +17,16 @@ export class DemoBindFormSection extends UIElement {
 				</p>
 				<label class="demo-bind-field">
 					Text
-					<input .value=${bind(this.query)} type="text" />
+					<input .value=${bind(this.search)} type="text" />
 				</label>
-				<p class="demo-bind-mirror">Model: <code>${this.query()}</code></p>
+				<p class="demo-bind-mirror">Model: <code>${this.search()}</code></p>
 				<label class="demo-bind-field demo-bind-field--inline">
 					<input type="checkbox" .checked=${bind(this.agreed)} />
 					I agree
 				</label>
 				<p class="demo-bind-mirror">Agreed: <code>${String(this.agreed())}</code></p>
 				<div class="demo-actions">
-					<button type="button" @click=${() => this.query.set('')}>clear query from model</button>
+					<button type="button" @click=${() => this.search.set('')}>clear query from model</button>
 					<button type="button" class="tonal" @click=${() => this.renderPasses.update(n => n + 1)}>
 						bump render counter (${this.renderPasses()})
 					</button>

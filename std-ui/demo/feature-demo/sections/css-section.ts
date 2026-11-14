@@ -1,6 +1,6 @@
 // Demonstrates: `css` tagged templates + `static styles` — shadow-DOM `adoptedStyleSheets` vs.
 // light-DOM `@scope (tag-name)` (shared once across every instance, not re-parsed per instance).
-import { css, tag, t, UIElement, state } from '../../../src/index.js';
+import { css, tag, t, UIElement, signalState } from '../../../src/index.js';
 
 // Shared by every `demo-css-chip` instance via `adoptedStyleSheets` — one `CSSStyleSheet`, never
 // re-parsed, and naturally scoped by the shadow boundary, so `:host` is used as-is.
@@ -24,7 +24,7 @@ export class DemoCssChip extends UIElement {
 	static override shadowRootOptions = { mode: 'open' } as const;
 	static override styles = chipStyles;
 
-	@state() count = 0;
+	readonly count = signalState(0);
 
 	protected override template() {
 		return t`<button type="button" @click=${() => this.count.update(n => n + 1)}>clicked ${this.count()}×</button>`;

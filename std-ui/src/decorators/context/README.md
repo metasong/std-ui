@@ -1,38 +1,38 @@
-# `@state({ contextKey })` / `@consume()` — passing state down through descendants
+# `@provide(key)` / `@consume(key)` — passing state down through descendants
 
-Lets a `UIElement` (see `../../ui-element.ts`) expose part of its own `@state()` to **any**
-descendant - not just direct children - without threading it down as attributes/properties
-through every intermediate element, and without those intermediate elements needing to know the
-value even exists. Two halves:
+Lets a `UIElement` (see `../../ui-element.ts`) expose one of its stores to **any** descendant — not
+just direct children — without threading it through attributes/properties of every intermediate
+element. Two halves:
 
-- **`@state({ contextKey })`** — the *provide* side. An ordinary `@state()` field
-  (`../state/state.decorator.ts`), with one extra option: also expose this field's value to descendants.
-- **`@consume(contextKey)`** — the *consume* side. A field decorator that reads the value from
-  the nearest ancestor providing that `contextKey`, reactively - same `template()`/`effect()`
-  tracking as reading a local `@state()` field.
+- **Provide** — `@provide(key)` on a `signalState(...)` field, or the decorator-free
+  `defineElement(name, Class, { provide: { theme: key } })`.
+- **Consume** — `@consume(key) readonly theme!: Theme`: a read-only, reactive property holding the
+  nearest ancestor's value, read as `this.theme.mode`. The decorator-free form is
+  `defineElement(name, Class, { consume: { theme: key } })` (declare the field `readonly theme!: Theme`).
+
+Both halves are registered **per class** (decorator metadata, or `defineElement` for plain classes) -
+nothing is registered per instance.
 
 ```ts
-import { tag, state, consume, createContextKey, UIElement } from '../../index.js';
+import { tag, provide, consume, createContextKey, signalState, UIElement } from '../../index.js';
 
-interface Theme {
-	mode: 'light' | 'dark';
-}
-
-// A ContextKey<T> is the identity both sides link through - see "ContextKey" below.
-export const ThemeKey = createContextKey<Theme>('theme');
+interface Theme { mode: 'light' | 'dark'; }
+export const ThemeKey = createContextKey<Theme>('theme'); // identity both sides link through
 
 @tag('app-root')
 class AppRoot extends UIElement {
-	@state({ contextKey: ThemeKey }) theme: Theme = { mode: 'dark' };
+	@provide(ThemeKey) readonly theme = signalState<Theme>({ mode: 'dark' });
+	// decorator-free: defineElement('app-root', AppRoot, { provide: { theme: ThemeKey } });
 
 	protected override connect() {
-		this.theme.set({ mode: 'light' }); // any descendant @consume(ThemeKey) field re-renders
+		this.theme.set({ mode: 'light' }); // every descendant consuming ThemeKey re-renders
 	}
 }
 
-@tag('deeply-nested-button') // doesn't matter how many elements sit between this and <app-root>
+@tag('deeply-nested-button') // however many elements sit between this and <app-root>
 class ThemedButton extends UIElement {
-	@consume(ThemeKey) theme!: Theme; // `Theme` inferred from `ThemeKey` - no generic needed here
+	@consume(ThemeKey) readonly theme!: Theme; // `Theme` is checked against the key
+	// decorator-free: defineElement('deeply-nested-button', ThemedButton, { consume: { theme: ThemeKey } });
 
 	protected override template() {
 		return t`<button class=${this.theme.mode}>Click</button>`;
@@ -40,86 +40,45 @@ class ThemedButton extends UIElement {
 }
 ```
 
-For implementation details, see [`design.md`](./design.md).
-
 ## `ContextKey<T>`
 
-```ts
-export const ThemeKey = createContextKey<Theme>('theme');
-```
+`createContextKey<T>(description)` carries `T` in its type and is matched by **identity** (not by
+name), so two unrelated features can't collide, and `T` is checked on both sides: `@provide(key)`
+requires the field to be `SignalState<T>` and `@consume(key)` a field of type `T` (`defineElement`'s `provide` / `consume` maps check the same). `description` is for error messages only.
 
-A `ContextKey<T>` - not a plain `string`/`symbol` - is what links a provider to its consumers:
+## Provide
 
-- **Not a `string`**: two unrelated features that happened to both pick `'theme'` would silently
-  collide. A `ContextKey` is matched by **identity**, not by name, so this can't happen.
-- **Not a plain `symbol`**: a `Symbol('theme')` would fix the collision problem, but `@consume()`
-  would have no way to know what type comes back - every call site would need an explicit (and
-  unchecked) `@consume<Theme>(key)`.
-- **`createContextKey<T>(description)`** instead carries `T` as part of the key's own type, so
-  TypeScript infers (and checks) `V` automatically on both sides, from the key alone:
-  `@state<T, V>({ contextKey: ContextKey<V> })` and `@consume<T, V>(ContextKey<V>)`. `description`
-  is for debugging/error messages only (e.g. the "no provider found" error below) - it is **never**
-  used for matching.
+- `@provide(key)` only registers `{ field name, key }` for the class; the field is untouched. It's
+  typed to store fields only — a plain value, or a store of the wrong value type, is a compile error.
+- Writing `this.theme.set(...)` re-renders this element *and* notifies every consumer.
+- **Re-providing:** a descendant can provide the same key; consumers below it get its value
+  (nearest provider wins).
 
-One key per logical piece of context, created once (e.g. exported from a module), shared by every
-provider/consumer pair that should be linked - the same way you'd define one HTML attribute name
-per concern, except collision-proof.
+## Consume
 
-## `@state({ contextKey })` (provide)
-
-Exactly `@state()` (see [`../state/README.md`](../state/README.md)) - same reactive store, same plain-field-only
-mechanics, same complex-object (`SignalTree`) handling - plus registers the field so
-descendants can find it:
-
-```ts
-@state({ contextKey: ThemeKey }) theme: Theme = { mode: 'dark' };
-```
-
-Writing `this.theme.set(...)` re-renders this element's own `template()` *and* notifies every
-descendant `@consume(ThemeKey)` field, exactly the way it would notify this element's own `effect()`s.
-
-**Re-providing (overriding for a sub-tree):** a descendant element can itself declare
-`@state({ contextKey: ThemeKey })` with a different value - every `@consume(ThemeKey)` field
-*below that descendant* resolves to its value instead of the root's, the same way a nested
-`<div style="color: red">` wins over an ancestor's - see
-["Nearest provider wins"](./design.md#nearest-provider-wins) in the design doc.
-
-## `@consume(contextKey)` (consume)
-
-```ts
-@consume(ThemeKey) theme!: Theme;
-```
-
-- **Plain field only** - no `accessor` support. A consumed field is never written locally (see
-  below), so there's no local initializer/storage slot for it to own; give it a type annotation
-  (`!: Theme`), not an initializer.
-- **Reactive** - reading `this.theme` inside `template()`/`effect()` tracks the provider's value
-  (consumers still see a plain value, not a store).
-- **Read-only** - `this.theme = ...` throws. The provider owns the value; to change it, call
-  `.set()` on the provider's `@state({ contextKey })` field.
-- **Resolved once per connect**, against whichever provider is the nearest ancestor *at the moment
-  this element connects* - see [`design.md`](./design.md) for exactly when/how.
-- **Throws if nothing provides `contextKey`** when this element connects - there is no default
-  value/fallback. Provide one explicitly, with a matching `@state({ contextKey })`, somewhere
-  above this element in the tree:
+- `@consume(key)` (or `defineElement({ consume })`) registers `{ field name, key }` for the class. When an instance
+  **connects**, the nearest ancestor provider is resolved and the field is defined on the instance as a getter over
+  a signal; it is `undefined` until then.
+- **Reactive** — reading `this.theme` in `template()`/`effect()` tracks the provider's value.
+- **Read-only** — the property has no setter (writing throws; the type is `readonly`); change the value on
+  the provider's store.
+- **Needs `useDefineForClassFields`** — like the `@query*()` decorators, a `!:` field with no initializer must
+  not be erased by the toolchain. (`defineElement({ consume })` with a declared `readonly theme!: Theme` has the same need.)
+- **Throws if nothing provides the key** when the element connects:
 
   ```
-  Error: @consume() field "theme" on <deeply-nested-button> found no ancestor providing
-  context "theme" - add a matching @state({ contextKey }) further up the tree.
+  Error: consume() on <deeply-nested-button> found no ancestor providing context "theme" -
+  add a matching @provide(key) / defineElement({ provide }) further up the tree.
   ```
 
-## When to use this vs. just passing a property
+## When to use this vs. a property
 
-Reach for context only when a value needs to reach an *unknown or arbitrarily deep* set of
-descendants - a theme, a form's shared validation state, a router's current route - where plumbing
-it through every intermediate element's own properties would be pure boilerplate for elements that
-don't otherwise care about the value. For anything a direct child needs, prefer an ordinary
-property/attribute (`@attribute()`/`@state()` on the child, set by the parent in its own
-`template()`) - it's simpler to trace and doesn't depend on DOM structure at all.
+Reach for context when a value must reach an *unknown or deep* set of descendants (theme, shared
+validation state, current route). For anything a direct child needs, prefer an ordinary
+property/attribute set by the parent's `template()`.
 
 ## Related reading
 
-- [`./design.md`](./design.md) — how resolution, reactivity, and "nearest provider wins" work internally.
-- [`../state/README.md`](../state/README.md) / [`../design.md`](../design.md) — `@state()` / shared field wiring this builds on.
-- [`../../ui-element.ts`](../../ui-element.ts) — `UIElement` lifecycle this plugs into.
+- [`./design.md`](./design.md) — resolution and "nearest provider wins" (written for the old decorator API; the protocol is unchanged).
+- [`../state/README.md`](../state/README.md) — reactive store fields.
 - [`./consume.test.ts`](./consume.test.ts) — behavior tests.

@@ -14,12 +14,12 @@ Three read-only field decorators for `UIElement` (see `../../ui-element.ts`) sub
   by a render/effect that's still pending at the time it's read.
 
 ```ts
-import { tag, state, query, queryAll, queryAsync, UIElement } from '../../index.js';
+import { tag, signalState, query, queryAll, queryAsync, UIElement } from '../../index.js';
 import { t } from '../../template/index.js';
 
 @tag('todo-list')
 class TodoList extends UIElement {
-	@state() items = ['Buy milk', 'Walk dog'];
+	readonly items = signalState(['Buy milk', 'Walk dog']);
 
 	@query('.title') title!: HTMLElement | null; // re-queried every read
 	@query('form', true) form!: HTMLFormElement | null; // resolved once, then cached
@@ -70,7 +70,7 @@ See [`../../ui-element.ts`](../../ui-element.ts) (`shadowRootOptions`, `renderRo
 
 ## Requirements
 
-- **Plain field only** - no `accessor` support (unlike `@state()`/`@attribute()`). There's no
+- **Plain field only** - no `accessor` support (like `@attribute()`). There's no
   per-instance value to back; every read just runs a fresh DOM query (or returns a cache), so an
   `accessor`'s `get`/`set`/`init` triple would be pure overhead. `@${name}() can only decorate a
   plain class field` is thrown otherwise.
@@ -120,7 +120,7 @@ see additions/removals after the one you first read.
 
 `UIElement` re-renders when signals change, but those re-runs are **microtask-batched** (see
 `../../signal/effect/main.ts` — `scheduleFlush()` queues one microtask per burst of synchronous
-writes). A `@state()` `.set()` (or any signal write) takes effect immediately in memory; the DOM
+writes). A store `.set()` (or any signal write) takes effect immediately in memory; the DOM
 only catches up after that pending flush runs.
 
 `@query()` always calls `renderRoot.querySelector` at read time against whatever DOM exists **right now**. That
@@ -155,7 +155,7 @@ time. How `updateComplete` aligns with the effect flush (two nested microtasks) 
 ## Related reading
 
 - [`./design.md`](./design.md) — why these need no initializer, and why they're plain-field-only.
-- [`../design.md`](../design.md) / [`../state/README.md`](../state/README.md) — `@state()`/`@attribute()` shared
+- [`../design.md`](../design.md) / [`../state/README.md`](../state/README.md) — `signalState`/`@attribute()` shared
   field mechanics, which this folder's `addInitializer` technique borrows.
 - [`../../ui-element.ts`](../../ui-element.ts) — `UIElement.updateComplete`, which `@queryAsync()`
   waits on.

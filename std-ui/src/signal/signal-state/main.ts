@@ -82,11 +82,13 @@ type Members<T> = { readonly [K in keyof T]: SignalState<T[K]> };
  * `shallow()` (tracks structure), `deep()` (tracks everything below). On a leaf all three are the
  * same read.
  */
-export type SignalState<T> = T extends readonly (infer U)[]
-	? SignalArray<U, SignalState<U> & ItemNode<U>>
-	: IsBranch<T> extends true
-		? SignalObject<T, Members<T>, DeepPartial<T>> & Members<T>
-		: SignalLeaf<T>;
+export type SignalState<T> = [T] extends [boolean] // `boolean` is `true | false`: don't distribute it into a union of leaves (`.set(true)` would need `never`)
+	? SignalLeaf<T>
+	: T extends readonly (infer U)[]
+		? SignalArray<U, SignalState<U> & ItemNode<U>>
+		: IsBranch<T> extends true
+			? SignalObject<T, Members<T>, DeepPartial<T>> & Members<T>
+			: SignalLeaf<T>;
 
 /** How far a tree is built: `'value'` = one leaf, `'shallow'` = container + leaf members, `'deep'` = full tree. */
 export type StateDepth = 'value' | 'shallow' | 'deep';

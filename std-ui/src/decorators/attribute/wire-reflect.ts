@@ -1,12 +1,12 @@
 // Property → attribute: called by `UIElement.connectedCallback()` (`../../ui-element.ts`) to wire
-// one effect per `@attribute({ reflect: true })` field (`./attribute.decorator.ts`) on a
-// just-connected host, mirroring its backing signal onto the host attribute (opt-in; `@state()`
-// fields never appear here).
+// one effect per reflecting attribute field (`@attribute({ reflect: true })` or
+// `defineElement(..., { attributes })`) on a just-connected host, mirroring its store onto the
+// host attribute (opt-in; plain store fields never appear here).
 
 import { effect as createEffect } from '../../signal/index.js';
 import { readValue, type ItemNode } from '../../signal/signal-state/index.js';
 import { serializeAttribute } from './converter.js';
-import { getAttributeDefs } from './metadata.js';
+import { attributeDefs, resolveInferredConverter } from './metadata.js';
 
 /**
  * For each `@attribute({ reflect: true })` field recorded on `host`'s constructor, creates an
@@ -14,8 +14,9 @@ import { getAttributeDefs } from './metadata.js';
  * effect's disposer to `registerEffectDisposer` so the caller can dispose it on disconnect.
  */
 export function wireReflectedAttributes(host: HTMLElement, registerEffectDisposer: (dispose: () => void) => void): void {
-	for (const def of getAttributeDefs(host.constructor)) {
+	for (const def of attributeDefs.get(host.constructor)) {
 		if (!def.reflect) continue;
+		resolveInferredConverter(host, def);
 		let prev: unknown; // previous property value; `undefined` on the first run
 		registerEffectDisposer(createEffect(() => {
 			const value = readValue((host as unknown as Record<PropertyKey, ItemNode<unknown>>)[def.key]);

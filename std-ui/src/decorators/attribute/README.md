@@ -1,14 +1,13 @@
 # `@attribute()` — attribute-synced, store-backed component fields
 
-Field decorator for `UIElement` (see `../../ui-element.ts`) subclasses: everything
-[`../state/README.md`](../state/README.md)'s `@state()` does (reactive store on the field), **plus**
-keeping the field in sync with an HTML attribute via the platform's custom-element mechanism
+Field decorator for `UIElement` (see `../../ui-element.ts`) subclasses: it marks a `signalState()` store field so it is also
+kept in sync with an HTML attribute via the platform's custom-element mechanism
 (`observedAttributes` / `attributeChangedCallback`) — not `MutationObserver` or polling.
 
 By default, sync is **attribute → property** only; **property → attribute** is opt-in with
 `reflect: true` (same default as `lit`).
 
-For implementation details, see [`design.md`](./design.md). Shared store/field wiring:
+For implementation details, see [`design.md`](./design.md). Shared registration mechanism:
 [`../design.md`](../design.md).
 
 ```ts
@@ -17,10 +16,26 @@ import { t } from '../../template/index.js';
 
 @tag('user-badge')
 class UserBadge extends UIElement {
-	@attribute({ type: Number, reflect: true }) count = 0;
-	@attribute() label = 'Guest';
+	@attribute({ type: Number, reflect: true }) readonly count = signalState(0);
+	@attribute() readonly label = signalState('Guest');
 }
 ```
+
+Decorator-free equivalent (same registrations, no build step needed for decorators):
+
+```ts
+class UserBadge extends UIElement {
+	readonly count = signalState(0);
+	readonly label = signalState('Guest');
+}
+defineElement('user-badge', UserBadge, {
+	attributes: { count: { type: Number, reflect: true }, label: {} }, // keys limited to the class's store fields
+});
+```
+
+`@attribute()` only accepts a **store** field (a compile error otherwise); it registers the
+attribute and never touches the field. When neither `type` nor `converter` is given, the converter is
+inferred from the store's value the first time it is needed.
 
 ```html
 <user-badge count="3" label="Ada"></user-badge>
@@ -34,17 +49,18 @@ el.setAttribute('count', '9'); // attributeChangedCallback → store
 
 ## Requirements
 
-- **Plain field only** — same as `@state()`; see [`../state/README.md`](../state/README.md#plain-fields-only).
-- **`@tag()` on the class** — `tag()` reads `@attribute()` registrations from `context.metadata` and
-  sets `observedAttributes` before `customElements.define()` (see `../../ui-element.ts`).
+- **Plain store field only** - a plain class field (no `accessor`) holding a `signalState()`; anything else is a compile error.
+- **`@tag()` or `defineElement()`** — either sets `observedAttributes` before
+  `customElements.define()`. `@tag()` reads `@attribute()` registrations from `context.metadata`;
+  `defineElement()` registers its `attributes` map and reads it (and any decorator registrations) the same way - see [`../tag/README.md`](../tag/README.md).
 
-Use [`@state()`](../state/README.md) instead for fields that should never touch an attribute.
+Leave the field a plain [`signalState()`](../state/README.md) (no decorator) for fields that should never touch an attribute.
 
 ## `AttributeOptions`
 
 | Option | Default | Effect |
 |---|---|---|
-| `name` | kebab-case of the field name | Attribute name to parse from / reflect to. This is what `@property()`'s `attribute` option was — there is no `false` case: use `@state()` for store-only fields. |
+| `name` | kebab-case of the field name | Attribute name to parse from / reflect to. This is what `@property()`'s `attribute` option was — there is no `false` case: leave a field undecorated for store-only fields. |
 | `type` | inferred from the field's initial value | Selects the *default* converter (see below). Ignored if `converter` is given. |
 | `reflect` | `false` | Whether JS writes (`.set()`) also update the host attribute. When `false`, sync is attribute → property only (like `lit`). |
 | `converter` | — | Custom `{ fromAttribute, toAttribute }`, overriding `type`'s default. |
@@ -54,8 +70,8 @@ Use [`@state()`](../state/README.md) instead for fields that should never touch 
 `type` takes the constructor (`String`, `Number`, `Boolean`, `Object`, `Array`), matching `lit` —
 a hint for the default converter, not a runtime `typeof` check. If omitted (and no `converter`),
 the converter is **inferred from the field's initial value** at first-instance construction
-(`inferAttributeType()` in [`converter.ts`](./converter.ts)) — so `@attribute() count = 0` matches
-`@attribute({ type: Number }) count = 0`:
+(`inferAttributeType()` in [`converter.ts`](./converter.ts)) — so `@attribute() count = signalState(0)` matches
+`@attribute({ type: Number }) count = signalState(0)`:
 
 | Initial value | Inferred `type` |
 |---|---|
@@ -90,7 +106,7 @@ For anything the five defaults do not cover — non-empty JSON fallback, `Date`,
 		toAttribute: (value: unknown) => (value ? JSON.stringify(value) : ''),
 	},
 })
-config = { theme: 'dark' };
+readonly config = signalState({ theme: 'dark' });
 ```
 
 `type` alongside `converter` is a readability hint only (no runtime effect once `converter` is set).
@@ -101,18 +117,18 @@ skips `.set`). `toAttribute` may return `undefined` to mean "leave the host attr
 
 ## Complex-object fields
 
-Same [`SignalTree`](../../signal/signal-state/README.md) backing as `@state()` — use `type: Object` when the
+Same [`SignalTree`](../../signal/signal-state/README.md) backing as any `signalState()` field — use `type: Object` when the
 attribute should mirror JSON:
 
 ```ts
-@attribute({ type: Object, reflect: true }) config = { theme: 'dark' };
+@attribute({ type: Object, reflect: true }) readonly config = signalState({ theme: 'dark' });
 ```
 
 ```html
 <config-panel config='{"theme":"light"}'></config-panel>
 ```
 
-Leaf-level reactivity and whole-object `.set()` semantics: [`../state/README.md`](../state/README.md#complex-object-fields).
+Leaf-level reactivity and whole-object `.set()` semantics: [`../state/README.md`](../state/README.md).
 
 ## How the two sync directions work
 
@@ -128,12 +144,13 @@ Leaf-level reactivity and whole-object `.set()` semantics: [`../state/README.md`
 - **No infinite loop** — the store notifies only on real value changes (`Object.is`), so reflecting
   the same serialized text back does not re-trigger endlessly.
 - **Template `.prop` bindings** from a parent pass plain values; `PropertyPart` forwards into
-  `.set()` on the child's store — same as for `@state()` (see [`../state/README.md`](../state/README.md#reads-and-writes-in-templates-and-effects)).
+  `.set()` on the child's store — same as for any store field (see [`../state/README.md`](../state/README.md)).
 
 ## Related reading
 
-- [`./design.md`](./design.md) — converter, metadata, `context.metadata`, reflection, inheritance, loops.
+- [`./design.md`](./design.md) - converter, registration, `observedAttributes`, reflection, inheritance, loops.
 - [`../state/README.md`](../state/README.md) — store-only fields and complex-object behavior.
+- [`../tag/README.md`](../tag/README.md) - `@tag()` / `defineElement()`.
 - [`../README.md`](../README.md) / [`../design.md`](../design.md) — shared overview.
 - [`../../ui-element.ts`](../../ui-element.ts) — `tag()`, `attributeChangedCallback`.
 - [`../../template/html.md`](../../template/html.md) — `?attr` / `.prop` conventions.

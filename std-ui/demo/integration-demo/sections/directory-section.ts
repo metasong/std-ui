@@ -2,8 +2,8 @@
 //   - `signalState` + validators      → the "add person" form model
 //   - `bind()`                        → two-way search box and form fields, validation mirrored onto the inputs
 //   - `virtualize()`                  → the (filtered) list stays windowed however many people exist
-//   - `@state()` + `UIElement`/`t`    → the list itself and re-rendering
-import { bind, t, state, tag, UIElement, signalState, virtualize } from '../../../src/index.js';
+//   - `signalState` + `UIElement`/`t` → the list itself and re-rendering
+import { bind, t, tag, UIElement, signalState, virtualize } from '../../../src/index.js';
 
 type Person = { id: number; name: string; age: number };
 
@@ -22,12 +22,12 @@ draft.age.check.validators.set([
 
 @tag('demo-integration-directory')
 export class DemoIntegrationDirectory extends UIElement {
-	@state() people: Person[] = seed();
-	@state() query = '';
+	readonly people = signalState<Person[]>(seed());
+	readonly search = signalState('');
 	#nextId = 5_000;
 
 	#visible(): Person[] {
-		const q = this.query().trim().toLowerCase();
+		const q = this.search().trim().toLowerCase();
 		const all = this.people();
 		return q ? all.filter(p => p.name.toLowerCase().includes(q)) : all;
 	}
@@ -54,7 +54,7 @@ export class DemoIntegrationDirectory extends UIElement {
 
 				<label class="demo-bind-field">
 					Search
-					<input type="search" placeholder="filter by name" .value=${bind(this.query)} />
+					<input type="search" placeholder="filter by name" .value=${bind(this.search)} />
 				</label>
 				<p class="demo-bind-mirror">Showing <code>${visible.length}</code> of <code>${this.people().length}</code></p>
 

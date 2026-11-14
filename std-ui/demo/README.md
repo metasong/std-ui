@@ -76,7 +76,7 @@ API notes: [`../src/template/directives/virtualize/README.md`](../src/template/d
 |-----|--------|----------------|
 | `demo-counter-section` | [`feature-demo/sections/counter-section.ts`](./feature-demo/sections/counter-section.ts) | Signals, `UIElement`, `template()` |
 | `demo-attribute-section` | [`feature-demo/sections/attribute-section.ts`](./feature-demo/sections/attribute-section.ts) | `@attribute()` |
-| `demo-context-section` | [`feature-demo/sections/context-section.ts`](./feature-demo/sections/context-section.ts) | `@consume()` / provide |
+| `demo-context-section` | [`feature-demo/sections/context-section.ts`](./feature-demo/sections/context-section.ts) | `@consume()` / `@provide()` |
 | `demo-query-section` | [`feature-demo/sections/query-section.ts`](./feature-demo/sections/query-section.ts) | `@query()` |
 | `demo-shadow-section` | [`feature-demo/sections/shadow-section.ts`](./feature-demo/sections/shadow-section.ts) | Shadow DOM + `static styles` |
 | `demo-css-section` | [`feature-demo/sections/css-section.ts`](./feature-demo/sections/css-section.ts) | `css` tagged styles in light DOM |

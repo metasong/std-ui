@@ -51,7 +51,7 @@ export class BooleanAttributePart implements Part {
 	}
 }
 
-/** `@state()`/`@attribute()` fields expose a read-only store; plain assignment would hit a getter-only accessor. */
+/** A store-valued field (`signalState(...)`) is written through its `.set()`; plain assignment would replace the store itself. */
 function writeProperty(el: Element, name: string, value: unknown): void {
 	const host = el as unknown as Record<string, unknown>;
 	const current = host[name];

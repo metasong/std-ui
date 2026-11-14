@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest';
-import { query, queryAll, queryAsync, state, tag, UIElement } from '../../ui-element.js';
+import { query, queryAll, queryAsync, queryElement, queryElementAsync, queryElements, tag, UIElement } from '../../ui-element.js';
 import { t } from '../../template/html.js';
+import { signalState } from '../../signal/index.js';
 
 describe('@query()', () => {
 	it('resolves to the matching element, re-querying on every read by default', () => {
@@ -95,7 +96,7 @@ describe('@queryAsync()', () => {
 	it('resolves after a pending render catches up with the queried node', async () => {
 		@tag('query-async-basic')
 		class Foo extends UIElement {
-			@state() show = false;
+			readonly show = signalState(false);
 			@queryAsync('.lazy') lazy!: Promise<HTMLElement | null>;
 			protected override template() {
 				return this.show() ? t`<em class="lazy">here</em>` : t``;
@@ -110,6 +111,67 @@ describe('@queryAsync()', () => {
 		const found = await el.lazy;
 		expect(found).not.toBeNull();
 		expect(found!.textContent).toBe('here');
+		el.remove();
+	});
+});
+
+describe('cached queries never keep a miss', () => {
+	it('re-queries after a null result, then keeps the first successful one (decorator and function)', async () => {
+		@tag('query-cache-miss')
+		class Foo extends UIElement {
+			readonly show = signalState(false);
+			@query('.late', true) late!: HTMLElement | null;
+			get lateFn() { return queryElement(this, '.late', true); }
+			protected override template() {
+				return t`${this.show() ? t`<p class="late">x</p>` : ''}`;
+			}
+		}
+
+		const el = document.createElement('query-cache-miss') as Foo;
+		document.body.appendChild(el);
+		expect(el.late).toBeNull();
+		expect(el.lateFn).toBeNull();
+
+		el.show.set(true);
+		await el.updateComplete;
+		const found = el.late;
+		expect(found).not.toBeNull(); // the earlier miss was not cached
+		expect(el.lateFn).not.toBeNull();
+
+		el.show.set(false);
+		await el.updateComplete;
+		expect(el.late).toBe(found); // a successful result is kept, even if the node is gone
+		el.remove();
+	});
+});
+
+describe('queryElement() & co. (decorator-free)', () => {
+	it('behind class getters they read like the @query() properties (el.span, not el.span())', async () => {
+		@tag('query-methods')
+		class Foo extends UIElement {
+			readonly show = signalState(false);
+			get span() { return queryElement<HTMLSpanElement>(this, 'span'); }
+			get items() { return queryElements(this, 'li'); }
+			get lazy() { return queryElementAsync(this, '.lazy'); }
+			get cached() { return queryElement(this, 'span', true); }
+			protected override template() {
+				return t`<span>hi</span><ul><li>a</li><li>b</li></ul>${this.show() ? t`<p class="lazy">here</p>` : ''}`;
+			}
+		}
+
+		const el = document.createElement('query-methods') as Foo;
+		document.body.appendChild(el);
+		expect(el.span!.textContent).toBe('hi');
+		expect(el.items.length).toBe(2);
+		expect(await el.lazy).toBeNull();
+
+		const first = el.cached;
+		el.querySelector('span')!.replaceWith(document.createElement('span'));
+		expect(el.cached).toBe(first); // cached: the original node, even though it was replaced
+		expect(el.span).not.toBe(first); // uncached: re-queried
+
+		el.show.set(true);
+		expect((await el.lazy)!.textContent).toBe('here');
 		el.remove();
 	});
 });

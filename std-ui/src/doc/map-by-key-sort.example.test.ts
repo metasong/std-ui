@@ -5,20 +5,21 @@
 import { describe, expect, it } from 'vitest';
 import { mapByKey } from '../template/directives/map-by-key/index.js';
 import { t } from '../template/html.js';
-import { state, tag, UIElement } from '../ui-element.js';
+import { tag, UIElement } from '../ui-element.js';
+import { signalState } from '../signal/index.js';
 
 type Chore = { id: string; label: string };
 
-describe('doc: mapByKey keeps row DOM when a @state() list is reordered', () => {
+describe('doc: mapByKey keeps row DOM when a signalState list is reordered', () => {
 	it('checkbox and <li> stay tied to chore id after sort', async () => {
 		@tag('sortable-chores')
 		class SortableChores extends UIElement {
-			@state() chores: Chore[] = [
+			readonly chores = signalState<Chore[]>([
 				{ id: 'wash', label: 'Wash dishes' },
 				{ id: 'mail', label: 'Check mail' },
 				{ id: 'walk', label: 'Walk the dog' },
 				{ id: 'read', label: 'Read a chapter' },
-			];
+			]);
 
 			protected override template() {
 				return t`
@@ -40,7 +41,7 @@ describe('doc: mapByKey keeps row DOM when a @state() list is reordered', () => 
 			}
 
 			private sortByLabel(dir: 1 | -1) {
-				// New array reference so @state() notifies; in-place .sort() would not.
+				// New array reference so the store notifies; in-place .sort() would not.
 				this.chores.set([...this.chores.deep()].sort((a, b) => a.label.localeCompare(b.label) * dir));
 			}
 		}
