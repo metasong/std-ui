@@ -2,13 +2,14 @@ import { describe, expect, it } from 'vitest';
 import { effect } from '../../effect/index.js';
 import { flushEffects } from '../../effect/test-helpers.js';
 import { state } from '../main.js';
-import type { Validator } from './main.js';
+import { changes } from '../changes/index.js';
+import { check, type Validator } from './main.js';
 
 const required: Validator<string> = (v) => (v ? undefined : { flag: 'valueMissing', message: 'Required' });
 
 describe('validators', () => {
 	it('keeps reads raw and reports own errors on a leaf', () => {
-		const s = state({ name: '' });
+		const s = check(state({ name: '' }));
 		s.name.check.validators.set([required]);
 		expect(s.name()).toBe('');
 		expect(s.name.check.errors()).toEqual([{ flag: 'valueMissing', message: 'Required' }]);
@@ -17,7 +18,7 @@ describe('validators', () => {
 	});
 
 	it('aggregates allValid() over descendants but valid()/errors() stay own-only', () => {
-		const s = state({ user: { name: '' }, tags: ['a', ''] });
+		const s = check(state({ user: { name: '' }, tags: ['a', ''] }));
 		s.user.name.check.validators.set([required]);
 		s.tags[1]!.check.validators.set([required as Validator<any>]);
 		expect(s.user.check.errors()).toEqual([]);
@@ -31,7 +32,7 @@ describe('validators', () => {
 	});
 
 	it('branch validators see the raw subtree and are reactive', async () => {
-		const s = state({ a: 1, b: 2 });
+		const s = check(state({ a: 1, b: 2 }));
 		s.check.validators.set([(v) => (v.a < v.b ? undefined : [{ flag: 'customError', message: 'a<b' }])]);
 		const seen: number[] = [];
 		effect(() => void seen.push(s.check.errors().length));
@@ -43,7 +44,7 @@ describe('validators', () => {
 	});
 
 	it('allErrors() lists every descendant error with its path', () => {
-		const s = state({ user: { name: '' }, tags: ['a', ''] });
+		const s = check(state({ user: { name: '' }, tags: ['a', ''] }));
 		s.user.name.check.validators.set([required]);
 		s.tags[1]!.check.validators.set([required as Validator<any>]);
 		s.check.validators.set([() => ({ flag: 'customError', message: 'r' })]);
@@ -56,7 +57,7 @@ describe('validators', () => {
 	});
 
 	it('`_` reaches members whose names collide with the API', () => {
-		const s = state({ check: 1, _: 1, user: { name: 'a' } });
+		const s = check(state({ check: 1, _: 1, user: { name: 'a' } }));
 		expect(typeof s.check.valid).toBe('function');
 		expect(s.check.valid.peek()).toBe(true); // validation computed, not the member
 		s._.check.set(2);
@@ -68,7 +69,7 @@ describe('validators', () => {
 	it('configurable validators are plain factories', () => {
 		const range = (min: number, max: number, message = `Must be between ${min} and ${max}`): Validator<number> =>
 			(value) => (value >= min && value <= max ? undefined : { flag: 'customError', message });
-		const form = state({ age: 1 });
+		const form = check(state({ age: 1 }));
 		form.age.check.validators.set([range(2, 8, 'value must be between 2 and 8')]);
 		expect(form.age.check.errors()).toEqual([{ flag: 'customError', message: 'value must be between 2 and 8' }]);
 		form.age.set(5);
@@ -76,7 +77,7 @@ describe('validators', () => {
 	});
 
 	it('array validators', () => {
-		const s = state({ list: [1] });
+		const s = check(state({ list: [1] }));
 		s.list.check.validators.set([(v) => (v.length ? undefined : { flag: 'valueMissing', message: 'empty' })]);
 		expect(s.list.check.valid()).toBe(true);
 		s.list.clear();
@@ -85,14 +86,14 @@ describe('validators', () => {
 
 	describe('changes.dirty / changes.reset()', () => {
 		it('a leaf with an explicit equals uses it for dirty', () => {
-			const s = state({ id: 1, tag: 'a' }, { depth: 'value', equals: (a, b) => a.id === b.id });
+			const s = state({ id: 1, tag: 'a' }, { depth: 'value', equals: (a, b) => a.id === b.id }).with(check).with(changes);
 			s.set({ id: 1, tag: 'b' });
 			expect(s.changes.dirty()).toBe(false);
 			s.set({ id: 2, tag: 'b' });
 			expect(s.changes.dirty()).toBe(true);
 		});
 		it('leaf: dirty tracks difference from the initial value; reset restores it', () => {
-			const s = state({ name: 'a' });
+			const s = state({ name: 'a' }).with(check).with(changes);
 			expect(s.name.changes.dirty()).toBe(false);
 			s.name.set('b');
 			expect(s.name.changes.dirty()).toBe(true);
@@ -108,7 +109,7 @@ describe('validators', () => {
 				user: { name: 'a' },
 				tags: ['x'],
 				n: 1,
-			});
+			}).with(changes);
 			expect(s.changes.dirty()).toBe(false);
 			s.user.name.set('b');
 			s.tags.push('y');
@@ -122,7 +123,7 @@ describe('validators', () => {
 		});
 
 		it('reset restores an object cleared with set(null)', () => {
-			const s = state({ a: 1 });
+			const s = state({ a: 1 }).with(check).with(changes);
 			s.set(null as any);
 			expect(s.changes.dirty()).toBe(true);
 			s.changes.reset();
@@ -130,7 +131,7 @@ describe('validators', () => {
 		});
 
 		it('array: reorder is dirty, reset restores and keeps validators', () => {
-			const s = state({ list: [1, 2] });
+			const s = state({ list: [1, 2] }).with(check).with(changes);
 			s.list.check.validators.set([() => undefined]);
 			s.list.set([2, 1]);
 			expect(s.list.changes.dirty()).toBe(true);
@@ -141,7 +142,7 @@ describe('validators', () => {
 
 
 		it('reset(next) sets a new initial value and writes it, at every level', () => {
-			const s = state<{ user: { name: string; extra?: number }; tags: string[] }>({ user: { name: 'a' }, tags: ['x'] });
+			const s = state<{ user: { name: string; extra?: number }; tags: string[] }>({ user: { name: 'a' }, tags: ['x'] }).with(changes);
 			s.user.set({ extra: 1 });
 			s.changes.reset({ user: { name: 'b' }, tags: ['y', 'z'] });
 			expect(s.changes.initial()).toEqual({ user: { name: 'b' }, tags: ['y', 'z'] });
@@ -155,7 +156,7 @@ describe('validators', () => {
 		});
 
 		it('reset(node.peek()) marks the current value as saved', () => {
-			const s = state({ n: 1, list: [1] });
+			const s = state({ n: 1, list: [1] }).with(check).with(changes);
 			s.n.set(2);
 			s.list.push(2);
 			s.changes.reset(s.peek());
@@ -169,7 +170,7 @@ describe('validators', () => {
 
 describe('lazy check', () => {
 	it('picks up a validator added to a deep descendant after the parent aggregate was read', async () => {
-		const s = state({ a: { b: { c: '' } }, list: [''] });
+		const s = state({ a: { b: { c: '' } }, list: [''] }).with(check).with(changes);
 		let valid = 0;
 		let errs = 0;
 		effect(() => void (valid = s.check.allValid() ? 1 : 2));
@@ -192,7 +193,7 @@ describe('lazy check', () => {
 	});
 
 	it('does not build descendants when a parent aggregate is read', () => {
-		const s = state({ a: { b: '' } });
+		const s = state({ a: { b: '' } }).with(check).with(changes);
 		expect(s.check.allValid()).toBe(true);
 		const own = Object.getOwnPropertyDescriptor(s.a.b, 'check')!;
 		expect(typeof own.get).toBe('function');

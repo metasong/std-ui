@@ -1,9 +1,13 @@
-// Validation layer for tree nodes. Nothing here is built until a node's `check` is first read:
-// `attachCheck()` defines `check` as a lazy getter, so nodes nobody validates cost nothing.
+// Validation layer for tree nodes, kept separate from the state core: a plain `state()` has no
+// `check`; `check(state(...))` adds it to the node and every descendant (including members added
+// later) and returns the same tree typed with `check` on each node. Nothing is built until a
+// node's `check` is first read: it is a lazy getter, so nodes nobody validates cost nothing.
 
 import { computed, signal, type Computed, type Signal } from '../../core/index.js';
+import type { SignalArray } from '../array/index.js';
 import type { ValidityFlag } from '../flags.js';
-import type { ItemNode } from '../node.js';
+import { childEntries, extendTree, isTreeNode, type ItemNode, type TreeNode } from '../node.js';
+import type { SignalObject } from '../object/index.js';
 
 export interface ValidationError {
 	/** One of the well-known `flags` (the `ValidityState` flag names), e.g. `flags.tooShort`. */
@@ -53,9 +57,51 @@ export interface Validation<T> {
 	readonly allErrors: Computed<PathError[]>;
 }
 
-/** Mixin carried by every tree node: its validation members under check. */
+/** Mixin added to every node by `check()`: its validation members under `check`. */
 export interface Checked<T> {
 	readonly check: Validation<T>;
+}
+
+type CheckedMembers<M> = { readonly [K in keyof M]: WithCheck<M[K]> };
+
+/**
+ * A state tree `S` after `check()`: the same tree, with `check` on every node (members and items
+ * too). Built on `S` itself (not rebuilt), so other features already on it are kept.
+ */
+export type WithCheck<S> =
+	S extends SignalArray<infer U, infer N>
+		? {
+				at(index: number): WithCheck<N> | undefined;
+				readonly [index: number]: WithCheck<N> | undefined;
+			} & S &
+				Checked<U[]>
+		: S extends SignalObject<infer T, infer M, any>
+			? { readonly _: CheckedMembers<M> } & { readonly [K in keyof T]: WithCheck<S[K & keyof S]> } & S & Checked<T>
+			: S extends { peek(): infer T }
+				? S & Checked<T>
+				: S;
+
+/**
+ * Adds validation to a state tree: `check(state({ name: '' })).name.check.validators.set([...])`.
+ * Returns the same tree (not a copy), typed with `check` on every node. Members added later
+ * (`push`, new keys) get `check` too. Safe to apply twice.
+ */
+export function check<S extends TreeNode>(node: S): WithCheck<S> {
+	extendTree(node, attach);
+	return node as unknown as WithCheck<S>;
+}
+
+/** The `check()` extension: lazily gives one node its `check`. */
+function attach(node: object): void {
+	const n = node as TreeNode & { shallow?: () => unknown };
+	attachCheck(
+		n,
+		() => n.deep(),
+		() => {
+			n.shallow?.(); // tracked: which members exist
+			return childEntries(n) as Entries;
+		},
+	);
 }
 
 const sameErrors = (a: ValidationError[], b: ValidationError[]): boolean =>
@@ -131,7 +177,11 @@ const builtVersion = signal(0);
  */
 function view(child: ItemNode<unknown>): { check?: Validation<any>; nested: Entries } {
 	const state = (child as { [STATE]?: CheckState })[STATE];
-	if (!state) return { check: child.check as Validation<any> | undefined, nested: [] }; // custom node
+	if (!state) {
+		const own = child.check as Validation<any> | undefined; // custom node with its own `check`
+		if (own || !isTreeNode(child)) return { check: own, nested: [] };
+		return { nested: childEntries(child) as Entries }; // tree node never given `check`: valid unless a descendant has one
+	}
 	builtVersion(); // tracked: a later build must re-run the aggregate
 	if (state.built) return { check: state.built, nested: [] };
 	return { nested: state.children?.() ?? [] };
@@ -160,6 +210,7 @@ function errorsOf(child: ItemNode<unknown>): PathError[] {
  * look through unbuilt nodes, so reading a parent's `allValid` etc. does not build its descendants.
  */
 export function attachCheck<T>(node: object, read: () => T, children?: () => Entries): void {
+	if ((node as { [STATE]?: CheckState })[STATE]) return; // already has `check`
 	const state: CheckState = { children };
 	(node as { [STATE]?: CheckState })[STATE] = state; // plain assignment: far cheaper than defineProperty
 	Object.defineProperty(node, 'check', {

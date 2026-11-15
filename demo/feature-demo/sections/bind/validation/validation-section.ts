@@ -1,12 +1,12 @@
 // bind() mirrors a state's validator errors into the element's constraint validation.
 // Three targets: native controls, a plain FormElement (merged state) and a FormGroup (routed to inner controls).
-import { bind, t, tag, UIElement, state } from '../../../../../std-ui/src/index.js';
+import { bind, t, tag, UIElement, state, check } from '../../../../../std-ui/src/index.js';
 import './range-control.js';
 import './merged-control.js';
 
 const required = (message: string) => (v: unknown) => (v ? undefined : { flag: 'valueMissing' as const, message });
 
-const form = state({ name: '', age: 5 });
+const form = check(state({ name: '', age: 5 }));
 form.name.check.validators.set([
 	required('Name is required'),
 	v => (String(v).length >= 3 ? undefined : { flag: 'tooShort', message: 'At least 3 characters' }),
@@ -15,11 +15,11 @@ form.age.check.validators.set([
 	v => (v >= 2 && v <= 8 ? undefined : { flag: 'rangeOverflow', message: 'Age must be between 2 and 8' }),
 ]);
 
-const range = state({ start: '', end: '' });
+const range = check(state({ start: '', end: '' }));
 range.start.check.validators.set([required('Start required')]);
 range.end.check.validators.set([required('End required')]);
 
-const person = state({ first: '', last: '' });
+const person = check(state({ first: '', last: '' }));
 person.first.check.validators.set([required('First name required')]);
 person.last.check.validators.set([required('Last name required')]);
 

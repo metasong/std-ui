@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { state } from '../../../main.js';
+import { check } from '../../main.js';
 import { email, pattern } from './main.js';
 
 describe('pattern validators', () => {
@@ -26,7 +27,7 @@ describe('pattern validators', () => {
 	});
 
 	it('works on a node', () => {
-		const s = state({ mail: 'x' });
+		const s = check(state({ mail: 'x' }));
 		s.mail.check.validators.set([email<string>()]);
 		expect(s.mail.check.valid()).toBe(false);
 		s.mail.set('x@y.z');

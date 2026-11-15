@@ -8,10 +8,17 @@
 //   - `list.at(i)()` only re-runs when that element changes (or the element at `i` is replaced).
 
 import { computed, signal, type Computed, type Signal } from '../../core/index.js';
-import { attachCheck, type Checked } from '../check/index.js';
-import { assertAcyclic, assertNotNode, createChangeTracking, readValue, type ItemNode, type Tracked } from '../node.js';
+import {
+	addWith,
+	assertAcyclic,
+	assertNotNode,
+	inheritExtensions,
+	readValue,
+	type Extendable,
+	type ItemNode,
+} from '../node.js';
 
-export interface SignalArray<T, N extends ItemNode<T> = ItemNode<T>> extends Checked<T[]>, Tracked<T[]> {
+export interface SignalArray<T, N extends ItemNode<T> = ItemNode<T>> extends Extendable {
 	/**
 	 * Reads the plain values, tracking only whole replacement via `set()` / `update()` (like a plain
 	 * `signal(array)`). Use `shallow()` to also track push/pop/splice etc.
@@ -70,6 +77,7 @@ export function signalArray<T, N extends ItemNode<T> = ItemNode<T>>(
 	const make = (value: T): N => {
 		const node = makeItem(value);
 		assertAcyclic(proxy, node);
+		inheritExtensions(proxy, node);
 		return node;
 	};
 	const deep = computed(() => nodes().map(readValue));
@@ -145,14 +153,7 @@ export function signalArray<T, N extends ItemNode<T> = ItemNode<T>>(
 		if (nodes.peek().length) mutate((l) => void (l.length = 0));
 	};
 
-	attachCheck<T[]>(self, () => deep(), () => nodes().map((n, i) => [i, n] as const));
-	const initialValues = self.peek();
-	Object.defineProperty(self, 'changes', {
-		value: createChangeTracking<T[]>(() => deep(), initialValues, (base) => {
-			self.set(base);
-			nodes.peek().forEach((n, i) => n.changes?.reset(base[i])); // push the initial value down
-		}),
-	});
+	addWith(self);
 
 	const isIndex = (key: string | symbol): key is string =>
 		typeof key === 'string' && /^(0|[1-9]\d*)$/.test(key);

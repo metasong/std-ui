@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest';
 import { effect } from '../effect/index.js';
 import { flushEffects } from '../effect/test-helpers.js';
 import { signal } from '../core/index.js';
+import { changes } from './changes/index.js';
 import { state } from './main.js';
 
 describe('state: circular plain data', () => {
@@ -95,7 +96,7 @@ describe('state: adopting existing nodes', () => {
 describe('state: nodes are plain data to the parent', () => {
 	it('object set() with plain data writes into the adopted node (shared with other owners)', () => {
 		const addr = state({ city: 'Paris' });
-		const user = state({ address: addr });
+		const user = state({ address: addr }).with(changes);
 		user.set({ address: { city: 'Rome' } });
 		expect(user.address).toBe(addr);
 		expect(addr.peek()).toEqual({ city: 'Rome' });
@@ -123,7 +124,7 @@ describe('state: nodes are plain data to the parent', () => {
 
 	it('reset() writes the initial plain value into the adopted node', () => {
 		const addr = state({ city: 'Paris' });
-		const user = state({ address: addr });
+		const user = state({ address: addr }).with(changes);
 		user.address.city.set('Rome');
 		expect(user.changes.dirty()).toBe(true);
 		user.changes.reset();

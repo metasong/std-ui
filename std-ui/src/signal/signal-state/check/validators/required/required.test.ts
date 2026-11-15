@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { state } from '../../../main.js';
+import { check } from '../../main.js';
 import { required } from './main.js';
 
 describe('required', () => {
@@ -12,7 +13,7 @@ describe('required', () => {
 	});
 
 	it('uses a custom message and works on a node', () => {
-		const s = state({ name: '' });
+		const s = check(state({ name: '' }));
 		s.name.check.validators.set([required<string>('Name needed')]);
 		expect(s.name.check.errors()).toEqual([{ flag: 'valueMissing', message: 'Name needed' }]);
 		s.name.set('x');

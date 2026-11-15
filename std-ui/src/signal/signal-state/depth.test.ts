@@ -1,6 +1,8 @@
 import { describe, expect, it } from 'vitest';
 import { effect } from '../effect/index.js';
 import { flushEffects } from '../effect/test-helpers.js';
+import { changes } from './changes/index.js';
+import { check } from './check/index.js';
 import { state } from './main.js';
 
 const data = () => ({ id: 1, user: { name: 'Ada', tags: ['a'] } });
@@ -50,7 +52,7 @@ describe("state depth: 'value'", () => {
 	});
 
 	it('validity aggregates equal the node ones, and dirty is one deep comparison', () => {
-		const s = state({ n: 1 }, { depth: 'value' });
+		const s = state({ n: 1 }, { depth: 'value' }).with(check).with(changes);
 		s.check.validators.set([(v) => (v.n > 1 ? { flag: 'rangeOverflow', message: 'too big' } : null)]);
 		expect(s.check.allValid()).toBe(s.check.valid());
 		s.set({ n: 2 });

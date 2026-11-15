@@ -8,12 +8,19 @@
 //   - `obj.key` is the member node itself (untracked access), e.g. `obj.user.label.set('x')`.
 
 import { computed, signal, type Signal } from '../../core/index.js';
-import { attachCheck, type Checked } from '../check/index.js';
-import { assertAcyclic, assertNotNode, createChangeTracking, readValue, type ItemNode, type Tracked } from '../node.js';
+import {
+	addWith,
+	assertAcyclic,
+	assertNotNode,
+	inheritExtensions,
+	readValue,
+	type Extendable,
+	type ItemNode,
+} from '../node.js';
 
 type Members = Record<string, ItemNode<unknown>>;
 
-export interface SignalObject<T, M = Members, P = Partial<T>> extends Checked<T>, Tracked<T> {
+export interface SignalObject<T, M = Members, P = Partial<T>> extends Extendable {
 	/**
 	 * Reads the plain value, tracking only replacement of the member record: a `set()` that adds a
 	 * key or clears / restores the object. Use `shallow()` to also track `delete`.
@@ -36,14 +43,15 @@ export interface SignalObject<T, M = Members, P = Partial<T>> extends Checked<T>
 	delete(key: string): boolean;
 	/**
 	 * Members only, with no API names: `obj._.check` is the member `check` even though `obj.check`
-	 * is the validation API. Untracked, like `obj.key`. A member named `_` is `obj._._`.
+	 * is the validation API (once `check()` has been applied). Untracked, like `obj.key`. A member named `_` is `obj._._`.
 	 */
 	readonly _: M;
 }
 
 // Names reserved on the node: members share its property namespace (`obj.member`), and both
 // `obj.api()` and `obj.member.api()` use the same property access, so API names must win over keys.
-const API = new Set(['set', 'update', 'peek', 'deep', 'shallow', 'delete', 'check', 'changes', '_']);
+// `check` is reserved even though `check()` is a separate feature, so adding it never shadows a member.
+const API = new Set(['set', 'update', 'peek', 'deep', 'shallow', 'delete', 'with', 'check', 'changes', '_']);
 const hasOwn = (o: object, key: PropertyKey): boolean => Object.prototype.hasOwnProperty.call(o, key);
 
 export function signalObject<T, M = Members, P = Partial<T>>(
@@ -95,6 +103,7 @@ export function signalObject<T, M = Members, P = Partial<T>>(
 					// A new member is built like at construction; a node inside `value` is adopted.
 					const member = makeMember(value);
 					assertAcyclic(proxy, member);
+					inheritExtensions(proxy, member);
 					(next ??= { ...prev })[key] = member;
 				}
 			}
@@ -113,18 +122,7 @@ export function signalObject<T, M = Members, P = Partial<T>>(
 		return true;
 	};
 
-	attachCheck<T>(self, () => deep(), () => Object.entries(members()));
-	const initialValue = self.peek() as Record<string, unknown>;
-	const restore = (target: T) => {
-		const base = target as Record<string, unknown>;
-		for (const key of Object.keys(members.peek())) if (!hasOwn(base, key)) self.delete(key);
-		self.set(base as P); // re-creates missing members, clears an emptied object
-		// Push the initial value down so each child agrees on it and drops its own extras.
-		for (const [key, m] of Object.entries(members.peek())) m.changes?.reset(base[key]);
-	};
-	Object.defineProperty(self, 'changes', {
-		value: createChangeTracking<T>(() => deep(), initialValue as T, restore),
-	});
+	addWith(self);
 
 	// Escape hatch for members whose names collide with the API: a members-only view (`obj._.key`).
 	const membersOnly = new Proxy({} as object, {

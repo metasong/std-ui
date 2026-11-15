@@ -1,11 +1,12 @@
 import { signal, type SignalOptions, type Signal } from '../core/index.js';
-import { attachCheck, type Checked } from './check/index.js';
-import { createChangeTracking, type Tracked } from './node.js';
+import { addWith, EQUALS, type Extendable } from './node.js';
 
-/** A tree leaf: a plain `Signal<T>` plus `shallow()` / `deep()` (both identical to `()`) and validation. */
+/**
+ * A tree leaf: a plain `Signal<T>` plus `shallow()` / `deep()` (both identical to `()`) and `with()`.
+ * Validation (`check`) and change tracking (`changes`) are separate features added through `with()`.
+ */
 export type SignalLeaf<T> = Signal<T> &
-	Checked<T> &
-	Tracked<T> & {
+	Extendable & {
 		shallow(): T;
 		deep(): T;
 	};
@@ -17,24 +18,21 @@ export function signalLeaf<T>(value: T, signalOptions?: SignalOptions<T>): Signa
 
 /**
  * Upgrades an existing core `Signal<T>` into a tree leaf, in place: the same signal object gains
- * `shallow()` / `deep()`, validation and `changes` (baseline = its current value; `equals` decides when `changes.dirty` is false, default deep equality), so it is shared,
- * not copied. Returns it unchanged if it is already a leaf. The result can be adopted as a member
- * of `state()` trees like any other node.
+ * `shallow()` / `deep()` and `with()`, so it is shared, not copied. `equals` is remembered for
+ * features that compare values (`changes`; default deep equality). Returns it unchanged if it is
+ * already a leaf. The result can be adopted as a member of `state()` trees like any other node.
  */
 export function toSignalLeaf<T>(source: Signal<T>, equals?: (a: T, b: T) => boolean): SignalLeaf<T> {
 	if (isSignalLeaf(source)) return source;
-	const initial = source.peek();
 	const leaf = source as SignalLeaf<T>;
 	leaf.shallow = leaf;
 	leaf.deep = leaf;
-	attachCheck<T>(leaf, () => leaf());
-	Object.defineProperty(leaf, 'changes', {
-		value: createChangeTracking(() => leaf(), initial, (base) => leaf.set(base), equals),
-	});
+	addWith(leaf);
+	if (equals) (leaf as { [EQUALS]?: unknown })[EQUALS] = equals;
 	return leaf;
 }
 
 function isSignalLeaf<T>(value: Signal<T>): value is SignalLeaf<T> {
 	const v = value as Partial<SignalLeaf<T>>;
-	return typeof v.deep === 'function' && typeof v.shallow === 'function' && 'changes' in v;
+	return typeof v.deep === 'function' && typeof v.shallow === 'function' && typeof v.with === 'function';
 }

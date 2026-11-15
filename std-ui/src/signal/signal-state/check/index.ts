@@ -1,7 +1,9 @@
 export {
+	check,
 	attachCheck,
 	createValidation,
 	type Checked,
+	type WithCheck,
 	type PathError,
 	type Validation,
 	type ValidationError,

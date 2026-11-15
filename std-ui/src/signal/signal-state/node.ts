@@ -1,26 +1,25 @@
 // Shared contract between the tree's container nodes (./array, ./object) and their children.
 
-import { computed, signal, type Computed } from '../core/index.js';
 import type { PathError } from './check/index.js';
 
-/** Mixin carried by every tree node: its change-tracking members under `changes`. */
-export interface Tracked<T> {
-	readonly changes: ChangeTracking<T>;
+/**
+ * Carried by every tree node: `node.with(feature)` calls `feature(node)` and returns its result, so
+ * separate features chain onto a node: `state(0).with(check).with(changes)`. The core knows no feature.
+ */
+export interface Extendable {
+	with<R>(feature: (node: this) => R): R;
 }
 
-/** Change-tracking members (`dirty`, `initial`, `reset`), grouped under `node.changes`. */
-export interface ChangeTracking<T> {
-	/** Tracked; true when the node's current value differs (deeply) from its initial value. */
-	readonly dirty: Computed<boolean>;
-	/** Tracked; the initial value: what `reset()` restores. Replaced when `reset(next)` is given a `next`. */
-	readonly initial: Computed<T>;
-	/**
-	 * Writes the initial value back (members added since are removed, deleted ones re-created). With
-	 * `next`, `next` first becomes the new initial value, e.g. `reset(node.peek())` marks the current
-	 * value as saved.
-	 */
-	reset(next?: T): void;
+/** Gives a node its `with()` method. */
+export function addWith(node: object): void {
+	// `this`, not `node`: object / array nodes are proxies, and a feature must get the one the user holds.
+	(node as { with?: unknown }).with = function (this: unknown, feature: (node: unknown) => unknown) {
+		return feature(this);
+	};
 }
+
+/** Hidden slot holding a leaf's `equals` option, for features (`changes`) that compare values. */
+export const EQUALS = Symbol('equals');
 
 /**
  * Minimal node contract needed from each child node (satisfied by `Signal`, arrays, and objects).
@@ -51,15 +50,14 @@ export interface TreeNode {
 	peek(): unknown;
 	deep(): unknown;
 	set(value: any): void;
-	readonly changes: unknown;
 }
 
-/** Runtime check for `TreeNode`: a function with `deep()` and `changes` (plain core signals have neither). */
+/** Runtime check for `TreeNode`: a function with `deep()` and `shallow()` (plain core signals have neither). */
 export function isTreeNode(value: unknown): value is TreeNode {
 	return (
 		typeof value === 'function' &&
 		typeof (value as { deep?: unknown }).deep === 'function' &&
-		(value as { changes?: unknown }).changes !== undefined
+		typeof (value as { shallow?: unknown }).shallow === 'function'
 	);
 }
 
@@ -76,13 +74,45 @@ export function assertNotNode(value: unknown): void {
 	}
 }
 
-/** Member nodes of a container node (object members via `_`, array items by index); none for a leaf. */
-function childNodes(node: object): unknown[] {
+/** Untracked `[key, member]` pairs of a container node (object members via `_`, array items by index); none for a leaf. */
+export function childEntries(node: object): (readonly [string | number, unknown])[] {
 	const members = (node as { _?: object })._;
-	if (members) return Object.values(members);
-	const out: unknown[] = [];
-	for (let i = 0, c; (c = (node as Record<number, unknown>)[i]) !== undefined; i++) out.push(c);
+	if (members) return Object.entries(members);
+	const out: (readonly [number, unknown])[] = [];
+	for (let i = 0, c; (c = (node as Record<number, unknown>)[i]) !== undefined; i++) out.push([i, c]);
 	return out;
+}
+
+function childNodes(node: object): unknown[] {
+	return childEntries(node).map(([, c]) => c);
+}
+
+const EXTENSIONS = Symbol('extensions');
+
+/** A feature added to tree nodes from outside (e.g. `check`): called once per node it reaches. */
+export type Extension = (node: object) => void;
+
+function applyExtension(node: unknown, ext: Extension): void {
+	if (!isTreeNode(node)) return;
+	const list = ((node as { [EXTENSIONS]?: Extension[] })[EXTENSIONS] ??= []);
+	if (list.includes(ext)) return; // already extended (shared or revisited node)
+	list.push(ext); // remembered, so members this node gets later are extended too
+	ext(node);
+	for (const [, child] of childEntries(node)) applyExtension(child, ext);
+}
+
+/**
+ * Applies `ext` to `root` and every descendant now, and to any member `root`'s tree builds later
+ * (new keys, pushed items). Idempotent per `(node, ext)`, so a node shared by two trees is extended once.
+ */
+export function extendTree(root: object, ext: Extension): void {
+	applyExtension(root, ext);
+}
+
+/** Called by containers when they build a member later: gives it (and its subtree) the parent's extensions. */
+export function inheritExtensions(parent: object, child: unknown): void {
+	const list = (parent as { [EXTENSIONS]?: Extension[] })[EXTENSIONS];
+	if (list) for (const ext of [...list]) applyExtension(child, ext);
 }
 
 function reaches(node: unknown, target: object, seen: Set<unknown>): boolean {
@@ -119,26 +149,4 @@ export function deepEqual(a: unknown, b: unknown): boolean {
 		ka.length === kb.length &&
 		ka.every((k) => Object.prototype.hasOwnProperty.call(b, k) && deepEqual((a as any)[k], (b as any)[k]))
 	);
-}
-
-/**
- * Builds the `dirty` / `initial` / `reset` members for a node. `read` is the tracked plain value, `initial` the
- * first initial value, and `restore` the node's own write-back of an initial value (parents also
- * push it to their children, so every level agrees on the new one). `equals` decides when the value counts as unchanged (default: `deepEqual`).
- */
-export function createChangeTracking<T>(
-	read: () => T,
-	initial: T,
-	restore: (initial: T) => void,
-	equals: (a: T, b: T) => boolean = deepEqual,
-): ChangeTracking<T> {
-	const currentInitial = signal(initial);
-	return {
-		dirty: computed(() => !equals(read(), currentInitial())),
-		initial: computed(() => currentInitial()),
-		reset: (...args: [T?]) => {
-			if (args.length) currentInitial.set(args[0] as T);
-			restore(currentInitial.peek());
-		},
-	};
 }
