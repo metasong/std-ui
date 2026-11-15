@@ -1,0 +1,17 @@
+{
+	"name": "std-ui-workspace",
+	"private": true,
+	"type": "module",
+	"workspaces": ["std-ui", "std-ui-ext"],
+	"scripts": {
+		"build": "npm run build -w std-ui && npm run build -w std-ui-ext",
+		"test": "vitest run",
+		"typecheck": "tsc --noEmit -p tsconfig.json"
+	},
+	"devDependencies": {
+		"jsdom": "^30.1.3",
+		"typescript": "^7.0.2",
+		"vite": "^5.4.10",
+		"vitest": "^2.1.9"
+	}
+}

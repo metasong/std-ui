@@ -35,8 +35,8 @@ export function toState<T, U>(
 }
 
 function isSignal<T>(value: unknown): value is Signal<T> {
-	const v = value as Partial<Signal<T>> | null;
-	return typeof v === 'function' && typeof v.peek === 'function' && typeof v.set === 'function';
+	const v = value as { peek?: unknown; set?: unknown } | null;
+	return typeof value === 'function' && typeof v?.peek === 'function' && typeof v?.set === 'function';
 }
 
 function fromSource<T, U>(

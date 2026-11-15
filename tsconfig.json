@@ -1,0 +1,25 @@
+{
+	"compilerOptions": {
+		// Kept in sync with `src/std-ui/tsconfig.build.json`'s `target`/`lib` - ES2022 also makes
+		// `useDefineForClassFields` default to `true` (native `[[Define]]` field semantics), which
+		// stage-3 decorated fields with no initializer (`foo!: Foo;`, e.g.
+		// `src/std-ui/src/decorators/query/query.decorator.ts`) rely on: below ES2022 it defaults to `false`,
+		// under which `esbuild` erases such a field as a type-only declaration, silently dropping any
+		// `addInitializer` its decorator registered.
+		"target": "ES2022",
+		"module": "ES2020",
+		"lib": ["ES2022", "DOM", "DOM.Iterable"],
+		"moduleResolution": "bundler",
+		// Workspace-local resolution of the sibling packages (published consumers use node_modules).
+		"paths": { "std-ui": ["./std-ui/src/index.ts"] },
+		"checkJs": true,
+		"allowJs": true,
+		"skipLibCheck": true,
+		"strict": true,
+		"noUncheckedIndexedAccess": false,
+		"noImplicitOverride": true,
+		"isolatedModules": true
+	},
+	"include": ["std-ui/src/**/*.ts", "std-ui-ext/src/**/*.ts", "std-ui/demo/**/*.ts"],
+	"exclude": ["node_modules", "**/dist"]
+}
