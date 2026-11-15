@@ -9,6 +9,7 @@
 // `../std-ui/src/**`) need `es2022` to be transpiled rather than passed through as raw `@...` syntax.
 import { fileURLToPath } from 'node:url';
 import { defineConfig } from 'vite';
+import { esbuildTs } from '../scripts/esbuild-ts.ts';
 
 const dirname = fileURLToPath(new URL('.', import.meta.url));
 
@@ -30,9 +31,7 @@ export default defineConfig({
 			},
 		},
 	},
-	esbuild: {
-		target: 'es2022',
-	},
+	plugins: [esbuildTs()],
 	server: {
 		open: true,
 		port: 5174,

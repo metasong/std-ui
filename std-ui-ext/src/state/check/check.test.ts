@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest';
-import { changes, effect, state } from 'std-ui';
+import { effect, state } from 'std-ui';
+import { changes } from '../changes/index.js';
 import { flushEffects } from '../../../../std-ui/src/signal/effect/test-helpers.js';
 import { check, type Validator } from './main.js';
 

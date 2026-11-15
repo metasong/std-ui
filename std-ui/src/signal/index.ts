@@ -19,8 +19,6 @@ export {
 	type DeepPartial,
 	type SignalState,
 	type StateDepth,
-	changes,
-	type WithChanges,
 	flags,
 	type ValidityFlag,
 	type ValidationError,
@@ -34,6 +32,7 @@ export {
 	type TreeNode,
 	childEntries,
 	deepEqual,
+	EQUALS,
 	extendTree,
 	isTreeNode,
 } from './state/index.js';

@@ -1,7 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { effect } from '../effect/index.js';
 import { flushEffects } from '../effect/test-helpers.js';
-import { changes } from './changes/index.js';
 import { state } from './main.js';
 
 const data = () => ({ id: 1, user: { name: 'Ada', tags: ['a'] } });
@@ -50,13 +49,6 @@ describe("state depth: 'value'", () => {
 		expect(s.deep()).toBe(s());
 	});
 
-	it('dirty is one deep comparison', () => {
-		const s = state({ n: 1 }, { depth: 'value' }).with(changes);
-		s.set({ n: 2 });
-		expect(s.changes.dirty()).toBe(true);
-		s.set({ n: 1 });
-		expect(s.changes.dirty()).toBe(false);
-	});
 
 	it('still adopts an existing node', () => {
 		const node = state({ x: 1 });

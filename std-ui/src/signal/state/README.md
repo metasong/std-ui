@@ -195,6 +195,7 @@ Plain signals mixed into a tree have no validation and count as valid.
 
 ## Change tracking: `dirty` and `reset()`
 
+Provided by `std-ui-ext` (`import { changes } from 'std-ui-ext'`), applied with `state(...).with(changes)`.
 On every node under `node.changes`, next to `node.check`. Not part of the data: `deep()` never
 contains them.
 

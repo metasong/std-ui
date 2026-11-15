@@ -2,7 +2,10 @@
 	"name": "std-ui-workspace",
 	"private": true,
 	"type": "module",
-	"workspaces": ["std-ui", "std-ui-ext"],
+	"workspaces": [
+		"std-ui",
+		"std-ui-ext"
+	],
 	"scripts": {
 		"build": "npm run build -w std-ui && npm run build -w std-ui-ext",
 		"demo": "vite --config demo/vite.config.ts",
@@ -10,6 +13,7 @@
 		"typecheck": "tsc --noEmit -p tsconfig.json"
 	},
 	"devDependencies": {
+		"esbuild": "^0.28.2",
 		"jsdom": "^31.0.1",
 		"typescript": "^7.0.2",
 		"vite": "^8.3.8",

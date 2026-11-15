@@ -6,10 +6,19 @@
 // The initial value of each node is its value when `changes()` is applied (for a member added
 // later: its value when it is created), so apply it before editing the state.
 
-import { computed, signal, type Computed } from '../../core/index.js';
-import type { SignalArray } from '../array/index.js';
-import { childEntries, deepEqual, EQUALS, extendTree, type ItemNode, type TreeNode } from '../node.js';
-import type { SignalObject } from '../object/index.js';
+import {
+	childEntries,
+	computed,
+	deepEqual,
+	EQUALS,
+	extendTree,
+	signal,
+	type Computed,
+	type ItemNode,
+	type SignalArray,
+	type SignalObject,
+	type TreeNode,
+} from 'std-ui';
 
 /** Change-tracking members (`dirty`, `initial`, `reset`), grouped under `node.changes`. */
 export interface ChangeTracking<T> {

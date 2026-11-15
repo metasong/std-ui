@@ -16,6 +16,7 @@ export {
 	readValue,
 	childEntries,
 	deepEqual,
+	EQUALS,
 	extendTree,
 	isTreeNode,
 	type ItemNode,
@@ -24,4 +25,3 @@ export {
 	type TreeNode,
 } from './node.js';
 export { type ValidationError, type PathError } from './validation.js';
-export { changes, type Changed, type ChangeTracking, type WithChanges } from './changes/index.js';
