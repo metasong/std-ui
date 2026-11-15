@@ -1,7 +1,25 @@
 :root {
 	color-scheme: light dark;
+	--bg: #fff;
+	--fg: #1a1a1a;
 	font-family: system-ui, sans-serif;
 	line-height: 1.5;
+}
+
+@media (prefers-color-scheme: dark) {
+	:root {
+		--bg: #1e1e1e;
+		--fg: #e6e6e6;
+	}
+}
+
+html {
+	background: var(--bg);
+	color: var(--fg);
+}
+
+a {
+	color: color-mix(in srgb, var(--fg) 60%, #4aa3ff);
 }
 
 body {
@@ -15,7 +33,7 @@ header {
 }
 
 header p {
-	color: color-mix(in srgb, canvastext 70%, transparent);
+	color: color-mix(in srgb, var(--fg) 70%, transparent);
 }
 
 code {
@@ -24,7 +42,7 @@ code {
 }
 
 .card {
-	border: 1px solid color-mix(in srgb, canvastext 20%, transparent);
+	border: 1px solid color-mix(in srgb, var(--fg) 20%, transparent);
 	border-radius: 0.5rem;
 	margin-bottom: 1rem;
 	padding: 1rem 1.25rem;
@@ -36,7 +54,7 @@ code {
 }
 
 .hint {
-	color: color-mix(in srgb, canvastext 65%, transparent);
+	color: color-mix(in srgb, var(--fg) 65%, transparent);
 	font-size: 0.9rem;
 	margin: 0 0 0.75rem;
 }

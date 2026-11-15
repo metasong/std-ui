@@ -10,8 +10,8 @@
 	<header>
 		<h1>Decorators in the browser</h1>
 		<p>
-			<code>@tag</code>, <code>@attribute</code> and <code>@state</code> in an inline script, transpiled
-			at load time by a decorators-only Babel build (~1 MB). Demo only — use a build step in production.
+			<code>@tag</code> and <code>@attribute</code> in an inline script, transpiled
+			at load time by <code>@babel/standalone</code> (~2.9 MB, ~0.6 MB gzip). Demo only — use a build step in production.
 		</p>
 		<p><a href="./index.html">← IIFE demo (no decorators)</a></p>
 	</header>
@@ -28,24 +28,22 @@
 	<!-- 1. std-ui first: it defines Symbol.metadata, which Babel's decorator output must share. -->
 	<script src="./std-ui.iife.min.js"></script>
 
-	<!-- 2. Decorators-only Babel (@babel/core + plugin-proposal-decorators, ~1 MB vs ~2.9 MB standalone). -->
-	<script src="./babel-decorators.min.js"></script>
+	<!-- 2. Babel standalone, with the 2023-11 decorators plugin registered as a preset. -->
+	<script src="https://unpkg.com/@babel/standalone@7.24.0/babel.min.js"></script>
 	<script>
-		addEventListener('DOMContentLoaded', () => document.querySelectorAll('script[type="text/decorators"]').forEach((el) => {
-			const s = document.createElement('script');
-			s.textContent = transformDecorators(el.textContent);
-			document.body.append(s);
-		}));
+		Babel.registerPreset('tc39-decorators', {
+			plugins: [[Babel.availablePlugins['proposal-decorators'], { version: '2023-11' }]],
+		});
 	</script>
-	<!-- 3. App code with real @decorators (placed after the loader above is fine: it is only read, never run directly). -->
-	<script type="text/decorators">
+	<!-- 3. App code with real @decorators. `data-plugins=""` is required. -->
+	<script type="text/babel" data-presets="tc39-decorators" data-plugins="">
 		const { UIElement, tag, attribute, state, t } = StdUI;
 
 		@tag('user-badge')
 		class UserBadge extends UIElement {
-			@attribute({ type: Number, reflect: true }) count = 0;
-			@attribute() label = 'Guest';
-			@state() clicks = 0;
+			@attribute({ type: Number, reflect: true }) count = state(0);
+			@attribute() label = state('Guest');
+			clicks = state(0);
 
 			template() {
 				return t`
