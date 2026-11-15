@@ -1,5 +1,5 @@
 // Usage: node scripts/size-report.mjs   (after building std-ui and std-ui-ext)
-// Writes the size tables between the SIZE markers in the root README.md.
+// Writes the size tables between the SIZE markers in release.md.
 import fs from 'node:fs';
 import path from 'node:path';
 import zlib from 'node:zlib';
@@ -10,10 +10,15 @@ const walk = d =>
 		e.isDirectory() ? walk(path.join(d, e.name)) : [path.join(d, e.name)],
 	);
 
-let out = '### Browser bundles (`std-ui/dist/browser`)\n\n| File | Minified | Gzip | Brotli |\n|---|---|---|---|\n';
-for (const f of ['std-ui.min.js', 'std-ui.iife.min.js']) {
-	const b = fs.readFileSync(`std-ui/dist/browser/${f}`);
-	out += `| \`${f}\` | ${kb(b.length)} | ${kb(zlib.gzipSync(b, { level: 9 }).length)} | ${kb(zlib.brotliCompressSync(b).length)} |\n`;
+let out = '### Browser bundles (`<pkg>/dist/browser`; `std-ui-ext` keeps `std-ui` external)\n\n| File | Minified | Gzip | Brotli |\n|---|---|---|---|\n';
+for (const f of [
+	'std-ui/dist/browser/std-ui.min.js',
+	'std-ui/dist/browser/std-ui.iife.min.js',
+	'std-ui-ext/dist/browser/std-ui-ext.min.js',
+	'std-ui-ext/dist/browser/std-ui-ext.iife.min.js',
+]) {
+	const b = fs.readFileSync(f);
+	out += `| \`${path.basename(f)}\` | ${kb(b.length)} | ${kb(zlib.gzipSync(b, { level: 9 }).length)} | ${kb(zlib.brotliCompressSync(b).length)} |\n`;
 }
 
 out += '\n### npm packages (compiled `.js`, unminified; excludes maps and `.d.ts`)\n\n| Package | Files | Raw | Gzip |\n|---|---|---|---|\n';
@@ -23,12 +28,13 @@ for (const d of ['std-ui', 'std-ui-ext']) {
 	out += `| \`${d}\` | ${files.length} | ${kb(all.length)} | ${kb(zlib.gzipSync(all, { level: 9 }).length)} |\n`;
 }
 
+const file = 'release.md';
 const start = '<!-- SIZE:START -->';
 const end = '<!-- SIZE:END -->';
 const block = `${start}\n${out}${end}`;
-let readme = fs.existsSync('README.md') ? fs.readFileSync('README.md', 'utf8') : '# std-ui workspace\n\n## Bundle size\n\n';
-readme = readme.includes(start)
-	? readme.replace(new RegExp(`${start}[\\s\\S]*?${end}`), () => block)
-	: `${readme.trimEnd()}\n\n${block}\n`;
-fs.writeFileSync('README.md', readme);
+let doc = fs.existsSync(file) ? fs.readFileSync(file, 'utf8') : '# std-ui workspace\n\n## Bundle size\n\n';
+doc = doc.includes(start)
+	? doc.replace(new RegExp(`${start}[\\s\\S]*?${end}`), () => block)
+	: `${doc.trimEnd()}\n\n${block}\n`;
+fs.writeFileSync(file, doc);
 console.log(out);

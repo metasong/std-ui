@@ -35,7 +35,8 @@
 	},
 	"scripts": {
 		"clean": "node -e \"require('fs').rmSync('dist', { recursive: true, force: true })\"",
-		"build": "npm run clean && tsc -p tsconfig.build.json",
+		"build": "npm run clean && tsc -p tsconfig.build.json && npm run build:bundle",
+		"build:bundle": "vite build --config vite.bundle.config.ts",
 		"prepublishOnly": "npm run build",
 		"test": "vitest run --root .. --config vitest.config.ts std-ui-ext",
 		"typecheck": "tsc --noEmit -p ../tsconfig.json"
@@ -45,6 +46,7 @@
 	},
 	"devDependencies": {
 		"typescript": "^7.0.2",
+		"vite": "^5.4.10",
 		"vitest": "^2.1.9"
 	},
 	"publishConfig": {
