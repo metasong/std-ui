@@ -27,6 +27,8 @@ There is no build step to adopt it. Load it as a plain `<script>` in the browser
 </script>
 ```
 
+> **@decorators standard(stage 3 now) not supported by browsers yest**: so code that uses decorators must be compiled, either ahead of time (TypeScript or esbuild) or in the page with [babel](https://unpkg.com/@babel/standalone@7.24.0/babel.min.js) (~0.6 MB gzip). Without decorators, use plain classes with `defineElement` and no compiler is needed. See [`demo/browser-bundle`](./demo/browser-bundle/README.md) for both setups.
+
 ## No virtual DOM. No change-detection loop.
 
 There is no tree diffing and no dirty-checking cycle. Signal state drives **fine-grained UI updates**: when a signal changes, only the exact DOM nodes that read it are updated.
