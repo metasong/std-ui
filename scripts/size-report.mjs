@@ -23,7 +23,7 @@ for (const f of [
 
 out += '\n### npm packages (compiled `.js`, unminified; excludes maps and `.d.ts`)\n\n| Package | Files | Raw | Gzip |\n|---|---|---|---|\n';
 for (const d of ['std-ui', 'std-ui-ext']) {
-	const files = walk(`${d}/dist`).filter(f => f.endsWith('.js') && !f.includes('browser'));
+	const files = walk(`${d}/dist/esm`).filter(f => f.endsWith('.js'));
 	const all = Buffer.concat(files.map(f => fs.readFileSync(f)));
 	out += `| \`${d}\` | ${files.length} | ${kb(all.length)} | ${kb(zlib.gzipSync(all, { level: 9 }).length)} |\n`;
 }

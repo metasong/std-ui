@@ -5,30 +5,31 @@
 	"type": "module",
 	"license": "MIT",
 	"sideEffects": false,
-	"main": "./dist/index.js",
-	"module": "./dist/index.js",
-	"types": "./dist/index.d.ts",
+	"main": "./dist/esm/index.js",
+	"module": "./dist/esm/index.js",
+	"types": "./dist/esm/index.d.ts",
 	"exports": {
 		".": {
-			"types": "./dist/index.d.ts",
-			"import": "./dist/index.js",
-			"default": "./dist/index.js"
+			"types": "./dist/esm/index.d.ts",
+			"import": "./dist/esm/index.js",
+			"default": "./dist/esm/index.js"
 		},
 		"./signal": {
-			"types": "./dist/signal/index.d.ts",
-			"import": "./dist/signal/index.js",
-			"default": "./dist/signal/index.js"
+			"types": "./dist/esm/signal/index.d.ts",
+			"import": "./dist/esm/signal/index.js",
+			"default": "./dist/esm/signal/index.js"
 		},
 		"./template": {
-			"types": "./dist/template/index.d.ts",
-			"import": "./dist/template/index.js",
-			"default": "./dist/template/index.js"
+			"types": "./dist/esm/template/index.d.ts",
+			"import": "./dist/esm/template/index.js",
+			"default": "./dist/esm/template/index.js"
 		},
 		"./decorators": {
-			"types": "./dist/decorators/index.d.ts",
-			"import": "./dist/decorators/index.js",
-			"default": "./dist/decorators/index.js"
+			"types": "./dist/esm/decorators/index.d.ts",
+			"import": "./dist/esm/decorators/index.js",
+			"default": "./dist/esm/decorators/index.js"
 		},
+		"./browser/*": "./dist/browser/*",
 		"./package.json": "./package.json"
 	},
 	"files": [
@@ -48,8 +49,8 @@
 	},
 	"devDependencies": {
 		"typescript": "^7.0.2",
-		"vite": "^5.4.10",
-		"vitest": "^2.1.9"
+		"vite": "^8.3.8",
+		"vitest": "^5.1.0"
 	},
 	"publishConfig": {
 		"access": "public"

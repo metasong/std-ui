@@ -12,13 +12,14 @@
 		"declaration": true,
 		"declarationMap": true,
 		"sourceMap": true,
+		"inlineSources": true,
 		"strict": true,
 		"noUncheckedIndexedAccess": false,
 		"noImplicitOverride": true,
 		"isolatedModules": true,
 		"skipLibCheck": true,
 		"rootDir": "./src",
-		"outDir": "./dist"
+		"outDir": "./dist/esm"
 	},
 	"include": ["src/**/*.ts"],
 	"exclude": ["**/*.test.ts", "dist", "node_modules"]

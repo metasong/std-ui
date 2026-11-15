@@ -5,25 +5,26 @@
 	"type": "module",
 	"license": "MIT",
 	"sideEffects": true,
-	"main": "./dist/index.js",
-	"module": "./dist/index.js",
-	"types": "./dist/index.d.ts",
+	"main": "./dist/esm/index.js",
+	"module": "./dist/esm/index.js",
+	"types": "./dist/esm/index.d.ts",
 	"exports": {
 		".": {
-			"types": "./dist/index.d.ts",
-			"import": "./dist/index.js",
-			"default": "./dist/index.js"
+			"types": "./dist/esm/index.d.ts",
+			"import": "./dist/esm/index.js",
+			"default": "./dist/esm/index.js"
 		},
 		"./context": {
-			"types": "./dist/decorators/context/index.d.ts",
-			"import": "./dist/decorators/context/index.js",
-			"default": "./dist/decorators/context/index.js"
+			"types": "./dist/esm/decorators/context/index.d.ts",
+			"import": "./dist/esm/decorators/context/index.js",
+			"default": "./dist/esm/decorators/context/index.js"
 		},
 		"./state": {
-			"types": "./dist/state/index.d.ts",
-			"import": "./dist/state/index.js",
-			"default": "./dist/state/index.js"
+			"types": "./dist/esm/state/index.d.ts",
+			"import": "./dist/esm/state/index.js",
+			"default": "./dist/esm/state/index.js"
 		},
+		"./browser/*": "./dist/browser/*",
 		"./package.json": "./package.json"
 	},
 	"files": [
@@ -46,8 +47,8 @@
 	},
 	"devDependencies": {
 		"typescript": "^7.0.2",
-		"vite": "^5.4.10",
-		"vitest": "^2.1.9"
+		"vite": "^8.3.8",
+		"vitest": "^5.1.0"
 	},
 	"publishConfig": {
 		"access": "public"
