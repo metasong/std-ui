@@ -107,7 +107,7 @@ A form-associated element in a few lines: validation feeds the native constraint
 
 ```ts
 import { tag, state, t } from 'std-ui';
-import { FormElement, check, required, minLength } from 'std-ui-ext';
+import { FormElement, check, required, minLength, asyncValidator, flags } from 'std-ui-ext';
 
 @tag('name-input')
 class NameInput extends FormElement {
@@ -116,7 +116,15 @@ class NameInput extends FormElement {
 
 	constructor() {
 		super();
-		this.name.check.validators.set([required('Name is required'), minLength(2)]);
+		// async check, e.g. a server round trip: debounced, and cancelled when the value changes
+		const unique = asyncValidator<string>(
+			async (name, { abortSignal }) => {
+				const res = await fetch(`/api/name-taken?n=${encodeURIComponent(name)}`, { abortSignal });
+				return (await res.json()).taken ? { flag: flags.customError, message: 'Name taken' } : null;
+			},
+			{ debounce: 300 },
+		);
+		this.name.check.validators.set([required('Name is required'), minLength(2), unique]);
 	}
 
 	protected override template() {
@@ -133,7 +141,7 @@ class NameInput extends FormElement {
 <form><name-input name="name"></name-input><button>Save</button></form>
 ```
 
-Validators are plain functions, so writing your own is one line. Built-ins use the standard `ValidityState` flags, and async validators track a `pending` state.
+Validators are plain functions, so writing your own is one line. Built-ins use the standard `ValidityState` flags, and async validators track a `pending` state, so `this.name.check.pending()` can gate submit while a check is in flight.
 
 ## Track changes in one line
 
@@ -182,5 +190,6 @@ Dive deeper in the [std-ui guide](./std-ui/README.md) and the [std-ui-ext add-on
 ---
 
 **std-ui: less framework, more web.**
+
 
 
