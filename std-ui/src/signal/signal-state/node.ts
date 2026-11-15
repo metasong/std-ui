@@ -8,10 +8,12 @@ export interface Tracked<T> {
 	readonly changes: ChangeTracking<T>;
 }
 
-/** Change-tracking members (`dirty`, `reset`), grouped under `node.changes`. */
+/** Change-tracking members (`dirty`, `initial`, `reset`), grouped under `node.changes`. */
 export interface ChangeTracking<T> {
 	/** Tracked; true when the node's current value differs (deeply) from its initial value. */
 	readonly dirty: Computed<boolean>;
+	/** Tracked; the initial value: what `reset()` restores. Replaced when `reset(next)` is given a `next`. */
+	readonly initial: Computed<T>;
 	/**
 	 * Writes the initial value back (members added since are removed, deleted ones re-created). With
 	 * `next`, `next` first becomes the new initial value, e.g. `reset(node.peek())` marks the current
@@ -120,21 +122,23 @@ export function deepEqual(a: unknown, b: unknown): boolean {
 }
 
 /**
- * Builds the `dirty` / `reset` members for a node. `read` is the tracked plain value, `initial` the
+ * Builds the `dirty` / `initial` / `reset` members for a node. `read` is the tracked plain value, `initial` the
  * first initial value, and `restore` the node's own write-back of an initial value (parents also
- * push it to their children, so every level agrees on the new one).
+ * push it to their children, so every level agrees on the new one). `equals` decides when the value counts as unchanged (default: `deepEqual`).
  */
 export function createChangeTracking<T>(
 	read: () => T,
 	initial: T,
 	restore: (initial: T) => void,
+	equals: (a: T, b: T) => boolean = deepEqual,
 ): ChangeTracking<T> {
-	const current = signal(initial);
+	const currentInitial = signal(initial);
 	return {
-		dirty: computed(() => !deepEqual(read(), current())),
+		dirty: computed(() => !equals(read(), currentInitial())),
+		initial: computed(() => currentInitial()),
 		reset: (...args: [T?]) => {
-			if (args.length) current.set(args[0] as T);
-			restore(current.peek());
+			if (args.length) currentInitial.set(args[0] as T);
+			restore(currentInitial.peek());
 		},
 	};
 }

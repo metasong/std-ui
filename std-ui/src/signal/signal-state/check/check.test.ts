@@ -84,6 +84,13 @@ describe('validators', () => {
 	});
 
 	describe('changes.dirty / changes.reset()', () => {
+		it('a leaf with an explicit equals uses it for dirty', () => {
+			const s = state({ id: 1, tag: 'a' }, { depth: 'value', equals: (a, b) => a.id === b.id });
+			s.set({ id: 1, tag: 'b' });
+			expect(s.changes.dirty()).toBe(false);
+			s.set({ id: 2, tag: 'b' });
+			expect(s.changes.dirty()).toBe(true);
+		});
 		it('leaf: dirty tracks difference from the initial value; reset restores it', () => {
 			const s = state({ name: 'a' });
 			expect(s.name.changes.dirty()).toBe(false);
@@ -137,6 +144,7 @@ describe('validators', () => {
 			const s = state<{ user: { name: string; extra?: number }; tags: string[] }>({ user: { name: 'a' }, tags: ['x'] });
 			s.user.set({ extra: 1 });
 			s.changes.reset({ user: { name: 'b' }, tags: ['y', 'z'] });
+			expect(s.changes.initial()).toEqual({ user: { name: 'b' }, tags: ['y', 'z'] });
 			expect(s.deep()).toEqual({ user: { name: 'b' }, tags: ['y', 'z'] });
 			expect(s.changes.dirty()).toBe(false);
 			expect(s.user.name.changes.dirty()).toBe(false);
