@@ -1,7 +1,7 @@
 # Reactive store fields (formerly `@state()`)
 
 There is no `@state()` decorator anymore. A reactive field of a `UIElement` is simply a
-`state(...)` (see [`../../signal/signal-state/README.md`](../../signal/signal-state/README.md)):
+`state(...)` (see [`../../signal/state/README.md`](../../signal/state/README.md)):
 
 ```ts
 class CounterChip extends UIElement {

@@ -1,6 +1,7 @@
 // bind() mirrors a state's validator errors into the element's constraint validation.
 // Three targets: native controls, a plain FormElement (merged state) and a FormGroup (routed to inner controls).
-import { bind, t, tag, UIElement, state, check } from '../../../../../std-ui/src/index.js';
+import { bind, t, tag, UIElement, state } from '../../../../../std-ui/src/index.js';
+import { check } from '../../../../../std-ui-ext/src/index.js';
 import './range-control.js';
 import './merged-control.js';
 

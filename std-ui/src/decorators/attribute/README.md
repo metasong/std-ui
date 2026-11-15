@@ -117,7 +117,7 @@ skips `.set`). `toAttribute` may return `undefined` to mean "leave the host attr
 
 ## Complex-object fields
 
-Same [`SignalTree`](../../signal/signal-state/README.md) backing as any `state()` field — use `type: Object` when the
+Same [`SignalTree`](../../signal/state/README.md) backing as any `state()` field — use `type: Object` when the
 attribute should mirror JSON:
 
 ```ts

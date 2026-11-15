@@ -1,6 +1,6 @@
 import { FormElement } from './element.js';
 import { trackTouched } from './touched.js';
-import type { ValidationError } from '../signal/signal-state/index.js';
+import type { ValidationError } from '../signal/state/index.js';
 
 /** An inner control that can own validity: another `FormElement` (or group) or a native control. */
 export type ValidationErrorTarget = FormElement | HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement;

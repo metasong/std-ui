@@ -5,7 +5,7 @@
 import { effect } from '../../../signal/index.js';
 import { FormElement } from '../../../form/element.js';
 import { trackTouched } from '../../../form/touched.js';
-import type { ValidationError } from '../../../signal/signal-state/index.js';
+import type { ValidationError } from '../../../signal/state/index.js';
 import type { WritableSignal } from './types.js';
 
 type ErrorReader = () => readonly ValidationError[];

@@ -1,7 +1,7 @@
 // Public and internal types for `bind()`. See `./design.md` for the mental model.
 
 import type { StateDepth } from '../../../signal/index.js';
-import type { ValidationError } from '../../../signal/signal-state/index.js';
+import type { ValidationError } from '../../../signal/state/index.js';
 
 /** Model side for `bind({ get, set })` when you don't have a signal. */
 export interface BindAccessor {

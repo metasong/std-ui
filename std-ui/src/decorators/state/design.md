@@ -21,7 +21,7 @@ That also removed the machinery that existed to swap a field for an accessor (`f
 |---|---|
 | Create the store from the initial value | The field initializer: `state(initial)` |
 | Per-instance store | Each instance runs the initializer, so each gets its own store |
-| Plain objects / arrays become a signal tree | `state()` itself ([`../../signal/signal-state/`](../../signal/signal-state/)) |
+| Plain objects / arrays become a signal tree | `state()` itself ([`../../signal/state/`](../../signal/state/)) |
 | `contextKey` on `@state()` | `@provide(key)` / `defineElement({ provide })` - [`../context/design.md`](../context/design.md) |
 | Attribute inference from the initial value | `resolveInferredConverter()` reads `this[key].peek()` on first use - [`../attribute/design.md`](../attribute/design.md) |
 
@@ -38,4 +38,4 @@ That also removed the machinery that existed to swap a field for an accessor (`f
 
 - [`README.md`](./README.md) - usage.
 - [`../design.md`](../design.md) - the shared registration mechanism.
-- [`../../signal/signal-state/design.md`](../../signal/signal-state/design.md) - how `state()` works.
+- [`../../signal/state/design.md`](../../signal/state/design.md) - how `state()` works.

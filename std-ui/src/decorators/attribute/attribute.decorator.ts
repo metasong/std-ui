@@ -77,7 +77,7 @@ export type AttributeStore = { (): unknown; peek(): unknown; set(value: never): 
  *   @attribute({ type: Number, reflect: true }) age = state(0); // also mirrors `age` back
  *   internalOnly = state('x'); // no decorator: store only, no attribute at all
  *   @attribute({ type: Object, reflect: true }) config = state({ a: 1, b: { c: 2 } }); // tree-backed:
- *     // per-leaf reactivity (see `../../signal/signal-state/README.md`); `type: Object`'s default
+ *     // per-leaf reactivity (see `../../signal/state/README.md`); `type: Object`'s default
  *     // converter reflects the object to/from the attribute as JSON text.
  * }
  * ```

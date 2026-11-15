@@ -4,7 +4,7 @@
 // host attribute (opt-in; plain store fields never appear here).
 
 import { effect as createEffect } from '../../signal/index.js';
-import { readValue, type ItemNode } from '../../signal/signal-state/index.js';
+import { readValue, type ItemNode } from '../../signal/state/index.js';
 import { registerUIElementHooks } from '../../ui-element-hooks.js';
 import { serializeAttribute } from './converter.js';
 import { attributeDefs, resolveInferredConverter } from './metadata.js';

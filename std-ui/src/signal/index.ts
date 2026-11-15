@@ -1,4 +1,4 @@
-export { computed, type Computed, type SignalOptions } from './core/index.js';
+export { computed, signal, type Computed, type Signal, type SignalOptions } from './core/index.js';
 export { effect, type OnCleanup } from './effect/index.js';
 
 export {
@@ -19,22 +19,24 @@ export {
 	type DeepPartial,
 	type SignalState,
 	type StateDepth,
-	check,
-	type WithCheck,
 	changes,
 	type WithChanges,
 	flags,
 	type ValidityFlag,
 	type ValidationError,
-	type Validator,
-	required,
-	minLength,
-	maxLength,
-	min,
-	max,
-	pattern,
-	email,
-} from './signal-state/index.js';
+	type PathError,
+	type SignalArray,
+	type SignalObject,
+	type SignalLeaf,
+	type ItemNode,
+	type Extendable,
+	type Extension,
+	type TreeNode,
+	childEntries,
+	deepEqual,
+	extendTree,
+	isTreeNode,
+} from './state/index.js';
 
 import {
 	assertNotInReactiveContext as _assertNotInReactiveContext,

@@ -128,7 +128,7 @@ dependency graph (`effect()` itself is built on `subtle.Watcher`; see [`../effec
 
 ## Where this fits in std-ui
 
-- `../signal-state/main.ts`'s `state()` mirrors a plain-object state shape into a tree of these
+- `../state/main.ts`'s `state()` mirrors a plain-object state shape into a tree of these
   `Signal`/`Computed` nodes - that's what backs an app's state (e.g. `core/store.ts`'s `appState`).
 - `../../ui-element.ts`'s `UIElement` reads its `state` (a `SignalState<S>`) inside an `effect()` to
   drive `template()` on every change. `UIElement.effect()` itself wraps `effect()` from this folder,

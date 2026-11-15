@@ -1,8 +1,6 @@
 import { describe, expect, it } from 'vitest';
-import { effect } from '../../signal/effect/index.js';
-import { flushEffects } from '../../signal/effect/test-helpers.js';
-import { state } from '../../signal/signal-state/main.js';
-import { changes } from '../../signal/signal-state/changes/index.js';
+import { changes, effect, state } from 'std-ui';
+import { flushEffects } from '../../../../std-ui/src/signal/effect/test-helpers.js';
 import { check, type Validator } from './main.js';
 
 const required: Validator<string> = (v) => (v ? undefined : { flag: 'valueMissing', message: 'Required' });
@@ -199,5 +197,18 @@ describe('lazy check', () => {
 		expect(typeof own.get).toBe('function');
 		expect(s.check.allErrors()).toEqual([]);
 		expect(s.check.allPending()).toBe(false);
+	});
+});
+
+describe('check on a depth: "value" tree', () => {
+	it('validity aggregates equal the node ones (a leaf has no children)', () => {
+		const s = state({ n: 1 }, { depth: 'value' }).with(check).with(changes);
+		s.check.validators.set([(v) => (v.n > 1 ? { flag: 'rangeOverflow', message: 'too big' } : null)]);
+		expect(s.check.allValid()).toBe(s.check.valid());
+		s.set({ n: 2 });
+		expect(s.check.valid()).toBe(false);
+		expect(s.check.allValid()).toBe(false);
+		expect(s.check.allErrors().map((e) => e.message)).toEqual(s.check.errors().map((e) => e.message));
+		expect(s.check.allErrors().every((e) => e.path.length === 0)).toBe(true);
 	});
 });

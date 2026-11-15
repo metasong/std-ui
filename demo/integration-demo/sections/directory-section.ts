@@ -3,7 +3,8 @@
 //   - `bind()`                        → two-way search box and form fields, validation mirrored onto the inputs
 //   - `virtualize()`                  → the (filtered) list stays windowed however many people exist
 //   - `state` + `UIElement`/`t` → the list itself and re-rendering
-import { bind, t, tag, UIElement, state, check, virtualize } from '../../../std-ui/src/index.js';
+import { bind, t, tag, UIElement, state, virtualize } from '../../../std-ui/src/index.js';
+import { check } from '../../../std-ui-ext/src/index.js';
 
 type Person = { id: number; name: string; age: number };
 

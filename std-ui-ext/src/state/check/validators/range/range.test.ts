@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { state } from '../../../../signal/signal-state/main.js';
+import { state } from 'std-ui';
 import { check } from '../../main.js';
 import { max, min } from './main.js';
 

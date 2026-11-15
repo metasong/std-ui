@@ -58,7 +58,7 @@ Prefer `peek()` / `untrack()` in the main body when you need a value without sub
 ## std-ui usage
 
 - [`../../ui-element.ts`](../../ui-element.ts) — `UIElement.effect()` wraps this and auto-disposes on `disconnectedCallback()`.
-- [`../signal-state/main.ts`](../signal-state/main.ts) — field reactions and template refresh build on the same primitives.
+- [`../state/main.ts`](../state/main.ts) — field reactions and template refresh build on the same primitives.
 
 ## Tests
 

@@ -3,22 +3,23 @@
 // later) and returns the same tree typed with `check` on each node. Nothing is built until a
 // node's `check` is first read: it is a lazy getter, so nodes nobody validates cost nothing.
 
-import { computed, signal, type Computed, type Signal } from '../../signal/core/index.js';
-import type { SignalArray } from '../../signal/signal-state/array/index.js';
-import type { ValidityFlag } from '../../signal/signal-state/flags.js';
-import { childEntries, extendTree, isTreeNode, type ItemNode, type TreeNode } from '../../signal/signal-state/node.js';
-import type { SignalObject } from '../../signal/signal-state/object/index.js';
+import {
+	childEntries,
+	computed,
+	extendTree,
+	isTreeNode,
+	signal,
+	type Computed,
+	type ItemNode,
+	type PathError,
+	type Signal,
+	type SignalArray,
+	type SignalObject,
+	type TreeNode,
+	type ValidationError,
+} from 'std-ui';
 
-export interface ValidationError {
-	/** One of the well-known `flags` (the `ValidityState` flag names), e.g. `flags.tooShort`. */
-	flag: ValidityFlag;
-	message: string;
-}
-
-/** An error plus where it came from, relative to the node it was read from ([] = the node itself). */
-export interface PathError extends ValidationError {
-	path: (string | number)[];
-}
+export type { PathError, ValidationError };
 
 /** Returns the error(s) for `value`, or nothing when it is valid. Runs on plain (raw) values. */
 export type Validator<T> = ((

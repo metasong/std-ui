@@ -1,6 +1,6 @@
 import { UIElement } from '../ui-element.js';
 import { markTouched, trackTouched } from './touched.js';
-import type { ValidationError } from '../signal/signal-state/index.js';
+import type { ValidationError } from '../signal/state/index.js';
 
 /**
  * Form-associated variant of `UIElement` backed by `ElementInternals`.

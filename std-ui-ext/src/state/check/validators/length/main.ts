@@ -1,5 +1,5 @@
 import type { Validator } from '../../main.js';
-import { flags } from '../../../../signal/signal-state/flags.js';
+import { flags } from 'std-ui';
 
 type Sized = string | readonly unknown[] | null | undefined;
 

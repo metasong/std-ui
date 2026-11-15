@@ -74,5 +74,5 @@ Registrations are inherited: a subclass sees its base class's `@attribute` field
 - [`./query/README.md`](./query/README.md) — queries.
 - [`./state/README.md`](./state/README.md) — reactive store fields.
 - [`./design.md`](./design.md) - how registration works internally (shared registry, metadata, inheritance).
-- [`../signal/signal-state/README.md`](../signal/signal-state/README.md) — `state()`.
+- [`../signal/state/README.md`](../signal/state/README.md) — `state()`.
 - [`../ui-element.ts`](../ui-element.ts) — lifecycle.

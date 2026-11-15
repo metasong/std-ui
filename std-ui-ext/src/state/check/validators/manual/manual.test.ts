@@ -1,6 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { flags } from '../../../../signal/signal-state/flags.js';
-import { state } from '../../../../signal/signal-state/main.js';
+import { flags, state } from 'std-ui';
 import { check } from '../../main.js';
 import { manualValidator } from './main.js';
 

@@ -2,7 +2,6 @@ import { describe, expect, it } from 'vitest';
 import { effect } from '../effect/index.js';
 import { flushEffects } from '../effect/test-helpers.js';
 import { changes } from './changes/index.js';
-import { check } from '../../state/check/index.js';
 import { state } from './main.js';
 
 const data = () => ({ id: 1, user: { name: 'Ada', tags: ['a'] } });
@@ -51,15 +50,9 @@ describe("state depth: 'value'", () => {
 		expect(s.deep()).toBe(s());
 	});
 
-	it('validity aggregates equal the node ones, and dirty is one deep comparison', () => {
-		const s = state({ n: 1 }, { depth: 'value' }).with(check).with(changes);
-		s.check.validators.set([(v) => (v.n > 1 ? { flag: 'rangeOverflow', message: 'too big' } : null)]);
-		expect(s.check.allValid()).toBe(s.check.valid());
+	it('dirty is one deep comparison', () => {
+		const s = state({ n: 1 }, { depth: 'value' }).with(changes);
 		s.set({ n: 2 });
-		expect(s.check.valid()).toBe(false);
-		expect(s.check.allValid()).toBe(false);
-		expect(s.check.allErrors().map((e) => e.message)).toEqual(s.check.errors().map((e) => e.message));
-		expect(s.check.allErrors().every((e) => e.path.length === 0)).toBe(true);
 		expect(s.changes.dirty()).toBe(true);
 		s.set({ n: 1 });
 		expect(s.changes.dirty()).toBe(false);
