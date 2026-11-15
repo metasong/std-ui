@@ -5,7 +5,7 @@ Optional add-ons for [`std-ui`](../std-ui/README.md), built only on std-ui's pub
 
 | Extension | Import | Docs |
 |---|---|---|
-| Context: `@provide` / `@consume`, `createContextKey`, `defineContext` | `std-ui-ext` or `std-ui-ext/context` | [`src/context/README.md`](./src/context/README.md) - [design](./src/context/design.md) |
+| Context: `@provide` / `@consume`, `createContextKey`, `defineContext` | `std-ui-ext` or `std-ui-ext/context` | [`src/decorators/context/README.md`](./src/decorators/context/README.md) - [design](./src/decorators/context/design.md) |
 
 Importing the package registers its lifecycle hooks with `UIElement` as a side effect, so import it
 before any element that uses it connects.

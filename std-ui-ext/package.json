@@ -15,9 +15,9 @@
 			"default": "./dist/index.js"
 		},
 		"./context": {
-			"types": "./dist/context/index.d.ts",
-			"import": "./dist/context/index.js",
-			"default": "./dist/context/index.js"
+			"types": "./dist/decorators/context/index.d.ts",
+			"import": "./dist/decorators/context/index.js",
+			"default": "./dist/decorators/context/index.js"
 		},
 		"./state": {
 			"types": "./dist/state/index.d.ts",

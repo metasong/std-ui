@@ -52,4 +52,4 @@ registration has to happen before it, and why neither form can add attributes af
 
 - [`../README.md`](../README.md) — all decorators and their decorator-free forms.
 - [`../attribute/README.md`](../attribute/README.md) — attributes, converters, reflection.
-- [`std-ui-ext` context](../../../../std-ui-ext/src/context/README.md) - `@provide` / `@consume` (add-on package).
+- [`std-ui-ext` context](../../../../std-ui-ext/src/decorators/context/README.md) - `@provide` / `@consume` (add-on package).

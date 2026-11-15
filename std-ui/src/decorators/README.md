@@ -69,7 +69,7 @@ Registrations are inherited: a subclass sees its base class's `@attribute` field
 ## Related reading
 
 - [`./attribute/README.md`](./attribute/README.md) — attributes, converters, reflection.
-- [`std-ui-ext` context](../../../std-ui-ext/src/context/README.md) - `@provide` / `@consume` (add-on package).
+- [`std-ui-ext` context](../../../std-ui-ext/src/decorators/context/README.md) - `@provide` / `@consume` (add-on package).
 - [`./tag/README.md`](./tag/README.md) - `@tag` / `defineElement`.
 - [`./query/README.md`](./query/README.md) — queries.
 - [`./state/README.md`](./state/README.md) — reactive store fields.

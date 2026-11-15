@@ -3,17 +3,23 @@
 // for native controls, `setErrors` for `FormElement`). Everything validation-related lives here.
 
 import { effect } from '../../../signal/index.js';
-import { FormElement } from '../../../form/element.js';
-import { trackTouched } from '../../../form/touched.js';
+import { trackTouched } from '../../../touched.js';
 import type { ValidationError } from '../../../signal/state/index.js';
 import type { WritableSignal } from './types.js';
 
 type ErrorReader = () => readonly ValidationError[];
-type ValidityTarget = FormElement | HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement;
+/** Structural match for `FormElement` (lives in std-ui-ext), so core needn't import it. */
+type SettableErrors = Element & { setErrors(property: string, errors: readonly ValidationError[]): void };
+
+function hasSetErrors(element: Element): element is SettableErrors {
+	return typeof (element as { setErrors?: unknown }).setErrors === 'function';
+}
+
+type ValidityTarget = SettableErrors | HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement;
 
 function isValidityTarget(element: Element): element is ValidityTarget {
 	return (
-		element instanceof FormElement ||
+		hasSetErrors(element) ||
 		element instanceof HTMLInputElement ||
 		element instanceof HTMLSelectElement ||
 		element instanceof HTMLTextAreaElement
@@ -28,7 +34,7 @@ export function errorReaderOf(source: WritableSignal, element: Element): ErrorRe
 
 function report(element: ValidityTarget, property: string, errors: readonly ValidationError[]): void {
 	const message = errors.map(e => e.message).filter(Boolean).join('\n');
-	if (element instanceof FormElement) {
+	if (hasSetErrors(element)) {
 		// Custom elements keep the real flags and merge errors across their bound properties.
 		element.setErrors(property, errors);
 	} else {
