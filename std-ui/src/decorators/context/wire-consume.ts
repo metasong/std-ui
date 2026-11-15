@@ -4,6 +4,7 @@
 // signal lives only in that getter's closure.
 
 import { signal } from '../../signal/core/index.js';
+import { registerUIElementHooks } from '../../ui-element-hooks.js';
 import type { ContextKey } from './key.js';
 import { consumedContexts } from './metadata.js';
 import { ContextRequestEvent } from './request-event.js';
@@ -38,3 +39,7 @@ export function wireConsumedContexts(host: HTMLElement): void {
 		});
 	}
 }
+
+registerUIElementHooks({
+	connected: el => wireConsumedContexts(el),
+});

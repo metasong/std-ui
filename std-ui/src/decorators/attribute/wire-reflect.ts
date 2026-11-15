@@ -5,6 +5,7 @@
 
 import { effect as createEffect } from '../../signal/index.js';
 import { readValue, type ItemNode } from '../../signal/signal-state/index.js';
+import { registerUIElementHooks } from '../../ui-element-hooks.js';
 import { serializeAttribute } from './converter.js';
 import { attributeDefs, resolveInferredConverter } from './metadata.js';
 
@@ -29,3 +30,11 @@ export function wireReflectedAttributes(host: HTMLElement, registerEffectDispose
 		}));
 	}
 }
+
+registerUIElementHooks({
+	connected(el) {
+		const disposers: Array<() => void> = [];
+		wireReflectedAttributes(el, dispose => void disposers.push(dispose));
+		return () => disposers.forEach(dispose => dispose());
+	},
+});

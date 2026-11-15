@@ -12,11 +12,9 @@ import {
 	attributeDefs,
 	parseAttribute,
 	resolveInferredConverter,
-	wireConsumedContexts,
-	wireProvidedContextListeners,
-	wireReflectedAttributes,
 } from './decorators/index.js';
 import { ElementStyles } from './element-styles.js';
+import { uiElementHooks } from './ui-element-hooks.js';
 import {
 	effect as createEffect,
 	type OnCleanup,
@@ -47,11 +45,13 @@ export {
 	type DefineElementOptions,
 } from './decorators/index.js';
 
+export { registerUIElementHooks, type Cleanup, type UIElementHooks } from './ui-element-hooks.js';
+
+
 export abstract class UIElement extends HTMLElement {
 	#connected = false;
 	#firstRenderDone = false;
 	#effectDisposers: Array<() => void> = [];
-	#contextListenerDisposers: Array<() => void> = [];
 	#renderRoot: Element | DocumentFragment | null = null;
 	/**
 	 * When set on a subclass, `template()` renders into a shadow root (`attachShadow`) instead of
@@ -175,8 +175,10 @@ export abstract class UIElement extends HTMLElement {
 				if (!this.#firstRenderDone) {
 					this.#firstRenderDone = true;
 					this.firstRendered?.();
+					this.#runCleanupHooks('firstRendered');
 				}
 				this.rendered?.();
+				for (const h of uiElementHooks) h.rendered?.(this);
 			},
 		));
 	}
@@ -193,22 +195,25 @@ export abstract class UIElement extends HTMLElement {
 	// Browser lifecycle entry points — `private` so TS subclasses cannot override; extend `connect` / `disconnect` / `template` / `firstRendered` / `rendered` instead.
 	/** Connected to the document (static HTML, parent markup, re-insert after remove). */
 	private connectedCallback(): void {
-		wireProvidedContextListeners(
-			this,
-			dispose => this.#effectDisposers.push(dispose),
-			dispose => this.#contextListenerDisposers.push(dispose),
-		);
+		this.#runCleanupHooks('beforeConnect');
 
-		// Runs after the listeners above so descendants appended here(in `connect()`) can consume synchronously.
+		// Runs after the hooks above so descendants appended here (in `connect()`) can consume synchronously.
 		if (!this.#connected) {
 			this.#connected = true;
 			this.#ensureRenderRoot();
 			this.connect?.();
 		}
 
-		wireReflectedAttributes(this, dispose => this.#effectDisposers.push(dispose));
-		wireConsumedContexts(this);
+		this.#runCleanupHooks('connected');
 		this.#wireTemplateRenderEffect();
+	}
+
+	/** Runs a cleanup-returning hook phase on every registered extension; returned cleanups run on disconnect. */
+	#runCleanupHooks(phase: 'beforeConnect' | 'connected' | 'firstRendered'): void {
+		for (const hooks of [...uiElementHooks]) {
+			const cleanup = hooks[phase]?.(this);
+			if (cleanup) this.#effectDisposers.push(cleanup);
+		}
 	}
 
 	/** Removed from the document; disposes the render effect and any `effect()`s set up in `connect()`. */
@@ -220,8 +225,6 @@ export abstract class UIElement extends HTMLElement {
 		this.#firstRenderDone = false;
 		this.#effectDisposers.forEach(dispose => dispose());
 		this.#effectDisposers = [];
-		this.#contextListenerDisposers.forEach(dispose => dispose());
-		this.#contextListenerDisposers = [];
 	}
 
 	/**

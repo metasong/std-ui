@@ -5,6 +5,7 @@
 
 import { effect as createEffect } from '../../signal/index.js';
 import { readValue, type ItemNode } from '../../signal/signal-state/index.js';
+import { registerUIElementHooks } from '../../ui-element-hooks.js';
 import { providedContexts } from './metadata.js';
 import { CONTEXT_REQUEST_EVENT, ContextRequestEvent } from './request-event.js';
 
@@ -34,3 +35,12 @@ export function wireProvidedContextListeners(
 		registerListenerDisposer(() => host.removeEventListener(CONTEXT_REQUEST_EVENT, listener));
 	}
 }
+
+registerUIElementHooks({
+	beforeConnect(el) {
+		const disposers: Array<() => void> = [];
+		const add = (dispose: () => void): void => void disposers.push(dispose);
+		wireProvidedContextListeners(el, add, add);
+		return () => disposers.forEach(dispose => dispose());
+	},
+});
