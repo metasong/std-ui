@@ -5,6 +5,7 @@
 	"workspaces": ["std-ui", "std-ui-ext"],
 	"scripts": {
 		"build": "npm run build -w std-ui && npm run build -w std-ui-ext",
+		"demo": "vite --config demo/vite.config.ts",
 		"test": "vitest run",
 		"typecheck": "tsc --noEmit -p tsconfig.json"
 	},

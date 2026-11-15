@@ -20,6 +20,6 @@
 		"noImplicitOverride": true,
 		"isolatedModules": true
 	},
-	"include": ["std-ui/src/**/*.ts", "std-ui-ext/src/**/*.ts", "std-ui/demo/**/*.ts"],
+	"include": ["std-ui/src/**/*.ts", "std-ui-ext/src/**/*.ts", "demo/**/*.ts"],
 	"exclude": ["node_modules", "**/dist"]
 }

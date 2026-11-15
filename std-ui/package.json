@@ -44,8 +44,7 @@
 		"build:bundle": "vite build --config vite.bundle.config.ts",
 		"prepublishOnly": "npm run build",
 		"test": "vitest run --root .. --config vitest.config.ts std-ui/",
-		"typecheck": "tsc --noEmit -p ../tsconfig.json",
-		"demo": "vite --config demo/vite.config.ts"
+		"typecheck": "tsc --noEmit -p ../tsconfig.json"
 	},
 	"devDependencies": {
 		"typescript": "^7.0.2",
