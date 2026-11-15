@@ -1,0 +1,49 @@
+{
+	"name": "std-ui-ext",
+	"version": "0.1.0",
+	"description": "Optional extensions for std-ui. First extension: context (@provide / @consume).",
+	"type": "module",
+	"license": "MIT",
+	"sideEffects": true,
+	"main": "./dist/index.js",
+	"module": "./dist/index.js",
+	"types": "./dist/index.d.ts",
+	"exports": {
+		".": {
+			"types": "./dist/index.d.ts",
+			"import": "./dist/index.js",
+			"default": "./dist/index.js"
+		},
+		"./context": {
+			"types": "./dist/context/index.d.ts",
+			"import": "./dist/context/index.js",
+			"default": "./dist/context/index.js"
+		},
+		"./package.json": "./package.json"
+	},
+	"files": [
+		"dist",
+		"README.md"
+	],
+	"engines": {
+		"node": ">=18"
+	},
+	"scripts": {
+		"clean": "node -e \"require('fs').rmSync('dist', { recursive: true, force: true })\"",
+		"build": "npm run clean && tsc -p tsconfig.build.json",
+		"prepublishOnly": "npm run build",
+		"test": "vitest run --root ../.. --config vitest.config.ts std-ui-ext",
+		"typecheck": "tsc --noEmit -p ../../tsconfig.json"
+	},
+	"peerDependencies": {
+		"std-ui": "^0.1.0"
+	},
+	"devDependencies": {
+		"std-ui": "file:../std-ui",
+		"typescript": "^7.0.2",
+		"vitest": "^2.1.9"
+	},
+	"publishConfig": {
+		"access": "public"
+	}
+}

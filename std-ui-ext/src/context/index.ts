@@ -5,3 +5,4 @@ export { consume } from './consume.decorator.js';
 export { wireConsumedContexts } from './wire-consume.js';
 export { wireProvidedContextListeners } from './wire-provide.js';
 export { providedContexts, consumedContexts, type ProvidedContextDef, type ConsumedContextDef } from './metadata.js';
+export { defineContext, type DefineContextOptions, type ProvideMap, type ConsumeMap } from './define-context.js';

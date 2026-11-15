@@ -1,10 +1,9 @@
-// Context, consume side: called by `UIElement.connectedCallback()` (`../../ui-element.ts`) to
+// Context, consume side: called by `UIElement.connectedCallback()` (std-ui's `UIElement`) to
 // resolve every consumed field of the class (`./metadata.ts`) against the nearest ancestor provider,
 // synchronously. Each field becomes a getter over a signal created here, so reads are reactive; the
 // signal lives only in that getter's closure.
 
-import { signal } from '../../signal/core/index.js';
-import { registerUIElementHooks } from '../../ui-element-hooks.js';
+import { registerUIElementHooks, state } from 'std-ui';
 import type { ContextKey } from './key.js';
 import { consumedContexts } from './metadata.js';
 import { ContextRequestEvent } from './request-event.js';
@@ -16,7 +15,7 @@ import { ContextRequestEvent } from './request-event.js';
  */
 export function wireConsumedContexts(host: HTMLElement): void {
 	for (const { key, contextKey } of consumedContexts.get(host.constructor)) {
-		const value = signal<unknown>(undefined);
+		const value = state<unknown, 'value'>(undefined, { depth: 'value' });
 		let found = false;
 		host.dispatchEvent(new ContextRequestEvent(contextKey as ContextKey<unknown>, next => {
 			found = true;

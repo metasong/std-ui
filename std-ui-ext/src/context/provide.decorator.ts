@@ -1,14 +1,14 @@
 // `@provide(key)` field decorator (optional sugar): exposes a `state(...)` field of a
-// `UIElement` subclass (see `../../ui-element.ts`) to descendants that `@consume(key)` - the
+// `UIElement` subclass (see `std-ui`) to descendants that `@consume(key)` - the
 // "provide" half of this codebase's context protocol. The decorator-free equivalent is
-// `defineElement(name, Class, { provide: { field: key } })`, which feeds the same registry.
+// `defineContext(Class, { provide: { field: key } })`, which feeds the same registry.
 //
 // It only *registers* `{ field name, key }` in the class's decorator metadata (`./metadata.ts`);
 // the field itself is left untouched - it is the store. At connect, `UIElement` reads the store
 // back off the instance (`this[name]`) and answers matching `context-request` events with it (see
 // `./wire-provide.ts`).
 
-import type { SignalState } from '../../signal/index.js';
+import type { SignalState } from 'std-ui';
 import type { ContextKey } from './key.js';
 import { providedContexts } from './metadata.js';
 

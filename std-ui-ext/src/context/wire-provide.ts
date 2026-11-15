@@ -1,13 +1,18 @@
-// Context, provide side: called by `UIElement.connectedCallback()` (`../../ui-element.ts`) to wire
+// Context, provide side: called by `UIElement.connectedCallback()` (std-ui's `UIElement`) to wire
 // one `context-request` listener per provided store on a just-connected host - both `@provide(key)`
 // fields and `defineElement({ provide })` entries. `stopPropagation()` on a match gives
 // nearest-provider-wins — see `./request-event.ts`.
 
-import { effect as createEffect } from '../../signal/index.js';
-import { readValue, type ItemNode } from '../../signal/signal-state/index.js';
-import { registerUIElementHooks } from '../../ui-element-hooks.js';
+import { effect as createEffect, registerUIElementHooks } from 'std-ui';
 import { providedContexts } from './metadata.js';
 import { CONTEXT_REQUEST_EVENT, ContextRequestEvent } from './request-event.js';
+
+type ProvidedStore = { (): unknown; deep?: () => unknown };
+
+/** Deep (tracked) read of a store: a state tree's `.deep()`, else the leaf's own value. */
+function readValue(store: ProvidedStore): unknown {
+	return typeof store.deep === 'function' ? store.deep() : store();
+}
 
 /**
  * For each provided store - the class's provider defs (`@provide(key)` or `defineElement({ provide })`),
@@ -22,7 +27,7 @@ export function wireProvidedContextListeners(
 	registerListenerDisposer: (dispose: () => void) => void,
 ): void {
 	for (const { key, contextKey } of providedContexts.get(host.constructor)) {
-		const store = (host as unknown as Record<PropertyKey, ItemNode<unknown>>)[key];
+		const store = (host as unknown as Record<PropertyKey, ProvidedStore>)[key];
 		const listener = (event: Event): void => {
 			const request = event as ContextRequestEvent<unknown>;
 			if (request.contextKey !== contextKey) return;

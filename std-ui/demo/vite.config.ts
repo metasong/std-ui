@@ -14,6 +14,9 @@ const dirname = fileURLToPath(new URL('.', import.meta.url));
 
 export default defineConfig({
 	root: dirname,
+	resolve: {
+		alias: { 'std-ui': fileURLToPath(new URL('../src/index.ts', import.meta.url)) },
+	},
 	base: './',
 	build: {
 		rollupOptions: {

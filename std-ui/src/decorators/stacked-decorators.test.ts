@@ -1,49 +1,15 @@
 import { describe, expect, it } from 'vitest';
-import { attribute, consume, createContextKey, defineElement, provide, tag, UIElement } from '../ui-element.js';
+import { attribute, defineElement, tag, UIElement } from '../ui-element.js';
 import { state } from '../signal/index.js';
 
-// `@attribute()` and `@provide()` only register metadata about a field that already is a store, so
-// stacking them on one field (in either order) must keep working, and the decorator-free
+// `@attribute()` only registers metadata about a field that already is a store, and the decorator-free
 // `defineElement()` must register exactly the same attribute defs.
 
 function flush(): Promise<void> {
 	return new Promise(resolve => queueMicrotask(() => queueMicrotask(resolve)));
 }
 
-interface Theme {
-	mode: string;
-}
-
-describe('@attribute() + @provide() stacked on the same store field', () => {
-	it('works in either order', async () => {
-		const KeyA = createContextKey<number>('stack-a');
-		const KeyB = createContextKey<number>('stack-b');
-
-		@tag('stack-attr-ctx')
-		class Foo extends UIElement {
-			@attribute({ type: Number, reflect: true })
-			@provide(KeyA)
-			readonly count = state(5);
-
-			@provide(KeyB)
-			@attribute({ type: Number, reflect: true })
-			readonly other = state(3);
-		}
-
-		const el = document.createElement('stack-attr-ctx') as Foo;
-		document.body.appendChild(el);
-		expect(el.getAttribute('count')).toBe('5');
-		expect(el.getAttribute('other')).toBe('3');
-
-		el.setAttribute('count', '9');
-		expect(el.count()).toBe(9);
-
-		el.other.set(4);
-		await flush();
-		expect(el.getAttribute('other')).toBe('4');
-		el.remove();
-	});
-
+describe('@attribute() stacked on a store field', () => {
 	it('registers exactly one observed attribute per field', () => {
 		@tag('stack-single-def')
 		class Foo extends UIElement {
@@ -139,34 +105,5 @@ describe('defineElement() - the decorator-free path', () => {
 		el.setAttribute('label', 'z');
 		expect(el.count()).toBe(4);
 		expect(el.label()).toBe('z');
-	});
-});
-
-describe('defineElement({ provide }) alongside @provide()', () => {
-	it('both feed the same listeners', () => {
-		const KeyA = createContextKey<Theme>('both-a');
-		const KeyB = createContextKey<Theme>('both-b');
-
-		@tag('both-child')
-		class Child extends UIElement {
-			@consume(KeyA) readonly a!: Theme;
-			@consume(KeyB) readonly b!: Theme;
-		}
-
-		class Root extends UIElement {
-			@provide(KeyA) readonly a = state<Theme>({ mode: 'a' });
-			readonly b = state<Theme>({ mode: 'b' });
-			protected override connect(): void {
-				this.appendChild(document.createElement('both-child'));
-			}
-		}
-		defineElement('both-root', Root, { provide: { b: KeyB } });
-
-		const root = document.createElement('both-root') as Root;
-		document.body.appendChild(root);
-		const child = root.querySelector('both-child') as Child;
-		expect(child.a.mode).toBe('a');
-		expect(child.b.mode).toBe('b');
-		root.remove();
 	});
 });

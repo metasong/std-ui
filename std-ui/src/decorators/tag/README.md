@@ -9,18 +9,14 @@ Both do the same three things, in order: collect the class's registrations, set
 @tag('user-badge')
 class UserBadge extends UIElement {
 	@attribute({ type: Number, reflect: true }) readonly count = state(0);
-	@provide(ThemeKey) readonly theme = state<Theme>({ mode: 'dark' });
 }
 
 // Decorator-free form: same registries, declared in one typed map
 class UserBadge extends UIElement {
 	readonly count = state(0);
-	readonly theme = state<Theme>({ mode: 'dark' });
 }
 defineElement('user-badge', UserBadge, {
 	attributes: { count: { type: Number, reflect: true } },
-	provide: { theme: ThemeKey },
-	// consume: { field: OtherKey },
 });
 ```
 
@@ -29,16 +25,13 @@ defineElement('user-badge', UserBadge, {
 | Option | Same as | Accepts |
 |---|---|---|
 | `attributes` | `@attribute(opts)` | store field name → `AttributeOptions` |
-| `provide` | `@provide(key)` | store field name → the `ContextKey` it provides |
-| `consume` | `@consume(key)` | field name → the `ContextKey` it reads (field declared with the key's value type) |
 
-- Every map is **type-checked against the class**: `attributes` / `provide` only list store fields,
-  and a key's value type must match the field's.
+- Every map is **type-checked against the class**: `attributes` only lists store fields.
 - It returns `Class`, so `export const X = defineElement(...)` works.
 - Run it **after the class body**, so statics (`styles`, `shadowRootOptions`, ...) already exist.
 - It registers per *class* (into the class's own metadata object, see
   `../class-registry.ts`); decorator registrations on the same class are merged, not replaced.
-- **Subclasses inherit** their base class's `attributes` / `provide` / `consume` entries, as with
+- **Subclasses inherit** their base class's `attributes` entries, as with
   decorators. Call `defineElement` for a **base class before its subclasses**: the subclass links to
   the base's registrations when it is first registered, so a base registered afterwards is not seen by
   a subclass that was already registered.
@@ -59,4 +52,4 @@ registration has to happen before it, and why neither form can add attributes af
 
 - [`../README.md`](../README.md) — all decorators and their decorator-free forms.
 - [`../attribute/README.md`](../attribute/README.md) — attributes, converters, reflection.
-- [`../context/README.md`](../context/README.md) — `@provide` / `@consume`.
+- [`std-ui-ext` context](../../../../std-ui-ext/src/context/README.md) - `@provide` / `@consume` (add-on package).

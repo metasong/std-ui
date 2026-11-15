@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
-import { consume, createContextKey, defineElement, provide, tag, UIElement } from '../../ui-element.js';
-import { state } from '../../signal/index.js';
+import { defineElement, state, tag, UIElement } from 'std-ui';
+import { consume, createContextKey, defineContext, provide } from './index.js';
 
 function flush(): Promise<void> {
 	return new Promise(resolve => queueMicrotask(() => queueMicrotask(resolve)));
@@ -100,7 +100,7 @@ describe('@provide(key) + @consume(key)', () => {
 		root.remove();
 	});
 
-	it('defineElement({ provide, consume }) is the decorator-free equivalent', async () => {
+	it('defineContext({ provide, consume }) is the decorator-free equivalent', async () => {
 		const ThemeKey = createContextKey<Theme>('theme-plain');
 		const rendered: string[] = [];
 
@@ -110,7 +110,8 @@ describe('@provide(key) + @consume(key)', () => {
 				rendered.push(this.theme.mode);
 			}
 		}
-		defineElement('ctx-child-plain', Child, { consume: { theme: ThemeKey } });
+		defineContext(Child, { consume: { theme: ThemeKey } });
+		defineElement('ctx-child-plain', Child);
 
 		class Root extends UIElement {
 			readonly theme = state<Theme>({ mode: 'dark' });
@@ -118,7 +119,8 @@ describe('@provide(key) + @consume(key)', () => {
 				this.appendChild(document.createElement('ctx-child-plain'));
 			}
 		}
-		defineElement('ctx-root-plain', Root, { provide: { theme: ThemeKey } });
+		defineContext(Root, { provide: { theme: ThemeKey } });
+		defineElement('ctx-root-plain', Root);
 
 		const root = document.createElement('ctx-root-plain') as Root;
 		document.body.appendChild(root);
@@ -132,14 +134,14 @@ describe('@provide(key) + @consume(key)', () => {
 		root.remove();
 	});
 
-	it('defineElement rejects a consume key whose value type does not match the field', () => {
+	it('defineContext rejects a consume key whose value type does not match the field', () => {
 		const ThemeKey = createContextKey<Theme>('theme-plain-bad');
 
 		class Child extends UIElement {
 			readonly label = 'x';
 		}
 		// @ts-expect-error - `label` is a string, the key carries a `Theme`
-		void (() => defineElement('ctx-child-plain-bad', Child, { consume: { label: ThemeKey } }));
+		void (() => defineContext(Child, { consume: { label: ThemeKey } }));
 	});
 
 	it('throws if no ancestor provides the context key', () => {

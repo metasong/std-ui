@@ -24,9 +24,6 @@ import { render, disconnectRendered, type CSSResultGroup, type TemplateResult } 
 
 export {
 	attribute,
-	consume,
-	provide,
-	createContextKey,
 	defineElement,
 	query,
 	queryAll,
@@ -41,7 +38,6 @@ export {
 	type AttributeOptions,
 	type AttributeType,
 	type AttributesMap,
-	type ContextKey,
 	type DefineElementOptions,
 } from './decorators/index.js';
 

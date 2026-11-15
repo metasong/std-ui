@@ -1,18 +1,16 @@
 export {
 	tag,
 	attribute,
-	consume,
-	provide,
-	createContextKey,
 	defineElement,
 	UIElement,
 	type AttributeConverter,
 	type AttributeOptions,
 	type AttributesMap,
 	type AttributeType,
-	type ContextKey,
 	type DefineElementOptions,
 } from './ui-element.js';
+export { registerUIElementHooks, type UIElementHooks, type Cleanup } from './ui-element-hooks.js';
+export { createClassRegistry, ownMetadata, metadataSymbol, type ClassRegistry } from './decorators/index.js';
 export {
 	t,
 	svg,

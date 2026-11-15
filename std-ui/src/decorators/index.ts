@@ -20,17 +20,4 @@ export {
 	type AttributeDef,
 } from './attribute/metadata.js';
 export { wireReflectedAttributes } from './attribute/wire-reflect.js';
-export {
-	provide,
-	consume,
-	createContextKey,
-	ContextRequestEvent,
-	CONTEXT_REQUEST_EVENT,
-	providedContexts,
-	consumedContexts,
-	wireConsumedContexts,
-	wireProvidedContextListeners,
-	type ContextKey,
-	type ProvidedContextDef,
-	type ConsumedContextDef,
-} from './context/index.js';
+export { createClassRegistry, ownMetadata, metadataSymbol, type ClassRegistry } from './class-registry.js';

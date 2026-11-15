@@ -14,7 +14,7 @@ Guides for the library under `src/` (`signal/`, `template/`, `ui-element.ts`):
 | `classMap` | [`src/template/directives/class-map/README.md`](./src/template/directives/class-map/README.md) · [design](./src/template/directives/class-map/design.md) |
 | `styleMap` | [`src/template/directives/style-map/README.md`](./src/template/directives/style-map/README.md) · [design](./src/template/directives/style-map/design.md) |
 | Component fields (`state`, `@attribute`, `defineElement`) | [`src/decorators/README.md`](./src/decorators/README.md) · [design](./src/decorators/design.md) |
-| Context (`@provide` / `this.provide`, `this.consume`) | [`src/decorators/context/README.md`](./src/decorators/context/README.md) · [design](./src/decorators/context/design.md) |
+| Context (add-on, moved) | see the [std-ui-ext](../std-ui-ext/README.md) package |
 | **Signals driving template render** (end-to-end) | [`src/doc/signal-drives-html.md`](./src/doc/signal-drives-html.md) |
 | **Saved re-rendering** (`strings` identity, `UIElement` updates) | [`src/doc/saved-ui-rerendering.md`](./src/doc/saved-ui-rerendering.md) |
 

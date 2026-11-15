@@ -1,9 +1,9 @@
 // Class-level context registrations: which fields of a class provide / consume which `ContextKey`.
 //
-// Each kind (provided, consumed) is a `ClassRegistry` (`../class-registry.ts`): `@provide` / `@consume` record
-// into the class's decorator metadata, `defineElement({ provide, consume })` into the class's own metadata object.
+// Each kind (provided, consumed) is a `ClassRegistry` (`std-ui's class-registry`): `@provide` / `@consume` record
+// into the class's decorator metadata, `defineContext(Class, { provide, consume })` into the class's own metadata object.
 
-import { createClassRegistry } from '../class-registry.js';
+import { createClassRegistry } from 'std-ui';
 import type { ContextKey } from './key.js';
 
 /** A field that provides or consumes a context: `host[key]` is the store / the read value for `contextKey`. */

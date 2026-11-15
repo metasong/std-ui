@@ -1,0 +1,20 @@
+// Standalone build for publishing `std-ui-ext`; resolves `std-ui` from node_modules (build std-ui first).
+{
+	"compilerOptions": {
+		"target": "ES2022",
+		"lib": ["ES2022", "DOM", "DOM.Iterable"],
+		"module": "NodeNext",
+		"moduleResolution": "NodeNext",
+		"declaration": true,
+		"declarationMap": true,
+		"sourceMap": true,
+		"strict": true,
+		"noImplicitOverride": true,
+		"isolatedModules": true,
+		"skipLibCheck": true,
+		"rootDir": "./src",
+		"outDir": "./dist"
+	},
+	"include": ["src/**/*.ts"],
+	"exclude": ["**/*.test.ts", "dist", "node_modules"]
+}

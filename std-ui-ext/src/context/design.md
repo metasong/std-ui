@@ -2,21 +2,21 @@
 
 How provide/consume resolution works, and why it's built this way. For usage and API, see
 [`README.md`](./README.md); for the registration mechanism shared with attributes, see
-[`../design.md`](../design.md).
+std-ui's `decorators/design.md`.
 
 ## Module split
 
 | File | Owns |
 |---|---|
 | [`key.ts`](./key.ts) | `ContextKey<T>`, `createContextKey()` - the branded, identity-compared, type-carrying key both sides link through. |
-| [`metadata.ts`](./metadata.ts) | `ProvidedContextDef` / `ConsumedContextDef` and the `providedContexts` / `consumedContexts` registries (`ClassRegistry`, see [`../class-registry.ts`](../class-registry.ts)). |
+| [`metadata.ts`](./metadata.ts) | `ProvidedContextDef` / `ConsumedContextDef` and the `providedContexts` / `consumedContexts` registries (`ClassRegistry`, see `createClassRegistry` from `std-ui`). |
 | [`request-event.ts`](./request-event.ts) | `ContextRequestEvent`, `CONTEXT_REQUEST_EVENT` - the bubbling DOM event the two sides use to find each other. |
 | [`provide.decorator.ts`](./provide.decorator.ts) | `@provide(key)` - registers a provider def. |
 | [`consume.decorator.ts`](./consume.decorator.ts) | `@consume(key)` - registers a consumer def. |
 | [`wire-provide.ts`](./wire-provide.ts) | `wireProvidedContextListeners()` - one `context-request` listener per provided store. |
 | [`wire-consume.ts`](./wire-consume.ts) | `wireConsumedContexts()` - resolves each consumed field and defines its getter. |
 | [`index.ts`](./index.ts) | Public re-exports. |
-| [`consume.test.ts`](./consume.test.ts) | Behavior tests through `UIElement` / `tag()` / `defineElement()`. |
+| [`consume.test.ts`](./consume.test.ts) | Behavior tests through `UIElement` / `tag()` / `defineContext()`. |
 
 `UIElement.connectedCallback()` calls the two `wire*` functions; neither decorator wires anything
 itself. Providing and consuming only mean something once the element is in a DOM tree, so they can't
@@ -147,6 +147,6 @@ the consumer to dispatch an "unsubscribe" event on disconnect.
 
 - [`README.md`](./README.md) - public API and examples.
 - [`key.ts`](./key.ts) / [`metadata.ts`](./metadata.ts) / [`request-event.ts`](./request-event.ts) / [`wire-provide.ts`](./wire-provide.ts) / [`wire-consume.ts`](./wire-consume.ts) - implementation.
-- [`../design.md`](../design.md) - the shared registration mechanism.
-- [`../../ui-element.ts`](../../ui-element.ts) - `connectedCallback` / `disconnectedCallback` wiring.
+- std-ui's `decorators/design.md` - the shared registration mechanism.
+- std-ui's `registerUIElementHooks` (`ui-element-hooks.ts`) - how connect/disconnect wiring is attached.
 - [`consume.test.ts`](./consume.test.ts) - behavior tests (resolution, reactivity, missing provider, read-only, nearest-provider-wins, inheritance).

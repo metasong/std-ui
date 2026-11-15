@@ -1,4 +1,4 @@
-# Component fields — stores, attributes, context, queries
+# Component fields — stores, attributes, queries
 
 A `UIElement` (see `../ui-element.ts`) field is just a store — `count = state(0)` — so its
 type (`SignalState<number>`) is correct from the declaration, with no decorator needed to wire it
@@ -10,32 +10,26 @@ Everything else is **opt-in registration**, available in two equivalent forms:
 | Reactive field | — | `readonly count = state(0)` |
 | Define the element | `@tag('my-el')` | `defineElement('my-el', MyEl)` |
 | Attribute ↔ store | `@attribute(opts)` on a store field | `defineElement(name, MyEl, { attributes: { count: opts } })` |
-| Provide context | `@provide(key)` on a store field | `defineElement(name, Class, { provide: { field: key } })` |
-| Consume context | `@consume(key)` on a `V` field (reads as the plain value) | `defineElement(name, Class, { consume: { field: key } })` |
 | DOM queries | `@query()` / `@queryAll()` / `@queryAsync()` / `@queryAssignedNodes()` | `queryElement(this, sel)` / `queryElements` / `queryElementAsync` / `queryAssigned(this, opts)` (**prefer the decorators**) |
 
 Both forms feed the same registries, so they can be mixed freely. Decorators need a TS/Babel build
 step (browsers don't run them); the decorator-free form works with none.
 
 ```ts
-import { UIElement, defineElement, createContextKey, queryElement, state, t } from '../index.js';
-
-const ThemeKey = createContextKey<{ mode: string }>('theme');
+import { UIElement, defineElement, queryElement, state, t } from '../index.js';
 
 class UserBadge extends UIElement {
 	readonly count = state(0);                 // attribute-mirrored (see defineElement below)
 	readonly label = state('Guest');
 	readonly internal = state('x');            // plain store: no attribute
-	readonly theme!: Theme;                          // read-only; filled in on connect (see defineElement below)
 	get input() { return queryElement<HTMLInputElement>(this, 'input'); } // el.input, like `@query('input') input`
 
 	protected override template() {
-		return t`<span>${this.label()}: ${this.count()} (${this.theme.mode})</span><input />`;
+		return t`<span>${this.label()}: ${this.count()}</span><input />`;
 	}
 }
 defineElement('user-badge', UserBadge, {
 	attributes: { count: { type: Number, reflect: true }, label: {} },
-	consume: { theme: ThemeKey },
 });
 ```
 
@@ -50,18 +44,11 @@ class UserBadge extends UIElement {
 }
 ```
 
-`@consume(key)` decorates a field declared with the value's own type, `@consume(key) readonly theme!: Theme`,
-and reads as the plain value (`this.theme.mode`, not `this.theme().mode`) - so a context whose value is
-itself a signal or function isn't forced into `this.value()()`. The decorator registers a consumer and
-defines the property as a read-only getter over it.
-
-`@attribute()` and `@provide()` are typed to **store fields only** — applying them to a plain
-value is a compile error, and `@provide(key)` additionally checks the store's value type against
-the key's.
+`@attribute()` is typed to **store fields only** - applying it to a plain value is a compile error.
 
 ## Inheritance
 
-Registrations are inherited: a subclass sees its base class's `@attribute` / `@provide` / `@consume` fields. With
+Registrations are inherited: a subclass sees its base class's `@attribute` fields. With
 `defineElement`, call it for a **base class before its subclasses**.
 
 ## Rules
@@ -82,7 +69,7 @@ Registrations are inherited: a subclass sees its base class's `@attribute` / `@p
 ## Related reading
 
 - [`./attribute/README.md`](./attribute/README.md) — attributes, converters, reflection.
-- [`./context/README.md`](./context/README.md) - `@provide` / `@consume`.
+- [`std-ui-ext` context](../../../std-ui-ext/src/context/README.md) - `@provide` / `@consume` (add-on package).
 - [`./tag/README.md`](./tag/README.md) - `@tag` / `defineElement`.
 - [`./query/README.md`](./query/README.md) — queries.
 - [`./state/README.md`](./state/README.md) — reactive store fields.

@@ -1,6 +1,7 @@
 // Demonstrates: `createContextKey`, `@provide(key)` / `@consume(key)` (read) —
 // a descendant reads an ancestor's reactive value with no prop-drilling.
-import { tag, t, UIElement, consume, provide, createContextKey, state } from '../../../src/index.js';
+import { tag, t, UIElement, state } from '../../../src/index.js';
+import { consume, provide, createContextKey } from '../../../../std-ui-ext/src/index.js';
 
 interface Theme { mode: 'light' | 'dark'; }
 const ThemeKey = createContextKey<Theme>('demo-theme');
