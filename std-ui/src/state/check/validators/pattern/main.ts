@@ -1,5 +1,5 @@
 import type { ValidationError, Validator } from '../../main.js';
-import { flags } from '../../../flags.js';
+import { flags } from '../../../../signal/signal-state/flags.js';
 
 /** Fails when a non-empty string does not match `regex`. Empty and nullish values pass (use `required`). */
 export function pattern<T extends string | null | undefined = string>(

@@ -3,11 +3,11 @@
 // later) and returns the same tree typed with `check` on each node. Nothing is built until a
 // node's `check` is first read: it is a lazy getter, so nodes nobody validates cost nothing.
 
-import { computed, signal, type Computed, type Signal } from '../../core/index.js';
-import type { SignalArray } from '../array/index.js';
-import type { ValidityFlag } from '../flags.js';
-import { childEntries, extendTree, isTreeNode, type ItemNode, type TreeNode } from '../node.js';
-import type { SignalObject } from '../object/index.js';
+import { computed, signal, type Computed, type Signal } from '../../signal/core/index.js';
+import type { SignalArray } from '../../signal/signal-state/array/index.js';
+import type { ValidityFlag } from '../../signal/signal-state/flags.js';
+import { childEntries, extendTree, isTreeNode, type ItemNode, type TreeNode } from '../../signal/signal-state/node.js';
+import type { SignalObject } from '../../signal/signal-state/object/index.js';
 
 export interface ValidationError {
 	/** One of the well-known `flags` (the `ValidityState` flag names), e.g. `flags.tooShort`. */

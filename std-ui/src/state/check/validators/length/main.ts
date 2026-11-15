@@ -1,5 +1,5 @@
 import type { Validator } from '../../main.js';
-import { flags } from '../../../flags.js';
+import { flags } from '../../../../signal/signal-state/flags.js';
 
 type Sized = string | readonly unknown[] | null | undefined;
 

@@ -1,6 +1,6 @@
 // Shared contract between the tree's container nodes (./array, ./object) and their children.
 
-import type { PathError } from './check/index.js';
+import type { PathError } from '../../state/check/index.js';
 
 /**
  * Carried by every tree node: `node.with(feature)` calls `feature(node)` and returns its result, so

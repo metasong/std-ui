@@ -2,7 +2,7 @@ import { describe, expect, it } from 'vitest';
 import { effect } from '../effect/index.js';
 import { flushEffects } from '../effect/test-helpers.js';
 import { changes } from './changes/index.js';
-import { check } from './check/index.js';
+import { check } from '../../state/check/index.js';
 import { state } from './main.js';
 
 const data = () => ({ id: 1, user: { name: 'Ada', tags: ['a'] } });

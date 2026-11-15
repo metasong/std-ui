@@ -1,7 +1,7 @@
-import { signal } from '../../../../core/index.js';
+import { signal } from '../../../../signal/core/index.js';
 import type { ValidationError, Validator } from '../../main.js';
-import { deepEqual } from '../../../node.js';
-import { flags } from '../../../flags.js';
+import { deepEqual } from '../../../../signal/signal-state/node.js';
+import { flags } from '../../../../signal/signal-state/flags.js';
 
 type Result = ValidationError | readonly ValidationError[] | null | undefined | void;
 

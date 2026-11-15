@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
-import { signal } from '../../../../core/index.js';
-import { state } from '../../../main.js';
+import { signal } from '../../../../signal/core/index.js';
+import { state } from '../../../../signal/signal-state/main.js';
 import { check } from '../../main.js';
 import { asyncValidator } from './main.js';
 

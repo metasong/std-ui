@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { state } from '../../../main.js';
+import { state } from '../../../../signal/signal-state/main.js';
 import { check } from '../../main.js';
 import { email, pattern } from './main.js';
 

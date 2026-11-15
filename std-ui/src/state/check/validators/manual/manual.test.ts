@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
-import { flags } from '../../../flags.js';
-import { state } from '../../../main.js';
+import { flags } from '../../../../signal/signal-state/flags.js';
+import { state } from '../../../../signal/signal-state/main.js';
 import { check } from '../../main.js';
 import { manualValidator } from './main.js';
 

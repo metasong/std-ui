@@ -1,8 +1,8 @@
 import { describe, expect, it } from 'vitest';
-import { effect } from '../../effect/index.js';
-import { flushEffects } from '../../effect/test-helpers.js';
-import { state } from '../main.js';
-import { changes } from '../changes/index.js';
+import { effect } from '../../signal/effect/index.js';
+import { flushEffects } from '../../signal/effect/test-helpers.js';
+import { state } from '../../signal/signal-state/main.js';
+import { changes } from '../../signal/signal-state/changes/index.js';
 import { check, type Validator } from './main.js';
 
 const required: Validator<string> = (v) => (v ? undefined : { flag: 'valueMissing', message: 'Required' });
