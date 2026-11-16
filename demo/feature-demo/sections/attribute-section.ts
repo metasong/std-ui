@@ -21,7 +21,7 @@ export class DemoAttributeSection extends UIElement {
 				count=<code>${this.count()}</code>
 			</p>
 			<div class="demo-actions">
-				<button type="button" @click=${() => this.theme.set(this.theme() === 'light' ? 'dark' : 'light')}>toggle theme attribute</button>
+				<button type="button" @click=${() => this.theme.update(t => t === 'light' ? 'dark' : 'light')}>toggle theme attribute</button>
 				<button type="button" class="tonal" @click=${() => this.count.update(n => n + 1)}>increment count attribute</button>
 				<button type="button" class="text" @click=${() => this.expanded.set(!this.expanded())}>${this.expanded() ? 'hide' : 'show'} internal-only state</button>
 			</div>

@@ -4,7 +4,7 @@ import { tag, t, UIElement } from '../../../std-ui/src/index.js';
 import { state, computed } from '../../../std-ui/src/signal/index.js';
 
 const count = state(0);
-const label = computed(() => (count() === 1 ? 'click' : 'clicks'));
+const label = computed(() => (count() < 2 ? 'click' : 'clicks'));
 
 @tag('demo-counter-section')
 export class DemoCounterSection extends UIElement {
