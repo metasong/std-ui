@@ -8,7 +8,7 @@ export function toCssPropertyName(name: string): string {
 }
 
 /**
- * Mirrors lit-html's `styleMap` directive: sets/removes individual inline style properties via
+ * The `styleMap` directive: sets/removes individual inline style properties via
  * `el.style`, rather than recomputing the whole `style` attribute as a string. Keys may be
  * camelCase (`fontSize`) or kebab-case/custom properties (`font-size`, `--my-color`); values of
  * `null`/`undefined` remove that property, anything else is stringified.

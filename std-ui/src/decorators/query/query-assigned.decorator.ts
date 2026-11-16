@@ -1,5 +1,5 @@
 // `@queryAssignedNodes()` - read-only accessor over the content a parent projected into one of
-// this component's slots (mirrors lit's decorator of the same name; see `./query-assigned.decorator.md`).
+// this component's slots (see `./query-assigned.decorator.md`).
 //
 // - Shadow root: delegates to the native `<slot>.assignedNodes({ flatten })`.
 // - Light DOM (default): reads the content captured for the `slot()` directive (see

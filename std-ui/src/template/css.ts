@@ -1,9 +1,9 @@
-// A tiny subset of lit's `css` tagged template: lets stylesheets be written as
+// A tiny `css` tagged template: lets stylesheets be written as
 // `css\`...\`` literals, cached/shared as `CSSStyleSheet` objects, and adopted onto a shadow
 // root via `adoptedStyleSheets` (see `UIElement`'s `static styles`) instead of being re-parsed
 // from a `<style>` tag on every render.
 //
-// Usage mirrors lit:
+// Usage:
 //
 //   const buttonStyles = css`button { color: red; }`;
 //
@@ -13,7 +13,7 @@
 //     static override styles = buttonStyles; // or [sharedStyles, buttonStyles]
 //   }
 //
-// `css` values can be composed/nested like lit-html's `t`:
+// `css` values can be composed/nested like `t`:
 //
 //   const base = css`:host { display: block; }`;
 //   const theme = css`${base} button { color: var(--accent); }`;
@@ -53,7 +53,7 @@ const cssResultCache = new WeakMap<TemplateStringsArray, CSSResult>();
 /**
  * Tags a template literal as CSS. Interpolated values must themselves be `CSSResult`s (from
  * `css` or `unsafeCSS`) or plain numbers - arbitrary strings are rejected to avoid accidentally
- * splicing untrusted/dynamic text into a stylesheet (the same guard lit's `css` applies). Use
+ * splicing untrusted/dynamic text into a stylesheet (a standard guard). Use
  * `unsafeCSS()` to explicitly opt out of that check.
  */
 export function css(strings: TemplateStringsArray, ...values: Array<CSSResult | number>): CSSResult {

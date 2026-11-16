@@ -1,12 +1,12 @@
-// A tiny, app-agnostic subset of lit-html's design: tagged-template HTML with fine-grained,
+// A tiny, app-agnostic tagged-template HTML design: tagged-template HTML with fine-grained,
 // in-place DOM updates - no vdom diffing, no full re-parse/re-render per update.
 //
-// Usage mirrors lit-html:
+// Usage:
 //
 //   const result = t`<div class=${cls}>${label}</div>`;
 //   render(result, container);
 //
-// How it works (same core trick as lit-html):
+// How it works (core trick):
 //  1. `t` just captures `strings`/`values` - no DOM work happens yet. Tagged template calls
 //     reuse the *same* `strings` array object across repeated calls at the same call site (this is
 //     guaranteed by the JS spec), so it doubles as a cache key.
@@ -22,10 +22,10 @@
 //     Unchanged values are skipped when each part can tell nothing changed (e.g. `Object.is` on
 //     `.`/ `?` bindings, string equality on composed attributes, committer reuse in child positions).
 //
-// What's intentionally left out, vs. real lit-html: most lit directives (built-ins include `bind`,
+// What's intentionally left out, as a deliberate scope choice: most directives (built-ins include `bind`,
 // `classMap`, `styleMap`, `mapByKey`, `virtualize`, `html` (raw markup child directive) - see `./directives/` and
 // `./index.js` exports, though `directive.ts`'s `Directive`/`directive()`/`PartType` - modeled on
-// lit-html's own - is the generic extension point for more), and MathML template handling. Plain attributes (no
+// the base class - is the generic extension point for more), and MathML template handling. Plain attributes (no
 // `?`/`.`/`@` sigil) do support multi-expression/mixed-static values like `class="${a} ${b}"` or `class="static-${x}"`; the
 // `?`/`.`/`@`-prefixed kinds don't, since they bind a real JS value rather than a string - each
 // must be a single bare interpolation, e.g. `?hidden=${v}`. SVG is supported via `svg()` below,

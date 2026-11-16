@@ -3,7 +3,7 @@
 When state changes, `UIElement` calls `template()` again and gets a **new** `TemplateResult` each
 time. That sounds like a full re-render, but it usually is not: the engine reuses the existing DOM
 and only patches **values** that changed. This document explains that contract — the same idea
-[lit-html](https://lit.dev/docs/templates/expressions/) calls out, wired through std-ui's
+the template engine calls out, wired through std-ui's
 `UIElement` and `render()`.
 
 If you already use signals + `t` from [`signal-drives-html.md`](./signal-drives-html.md), you
@@ -128,7 +128,7 @@ t`
 - Inner `` t`...` `` inside `.map` → one `strings` for every `<li>...</li>`, shared across
   iterations.
 - List changes (add/remove/reorder) update rows **by index** — no keyed reconciliation (see
-  [`../template/html.md`](../template/html.md#limitations-vs-real-lit-html)).
+  [`../template/html.md`](../template/html.md#limitations)).
 
 Prefer **conditional values** inside one template over **conditional templates** when you want to
 keep a single call site:

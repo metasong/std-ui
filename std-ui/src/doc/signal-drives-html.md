@@ -3,7 +3,7 @@
 std-ui pairs two ideas that stay useful on their own but work especially well together:
 
 1. **Signals** — fine-grained reactivity (`state`, `computed`, `effect`, or app-shaped state like `appState`).
-2. **`t` + `render`** — lit-html-style tagged templates that patch the DOM in place instead of rebuilding it.
+2. **`t` + `render`** — Tagged templates that patch the DOM in place instead of rebuilding it.
 
 Wiring them up gives you declarative UI that updates surgically: when state changes, only the DOM nodes and attributes whose bound values actually changed are touched. No virtual DOM, no full `innerHTML` refresh on every tick.
 

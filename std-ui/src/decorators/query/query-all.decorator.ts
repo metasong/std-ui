@@ -4,7 +4,7 @@ import { queryElements } from './query-functions.js';
 
 /**
  * Read-only field that resolves to `this.renderRoot.querySelectorAll(selector)` every time it's read - always
- * a fresh, live-at-read-time `NodeList`, never cached (matching `lit`'s `@queryAll()`).
+ * a fresh, live-at-read-time `NodeList`, never cached.
  *
  * ```ts
  * @queryAll('li') items!: NodeListOf<HTMLLIElement>;

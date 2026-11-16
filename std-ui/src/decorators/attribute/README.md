@@ -5,7 +5,7 @@ kept in sync with an HTML attribute via the platform's custom-element mechanism
 (`observedAttributes` / `attributeChangedCallback`) — not `MutationObserver` or polling.
 
 By default, sync is **attribute → property** only; **property → attribute** is opt-in with
-`reflect: true` (same default as `lit`).
+`reflect: true`.
 
 For implementation details, see [`design.md`](./design.md). Shared registration mechanism:
 [`../design.md`](../design.md).
@@ -62,12 +62,12 @@ Leave the field a plain [`state()`](../state/README.md) (no decorator) for field
 |---|---|---|
 | `name` | kebab-case of the field name | Attribute name to parse from / reflect to. This is what `@property()`'s `attribute` option was — there is no `false` case: leave a field undecorated for store-only fields. |
 | `type` | inferred from the field's initial value | Selects the *default* converter (see below). Ignored if `converter` is given. |
-| `reflect` | `false` | Whether JS writes (`.set()`) also update the host attribute. When `false`, sync is attribute → property only (like `lit`). |
+| `reflect` | `false` | Whether JS writes (`.set()`) also update the host attribute. When `false`, sync is attribute → property only. |
 | `converter` | — | Custom `{ fromAttribute, toAttribute }`, overriding `type`'s default. |
 
 ## `type` conversions
 
-`type` takes the constructor (`String`, `Number`, `Boolean`, `Object`, `Array`), matching `lit` —
+`type` takes the constructor (`String`, `Number`, `Boolean`, `Object`, `Array`)
 a hint for the default converter, not a runtime `typeof` check. If omitted (and no `converter`),
 the converter is **inferred from the field's initial value** at first-instance construction
 (`inferAttributeType()` in [`converter.ts`](./converter.ts)) — so `@attribute() count = state(0)` matches

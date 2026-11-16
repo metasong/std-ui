@@ -22,7 +22,7 @@ do not buy DOM reuse (see [`design.md`](./design.md)).
 
 ## Example — sortable list with stable rows
 
-Lit’s `repeat()` demo sorts todos and keeps each row’s checkbox with its item. The same idea in
+A keyed-repeat demo sorts todos and keeps each row’s checkbox with its item. The same idea in
 std-ui: a `UIElement` with `@state()`, `mapByKey` keyed by `id`, and a sort that assigns a **new**
 array (in-place `.sort()` does not notify `@state()`).
 

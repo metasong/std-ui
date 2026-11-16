@@ -42,7 +42,7 @@ export class EventPart implements Part, EventListenerObject {
 			: undefined;
 		this.#listener = listener;
 		// The part itself is the one registered listener (stable identity), so swapping handlers
-		// between renders needs no remove/add, and `this` inside a handler is the host (like lit).
+		// between renders needs no remove/add, and `this` inside a handler is the host.
 		if (listener && !this.#attached) {
 			this.el.addEventListener(this.name, this, this.#options);
 			this.#attached = true;

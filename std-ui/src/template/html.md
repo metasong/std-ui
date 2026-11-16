@@ -1,6 +1,6 @@
 # `html.ts` usage
 
-A tiny, app-agnostic subset of [lit-html](https://lit.dev/docs/libraries/standalone-templates/)'s
+A tiny, app-agnostic subset of the template engine's
 design: tagged-template HTML with fine-grained, in-place DOM updates. No vdom diffing, no
 re-parsing or re-rendering the whole subtree on every update - only the values that actually
 changed touch the DOM.
@@ -91,7 +91,7 @@ Child content accepts:
 - `null` / `undefined` / `false` → renders nothing (clears any previous content).
 - Another `t` result → rendered as a nested template, diffed independently.
 - `html(markup)` → parses `markup` as HTML and inserts the resulting nodes directly (the one
-  escape hatch for already-HTML strings, e.g. an SVG icon loaded via `?raw` - mirrors lit-html's
+  escape hatch for already-HTML strings, e.g. an SVG icon loaded via `?raw`
   `html` directive). Caller is responsible for the markup being trusted. Itself a built-in
   **directive** (see [Directives](#directives) below) bound to the child position.
 - An array of any of the above → rendered as a sibling list (not keyed - see Limitations).
@@ -114,7 +114,7 @@ t`
 
 Neither `AttributePart` nor `ChildPart` (in `parts/`) has built-in knowledge of any specific
 directive. Instead both recognize one generic protocol, defined in `directive.ts` and modeled on
-lit-html's [custom directives](https://lit.dev/docs/templates/custom-directives/) (trimmed to the
+Custom directives (trimmed to the
 two binding kinds this engine actually produces - a bare attribute binding, or a child-content
 position; no async/`ElementPart`/boolean-attribute/property/event directives):
 
@@ -145,7 +145,7 @@ export abstract class Directive {
 export function directive<C extends new (partInfo: PartInfo) => Directive>(Ctor: C): (...args: DirectiveArgs<C>) => DirectiveResult;
 ```
 
-`PartType` mirrors lit-html's full split (`ChildPart`/`AttributePart`/`BooleanAttributePart`/
+`PartType` full split (`ChildPart`/`AttributePart`/`BooleanAttributePart`/
 `EventPart`/`PropertyPart`/`ElementPart`) so a directive can check `partInfo.type`/`part.type`.
 `ATTRIBUTE` and `CHILD` are the two kinds actually dispatched to directives right now (by
 `AttributePart`/`ChildPart` respectively) - the union has room to grow if more binding kinds gain
@@ -158,11 +158,11 @@ result, array, `null`/`undefined`/`false`, or another directive's own wrapper, e
 `html()`'s) for a child position. `noChange` is the one value both recognize the same way:
 "I already applied my update myself - do nothing further."
 
-Three lifecycle hooks, same roles as lit-html's:
+Three lifecycle hooks, roles:
 
 - `constructor(partInfo)` - one-time setup, run only the first time a directive is used at a given
   position. Validate `partInfo.type`/`partInfo.name` here if the directive only supports certain
-  bindings (e.g. "must be the `class` attribute") - same idea as lit-html's own `classMap`.
+  bindings (e.g. "must be the `class` attribute").
 - `render(...args)` - declarative: return the value to commit (a string, or `null`/`undefined` to
   remove the attribute). Implement this for a directive with no need to touch the DOM directly.
 - `update(part, ...args)` - imperative: called on every render *instead of* `render()`, with
@@ -363,7 +363,7 @@ placeholders, `literals` / `valueCount`, and the “rewind” trick for `class="
 For how this interacts with **`UIElement`** (signal-driven `template()` re-runs, nested templates,
 and when the fast path is lost), see [`../doc/saved-ui-rerendering.md`](../doc/saved-ui-rerendering.md).
 
-## Limitations (vs. real lit-html)
+## Limitations
 
 - **Plain arrays are positional** (not keyed). For keyed lists use the built-in `mapByKey()` directive.
 - **Small built-in directive set** (`classMap`, `styleMap`, `mapByKey`, `html`, …) - no `ref`,

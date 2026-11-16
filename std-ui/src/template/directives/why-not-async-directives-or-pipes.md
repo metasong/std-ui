@@ -3,7 +3,7 @@
 Frameworks often expose **async in templates** as either:
 
 - an **async pipe** that subscribes to an `Observable` / `Promise` and updates the view when values arrive (Angular’s `AsyncPipe`), or
-- an **async directive** that holds subscription state inside the binding and re-renders when the latest value changes (patterns in some lit-html extensions).
+- an **async directive** that holds subscription state inside the binding and re-renders when the latest value changes.
 
 std-ui does **not** ship either. Async work is bridged **once** into the signal graph with [`toSignal`](../../signal/to-signal/README.md) and [`toSignalFrom`](../../signal/to-signal/README.md#reactive-sources-tosignalfromfactory-options), then templates read ordinary signals in `` t`...` `` — the same path as `@state()`, `computed()`, and DOM-driven updates.
 

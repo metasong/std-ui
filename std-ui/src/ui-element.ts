@@ -64,7 +64,7 @@ export abstract class UIElement extends HTMLElement {
 
 	/**
 	 * Styles shared by every instance of this class, written with `css` (see `./template/css.ts`) -
-	 * mirrors lit's `static styles`. `:host` selects the component root either way (the shadow
+	 * is a static `styles` field. `:host` selects the component root either way (the shadow
 	 * host, or - rewritten to `:scope` under the hood - the matched custom element in light DOM).
 	 *
 	 * - Shadow root (`static shadowRootOptions` set): adopted via `adoptedStyleSheets` - cheap,
@@ -180,7 +180,7 @@ export abstract class UIElement extends HTMLElement {
 	}
 
 	/**
-	 * The render effect body: runs `template()` and renders it. Private; NOT lit's public
+	 * The render effect body: runs `template()` and renders it. Private; Not a public API.
 	 * `requestUpdate()`. To re-render, write a signal - see `./doc/why-no-request-update.md`.
 	 */
 	#requestUpdate() {

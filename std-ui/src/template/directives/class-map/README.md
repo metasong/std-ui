@@ -1,7 +1,7 @@
 # `classMap` — `class` attribute directive
 
 Built-in **attribute directive**: applies class toggles via `classList` instead of stringifying a
-whole `class` attribute on every render. Mirrors lit-html's `classMap`, trimmed to this engine's
+whole `class` attribute on every render. The `classMap`, trimmed to this engine's
 needs.
 
 ```ts

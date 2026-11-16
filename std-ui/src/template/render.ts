@@ -39,7 +39,7 @@ export function unmount(container: Element | DocumentFragment): void {
 
 /**
  * Renders `result` into `container`, reusing the previous render's DOM/parts whenever `result` comes
- * from the same tagged-template call site (same `strings` identity) - matching lit-html's contract
+ * from the same tagged-template call site (same `strings` identity) - per the usual tagged-template contract
  * that only *values* need to be diffed, not structure.
  */
 export function render(

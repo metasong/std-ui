@@ -35,7 +35,7 @@ export interface AttributeOptions<V = unknown> {
 	/**
 	 * Whether writing the property (from JS) also reflects back onto the host attribute - the
 	 * property → attribute direction (see `../ui-element.ts`'s `connectedCallback`). Defaults to
-	 * `false`, matching `lit`: the attribute → property direction (parsing a set/changed attribute
+	 * `false`: the attribute → property direction (parsing a set/changed attribute
 	 * into the property, via `attributeChangedCallback`) always works; only the opposite direction
 	 * needs to be explicitly opted into with `reflect: true`.
 	 */

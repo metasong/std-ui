@@ -45,7 +45,7 @@ Default `equals`:
 - Native `.value` on `<input>` / `<textarea>` / `<select>` → string compare.
 - Everything else → `Object.is`.
 
-This is Lit's `live` on the **down** path; the **up** path is driven by the event.
+This is a `live`-style binding on the **down** path; the **up** path is driven by the event.
 
 ## Defaults by element
 

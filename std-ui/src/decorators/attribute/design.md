@@ -52,7 +52,7 @@ needs the attribute *name*.
 ## `converter.ts`
 
 Pure functions and the default converter table - no decorator or DOM coupling. Boolean conversion is
-**presence-based**, aligned with template `?attr`. Object/Array use JSON with lit-aligned empty
+**presence-based**, aligned with template `?attr`. Object/Array use JSON with empty
 fallbacks; `toAttribute` returns `''` for falsy values so the attribute stays present.
 
 ## `observedAttributes`

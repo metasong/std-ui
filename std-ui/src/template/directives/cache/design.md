@@ -76,7 +76,7 @@ between `#start` and `anchor`, or its stash.
 ## Lifecycle
 
 - **Switching** does not call `disconnect()` on stashed parts: their directives stay connected and keep their
-  state, matching lit.
+  state.
 - **`disconnect()`** (enclosing template removed, DOM left in place) disconnects parts of every cached entry.
 - **`dispose()`** disconnects, detaches, clears `#entries`, and removes `#start`.
 - **Constructor** — `partInfo.type === PartType.CHILD`, else throw.

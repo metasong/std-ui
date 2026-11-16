@@ -1,17 +1,16 @@
 # Why no public `requestUpdate()`?
 
-lit's `requestUpdate()` marks an element dirty and queues an update. It exists because lit cannot
-see plain field mutations (an in-place `array.push`, a non-reactive field, external state).
+A `requestUpdate()` marks an element dirty and queues an update. It exists because it cannot`nsee plain field mutations (an in-place `array.push`, a non-reactive field, external state).
 
 `UIElement` does not expose one. Rendering is driven by signals: `template()` runs inside an
 effect, so any signal it reads re-renders the element (batched in one microtask).
 
-> `UIElement#requestUpdate` (private, `ui-element.ts`) is **not** lit's `requestUpdate()`. It is the
+> `UIElement#requestUpdate` (private, `ui-element.ts`) is **not** a public `requestUpdate()`. It is the
 > function the render effect runs: it calls `template()` and renders the result.
 
 ## Use instead
 
-| lit | std-ui |
+| Typical lifecycle | std-ui |
 |---|---|
 | `this.count++; ` (reactive property) | `this.count.set(n)` / `this.count.update(fn)` |
 | mutate array/object, then `requestUpdate()` | `state` / `this.field.deep()` tree writes, or `.set()` a new value |
@@ -22,7 +21,7 @@ Why not add it:
 
 - Mutating a plain field then forcing a render bypasses the signal graph. `computed()`s and
   `effect()`s reading the same data would not update.
-- It encourages the lit habit of untracked state instead of signals.
+- It encourages the habit of untracked state instead of signals.
 
 ## If you really need to force a render
 

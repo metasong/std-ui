@@ -1,15 +1,14 @@
 # Why no `willUpdate` / `updated` / `shouldUpdate`?
 
-lit runs every update through a fixed pipeline and passes a `changedProperties` map to hooks:
-`shouldUpdate -> willUpdate -> render -> updated`. That pipeline exists because lit cannot see which
-values `render()` reads.
+Frameworks often run every update through a fixed pipeline and passes a `changedProperties` map to hooks:
+`shouldUpdate -> willUpdate -> render -> updated`. That pipeline exists because they cannot see which`nvalues `render()` reads.
 
 `UIElement` does not copy it. `template()` runs inside a signal effect, so the reactive graph already
 knows what each piece of UI depends on. See also [`why-no-request-update.md`](./why-no-request-update.md).
 
 ## Lifecycle mapping
 
-| lit | std-ui | Notes |
+| Typical lifecycle | std-ui | Notes |
 |---|---|---|
 | `connectedCallback` | `connect()` | Runs on first connect only (`#connected` guard). |
 | `disconnectedCallback` | `disconnect()` | Runs on every disconnect. |
@@ -82,4 +81,4 @@ with a cached template. If one piece of UI should update on its own, bind a sign
 ## If this is not enough
 
 When a case needs per-signal work strictly after the DOM update, add one small primitive (for
-example `this.afterRender(fn)`) instead of porting lit's three hooks.
+example `this.afterRender(fn)`) instead of adding three hooks.

@@ -5,7 +5,7 @@ Built-in **property directive** for `.name=${bind(...)}` bindings. Combines:
 1. **Model → view** with **live** semantics (skip writing when the element already shows the model).
 2. **View → model** via a DOM event listener (no separate `@input` / `@change` in the template).
 
-Roughly “Angular two-way on one property,” with Lit-style `live` on the down direction only.
+Roughly “Angular two-way on one property,” with `live`-style behavior on the down direction only.
 
 ```ts
 import { t, bind, state, tag, UIElement } from 'std-ui';

@@ -231,7 +231,7 @@ export function createEngine<D extends SlotDescriptor, Part, Type extends string
 
 			// 2. Tag slot - it belongs to the tag itself, with no attribute name: `<div ${directive()}>`.
 			//    Not allowed: an unquoted attribute value (`<div a=${x}>`), or hooks without `onTagSlot`.
-			// 1b. Unquoted attribute slot (lit-style): `<div class=${x}>` - exactly one interpolation,
+			// 1b. Unquoted attribute slot: `<div class=${x}>` - exactly one interpolation,
 			//     closed immediately. A quoted placeholder is emitted so the parser sees a valid attribute.
 			const unquoted = UNQUOTED_ATTR_RE.exec(markup);
 			if (unquoted) {

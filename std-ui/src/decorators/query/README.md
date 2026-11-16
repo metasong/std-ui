@@ -1,7 +1,7 @@
 # `@query()` / `@queryAll()` / `@queryAsync()` — querying rendered DOM from a field
 
 Three read-only field decorators for `UIElement` (see `../../ui-element.ts`) subclasses, mirroring
-`lit`'s decorators of the same names: each turns a field into a live `querySelector`/
+Decorators where each turns a field into a live `querySelector`/
 `querySelectorAll` lookup against **`this.renderRoot`** — the host element for light-DOM components
 (default), or `shadowRoot` when the subclass sets `static shadowRootOptions`.
 
@@ -105,7 +105,7 @@ See [`../../ui-element.ts`](../../ui-element.ts) (`shadowRootOptions`, `renderRo
 @queryAll('li') rows!: NodeListOf<HTMLLIElement>;
 ```
 
-Always a fresh `querySelectorAll(selector)` result - no caching option, matching `lit`'s
+Always a fresh `querySelectorAll(selector)` result - no caching option's
 `@queryAll()`. A `NodeList` is already a cheap live-ish snapshot; re-querying is the only way to
 see additions/removals after the one you first read.
 

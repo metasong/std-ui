@@ -22,7 +22,7 @@ It has two layers:
 
 ## Non-goals
 
-- Unquoted attribute values (`a=${x}`, `.prop=${x}`, `@click=${h}`) are supported, lit-style: exactly one interpolation, no static text.
+- Unquoted attribute values (`a=${x}`, `.prop=${x}`, `@click=${h}`) are supported: exactly one interpolation, no static text.
 - Interpolation inside tag names, comments or `<script>`/`<style>` bodies is not supported.
 - The engine does not render or update. That is the job of parts.
 

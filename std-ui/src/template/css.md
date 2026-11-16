@@ -1,6 +1,6 @@
 # `css.ts` / `static styles` — usage and design
 
-A tiny subset of lit's [`css`](https://lit.dev/docs/components/styles/) tagged template: write
+A tiny `css` tagged template: write
 stylesheets as `css...` literals instead of strings, so they're cacheable, composable, and -
 via `UIElement`'s `static styles` - applied as real `CSSStyleSheet`s (shared across instances)
 rather than re-parsed from a `<style>` tag embedded in `template()` on every render.
@@ -27,7 +27,7 @@ class ThemedButton extends UIElement {
   `replaceSync`.
 - Interpolated values must themselves be `CSSResult`s (nested `css`/`unsafeCSS`) or plain numbers —
   arbitrary strings are rejected (`TypeError`) to avoid accidentally splicing untrusted/dynamic text
-  into a stylesheet, the same guard lit's own `css` applies:
+  into a stylesheet:
 
   ```ts
   const radius = css`4px`;
@@ -35,7 +35,7 @@ class ThemedButton extends UIElement {
   css`button { color: ${userInput}; }`; // throws - use unsafeCSS() to opt in explicitly
   ```
 - `unsafeCSS(value)` wraps an arbitrary value (stringified) as a trusted `CSSResult`, for the rare
-  case of CSS text loaded or computed at runtime (mirrors lit-html's `unsafeHTML`).
+  case of CSS text loaded or computed at runtime.
 - Like `t`, a literal with **no interpolations** is cached (keyed by the literal's `strings`
   identity - the same object every time that exact call site runs) - calling the same zero-arg
   `css\`...\`` repeatedly returns the exact same `CSSResult`, so its `CSSStyleSheet` is only ever

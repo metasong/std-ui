@@ -1,6 +1,6 @@
 import { Directive, directive, noChange, PartType, type ElementPartInfo, type PartInfo } from '../../directive.js';
 
-/** Holder for a rendered element, filled in by `ref()`. Mirrors lit's `Ref`. */
+/** Holder for a rendered element, filled in by `ref()`. The `Ref`. */
 export interface Ref<T extends Element = Element> {
 	/** The element once rendered; `undefined` before the first render and after teardown. */
 	value?: T;
@@ -18,8 +18,8 @@ export function createRef<T extends Element = Element>(): Ref<T> {
 }
 
 /**
- * `ref` directive: gives access to the element it is bound to, same contract as lit's `ref()`
- * (https://lit.dev/docs/templates/directives/#ref). Bound on the element itself, no attribute name:
+ * `ref` directive: gives access to the element it is bound to
+ *. Bound on the element itself, no attribute name:
  *
  *   const input = createRef<HTMLInputElement>();
  *   t`<input ${ref(input)}>`;          // input.value is the element after render

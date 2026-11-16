@@ -3,7 +3,7 @@
 // metadata concerns - so it can be read/tested in isolation from *how* a field ends up calling it.
 
 /**
- * `lit`-style type hint for the *default* attribute <-> property conversion: the JS constructor
+ * type hint for the *default* attribute <-> property conversion: the JS constructor
  * the property's value conceptually is, not a runtime `typeof`/`instanceof` check. Defaults to
  * `String`. Pass an explicit `converter` (below) instead of (or alongside) `type` for anything
  * these five defaults don't cover - `type` just selects which default converter applies when no
@@ -18,7 +18,7 @@ export type AttributeType =
 
 /**
  * Explicit, fully custom attribute <-> property conversion for one `@attribute()` field - same
- * shape as `lit`'s `converter` option. Supplying this overrides whatever default converter `type`
+ * shape of the `converter` option. Supplying this overrides whatever default converter `type`
  * would otherwise select.
  */
 export interface AttributeConverter<V = unknown> {
@@ -57,7 +57,7 @@ const booleanConverter: AttributeConverter<boolean> = {
  * it back, falling back to `emptyValue` (`{}` / `[]`) when the attribute is absent or unparsable.
  * `toAttribute` deliberately returns `''` (present-but-empty), not `null` (removed), for a falsy
  * value, so the attribute always reflects *some* JSON text once the property has ever been set -
- * matching `lit`'s own `Object`/`Array` converter convention.
+ * as the default convention.
  */
 function jsonConverter<V>(emptyValue: V): AttributeConverter<V> {
 	return {
@@ -69,7 +69,7 @@ function jsonConverter<V>(emptyValue: V): AttributeConverter<V> {
 	};
 }
 
-/** `type` -> default `AttributeConverter`, keyed by the constructor identity `lit` itself uses. */
+/** `type` -> default `AttributeConverter`, keyed by constructor identity. */
 const defaultConverters = new Map<AttributeType, AttributeConverter<unknown>>([
 	[String, stringConverter],
 	[Number, numberConverter],

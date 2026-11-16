@@ -1,7 +1,7 @@
 # `styleMap` — `style` attribute directive
 
 Built-in **attribute directive**: sets inline style properties via `el.style` instead of
-stringifying the whole `style` attribute on every render. Mirrors lit-html's `styleMap`, trimmed to
+stringifying the whole `style` attribute on every render. The `styleMap`, trimmed to
 this engine's needs.
 
 ```ts

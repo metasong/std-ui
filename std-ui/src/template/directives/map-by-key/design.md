@@ -1,6 +1,6 @@
 # `mapByKey` — internal design
 
-Keyed list rendering for child positions (similar to lit's `repeat`, under an explicit name). For
+Keyed list rendering for child positions (under an explicit name). For
 usage and API, see [`README.md`](./README.md).
 
 ## Module split

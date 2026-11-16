@@ -3,8 +3,8 @@
 // by `AttributePart`, or text/template/array-diffed by `ChildPart`). This is the only extension
 // point `AttributePart`/`ChildPart` know about - neither has built-in knowledge of any specific
 // directive (`classMap`, `styleMap`, `html`, or anything else); all of that lives in each
-// directive's own module under `./directives/`. Mirrors lit-html's `Directive`/`directive()` pair (see
-// https://lit.dev/docs/templates/custom-directives/), trimmed to the two binding kinds this engine
+// directive's own module under `./directives/`. The `Directive`/`directive()` pair (see
+// trimmed to the two binding kinds this engine
 // actually produces (no async/`ElementPart`/boolean-attribute/property/event directives).
 
 const directiveTag = Symbol('directiveResult');
@@ -26,14 +26,14 @@ export const noChange: unique symbol = Symbol('noChange');
 export type DirectiveReturn = unknown;
 
 /**
- * Mirrors lit-html's `PartType` - which *kind* of template expression a directive is bound to, so a
+ * The `PartType` - which *kind* of template expression a directive is bound to, so a
  * directive can check `partInfo.type`/`part.type` (see `Directive`'s constructor and `update()`
  * below) and throw if used somewhere it doesn't support, e.g. `classMap` requiring `ATTRIBUTE` +
  * `name === 'class'`, or `html` requiring `CHILD` (see `directives/html/unsafe-html.ts`). `ATTRIBUTE` and
  * `CHILD` are the two kinds this engine actually dispatches to directives (see `AttributePart`/
  * `ChildPart` in `parts/`); this stays a full union so the shape has room to grow if
  * `BooleanAttributePart`/`EventPart`/`PropertyPart`/`ElementPart` gain directive support later,
- * same as lit-html's.
+ * standard.
  */
 export const PartType = {
 	ATTRIBUTE: 'attribute',
@@ -47,7 +47,7 @@ export type PartType = (typeof PartType)[keyof typeof PartType];
 
 /** Metadata + live DOM access for a plain `name=${...}` attribute binding. Passed to a
  *  `Directive`'s constructor (as `PartInfo`, for one-time validation) and to `update()` (as
- *  `Part`, for imperative DOM access) - see `Directive` below. In lit-html these are distinct
+ *  `Part`, for imperative DOM access) - see `Directive` below. These are distinct
  *  interfaces (`PartInfo` is metadata-only; `Part` adds live DOM refs); they're unified here since
  *  this engine never needs metadata without the live part. */
 export interface AttributePartInfo {
@@ -118,7 +118,7 @@ export type Part = AttributePartInfo | ChildPartInfo | PropertyPartInfo | Elemen
  * at that same position - so instance fields are exactly where to keep "what did I do last time"
  * state (e.g. `classMap`'s previously-added classes).
  *
- * Three lifecycle hooks, same roles as lit-html's:
+ * Three lifecycle hooks, roles:
  *
  * - `constructor(partInfo)` - one-time setup, run only the first time this directive is used at a
  *   given position. Receives metadata about where it's bound; useful for validating it's being
@@ -213,7 +213,7 @@ export function isDirectiveResult(value: unknown): value is DirectiveResult {
  * Turns a `Directive` subclass into the callable directive function consumers actually use in a
  * template, e.g. `directive(HelloDirective)` -> `hello`, used as `` t`...${hello('Ada')}...` ``.
  * The returned function's parameters are inferred from whichever of `render()`/`update()` the
- * subclass gave a concrete signature (see `DirectiveArgs`) - mirrors lit-html's rule that "the
+ * subclass gave a concrete signature (see `DirectiveArgs`) - rule that "the
  * parameters defined for the render() method determine the signature of the directive function",
  * extended to also work for directives that only override `update()`.
  *
