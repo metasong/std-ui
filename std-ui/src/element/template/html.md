@@ -361,7 +361,7 @@ placeholders, `literals` / `valueCount`, and the “rewind” trick for `class="
    `.update(value)` on each already-bound `Part`, which no-ops on `Object.is`-equal values.
 
 For how this interacts with **`UIElement`** (signal-driven `template()` re-runs, nested templates,
-and when the fast path is lost), see [`../../doc/saved-ui-rerendering.md`](../../doc/saved-ui-rerendering.md).
+and when the fast path is lost), see [`../../../doc/saved-ui-rerendering.md`](../../../doc/saved-ui-rerendering.md).
 
 ## Limitations
 

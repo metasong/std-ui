@@ -67,7 +67,7 @@ class SortableChores extends UIElement {
 
 With `${this.chores.deep().map(...)}` instead, the same sort would reorder labels but leave each checkbox
 on its *index*, not its chore. **Run it:** browser demo — [`../../../../../demo/README.md`](../../../../../demo/README.md) (`npm run demo`, section **Keyed lists**).
-Vitest walkthrough — [`../../../../doc/map-by-key-sort.example.test.ts`](../../../../doc/map-by-key-sort.example.test.ts) (`npm test -- map-by-key-sort.example`).
+Vitest walkthrough — [`../../../../../doc/map-by-key-sort.example.test.ts`](../../../../../doc/map-by-key-sort.example.test.ts) (`npm test -- map-by-key-sort.example`).
 
 ## When to use `mapByKey` vs a plain array
 
@@ -95,4 +95,4 @@ Use a **plain array** when the list only grows or shrinks at the end and order i
 - [`../html.md`](../html.md#directives) — writing custom directives.
 - [`map-by-key.test.ts`](./map-by-key.test.ts) / [`../directives.test.ts`](../directives.test.ts) — tests.
 - [`../../../../../demo/README.md`](../../../../../demo/README.md) — interactive demo (`npm run demo`).
-- [`../../../../doc/map-by-key-sort.example.test.ts`](../../../../doc/map-by-key-sort.example.test.ts) — sortable chore list (Vitest).
+- [`../../../../../doc/map-by-key-sort.example.test.ts`](../../../../../doc/map-by-key-sort.example.test.ts) — sortable chore list (Vitest).

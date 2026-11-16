@@ -15,10 +15,10 @@ Guides for the library under `src/` (`signal/`, `template/`, `ui-element.ts`):
 | `styleMap` | [`src/template/directives/style-map/README.md`](./src/template/directives/style-map/README.md) · [design](./src/template/directives/style-map/design.md) |
 | Component fields (`state`, `@attribute`, `defineElement`) | [`src/decorators/README.md`](./src/decorators/README.md) · [design](./src/decorators/design.md) |
 | Context (add-on, moved) | see the [std-ui-ext](../std-ui-ext/README.md) package |
-| **Signals driving template render** (end-to-end) | [`src/doc/signal-drives-html.md`](./src/doc/signal-drives-html.md) |
-| **Saved re-rendering** (`strings` identity, `UIElement` updates) | [`src/doc/saved-ui-rerendering.md`](./src/doc/saved-ui-rerendering.md) |
+| **Signals driving template render** (end-to-end) | [`doc/signal-drives-html.md`](./doc/signal-drives-html.md) |
+| **Saved re-rendering** (`strings` identity, `UIElement` updates) | [`doc/saved-ui-rerendering.md`](./doc/saved-ui-rerendering.md) |
 
-The [`src/doc/signal-drives-html.example.test.ts`](./src/doc/signal-drives-html.example.test.ts) file is the runnable counterpart to the guide: it exercises the same patterns under Vitest so the examples stay honest as the library evolves.
+The [`doc/signal-drives-html.example.test.ts`](./doc/signal-drives-html.example.test.ts) file is the runnable counterpart to the guide: it exercises the same patterns under Vitest so the examples stay honest as the library evolves.
 
 **Browser demo:** [`demo/README.md`](./demo/README.md) — `npm run demo` from this package (Vite, port 5174).
 

@@ -181,7 +181,7 @@ export abstract class UIElement extends HTMLElement {
 
 	/**
 	 * The render effect body: runs `template()` and renders it. Private; Not a public API.
-	 * `requestUpdate()`. To re-render, write a signal - see `./doc/why-no-request-update.md`.
+	 * `requestUpdate()`. To re-render, write a signal - see `doc/why-no-request-update.md`.
 	 */
 	#requestUpdate() {
 		const result = this.template?.();

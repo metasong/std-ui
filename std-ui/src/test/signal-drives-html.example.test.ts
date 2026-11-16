@@ -1,6 +1,6 @@
 /**
  * Executable documentation for signal-drives-html.md — Patterns A, B, and C.
- * Run: npm test -- src/std-ui/src/doc/signal-drives-html.example.test.ts
+ * Run: npm test -- doc/signal-drives-html.example.test.ts
  */
 import { describe, expect, it, vi } from 'vitest';
 import { tag, UIElement } from '../element/ui-element.js';
