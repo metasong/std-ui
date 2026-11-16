@@ -5,7 +5,7 @@
 //
 // A `Binding` (`./resolve.ts`) describes both sides; this file only wires them to the element.
 
-import { Directive, directive, noChange, type DirectiveResult, type PartInfo, type PropertyPartInfo } from '../../directive.js';
+import { Directive, directive, noChange, type DirectiveResult, type PartInfo, type PropertyPartInfo } from '../directive.js';
 import { PartType } from '../../parts/part.js';
 import { assertBindableTarget, isRadio } from './defaults.js';
 import { pullRadioSiblings, registerRadio, unregisterRadio } from './radio-group.js';

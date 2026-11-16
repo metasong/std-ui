@@ -32,7 +32,7 @@ Design notes: [`design.md`](./design.md).
 ## Related reading
 
 - [`design.md`](./design.md) — implementation (`StyleMapDirective`, `toCssPropertyName()`).
-- [`../../directive.ts`](../../directive.ts) — `Directive` / `directive()` protocol.
+- [`../directive.ts`](../directive.ts) — `Directive` / `directive()` protocol.
 - [`../../html/html.md`](../../html/html.md#directives) — binding kinds and custom directives.
 - [`../class-map/README.md`](../class-map/README.md) — sibling `classMap` directive.
 - [`../README.md`](../README.md) — index of built-in directives.

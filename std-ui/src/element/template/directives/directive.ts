@@ -26,7 +26,7 @@ export const noChange: unique symbol = Symbol('noChange');
 export type DirectiveReturn = unknown;
 
 // `PartType` lives in `parts/part.ts` (shared with the compiler); re-exported for directive authors.
-import { PartType } from './parts/part.js';
+import { PartType } from '../parts/part.js';
 
 /** Metadata + live DOM access for a plain `name=${...}` attribute binding. Passed to a
  *  `Directive`'s constructor (as `PartInfo`, for one-time validation) and to `update()` (as

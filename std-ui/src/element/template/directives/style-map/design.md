@@ -12,7 +12,7 @@ Implementation of the built-in `style` attribute directive. Usage: [`README.md`]
 | [`../index.ts`](../index.ts) | Public re-export with other directives. |
 | [`../directives.test.ts`](../directives.test.ts) | End-to-end tests through `t()` / `render()`. |
 
-Dispatch is generic — see [`../../directive.ts`](../../directive.ts).
+Dispatch is generic — see [`../directive.ts`](../directive.ts).
 
 ## Why `update()`, not `render()`
 
@@ -45,6 +45,6 @@ on elements that support inline `style`).
 
 - [`README.md`](./README.md) — public API.
 - [`../class-map/`](../class-map/) — `classMap` (same protocol, `classList`).
-- [`../../directive.ts`](../../directive.ts) — `Directive`, `PartType`, `noChange`, `staticText`.
+- [`../directive.ts`](../directive.ts) — `Directive`, `PartType`, `noChange`, `staticText`.
 - [`../map-by-key/design.md`](../map-by-key/design.md) — child directive using `commitWith()`.
 - [`../html/`](../html/) — `html()` child directive.

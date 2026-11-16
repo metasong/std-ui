@@ -220,5 +220,5 @@ When each case is a different inner `` t`...` `` literal, changing `tab()` / `lo
 | Two-way form binding | `bind` | manual listeners + properties |
 
 If you need custom control flow with state across renders, implement a **child directive** via
-[`../directive.ts`](../directive.ts) and [`../html/html.md`](../html/html.md#directives) — not a fork of `if`
+[`./directive.ts`](./directive.ts) and [`../html/html.md`](../html/html.md#directives) — not a fork of `if`
 / `for` syntax inside the template literal.

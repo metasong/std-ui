@@ -1,4 +1,4 @@
-import { Directive, directive, noChange, type ElementPartInfo, type PartInfo } from '../../directive.js';
+import { Directive, directive, noChange, type ElementPartInfo, type PartInfo } from '../directive.js';
 import { PartType } from '../../parts/part.js';
 
 /** Holder for a rendered element, filled in by `ref()`. The `Ref`. */

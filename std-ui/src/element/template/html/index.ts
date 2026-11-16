@@ -24,7 +24,7 @@
 //
 // What's intentionally left out, as a deliberate scope choice: most directives (built-ins include `bind`,
 // `classMap`, `styleMap`, `mapByKey`, `virtualize`, `html` (raw markup child directive) - see `./directives/` and
-// `./index.js` exports, though `directive.ts`'s `Directive`/`directive()`/`PartType` - modeled on
+// `./index.js` exports, though `directives/directive.ts`'s `Directive`/`directive()`/`PartType` - modeled on
 // the base class - is the generic extension point for more), and MathML template handling. Plain attributes (no
 // `?`/`.`/`@` sigil) do support multi-expression/mixed-static values like `class="${a} ${b}"` or `class="static-${x}"`; the
 // `?`/`.`/`@`-prefixed kinds don't, since they bind a real JS value rather than a string - each
@@ -33,7 +33,7 @@
 // own) meant to be interpolated as a child of an existing `<svg>` element.
 //
 // This module ties the pieces (compilation, parts, rendering) together; see sibling modules for
-// each concern: `../compiler/`, `../parts/`, `./render.ts`, `../directive.ts`.
+// each concern: `../compiler/`, `../parts/`, `./render.ts`, `../directives/directive.ts`.
 
 /** The result of calling `t`/`svg` - inert until passed to `render()`. */
 export interface TemplateResult {

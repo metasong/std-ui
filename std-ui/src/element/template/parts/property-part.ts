@@ -1,4 +1,4 @@
-import { applyDirective, isDirectiveResult, noChange, type Directive, type PropertyPartInfo } from '../directive.js';
+import { applyDirective, isDirectiveResult, noChange, type Directive, type PropertyPartInfo } from '../directives/directive.js';
 import { PartType, type Modifier, type Part, warnIgnoredModifiers } from './part.js';
 
 /** A store-valued field (`state(...)`) is written through its `.set()`; plain assignment would replace the store itself. */

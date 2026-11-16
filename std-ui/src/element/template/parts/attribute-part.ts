@@ -1,4 +1,4 @@
-import { applyDirective, isDirectiveResult, noChange, type AttributePartInfo, type Directive } from '../directive.js';
+import { applyDirective, isDirectiveResult, noChange, type AttributePartInfo, type Directive } from '../directives/directive.js';
 import { PartType, type Modifier, type Part, warnIgnoredModifiers } from './part.js';
 
 /**
@@ -14,11 +14,11 @@ export class AttributePart implements Part {
 	#committed: string | null | undefined;
 	/** The `Directive` instance bound here, if a `directive()`-made value was ever applied to this
 	 *  position; reused across renders (so it can keep its own state) as long as the same directive
-	 *  function keeps being used - see `directive.ts`. Keyed by that value's index among this
+	 *  function keeps being used - see `directives/directive.ts`. Keyed by that value's index among this
 	 *  attribute's interpolations, since an attribute mixing static text with a directive (see
 	 *  `#applyWithStaticText` below) may in principle hold more than one. */
 	#directives: Array<Directive | undefined> = [];
-	/** This position's `AttributePartInfo`, built once and handed to directives - see `directive.ts`. */
+	/** This position's `AttributePartInfo`, built once and handed to directives - see `directives/directive.ts`. */
 	#partInfo: AttributePartInfo;
 	constructor(
 		private readonly el: Element,

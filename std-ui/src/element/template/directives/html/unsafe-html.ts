@@ -1,4 +1,4 @@
-import { Directive, directive, type PartInfo } from '../../directive.js';
+import { Directive, directive, type PartInfo } from '../directive.js';
 import { PartType } from '../../parts/part.js';
 import { Committer, commitWith } from '../../parts/committers/index.js';
 

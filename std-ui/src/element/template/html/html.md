@@ -113,7 +113,7 @@ t`
 ## Directives
 
 Neither `AttributePart` nor `ChildPart` (in `parts/`) has built-in knowledge of any specific
-directive. Instead both recognize one generic protocol, defined in `directive.ts` and modeled on
+directive. Instead both recognize one generic protocol, defined in `directives/directive.ts` and modeled on
 Custom directives (trimmed to the
 two binding kinds this engine actually produces - a bare attribute binding, or a child-content
 position; no async/`ElementPart`/boolean-attribute/property/event directives):

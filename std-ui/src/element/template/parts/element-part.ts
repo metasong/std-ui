@@ -1,4 +1,4 @@
-import { applyDirective, isDirectiveResult, type Directive, type ElementPartInfo } from '../directive.js';
+import { applyDirective, isDirectiveResult, type Directive, type ElementPartInfo } from '../directives/directive.js';
 import { PartType, type Part } from './part.js';
 
 /** <div ${directive()}>: an interpolation in an opening tag with no attribute name. Only

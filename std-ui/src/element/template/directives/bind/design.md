@@ -25,7 +25,7 @@ Everything else is defaulting: given `(element, property)`, which `event`, `equa
 | [`index.ts`](./index.ts) | Public exports. |
 | [`bind.test.ts`](./bind.test.ts) | Tests through `t()` / `render()`. |
 
-Related: [`../../parts/property-part.ts`](../../parts/property-part.ts) (`PropertyPart` directive dispatch), [`../../directive.ts`](../../directive.ts) (`PropertyPartInfo`).
+Related: [`../../parts/property-part.ts`](../../parts/property-part.ts) (`PropertyPart` directive dispatch), [`../directive.ts`](../directive.ts) (`PropertyPartInfo`).
 
 ## Why a property directive
 

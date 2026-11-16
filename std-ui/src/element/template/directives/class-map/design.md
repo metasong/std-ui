@@ -13,7 +13,7 @@ Implementation of the built-in `class` attribute directive. Usage: [`README.md`]
 | [`../directives.test.ts`](../directives.test.ts) | End-to-end tests through `t()` / `render()`. |
 
 `main.ts` does not import `../../parts/` or `../../compile.ts`; dispatch is generic — see
-[`../../directive.ts`](../../directive.ts).
+[`../directive.ts`](../directive.ts).
 
 ## Why `update()`, not `render()`
 
@@ -45,4 +45,4 @@ flowchart LR
 
 - [`README.md`](./README.md) — public API.
 - [`../style-map/`](../style-map/) — `styleMap` (same protocol, `el.style`).
-- [`../../directive.ts`](../../directive.ts) — `Directive`, `PartType`, `noChange`, `staticText`.
+- [`../directive.ts`](../directive.ts) — `Directive`, `PartType`, `noChange`, `staticText`.

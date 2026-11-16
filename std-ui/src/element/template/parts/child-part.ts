@@ -1,5 +1,5 @@
 import { isTemplateResult } from '../html/index.js';
-import { applyDirective, isDirectiveResult, noChange, type ChildPartInfo, type Directive } from '../directive.js';
+import { applyDirective, isDirectiveResult, noChange, type ChildPartInfo, type Directive } from '../directives/directive.js';
 import { PartType } from './part.js';
 import type { Part } from './part.js';
 import {
@@ -26,9 +26,9 @@ export class ChildPart implements Part {
 	readonly valueCount = 1;
 	#committer: Committer<any> | undefined;
 	/** The `Directive` instance bound here, if a `directive()`-made value (e.g. `html()`) was
-	 *  ever applied to this position; reused across renders - see `directive.ts`. */
+	 *  ever applied to this position; reused across renders - see `directives/directive.ts`. */
 	#directive: Directive | undefined;
-	/** This position's `ChildPartInfo`, built once and handed to directives - see `directive.ts`. */
+	/** This position's `ChildPartInfo`, built once and handed to directives - see `directives/directive.ts`. */
 	#partInfo: ChildPartInfo;
 	constructor(private readonly anchor: Comment, private readonly host?: unknown) {
 		this.#partInfo = { type: PartType.CHILD, anchor };

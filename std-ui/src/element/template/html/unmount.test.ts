@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { Directive, directive } from '../directive.js';
+import { Directive, directive } from '../directives/directive.js';
 import { t } from './index.js';
 import { render, unmount } from './render.js';
 

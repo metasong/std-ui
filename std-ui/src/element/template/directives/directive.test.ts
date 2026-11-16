@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { Directive, applyDirective, directive, isDirectiveResult, noChange, type Part } from './directive.js';
-import { PartType } from './parts/part.js';
+import { PartType } from '../parts/part.js';
 
 function attributePart(el: Element, name: string): Part {
 	return { type: PartType.ATTRIBUTE, element: el, name };

@@ -12,7 +12,7 @@ Index of built-in template directives. Each folder has its own README (and usual
 | `bind` | [`bind/README.md`](./bind/README.md) · [design](./bind/design.md) |
 | `virtualize` | [`virtualize/README.md`](./virtualize/README.md) · [design](./virtualize/design.md) |
 
-Shared protocol: [`../directive.ts`](../directive.ts). How to write a custom directive:
+Shared protocol: [`./directive.ts`](./directive.ts). How to write a custom directive:
 [`../html/html.md`](../html/html.md#directives).
 
 **No `if` / `for` / `switch` directives** — use JS (`? :`, `map`, `switch`) and
