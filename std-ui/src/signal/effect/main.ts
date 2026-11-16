@@ -5,7 +5,17 @@
 import { CycleGuard } from '../../dev/effect-cycle-guard.js';
 import { runTracked, sourcesChanged, subscribe, unsubscribe, Watcher } from '../core/tracking.js';
 
-/** Call inside an `effect()` body to register cleanup that runs before the next re-run, and on dispose. */
+/**
+ * Call inside an `effect()` body to register cleanup that runs before the next re-run, and on dispose.
+ *
+ * Design notes:
+ * - Registration (not a returned function, not a 2nd `effect` argument) so the cleanup closes over
+ *   locals created in the run (e.g. a timer id) and can be registered conditionally.
+ * - May be called multiple times per run; every cleanup is kept (nothing is overwritten).
+ * - Cleanups run in reverse order (LIFO), so resources are released opposite to acquisition.
+ * - If a cleanup throws, the remaining ones still run; the first error is rethrown afterwards.
+ * - Cleanups registered in a run apply only to that run; the list resets before each re-run.
+ */
 export type OnCleanup = (cleanup: () => void) => void;
 
 /** Watchers pending a (microtask-batched) re-run. */
@@ -51,15 +61,32 @@ export function effect(
 	monitoredAction: (onCleanup: OnCleanup) => void,
 	afterAction: (() => void) | null = null
 ): () => void {
-	let cleanup: (() => void) | undefined;
+	// Cleanups registered during the current run. `onCleanup` may be called any number of times; they
+	// run in reverse registration order (like a stack / `defer`), so later resources that depend on
+	// earlier ones are released first.
+	let cleanups: Array<() => void> = [];
 	let disposed = false;
 
 	const runCleanup = (): void => {
-		cleanup?.();
-		cleanup = undefined;
+		const fns = cleanups;
+		cleanups = [];
+		let failed = false;
+		let firstError: unknown;
+		for (let i = fns.length - 1; i >= 0; i--) {
+			try {
+				fns[i]();
+			} catch (err) {
+				// Keep going so one failing cleanup doesn't leak the rest; rethrow the first at the end.
+				if (!failed) {
+					failed = true;
+					firstError = err;
+				}
+			}
+		}
+		if (failed) throw firstError;
 	};
 	const onCleanup: OnCleanup = (fn: () => void) => {
-		cleanup = fn;
+		cleanups.push(fn);
 	};
 
 	// `rerun` does the actual work. Running it through `runTracked(watcher, ...)` re-arms the

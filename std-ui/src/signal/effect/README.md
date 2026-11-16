@@ -37,7 +37,8 @@ Returns `dispose()`: unsubscribes the effect, removes it from the pending flush 
 Call inside the effect body. `fn` runs **before the next re-run** and once more when you call `dispose()`.
 
 - Registration happens during the tracked body, but **running** cleanup happens **outside** `runTracked` (right before the next tracked run, or on dispose). Reads inside `fn` are **not** recorded as dependencies of this effect.
-- Only the **last** `onCleanup(...)` registered in a given run is kept (each call replaces the previous slot).
+- You can call `onCleanup` **multiple times** per run. All are kept and run in **reverse order** (LIFO). If one throws, the rest still run and the first error is rethrown afterwards. The list resets before each re-run.
+- Rationale and alternatives: [`cleanup-design.md`](./cleanup-design.md).
 
 Prefer `peek()` / `untrack()` in the main body when you need a value without subscribing. Cleanup is already outside this effect’s tracking window; if an outer `computed` / `effect` is active, reads in cleanup can still attach to that outer consumer.
 

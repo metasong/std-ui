@@ -92,6 +92,10 @@ dispose();
 - Call `onCleanup(fn)` inside the effect body to register teardown logic; it runs right before
   the next re-run and on `dispose()` (outside this effect’s tracked window — reads in `fn` are not
   dependencies).
+- `onCleanup` can be called **multiple times** per run; all registered cleanups are kept and run in
+  **reverse order** (LIFO), so resources are released opposite to how they were acquired.
+- If a cleanup throws, the remaining cleanups still run and the first error is rethrown afterwards.
+- Design rationale: [`../effect/cleanup-design.md`](../effect/cleanup-design.md).
 
 ## How dependency tracking works
 
