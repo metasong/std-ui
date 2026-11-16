@@ -11,7 +11,7 @@ keyed list reconciliation, use **`mapByKey`**; otherwise **`Array#map`** (or any
 is enough.
 
 For how child bindings treat `null` / `false` / `undefined`, nested `` t`...` ``, and list diffing, see
-[`../html/html.md`](../html/html.md#logic-conditionals-and-lists).
+[`../tag-funcs/html/html.md`](../tag-funcs/html/html.md#logic-conditionals-and-lists).
 
 `@state()` / `@attribute()` fields are their backing stores: read with `this.field()` inside
 `template()` (so the render effect tracks changes), write with `this.field.set(...)` or
@@ -220,5 +220,5 @@ When each case is a different inner `` t`...` `` literal, changing `tab()` / `lo
 | Two-way form binding | `bind` | manual listeners + properties |
 
 If you need custom control flow with state across renders, implement a **child directive** via
-[`./directive.ts`](./directive.ts) and [`../html/html.md`](../html/html.md#directives) — not a fork of `if`
+[`./directive.ts`](./directive.ts) and [`../tag-funcs/html/html.md`](../tag-funcs/html/html.md#directives) — not a fork of `if`
 / `for` syntax inside the template literal.

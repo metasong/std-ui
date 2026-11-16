@@ -79,4 +79,4 @@ On each `update(values)`: a `DirectiveResult` goes through `applyDirective` (a `
 - [`README.md`](./README.md) — public API and event table.
 - [`../README.md`](../README.md) — index of built-in directives.
 - [`../class-map/design.md`](../class-map/design.md) / [`../style-map/design.md`](../style-map/design.md) — attribute directive pattern.
-- [`../../html/html.md`](../../html/html.md#directives) — binding kinds and extension points.
+- [`../../tag-funcs/html/html.md`](../../tag-funcs/html/html.md#directives) — binding kinds and extension points.

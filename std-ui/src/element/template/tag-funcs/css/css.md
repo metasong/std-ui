@@ -6,7 +6,7 @@ via `UIElement`'s `static styles` - applied as real `CSSStyleSheet`s (shared acr
 rather than re-parsed from a `<style>` tag embedded in `template()` on every render.
 
 ```ts
-import { css, tag, UIElement } from '../../index.js';
+import { css, tag, UIElement } from '../../../index.js';
 
 const buttonStyles = css`
 	:host { display: inline-block; }
@@ -56,7 +56,7 @@ static override styles = [sharedTokens, layoutStyles, buttonStyles];
 
 Where the styles actually land depends on whether the component uses a shadow root
 (`static shadowRootOptions`) or renders into light DOM (the default) — see
-[`../../element-styles.ts`](../../element-styles.ts) for the implementation (`ElementStyles` class),
+[`../../../element-styles.ts`](../../../element-styles.ts) for the implementation (`ElementStyles` class),
 summarized here:
 
 | Render root | Mechanism | Scoping |
@@ -121,7 +121,7 @@ const styles = css`:host { display: block; } button { color: red; }`;
 ## `ElementStyles`
 
 One instance per `UIElement`, created alongside its render root (see `#ensureRenderRoot()` in
-[`../ui-element.ts`](../ui-element.ts)). It exists to hold the one piece of *per-instance* state
+[`../../ui-element.ts`](../../ui-element.ts)). It exists to hold the one piece of *per-instance* state
 styling needs to track:
 
 - `apply(renderRoot, tagName, styles)` — does the work described in the table above, once.
@@ -138,9 +138,9 @@ ElementStyles()`.
 ## Related reading
 
 - [`index.ts`](./index.ts) — `css`/`unsafeCSS`/`CSSResult`/`flattenCSSResults`/`flattenCSSText`/`hostSelectorsToScope`.
-- [`../../element-styles.ts`](../../element-styles.ts) — `ElementStyles`, consumed by `UIElement`.
-- [`../../ui-element.ts`](../../ui-element.ts) — `static styles`, `#ensureRenderRoot()`, `#requestUpdate()`.
+- [`../../../element-styles.ts`](../../../element-styles.ts) — `ElementStyles`, consumed by `UIElement`.
+- [`../../../ui-element.ts`](../../../ui-element.ts) — `static styles`, `#ensureRenderRoot()`, `#requestUpdate()`.
 - [`../html/html.md`](../html/html.md) — the analogous usage/design doc for `t`/`render` (the templating half
   of this same "tagged template, cached by call site" family of tricks).
-- [`css.test.ts`](./css.test.ts) / [`../../element-styles.test.ts`](../../element-styles.test.ts) /
-  [`../../ui-element.test.ts`](../../ui-element.test.ts) — behavior tests.
+- [`css.test.ts`](./css.test.ts) / [`../../../element-styles.test.ts`](../../../element-styles.test.ts) /
+  [`../../../ui-element.test.ts`](../../../ui-element.test.ts) — behavior tests.

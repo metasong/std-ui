@@ -1,4 +1,4 @@
-import type { TemplateResult } from '../../html/index.js';
+import type { TemplateResult } from '../../tag-funcs/html/index.js';
 import { getTemplate, instantiate } from '../../compiler/index.js';
 import { type Part, updateParts } from '../part.js';
 import { Committer } from './committer.js';

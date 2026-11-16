@@ -92,7 +92,7 @@ Use a **plain array** when the list only grows or shrinks at the end and order i
 
 - [`design.md`](./design.md) — module layout, `MapByKeyCommitter`, `commitWith()` protocol.
 - [`../directive.ts`](../directive.ts) — generic `Directive` / `directive()` protocol.
-- [`../html/html.md`](../html/html.md#directives) — writing custom directives.
+- [`../../tag-funcs/html/html.md`](../../tag-funcs/html/html.md#directives) — writing custom directives.
 - [`map-by-key.test.ts`](./map-by-key.test.ts) / [`../directives.test.ts`](../directives.test.ts) — tests.
 - [`../../../../../demo/README.md`](../../../../../demo/README.md) — interactive demo (`npm run demo`).
 - [`../../../../../doc/map-by-key-sort.example.test.ts`](../../../../../doc/map-by-key-sort.example.test.ts) — sortable chore list (Vitest).

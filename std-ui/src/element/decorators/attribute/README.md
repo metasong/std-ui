@@ -85,7 +85,7 @@ the converter is **inferred from the field's initial value** at first-instance c
 |---|---|---|---|
 | `String` | raw string | `''` | `setAttribute(name, String(value))`; `value == null` removes it |
 | `Number` | `Number(value)` | `0` | `setAttribute(name, String(value))` |
-| `Boolean` | `true` (any text, including `""`) | `false` | present (empty string) if truthy, removed if falsy — same as `?attr` in [`../../template/html/html.md`](../../template/html/html.md) |
+| `Boolean` | `true` (any text, including `""`) | `false` | present (empty string) if truthy, removed if falsy — same as `?attr` in [`../../template/tag-funcs/html/html.md`](../../template/tag-funcs/html/html.md) |
 | `Object` / `Array` | `JSON.parse`, fallback `{}` / `[]` if unparsable | `{}` / `[]` | `JSON.stringify`; falsy value → `''` (present, not removed) |
 
 Pass `type` explicitly when inference is wrong — e.g. `null` initializer infers `String`; use
@@ -153,5 +153,5 @@ Leaf-level reactivity and whole-object `.set()` semantics: [`../state/README.md`
 - [`../tag/README.md`](../tag/README.md) - `@tag()` / `defineElement()`.
 - [`../README.md`](../README.md) / [`../design.md`](../design.md) — shared overview.
 - [`../../ui-element.ts`](../../ui-element.ts) — `tag()`, `attributeChangedCallback`.
-- [`../../template/html/html.md`](../../template/html/html.md) — `?attr` / `.prop` conventions.
+- [`../../template/tag-funcs/html/html.md`](../../template/tag-funcs/html/html.md) — `?attr` / `.prop` conventions.
 - [`attribute.test.ts`](./attribute.test.ts) — upgrade seeding, reflect, booleans, stacking.

@@ -196,5 +196,5 @@ From `src/std-ui`: `npm run demo` → [bind demo](../../../../../demo/feature-de
 
 - [`design.md`](./design.md) — `PropertyPart` dispatch, lifecycle, event defaults.
 - [`bind.test.ts`](./bind.test.ts) — behavior tests.
-- [`../../html/html.md`](../../html/html.md) — `.` property bindings.
+- [`../../tag-funcs/html/html.md`](../../tag-funcs/html/html.md) — `.` property bindings.
 - [`../directive.ts`](../directive.ts) — `PropertyPartInfo`, directive protocol.

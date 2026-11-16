@@ -4,7 +4,7 @@
  */
 import { describe, expect, it } from 'vitest';
 import { mapByKey } from '../element/template/directives/map-by-key/index.js';
-import { t } from '../element/template/html/index.js';
+import { t } from '../element/template/tag-funcs/html/index.js';
 import { tag, UIElement } from '../element/ui-element.js';
 import { state } from '../reactive/index.js';
 

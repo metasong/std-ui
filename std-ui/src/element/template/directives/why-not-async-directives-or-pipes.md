@@ -17,7 +17,7 @@ That keeps template bindings **synchronous**, matches the rest of the signal mod
 | Reactive reads | Template layer must know Promise vs Observable vs “latest value” | `computed()` and `template()` only see **current** signal values |
 | Signal-dependent sources | Another special case in the compiler or directive protocol | `toSignalFrom(() => …)` re-runs the factory when deps change |
 | Errors | Often swallowed or turned into empty UI unless the pipe has branches | Reads **throw** the error (Angular parity); branch in `template()` with try/catch in a `computed` wrapper, or guard before read |
-| Directive surface | Would require async/`ElementPart` plumbing we deliberately trim | Already documented as out of scope in [`../html/html.md`](../html/html.md#directives) |
+| Directive surface | Would require async/`ElementPart` plumbing we deliberately trim | Already documented as out of scope in [`../tag-funcs/html/html.md`](../tag-funcs/html/html.md#directives) |
 
 The template engine updates the DOM when **signals** (or other bound values) change. Promises and observables do not participate in that graph until they are mirrored into a signal. A pipe would be a thin wrapper around the same bridge — with worse lifetime rules if you call it from `template()` on every pass.
 

@@ -34,6 +34,6 @@ calls `classList.add` / `remove` for keys that changed.
 
 - [`design.md`](./design.md) — implementation (`ClassMapDirective`, `update()` vs `render()`).
 - [`../directive.ts`](../directive.ts) — `Directive` / `directive()` protocol.
-- [`../../html/html.md`](../../html/html.md#directives) — binding kinds and custom directives.
+- [`../../tag-funcs/html/html.md`](../../tag-funcs/html/html.md#directives) — binding kinds and custom directives.
 - [`../style-map/README.md`](../style-map/README.md) — sibling `styleMap` directive.
 - [`../README.md`](../README.md) — index of built-in directives.

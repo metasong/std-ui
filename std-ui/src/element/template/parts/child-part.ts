@@ -1,4 +1,4 @@
-import { isTemplateResult } from '../html/index.js';
+import { isTemplateResult } from '../tag-funcs/html/index.js';
 import { applyDirective, isDirectiveResult, noChange, type ChildPartInfo, type Directive } from '../directives/directive.js';
 import { PartType } from './part.js';
 import type { Part } from './part.js';

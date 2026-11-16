@@ -1,8 +1,8 @@
 import { describe, expect, it, vi } from 'vitest';
 import { tag, UIElement } from './ui-element.js';
 import { state } from '../reactive/state/index.js';
-import { t } from './template/html/index.js';
-import { css } from './template/css/index.js';
+import { t } from './template/tag-funcs/html/index.js';
+import { css } from './template/tag-funcs/css/index.js';
 
 interface State {
 	count: number;

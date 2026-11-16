@@ -128,7 +128,7 @@ t`
 - Inner `` t`...` `` inside `.map` → one `strings` for every `<li>...</li>`, shared across
   iterations.
 - List changes (add/remove/reorder) update rows **by index** — no keyed reconciliation (see
-  [`../element/template/html/html.md`](../src/element/template/html/html.md#limitations)).
+  [`../element/template/tag-funcs/html/html.md`](../src/element/template/tag-funcs/html/html.md#limitations)).
 
 Prefer **conditional values** inside one template over **conditional templates** when you want to
 keep a single call site:
@@ -207,9 +207,9 @@ re-rendering** = same fingerprint → same DOM nodes and `Part`s, update values 
 
 - [`signal-drives-html.md`](./signal-drives-html.md) — Patterns A/B/C: signals, `UIElement`,
   lifecycle, when to use `this.effect()` instead of whole-template updates.
-- [`../element/template/html/html.md`](../src/element/template/html/html.md) — bindings, `render()`, limitations, nested lists.
-- [`../element/template/html/index.ts`](../src/element/template/html/index.ts) — module header comment (design overview).
-- [`../element/template/html/render.ts`](../src/element/template/html/render.ts) — container fast path.
+- [`../element/template/tag-funcs/html/html.md`](../src/element/template/tag-funcs/html/html.md) — bindings, `render()`, limitations, nested lists.
+- [`../element/template/tag-funcs/html/index.ts`](../src/element/template/tag-funcs/html/index.ts) — module header comment (design overview).
+- [`../element/template/tag-funcs/html/render.ts`](../src/element/template/render.ts) — container fast path.
 - [`../element/ui-element.ts`](../src/element/ui-element.ts) — `#requestUpdate` and render effect wiring.
-- [`../element/template/html/html.test.ts`](../src/element/template/html/html.test.ts) — tests for `strings` identity across
+- [`../element/template/tag-funcs/html/html.test.ts`](../src/element/template/tag-funcs/html/html.test.ts) — tests for `strings` identity across
   calls at the same site.

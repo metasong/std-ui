@@ -5,8 +5,8 @@
 import { describe, expect, it, vi } from 'vitest';
 import { tag, UIElement } from '../element/ui-element.js';
 import { state, computed, effect } from '../reactive/index.js';
-import { t } from '../element/template/html/index.js';
-import { render } from '../element/template/html/render.js';
+import { t } from '../element/template/tag-funcs/html/index.js';
+import { render } from '../element/template/render.js';
 
 describe('doc: signals drive html render', () => {
 	it('Pattern A — effect + render patches DOM in place when signals change', async () => {

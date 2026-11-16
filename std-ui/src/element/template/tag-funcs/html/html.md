@@ -323,13 +323,13 @@ Switching to a *different* template literal (e.g. a different `if` branch return
 
 ## Using it in a `UIElement`
 
-`../ui-element.ts`'s `UIElement.template()` hook accepts either style: sync the DOM imperatively
+`../../ui-element.ts`'s `UIElement.template()` hook accepts either style: sync the DOM imperatively
 and return nothing (as existing components do), or return an `t` result and it's rendered into
 the element automatically - same hook, same schedule, your choice per component. Read whatever
 signal(s) you need directly inside `template()`:
 
 ```ts
-import { tag, t, UIElement } from '../../index.js';
+import { tag, t, UIElement } from '../../../index.js';
 
 @tag('hello-banner')
 class HelloBanner extends UIElement {
@@ -361,7 +361,7 @@ placeholders, `literals` / `valueCount`, and the “rewind” trick for `class="
    `.update(value)` on each already-bound `Part`, which no-ops on `Object.is`-equal values.
 
 For how this interacts with **`UIElement`** (signal-driven `template()` re-runs, nested templates,
-and when the fast path is lost), see [`../../../doc/saved-ui-rerendering.md`](../../../doc/saved-ui-rerendering.md).
+and when the fast path is lost), see [`../../../../doc/saved-ui-rerendering.md`](../../../../doc/saved-ui-rerendering.md).
 
 ## Limitations
 

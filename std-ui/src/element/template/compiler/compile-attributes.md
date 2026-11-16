@@ -258,6 +258,6 @@ flowchart LR
 
 ## Related
 
-- Overview for users: [html.md](../html/html.md) (binding table, limitations).
+- Overview for users: [html.md](../tag-funcs/html/html.md) (binding table, limitations).
 - Architecture: [design.md](./design.md).
 - Implementation comments at the top of `engine.ts` and its `ScanState` / `stepText` / `stepAttrValue` helpers.

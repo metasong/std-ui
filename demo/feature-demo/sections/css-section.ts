@@ -34,7 +34,7 @@ export class DemoCssChip extends UIElement {
 // Shared by every `demo-css-badge` instance too — but there's no shadow root to hold an
 // `adoptedStyleSheets` list, so this one sheet is instead adopted onto `document`, once per tag
 // name, wrapped in `@scope (demo-css-badge) { ... }`. `:host` is rewritten to `:scope` under the
-// hood so this literal reads the same either way — see `src/element/template/css/css.md`.
+// hood so this literal reads the same either way — see `src/element/template/tag-funcs/css/css.md`.
 const badgeStyles = css`
 	:host {
 		display: inline-block;

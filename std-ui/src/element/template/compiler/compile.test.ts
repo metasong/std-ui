@@ -1,6 +1,6 @@
 import { describe, expect, it, vi } from 'vitest';
 import { getTemplate, instantiate } from './compile.js';
-import { t, svg } from '../html/index.js';
+import { t, svg } from '../tag-funcs/html/index.js';
 import { updateParts } from '../parts/index.js';
 
 describe('getTemplate/instantiate', () => {

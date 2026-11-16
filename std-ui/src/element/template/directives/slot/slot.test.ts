@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
-import { t } from '../../html/index.js';
-import { render } from '../../html/render.js';
+import { t } from '../../tag-funcs/html/index.js';
+import { render } from '../../render.js';
 import { slot } from './index.js';
 import { snapshotLightChildren } from './slot-content.js';
 

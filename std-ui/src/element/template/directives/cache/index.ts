@@ -1,6 +1,6 @@
 import { Directive, directive, type PartInfo } from '../directive.js';
 import { getTemplate, instantiate } from '../../compiler/index.js';
-import { isTemplateResult, type TemplateResult } from '../../html/index.js';
+import { isTemplateResult, type TemplateResult } from '../../tag-funcs/html/index.js';
 import { Committer, commitWith } from '../../parts/committers/index.js';
 import { PartType, updateParts, type Part } from '../../parts/part.js';
 

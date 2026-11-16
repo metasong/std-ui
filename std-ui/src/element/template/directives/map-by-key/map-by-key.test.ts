@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { t } from '../../html/index.js';
+import { t } from '../../tag-funcs/html/index.js';
 import { AttributePart, ChildPart } from '../../parts/index.js';
 import { MapByKeyCommitter } from './map-by-key-committer.js';
 import { mapByKey } from './main.js';

@@ -6,7 +6,7 @@ import {
 	EventPart,
 	PropertyPart,
 } from './index.js';
-import { t } from '../html/index.js';
+import { t } from '../tag-funcs/html/index.js';
 import { html } from '../directives/html/index.js';
 import { Directive, directive, noChange } from '../directives/directive.js';
 import { classMap } from '../directives/class-map/index.js';

@@ -1,6 +1,6 @@
-export { t, svg, type TemplateResult } from './html/index.js';
+export { t, svg, type TemplateResult } from './tag-funcs/html/index.js';
 export { html } from './directives/html/index.js';
-export { render, unmount, disconnectRendered, type RenderOptions } from './html/render.js';
+export { render, unmount, disconnectRendered, type RenderOptions } from './render.js';
 export { Directive, directive, noChange, type Part, type PartInfo } from './directives/directive.js';
 export { PartType } from './parts/index.js';
 export {
@@ -11,4 +11,4 @@ export {
 	flattenCSSText,
 	hostSelectorsToScope,
 	type CSSResultGroup,
-} from './css/index.js';
+} from './tag-funcs/css/index.js';

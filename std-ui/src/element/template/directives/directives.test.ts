@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
-import { t } from '../html/index.js';
-import { render } from '../html/render.js';
+import { t } from '../tag-funcs/html/index.js';
+import { render } from '../render.js';
 import { classMap } from './class-map/index.js';
 import { mapByKey } from './map-by-key/index.js';
 import { styleMap } from './style-map/index.js';

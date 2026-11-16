@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { Directive, directive } from './directive.js';
 import { AttributePart, ChildPart } from '../parts/index.js';
-import { t } from '../html/index.js';
+import { t } from '../tag-funcs/html/index.js';
 
 let log: string[] = [];
 class Probe extends Directive {

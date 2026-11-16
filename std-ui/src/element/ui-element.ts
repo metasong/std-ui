@@ -63,7 +63,7 @@ export abstract class UIElement extends HTMLElement {
 	static shadowRootOptions?: ShadowRootInit;
 
 	/**
-	 * Styles shared by every instance of this class, written with `css` (see `./template/css/index.ts`) -
+	 * Styles shared by every instance of this class, written with `css` (see `./template/tag-funcs/css/index.ts`) -
 	 * is a static `styles` field. `:host` selects the component root either way (the shadow
 	 * host, or - rewritten to `:scope` under the hood - the matched custom element in light DOM).
 	 *
@@ -138,8 +138,8 @@ export abstract class UIElement extends HTMLElement {
 	/**
 	 * lifecycle hook: Called with the latest state (and once immediately on connect) to sync DOM to
 	 * `state`. Either sync the DOM imperatively (`querySelector`/`textContent`/... and return
-	 * nothing), or return an `t` (see `./template/html/index.js`) tagged-template result describing the
-	 * component's full markup - the diffing in `./template/html/index.js` will patch only what changed
+	 * nothing), or return an `t` (see `./template/tag-funcs/html/index.js`) tagged-template result describing the
+	 * component's full markup - the diffing in `./template/tag-funcs/html/index.js` will patch only what changed
 	 * since last time.
 	 */
 	protected template?(): TemplateResult | void;
