@@ -54,7 +54,16 @@ attributes) are ignored the same way.
 ### `class:` and `style:` entries
 
 `class:name=${bool}` toggles a single class and `style:prop=${value}` sets a single style
-property, without touching the rest of `class`/`style`. Use kebab-case for style properties;
+property, without touching the rest of `class`/`style`.
+
+```ts
+t`<button class="btn" class:active=${isActive} class:disabled=${!enabled}
+          style:color=${color} style:--gap=${gap} style:display=${visible && 'block'}>
+  Save
+</button>`;
+// isActive = true, enabled = true, color = 'red', gap = '4px', visible = false
+// -> <button class="btn active" style="color: red; --gap: 4px;">
+``` Use kebab-case for style properties;
 custom properties work (`style:--gap=${v}`). Like `?`/`.`/`@` bindings, each takes exactly one
 interpolation with no static text. `:arg` is only valid on `class` and `style`; any other
 `name:arg` throws at compile time. Prefer these over [`classMap`/`styleMap`](./directives/README.md)
