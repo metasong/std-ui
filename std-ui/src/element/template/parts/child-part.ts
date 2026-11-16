@@ -1,12 +1,6 @@
 import { isTemplateResult } from '../html/index.js';
-import {
-	applyDirective,
-	isDirectiveResult,
-	noChange,
-	PartType,
-	type ChildPartInfo,
-	type Directive,
-} from '../directive.js';
+import { applyDirective, isDirectiveResult, noChange, type ChildPartInfo, type Directive } from '../directive.js';
+import { PartType } from './part.js';
 import type { Part } from './part.js';
 import {
 	isCommitWith,

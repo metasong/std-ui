@@ -6,6 +6,22 @@
 
 import { DEV } from '../../../dev/index.js';
 
+/**
+ * The kind of template position a part is bound to. Single source of truth shared by the compiler
+ * (`PartDescriptor.kind`, which picks the `Part` class to build), each `Part` (its `PartInfo.type`)
+ * and directives, which check `partInfo.type` and throw if used somewhere they don't support, e.g.
+ * `classMap` requiring `ATTRIBUTE` + `name === 'class'`, or `html` requiring `CHILD`.
+ */
+export const PartType = {
+	ATTRIBUTE: 'attribute',
+	BOOLEAN_ATTRIBUTE: 'boolean-attribute',
+	PROPERTY: 'property',
+	EVENT: 'event',
+	CHILD: 'child',
+	ELEMENT: 'element',
+} as const;
+export type PartType = (typeof PartType)[keyof typeof PartType];
+
 /** A parsed `.name[:arg]` modifier from a binding name, e.g. `.once` or `.debounce:300`. */
 export interface Modifier {
 	name: string;

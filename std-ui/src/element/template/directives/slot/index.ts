@@ -1,4 +1,5 @@
-import { Directive, directive, PartType, type PartInfo } from '../../directive.js';
+import { Directive, directive, type PartInfo } from '../../directive.js';
+import { PartType } from '../../parts/part.js';
 import type { TemplateResult } from '../../html/index.js';
 import { Committer, commitWith, TemplateCommitter } from '../../parts/committers/index.js';
 import { DEV, assertSlotDirectiveInLightDom } from '../../../../dev/index.js';

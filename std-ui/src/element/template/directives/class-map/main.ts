@@ -1,4 +1,5 @@
-import { Directive, directive, noChange, PartType, type AttributePartInfo, type PartInfo } from '../../directive.js';
+import { Directive, directive, noChange, type AttributePartInfo, type PartInfo } from '../../directive.js';
+import { PartType } from '../../parts/part.js';
 
 /**
  * `classMap` directive: toggles individual classes on/off via `classList`,

@@ -21,7 +21,7 @@ describe('getTemplate/instantiate', () => {
 		const { strings } = t`<div id="${'x'}"></div>`;
 		const template = getTemplate(strings);
 		expect(template.parts).toHaveLength(1);
-		expect(template.parts[0]).toMatchObject({ kind: 'attr', name: 'id' });
+		expect(template.parts[0]).toMatchObject({ kind: 'attribute', name: 'id' });
 		// the marker attribute is stripped out of the parsed template entirely
 		const { fragment } = instantiate(template);
 		expect(fragment.querySelector('div')!.hasAttribute('id')).toBe(false);
@@ -31,8 +31,8 @@ describe('getTemplate/instantiate', () => {
 		const { strings } = t`<input ?disabled="${true}" .value="${'v'}" @click="${() => {}}" />`;
 		const template = getTemplate(strings);
 		expect(template.parts.map(p => [p.kind, p.name])).toEqual([
-			['bool', 'disabled'],
-			['prop', 'value'],
+			['boolean-attribute', 'disabled'],
+			['property', 'value'],
 			['event', 'click'],
 		]);
 	});
@@ -81,9 +81,9 @@ describe('getTemplate/instantiate', () => {
 		const { strings, values } = t`<div class:active="${true}" style:--gap=${'4px'} style:color="${'red'}"></div>`;
 		const template = getTemplate(strings);
 		expect(template.parts.map(p => [p.kind, p.name, p.arg])).toEqual([
-			['attr', 'class', 'active'],
-			['attr', 'style', '--gap'],
-			['attr', 'style', 'color'],
+			['attribute', 'class', 'active'],
+			['attribute', 'style', '--gap'],
+			['attribute', 'style', 'color'],
 		]);
 		const { fragment, parts } = instantiate(template);
 		updateParts(parts, values);
@@ -115,14 +115,14 @@ describe('getTemplate/instantiate', () => {
 	it('resolves descriptor order to match source order across mixed child/attribute bindings', () => {
 		const { strings } = t`<div id="${'a'}">${'b'}<span class="${'c'}"></span></div>`;
 		const template = getTemplate(strings);
-		expect(template.parts.map(p => p.kind)).toEqual(['attr', 'child', 'attr']);
+		expect(template.parts.map(p => p.kind)).toEqual(['attribute', 'child', 'attribute']);
 	});
 
 	it('supports multiple interpolations in one attribute value', () => {
 		const { strings, values } = t`<div class="${'a'}-${'b'}"></div>`;
 		const template = getTemplate(strings);
 		expect(template.parts).toHaveLength(1);
-		expect(template.parts[0]).toMatchObject({ kind: 'attr', name: 'class', valueCount: 2, literals: ['', '-', ''] });
+		expect(template.parts[0]).toMatchObject({ kind: 'attribute', name: 'class', valueCount: 2, literals: ['', '-', ''] });
 
 		const { fragment, parts } = instantiate(template);
 		updateParts(parts, values);
@@ -140,8 +140,8 @@ describe('getTemplate/instantiate', () => {
 		const { strings, values } = t`<div class="${'a'} ${'b'}" id="${'c'}"></div>`;
 		const template = getTemplate(strings);
 		expect(template.parts.map(p => [p.kind, p.name, p.valueCount])).toEqual([
-			['attr', 'class', 2],
-			['attr', 'id', 1],
+			['attribute', 'class', 2],
+			['attribute', 'id', 1],
 		]);
 
 		const { fragment, parts } = instantiate(template);

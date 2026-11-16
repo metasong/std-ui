@@ -25,25 +25,8 @@ export const noChange: unique symbol = Symbol('noChange');
  */
 export type DirectiveReturn = unknown;
 
-/**
- * The `PartType` - which *kind* of template expression a directive is bound to, so a
- * directive can check `partInfo.type`/`part.type` (see `Directive`'s constructor and `update()`
- * below) and throw if used somewhere it doesn't support, e.g. `classMap` requiring `ATTRIBUTE` +
- * `name === 'class'`, or `html` requiring `CHILD` (see `directives/html/unsafe-html.ts`). `ATTRIBUTE` and
- * `CHILD` are the two kinds this engine actually dispatches to directives (see `AttributePart`/
- * `ChildPart` in `parts/`); this stays a full union so the shape has room to grow if
- * `BooleanAttributePart`/`EventPart`/`PropertyPart`/`ElementPart` gain directive support later,
- * standard.
- */
-export const PartType = {
-	ATTRIBUTE: 'attribute',
-	BOOLEAN_ATTRIBUTE: 'boolean-attribute',
-	PROPERTY: 'property',
-	EVENT: 'event',
-	CHILD: 'child',
-	ELEMENT: 'element',
-} as const;
-export type PartType = (typeof PartType)[keyof typeof PartType];
+// `PartType` lives in `parts/part.ts` (shared with the compiler); re-exported for directive authors.
+import { PartType } from './parts/part.js';
 
 /** Metadata + live DOM access for a plain `name=${...}` attribute binding. Passed to a
  *  `Directive`'s constructor (as `PartInfo`, for one-time validation) and to `update()` (as

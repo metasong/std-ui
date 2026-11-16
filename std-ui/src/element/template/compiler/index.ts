@@ -1,5 +1,5 @@
 export { getTemplate, instantiate } from './compile.js';
-export type { PartKind, PartDescriptor, Template, TemplateType } from './compile.js';
+export type { PartDescriptor, Template, TemplateType } from './compile.js';
 export { createEngine } from './engine.js';
 export type {
 	SlotDescriptor,

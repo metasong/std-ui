@@ -1,8 +1,8 @@
-import { Directive, directive, PartType, type PartInfo } from '../../directive.js';
+import { Directive, directive, type PartInfo } from '../../directive.js';
 import { getTemplate, instantiate } from '../../compiler/index.js';
 import { isTemplateResult, type TemplateResult } from '../../html/index.js';
 import { Committer, commitWith } from '../../parts/committers/index.js';
-import { updateParts, type Part } from '../../parts/part.js';
+import { PartType, updateParts, type Part } from '../../parts/part.js';
 
 interface Entry {
 	parts: Part[];

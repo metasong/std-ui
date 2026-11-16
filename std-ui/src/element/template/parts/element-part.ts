@@ -1,5 +1,5 @@
-import { applyDirective, isDirectiveResult, PartType, type Directive, type ElementPartInfo } from '../directive.js';
-import { type Part } from './part.js';
+import { applyDirective, isDirectiveResult, type Directive, type ElementPartInfo } from '../directive.js';
+import { PartType, type Part } from './part.js';
 
 /** <div ${directive()}>: an interpolation in an opening tag with no attribute name. Only
  *  directives (e.g. ref) make sense here; falsy values (cond && ref(r)) are ignored. */

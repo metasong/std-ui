@@ -1,4 +1,5 @@
-import { Directive, directive, noChange, PartType, type AttributePartInfo, type PartInfo } from '../../directive.js';
+import { Directive, directive, noChange, type AttributePartInfo, type PartInfo } from '../../directive.js';
+import { PartType } from '../../parts/part.js';
 
 /** `fontSize` -> `font-size`; CSS custom properties (`--foo`) and already-kebab/lowercase names
  *  pass through unchanged, matching `CSSStyleDeclaration.setProperty`'s expectations. */
