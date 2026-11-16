@@ -63,5 +63,5 @@ export {
 } from './reactive/index.js';
 export { Committer, commitWith } from './element/template/parts/committers/index.js';
 export { AttributePart, ChildPart } from './element/template/parts/index.js';
-export { KeyedRows, type KeyedEntries } from './element/template/directives/keyed-rows/index.js';
+export { KeyedRows, type KeyedEntries } from './element/template/directives/_lib/keyed-rows/index.js';
 export { markTouched, trackTouched } from './touched.js';

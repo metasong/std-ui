@@ -18,7 +18,7 @@ virtualize/
     spacers.ts                the two hidden stand-in elements
     measure.ts                DOM -> RowModel: row sizes, pinned size, list top, auto estimate
     sticky-headers.ts         header index cache, active header, pinned row
-../keyed-rows/            KeyedRows: keyed range reconciliation, shared with mapByKey
+../_lib/keyed-rows/       KeyedRows: keyed range reconciliation, shared with mapByKey
 ```
 
 Dependencies flow one way: `virtualize-committer` uses the others; `measure`, `sticky-headers`,
