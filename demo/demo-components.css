@@ -43,17 +43,7 @@ body {
 	padding: 1.5rem 1.25rem 3rem;
 }
 
-demo-feature-page code-preview > * {
-	display: block;
-	background: var(--md-sys-color-surface-container-lowest);
-	border: 1px solid var(--md-sys-color-outline-variant);
-	border-radius: var(--md-shape-corner-medium);
-	box-shadow: var(--md-elevation-1);
-	margin: 0 0 1.25rem;
-	padding: 1.25rem 1.5rem;
-}
-
-demo-feature-page code-preview > * > h2 {
+code-preview > * > h2 {
 	margin: 0 0 0.5rem;
 	font-size: 1.25rem;
 	font-weight: 500;
@@ -61,14 +51,14 @@ demo-feature-page code-preview > * > h2 {
 	color: var(--md-sys-color-on-surface);
 }
 
-demo-feature-page code-preview > * > p.desc {
+code-preview > * > p.desc {
 	margin: 0 0 1rem;
 	font-size: 0.875rem;
 	line-height: 1.45;
 	color: var(--md-sys-color-on-surface-variant);
 }
 
-demo-feature-page code-preview > * code {
+code-preview > * code {
 	font-family: 'Roboto Mono', ui-monospace, monospace;
 	font-size: 0.85em;
 	background: var(--md-sys-color-surface-container-high);

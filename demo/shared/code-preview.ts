@@ -15,8 +15,9 @@ export class CodePreview extends UIElement {
 
 	static override styles = css`
 		:host {
-			display: block; margin-block: 1rem; overflow: hidden; container-type: inline-size;
-			border: 1px solid var(--md-sys-color-outline-variant, #cac4d0); border-radius: 12px;
+			display: block; margin-block: 0 1.25rem; overflow: hidden; container-type: inline-size;
+			background: var(--md-sys-color-surface-container-lowest, #fff); box-shadow: var(--md-elevation-1);
+			border: 1px solid var(--md-sys-color-outline-variant, #cac4d0); border-radius: var(--md-shape-corner-medium, 12px);
 		}
 		.bar { display: flex; align-items: center; border-bottom: 1px solid var(--md-sys-color-outline-variant, #cac4d0); }
 		.tabs { display: flex; flex: 1; min-width: 0; gap: 2px; overflow-x: auto; }
@@ -50,7 +51,8 @@ export class CodePreview extends UIElement {
 		.keyword { color: #7a2fbf; }
 		.number { color: #b3261e; }
 		.decorator { color: #9c4a00; }
-		.demo { padding: 1rem; border-top: 1px solid var(--md-sys-color-outline-variant, #cac4d0); min-width: 0; }
+		::slotted(*) { display: block; }
+		.demo { padding: 1.25rem 1.5rem; border-top: 1px solid var(--md-sys-color-outline-variant, #cac4d0); min-width: 0; }
 		/* Wide enough: code on the left, the rendered demo on the right. */
 		@container (min-width: 56rem) {
 			.layout { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); }
