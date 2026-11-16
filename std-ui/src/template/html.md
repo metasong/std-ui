@@ -26,10 +26,42 @@ Each `${...}` interpolation is bound based on *where* it appears in the markup:
 | `.`-prefixed attribute | `.value=${value}` | `el.value = value` (a JS property, not an HTML attribute) |
 | `@`-prefixed attribute | `@click=${handler}` | `el.addEventListener('click', handler)` |
 | `@`-prefixed attribute with modifiers | `@click.once.capture.passive=${handler}` | `el.addEventListener('click', handler, { once: true, capture: true, passive: true })` |
+| `class:` entry | `class:active=${on}` | `el.classList.toggle('active', Boolean(on))` |
+| `style:` entry | `style:color=${value}` | `el.style.setProperty('color', value)` (removed if `value` is `null`/`undefined`/`false`) |
 
-Event listeners accept `.capture`, `.once`, and `.passive` modifiers chained onto the event name
-(any order, any subset), mapped straight onto `addEventListener`'s options object - e.g.
-`@click.capture=${h}` or `@scroll.once.passive=${h}`. Unknown modifiers are silently ignored.
+### Event modifiers
+
+Chain modifiers onto the event name, in any order and any subset:
+
+| Modifier | Effect |
+|---|---|
+| `.capture`, `.once`, `.passive` | Passed to `addEventListener`'s options object, e.g. `@scroll.once.passive=${h}` |
+| `.prevent` | `event.preventDefault()` before the handler runs |
+| `.stop` | `event.stopPropagation()` before the handler runs |
+| `.stop-immediate` | `event.stopImmediatePropagation()`; also blocks later listeners on the same element |
+| `.self` | Skips events whose `target` isn't the element itself (ignores bubbled events from descendants) |
+
+```ts
+t`<form @submit.prevent=${save}>
+  <button @click.stop.once=${track}>Save</button>
+</form>`;
+```
+
+Unknown modifiers have no effect; in dev builds a one-time `console.warn` names the binding and
+the modifier. Modifiers on a binding kind that takes none (`?hidden.foo`, `.value.bar`, plain
+attributes) are ignored the same way.
+
+### `class:` and `style:` entries
+
+`class:name=${bool}` toggles a single class and `style:prop=${value}` sets a single style
+property, without touching the rest of `class`/`style`. Use kebab-case for style properties;
+custom properties work (`style:--gap=${v}`). Like `?`/`.`/`@` bindings, each takes exactly one
+interpolation with no static text. `:arg` is only valid on `class` and `style`; any other
+`name:arg` throws at compile time. Prefer these over [`classMap`/`styleMap`](./directives/README.md)
+when you only toggle a few known names; use the directives for dynamic key sets.
+
+The full binding-name grammar (`[sigil]name[:arg](.modifier[:arg])*`) is in
+[`compiler/compile-attributes.md`](./compiler/compile-attributes.md#binding-name-grammar).
 
 A plain attribute's value may mix static text with any number of interpolations - they're joined
 into one string and re-applied via `setAttribute` whenever any piece changes:

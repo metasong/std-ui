@@ -4,6 +4,7 @@
 // patch just that position when `update()` is called with a new value, no-op'ing on `Object.is`-equal
 // values. See `html.ts` for the overall design.
 
+import { DEV } from '../../dev/index.js';
 import {
 	applyDirective,
 	isDirectiveResult,
@@ -13,6 +14,27 @@ import {
 	type ElementPartInfo,
 	type PropertyPartInfo,
 } from '../directive.js';
+
+/** A parsed `.name[:arg]` modifier from a binding name, e.g. `.once` or `.debounce:300`. */
+export interface Modifier {
+	name: string;
+	arg?: string;
+}
+
+const warned = new Set<string>();
+
+/** DEV only: parts that interpret no modifiers call this so a stray `.modifier` isn't silently
+ *  swallowed. Deduped by message, since a part is constructed once per template instance. */
+export function warnIgnoredModifiers(binding: string, modifiers: readonly Modifier[] = [], known: readonly string[] = []): void {
+	if (!DEV) return;
+	for (const { name, arg } of modifiers) {
+		if (known.includes(name) && arg === undefined) continue;
+		const message = `std-ui html: unsupported modifier ".${name}${arg === undefined ? '' : `:${arg}`}" on "${binding}" was ignored.`;
+		if (warned.has(message)) continue;
+		warned.add(message);
+		console.warn(message);
+	}
+}
 
 /**
  * One dynamic position bound to a live DOM location. `valueCount` tells the caller (see
@@ -42,7 +64,9 @@ export function updateParts(parts: readonly Part[], values: readonly unknown[]):
 export class BooleanAttributePart implements Part {
 	readonly valueCount = 1;
 	#value: unknown;
-	constructor(private readonly el: Element, private readonly name: string) {}
+	constructor(private readonly el: Element, private readonly name: string, modifiers?: readonly Modifier[]) {
+		warnIgnoredModifiers(`?${name}`, modifiers);
+	}
 	update(values: readonly unknown[]): void {
 		const value = values[0];
 		if (Object.is(value, this.#value)) return;
@@ -74,7 +98,9 @@ export class PropertyPart implements Part {
 	constructor(
 		private readonly el: Element,
 		private readonly name: string,
+		modifiers?: readonly Modifier[],
 	) {
+		warnIgnoredModifiers(`.${name}`, modifiers);
 		this.#partInfo = { type: PartType.PROPERTY, element: el, name };
 	}
 
@@ -101,42 +127,9 @@ export class PropertyPart implements Part {
 	}
 }
 
-export class EventPart implements Part, EventListenerObject {
-	readonly valueCount = 1;
-	#listener: EventListenerOrEventListenerObject | undefined;
-	#attached = false;
-	constructor(
-		private readonly el: Element,
-		private readonly name: string,
-		private readonly options?: AddEventListenerOptions,
-		private readonly host?: unknown,
-	) {}
-	update(values: readonly unknown[]): void {
-		const value = values[0];
-		const listener = typeof value === 'function' || (typeof value === 'object' && value !== null)
-			? (value as EventListenerOrEventListenerObject)
-			: undefined;
-		this.#listener = listener;
-		// The part itself is the one registered listener (stable identity), so swapping handlers
-		// between renders needs no remove/add, and `this` inside a handler is the host (like lit).
-		if (listener && !this.#attached) {
-			this.el.addEventListener(this.name, this, this.options);
-			this.#attached = true;
-		} else if (!listener && this.#attached) {
-			this.el.removeEventListener(this.name, this, this.options);
-			this.#attached = false;
-		}
-	}
-	handleEvent(event: Event): void {
-		if (this.options?.once) this.#attached = false; // the browser removed us
-		const l = this.#listener;
-		if (typeof l === 'function') l.call(this.host ?? this.el, event);
-		else l?.handleEvent(event);
-	}
-}
-
 /** <div ${directive()}>: an interpolation in an opening tag with no attribute name. Only
- *  directives (e.g. ef) make sense here; falsy values (cond && ref(r)) are ignored. */
+ *  directives (e.g. 
+ef) make sense here; falsy values (cond && ref(r)) are ignored. */
 export class ElementPart implements Part {
 	readonly valueCount = 1;
 	#directive: Directive | undefined;

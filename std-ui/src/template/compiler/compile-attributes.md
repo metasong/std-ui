@@ -160,7 +160,8 @@ flowchart LR
 | Plain | `class="${a} ${b}"` | Allowed: string composition, multiple `${...}`, static mix. |
 | Boolean | `?hidden=${v}` | Exactly **one** interpolation, **no** extra static text in the value. |
 | Property | `.value=${v}` | Same. |
-| Event | `@click=${fn}` | Same (plus optional `.once`/`.capture`/`.passive` on the **name**). |
+| Event | `@click=${fn}` | Same (plus optional `.modifier`s on the **name**, see [grammar](#binding-name-grammar)). |
+| Class / style | `class:active=${on}`, `style:color=${c}` | Same. |
 
 Sigiled kinds bind a **single JS value** (boolean, property, listener), not a composed string, so the compiler rejects multiple interpolations or static glue inside the quoted value.
 
@@ -169,6 +170,53 @@ Sigiled kinds bind a **single JS value** (boolean, property, listener), not a co
 Any attribute kind may drop the quotes when it has a single interpolation: `class=${x}`, `.value=${v}`, `?hidden=${v}`, `@click=${fn}`. The engine detects `name=` at the end of the markup (inside a tag), calls `onAttributeOpen` with an empty quote/prefix, and immediately closes the attribute with `literals = ['', '']` and `valueCount = 1`, so no ATTR_VALUE state is entered. A quoted placeholder (`"std-ui-part"`) is emitted so the HTML parser sees a valid attribute. Static text or several interpolations require quotes: `class="a ${b}"`; `class=a-${x}` treats `a-` as a literal and is rejected.
 
 Division of labour: the engine hands the hooks the attribute's raw name (sigil and modifiers included, e.g. `@click.once`). `onAttributeOpen` in `compile.ts` parses it into kind/name/options, and `onAttributeClose` receives `literals` and `valueCount` and throws for sigiled kinds that break the rule above. The engine itself has no notion of sigils.
+
+---
+
+## Binding name grammar
+
+The attribute *name* (everything before `=`) follows one grammar for every kind. The engine hands
+it over raw; `parseBinding` in `compile.ts` parses it.
+
+```
+binding   := sigil? name ( ":" arg )? modifier* ( "=" value )?
+sigil     := "." | "?" | "@"            // prop | bool | event; none = plain attr
+modifier  := "." ident ( ":" arg )?
+ident, arg := [\w-]+                      // static only; no "." (it starts the next modifier)
+```
+
+Only a *leading* `.` is a sigil; every later `.` starts a modifier. Examples:
+
+| Source | Kind | Meaning |
+|---|---|---|
+| `@click.once.capture=${h}` | event | `addEventListener` options |
+| `@submit.prevent.stop=${h}` | event | `preventDefault()` / `stopPropagation()` before the handler |
+| `@click.stop-immediate=${h}` | event | `stopImmediatePropagation()`: also blocks later listeners on the same element |
+| `@click.self=${h}` | event | handler only runs when `target === currentTarget` |
+| `class:active=${on}` | attr (with `arg`) | `classList.toggle('active', Boolean(on))` |
+| `style:--gap=${v}` | attr (with `arg`) | `style.setProperty('--gap', v)`; nullish/`false` removes it |
+
+Rules:
+
+- `name:arg` is only valid on `class` and `style` (it selects *which* class / style property).
+  Anywhere else it throws at compile time. `class:x`/`style:x` are single-value bindings like the
+  other sigiled kinds (one interpolation, no static text). Use kebab-case for style properties.
+- The descriptor always carries the parsed `modifiers: { name, arg? }[]`. Each kind then
+  interprets the ones it knows: `EventPart` (`parts/event-part.ts`) receives the raw `modifiers`
+  and turns `capture`/`once`/`passive` into `addEventListener` options and
+  `prevent`/`stop`/`stop-immediate`/`self` into handler filters. Each part warns about modifiers it doesn't support (`warnIgnoredModifiers` in
+  `parts/main.ts`): DEV only, once per distinct message, logged when the part is first created
+  rather than at compile time. Unsupported modifiers have no other effect.
+- Static args only, for now. Modifier args are compile-time strings (`.debounce:300` would be
+  `{ name: 'debounce', arg: '300' }`; no kind consumes it yet).
+
+### Not supported yet: dynamic args (`:${value}`)
+
+`@input.debounce:${ms}=${h}` needs an interpolation *inside the attribute name*, which the HTML
+parser cannot carry. It would need a third scanner state in `engine.ts` that swaps in-name gaps for
+unique placeholder names, raises `valueCount` for the part, and has `EventPart` diff its options
+each update. Names are also lowercased by the HTML parser for markup, but we parse from the raw
+`strings`, so case is preserved in `name`/`arg`.
 
 ---
 

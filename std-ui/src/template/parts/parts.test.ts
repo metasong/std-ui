@@ -178,6 +178,37 @@ describe('PropertyPart', () => {
 	});
 });
 
+describe('EventPart filters', () => {
+	it('applies prevent/stop and skips handler for .self on child targets', () => {
+		const parent = document.createElement('div');
+		const child = document.createElement('span');
+		parent.append(child);
+		const handler = vi.fn();
+		new EventPart(parent, 'click', [{ name: 'prevent' }, { name: 'stop' }, { name: 'self' }]).update([handler]);
+
+		const own = new Event('click', { cancelable: true, bubbles: true });
+		parent.dispatchEvent(own);
+		expect(handler).toHaveBeenCalledTimes(1);
+		expect(own.defaultPrevented).toBe(true);
+
+		child.dispatchEvent(new Event('click', { bubbles: true }));
+		expect(handler).toHaveBeenCalledTimes(1);
+	});
+});
+
+describe('EventPart stop-immediate', () => {
+	it('blocks later listeners on the same element', () => {
+		const el = document.createElement('div');
+		const later = vi.fn();
+		const handler = vi.fn();
+		new EventPart(el, 'click', [{ name: 'stop-immediate' }]).update([handler]);
+		el.addEventListener('click', later);
+		el.dispatchEvent(new Event('click'));
+		expect(handler).toHaveBeenCalledTimes(1);
+		expect(later).not.toHaveBeenCalled();
+	});
+});
+
 describe('EventPart', () => {
 	it('adds the listener and invokes it on dispatch', () => {
 		const el = document.createElement('button');
@@ -215,7 +246,7 @@ describe('EventPart', () => {
 		const addEventListener = vi.spyOn(el, 'addEventListener');
 		const removeEventListener = vi.spyOn(el, 'removeEventListener');
 		const options = { once: true, capture: true, passive: true };
-		const part = new EventPart(el, 'click', options);
+		const part = new EventPart(el, 'click', [{ name: 'once' }, { name: 'capture' }, { name: 'passive' }]);
 		const first = vi.fn();
 		part.update([first]);
 		expect(addEventListener).toHaveBeenCalledWith('click', part, options);
@@ -246,7 +277,7 @@ describe('EventPart', () => {
 
 	it('honors the `once` option: handler fires once then self-removes', () => {
 		const el = document.createElement('button');
-		const part = new EventPart(el, 'click', { once: true });
+		const part = new EventPart(el, 'click', [{ name: 'once' }]);
 		const handler = vi.fn();
 		part.update([handler]);
 		el.dispatchEvent(new Event('click'));

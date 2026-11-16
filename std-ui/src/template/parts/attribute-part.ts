@@ -6,7 +6,7 @@ import {
 	type AttributePartInfo,
 	type Directive,
 } from '../directive.js';
-import { type Part } from './main.js';
+import { type Modifier, type Part, warnIgnoredModifiers } from './main.js';
 
 /**
  * Binds an attribute's full value, which may be composed of static text segments (`literals`)
@@ -31,7 +31,9 @@ export class AttributePart implements Part {
 		private readonly el: Element,
 		private readonly name: string,
 		private readonly literals: readonly string[] = ['', ''],
+		modifiers?: readonly Modifier[],
 	) {
+		warnIgnoredModifiers(name, modifiers);
 		this.valueCount = literals.length - 1;
 		this.#partInfo = { type: PartType.ATTRIBUTE, element: el, name };
 	}
@@ -139,5 +141,33 @@ export class AttributePart implements Part {
 		if (str === this.#committed) return;
 		this.#committed = str;
 		this.el.setAttribute(this.name, str);
+	}
+}
+
+/** `class:active=${on}` / `style:color=${c}`: binds one entry of the `class` or `style` attribute,
+ *  leaving every other entry alone. A class is toggled by truthiness; a style property is set via
+ *  `setProperty` (kebab-case, `--custom` works) and `null`/`undefined`/`false` removes it. */
+export class AttributeEntryPart implements Part {
+	readonly valueCount = 1;
+	#value: unknown;
+	constructor(
+		private readonly el: Element,
+		private readonly attribute: 'class' | 'style',
+		private readonly entry: string,
+		modifiers?: readonly Modifier[],
+	) {
+		warnIgnoredModifiers(`${attribute}:${entry}`, modifiers);
+	}
+	update(values: readonly unknown[]): void {
+		const value = this.attribute === 'class' ? Boolean(values[0]) : values[0];
+		if (Object.is(value, this.#value)) return;
+		this.#value = value;
+		if (this.attribute === 'class') {
+			this.el.classList.toggle(this.entry, value as boolean);
+			return;
+		}
+		const style = (this.el as HTMLElement).style;
+		if (value == null || value === false) style.removeProperty(this.entry);
+		else style.setProperty(this.entry, String(value));
 	}
 }

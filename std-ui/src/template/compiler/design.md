@@ -119,6 +119,6 @@ interface EngineHooks<D, Part, Type, Open> {
 ## Behaviour notes
 
 - The engine's attribute-name regex is permissive (`[^\s"'<>/=]+`). The std-ui layer validates the name and throws `could not parse an attribute binding` for anything it does not accept.
-- Descriptors are flat objects, so `template.parts[i].kind`, `name`, `literals` and `options` keep working for tests and parts.
+- Descriptors are flat objects, so `template.parts[i].kind`, `name`, `literals` and `modifiers` keep working for tests and parts.
 
 See also: [compile-attributes.md](./compile-attributes.md), [html.md](../html.md).

@@ -1,4 +1,4 @@
-import { describe, expect, it } from 'vitest';
+import { describe, expect, it, vi } from 'vitest';
 import { getTemplate, instantiate } from './compile.js';
 import { t, svg } from '../html.js';
 import { updateParts } from '../parts/index.js';
@@ -37,21 +37,70 @@ describe('getTemplate/instantiate', () => {
 		]);
 	});
 
-	it('parses `.modifier`s off an `@`-prefixed event binding into AddEventListenerOptions', () => {
+	it('keeps `.modifier`s on an `@`-prefixed event binding, in source order', () => {
 		const { strings } = t`<button @click.once.capture.passive="${() => {}}"></button>`;
 		const template = getTemplate(strings);
 		expect(template.parts).toHaveLength(1);
 		expect(template.parts[0]).toMatchObject({
 			kind: 'event',
 			name: 'click',
-			options: { once: true, capture: true, passive: true },
+			modifiers: [{ name: 'once' }, { name: 'capture' }, { name: 'passive' }],
 		});
 	});
 
+	it('applies `.once` and `.prevent`/`.stop` modifiers when the part is created', () => {
+		const handler = vi.fn();
+		const { strings, values } = t`<form @submit.prevent.stop.once="${handler}"></form>`;
+		const { fragment, parts } = instantiate(getTemplate(strings));
+		updateParts(parts, values);
+		const form = fragment.querySelector('form')!;
+
+		const first = new Event('submit', { cancelable: true });
+		form.dispatchEvent(first);
+		form.dispatchEvent(new Event('submit', { cancelable: true }));
+		expect(first.defaultPrevented).toBe(true);
+		expect(handler).toHaveBeenCalledTimes(1);
+	});
+
 	it('ignores unknown modifiers on an event binding', () => {
-		const { strings } = t`<button @click.bogus="${() => {}}"></button>`;
+		const { strings, values } = t`<button @click.bogus="${vi.fn()}"></button>`;
 		const template = getTemplate(strings);
-		expect(template.parts[0]).toMatchObject({ kind: 'event', name: 'click', options: {} });
+		expect(template.parts[0].modifiers).toEqual([{ name: 'bogus' }]);
+		const { fragment, parts } = instantiate(template);
+		updateParts(parts, values);
+		fragment.querySelector('button')!.click();
+		expect(values[0]).toHaveBeenCalledTimes(1);
+	});
+
+	it('parses `:arg` on modifiers', () => {
+		const { strings } = t`<input @input.bogus:300="${() => {}}" />`;
+		expect(getTemplate(strings).parts[0].modifiers).toEqual([{ name: 'bogus', arg: '300' }]);
+	});
+
+	it('compiles class:name and style:prop bindings', () => {
+		const { strings, values } = t`<div class:active="${true}" style:--gap=${'4px'} style:color="${'red'}"></div>`;
+		const template = getTemplate(strings);
+		expect(template.parts.map(p => [p.kind, p.name, p.arg])).toEqual([
+			['attr', 'class', 'active'],
+			['attr', 'style', '--gap'],
+			['attr', 'style', 'color'],
+		]);
+		const { fragment, parts } = instantiate(template);
+		updateParts(parts, values);
+		const div = fragment.querySelector('div')!;
+		expect(div.classList.contains('active')).toBe(true);
+		expect(div.style.color).toBe('red');
+		expect(div.style.getPropertyValue('--gap')).toBe('4px');
+	});
+
+	it('rejects `:arg` on names other than class/style', () => {
+		const { strings } = t`<div foo:bar="${1}"></div>`;
+		expect(() => getTemplate(strings)).toThrow(/:arg/);
+	});
+
+	it('rejects static text in a class:name binding', () => {
+		const { strings } = t`<div class:active="x${1}"></div>`;
+		expect(() => getTemplate(strings)).toThrow(/exactly one interpolation/);
 	});
 
 	it('strips bound attributes from the parsed static markup, leaving unrelated static attributes', () => {
