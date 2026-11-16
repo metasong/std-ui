@@ -81,6 +81,7 @@ API notes: [`../std-ui/src/template/directives/virtualize/README.md`](../std-ui/
 | `demo-shadow-section` | [`feature-demo/sections/shadow-section.ts`](./feature-demo/sections/shadow-section.ts) | Shadow DOM + `static styles` |
 | `demo-css-section` | [`feature-demo/sections/css-section.ts`](./feature-demo/sections/css-section.ts) | `css` tagged styles in light DOM |
 | `demo-directives-section` | [`feature-demo/sections/directives-section.ts`](./feature-demo/sections/directives-section.ts) | `classMap`, `styleMap`, `html` |
+| `demo-bindings-section` | [`feature-demo/sections/bindings-section.ts`](./feature-demo/sections/bindings-section.ts) | Event modifiers (`.once`/`.prevent`/`.stop`/`.self`), `class:name`, `style:prop` |
 | `demo-todo-section` | [`feature-demo/sections/todo-section.ts`](./feature-demo/sections/todo-section.ts) | Composition; positional list via `.map()` |
 | `demo-map-by-key-section` | [`feature-demo/sections/map-by-key-section.ts`](./feature-demo/sections/map-by-key-section.ts) | Keyed lists via `mapByKey` (sort + checkboxes) |
 

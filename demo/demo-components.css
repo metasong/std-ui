@@ -43,17 +43,7 @@ body {
 	padding: 1.5rem 1.25rem 3rem;
 }
 
-:is(
-	demo-counter-section,
-	demo-attribute-section,
-	demo-context-section,
-	demo-query-section,
-	demo-shadow-section,
-	demo-css-section,
-	demo-directives-section,
-	demo-todo-section,
-	demo-map-by-key-section
-) {
+demo-feature-page code-preview > * {
 	display: block;
 	background: var(--md-sys-color-surface-container-lowest);
 	border: 1px solid var(--md-sys-color-outline-variant);
@@ -63,17 +53,7 @@ body {
 	padding: 1.25rem 1.5rem;
 }
 
-:is(
-	demo-counter-section,
-	demo-attribute-section,
-	demo-context-section,
-	demo-query-section,
-	demo-shadow-section,
-	demo-css-section,
-	demo-directives-section,
-	demo-todo-section,
-	demo-map-by-key-section
-) > h2 {
+demo-feature-page code-preview > * > h2 {
 	margin: 0 0 0.5rem;
 	font-size: 1.25rem;
 	font-weight: 500;
@@ -81,34 +61,14 @@ body {
 	color: var(--md-sys-color-on-surface);
 }
 
-:is(
-	demo-counter-section,
-	demo-attribute-section,
-	demo-context-section,
-	demo-query-section,
-	demo-shadow-section,
-	demo-css-section,
-	demo-directives-section,
-	demo-todo-section,
-	demo-map-by-key-section
-) > p.desc {
+demo-feature-page code-preview > * > p.desc {
 	margin: 0 0 1rem;
 	font-size: 0.875rem;
 	line-height: 1.45;
 	color: var(--md-sys-color-on-surface-variant);
 }
 
-:is(
-	demo-counter-section,
-	demo-attribute-section,
-	demo-context-section,
-	demo-query-section,
-	demo-shadow-section,
-	demo-css-section,
-	demo-directives-section,
-	demo-todo-section,
-	demo-map-by-key-section
-) code {
+demo-feature-page code-preview > * code {
 	font-family: 'Roboto Mono', ui-monospace, monospace;
 	font-size: 0.85em;
 	background: var(--md-sys-color-surface-container-high);

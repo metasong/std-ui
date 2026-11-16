@@ -8,6 +8,7 @@ import query from './sections/query-section.ts?raw';
 import shadow from './sections/shadow-section.ts?raw';
 import css from './sections/css-section.ts?raw';
 import directives from './sections/directives-section.ts?raw';
+import bindings from './sections/bindings-section.ts?raw';
 import todo from './sections/todo-section.ts?raw';
 import mapByKey from './sections/map-by-key-section.ts?raw';
 
@@ -37,6 +38,9 @@ export class DemoFeaturePage extends UIElement {
 			</code-preview>
 			<code-preview id="directives" .files=${files('directives-section.ts', directives)}>
 				<demo-directives-section></demo-directives-section>
+			</code-preview>
+			<code-preview id="bindings" .files=${files('bindings-section.ts', bindings)}>
+				<demo-bindings-section></demo-bindings-section>
 			</code-preview>
 			<code-preview id="todo" .files=${files('todo-section.ts', todo)}>
 				<demo-todo-section></demo-todo-section>
