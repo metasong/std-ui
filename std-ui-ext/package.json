@@ -20,9 +20,9 @@
 			"default": "./dist/esm/decorators/context/index.js"
 		},
 		"./state": {
-			"types": "./dist/esm/state/index.d.ts",
-			"import": "./dist/esm/state/index.js",
-			"default": "./dist/esm/state/index.js"
+			"types": "./dist/esm/reactive/state/index.d.ts",
+			"import": "./dist/esm/reactive/state/index.js",
+			"default": "./dist/esm/reactive/state/index.js"
 		},
 		"./browser/*": "./dist/browser/*",
 		"./package.json": "./package.json"

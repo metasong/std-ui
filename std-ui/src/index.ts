@@ -8,9 +8,9 @@ export {
 	type AttributesMap,
 	type AttributeType,
 	type DefineElementOptions,
-} from './ui-element.js';
-export { registerUIElementHooks, type UIElementHooks, type Cleanup } from './ui-element-hooks.js';
-export { createClassRegistry, ownMetadata, metadataSymbol, type ClassRegistry } from './decorators/index.js';
+} from './element/ui-element.js';
+export { registerUIElementHooks, type UIElementHooks, type Cleanup } from './element/ui-element-hooks.js';
+export { createClassRegistry, ownMetadata, metadataSymbol, type ClassRegistry } from './element/decorators/index.js';
 export {
 	t,
 	svg,
@@ -28,9 +28,9 @@ export {
 	type Part,
 	type PartInfo,
 	type CSSResultGroup,
-} from './template/index.js';
-export { bind, classMap, styleMap, mapByKey, slot, ref, createRef } from './template/directives/index.js';
-export type { BindAccessor, BindOptions, BindSource, Ref, RefCallback, RefOrCallback } from './template/directives/index.js';
+} from './element/template/index.js';
+export { bind, classMap, styleMap, mapByKey, slot, ref, createRef } from './element/template/directives/index.js';
+export type { BindAccessor, BindOptions, BindSource, Ref, RefCallback, RefOrCallback } from './element/template/directives/index.js';
 export {
 	state,
 	toSignal,
@@ -60,8 +60,8 @@ export {
 	type ToSignal,
 	type ToSignalOptions,
 	type ToSignalFromOptions,
-} from './signal/index.js';
-export { Committer, commitWith } from './template/parts/committers/index.js';
-export { AttributePart, ChildPart } from './template/parts/index.js';
-export { KeyedRows, type KeyedEntries } from './template/directives/keyed-rows/index.js';
+} from './reactive/index.js';
+export { Committer, commitWith } from './element/template/parts/committers/index.js';
+export { AttributePart, ChildPart } from './element/template/parts/index.js';
+export { KeyedRows, type KeyedEntries } from './element/template/directives/keyed-rows/index.js';
 export { markTouched, trackTouched } from './touched.js';

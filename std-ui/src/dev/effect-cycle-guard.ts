@@ -1,8 +1,8 @@
 // Cycle guard for `effect()`: detects effects that keep re-triggering each other (A writes what B
 // reads, B writes what A reads) and throws instead of freezing the page in an endless microtask loop.
-// See `../signal/effect/effect-cycles.md`.
+// See `../reactive/effect/effect-cycles.md`.
 
-import type { Watcher } from '../signal/core/tracking.js';
+import type { Watcher } from '../reactive/signal/tracking.js';
 import { DEV } from './flag.js';
 
 /**

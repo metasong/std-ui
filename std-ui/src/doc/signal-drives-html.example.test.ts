@@ -3,10 +3,10 @@
  * Run: npm test -- src/std-ui/src/doc/signal-drives-html.example.test.ts
  */
 import { describe, expect, it, vi } from 'vitest';
-import { tag, UIElement } from '../ui-element.js';
-import { state, computed, effect } from '../signal/index.js';
-import { t } from '../template/html.js';
-import { render } from '../template/render.js';
+import { tag, UIElement } from '../element/ui-element.js';
+import { state, computed, effect } from '../reactive/index.js';
+import { t } from '../element/template/html.js';
+import { render } from '../element/template/render.js';
 
 describe('doc: signals drive html render', () => {
 	it('Pattern A — effect + render patches DOM in place when signals change', async () => {

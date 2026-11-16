@@ -6,9 +6,9 @@ Guides for the library under `src/` (`signal/`, `template/`, `ui-element.ts`):
 
 | Topic | File |
 |---|---|
-| Signals (`signal`, `computed`, `effect`) | [`src/signal/core/signal.md`](./src/signal/core/signal.md) |
-| Reactive state tree | [`src/signal/state/README.md`](./src/signal/state/README.md) |
-| Async → signal (`toSignal`) | [`src/signal/to-signal/README.md`](./src/signal/to-signal/README.md) · [design](./src/signal/to-signal/design.md) |
+| Signals (`signal`, `computed`, `effect`) | [`src/reactive/signal/signal.md`](./src/reactive/signal/signal.md) |
+| Reactive state tree | [`src/reactive/state/README.md`](./src/reactive/state/README.md) |
+| Async → signal (`toSignal`) | [`src/reactive/to-signal/README.md`](./src/reactive/to-signal/README.md) · [design](./src/reactive/to-signal/design.md) |
 | HTML templates (`t`, `render`) | [`src/template/html.md`](./src/template/html.md) |
 | CSS templates (`css`, `static styles`) | [`src/template/css.md`](./src/template/css.md) |
 | `classMap` | [`src/template/directives/class-map/README.md`](./src/template/directives/class-map/README.md) · [design](./src/template/directives/class-map/design.md) |

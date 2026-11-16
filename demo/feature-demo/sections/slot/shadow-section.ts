@@ -1,6 +1,6 @@
 // Shadow-DOM slots: native `<slot>` + `@queryAssignedNodes` (delegates to `slot.assignedNodes()`).
 import { t, tag, UIElement, state } from '../../../../std-ui/src/index.js';
-import { queryAssignedNodes } from '../../../../std-ui/src/ui-element.js';
+import { queryAssignedNodes } from '../../../../std-ui/src/element/ui-element.js';
 
 @tag('demo-shadow-card')
 export class DemoShadowCard extends UIElement {

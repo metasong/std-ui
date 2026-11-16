@@ -1,6 +1,6 @@
 // Demonstrates: `classMap` / `styleMap` attribute directives, and `html`.
 import { tag, t, UIElement, html, state } from '../../../std-ui/src/index.js';
-import { classMap, styleMap } from '../../../std-ui/src/template/directives/index.js';
+import { classMap, styleMap } from '../../../std-ui/src/element/template/directives/index.js';
 
 @tag('demo-directives-section')
 export class DemoDirectivesSection extends UIElement {
