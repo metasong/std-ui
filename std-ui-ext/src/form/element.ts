@@ -1,6 +1,6 @@
 import { UIElement } from 'std-ui';
 import { markTouched, trackTouched } from 'std-ui';
-import type { ValidationError } from 'std-ui';
+import type { ValidationError } from '../state/check/index.js';
 
 /**
  * Form-associated variant of `UIElement` backed by `ElementInternals`.

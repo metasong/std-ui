@@ -1,5 +1,5 @@
 import type { Validator } from '../../main.js';
-import { flags } from 'std-ui';
+import { flags } from '../../flags.js';
 
 type Sized = string | readonly unknown[] | null | undefined;
 

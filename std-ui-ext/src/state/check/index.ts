@@ -4,11 +4,11 @@ export {
 	createValidation,
 	type Checked,
 	type WithCheck,
-	type PathError,
 	type Validation,
-	type ValidationError,
 	type Validator,
 } from './main.js';
+export { flags, type ValidityFlag } from './flags.js';
+export type { PathError, ValidationError } from './validation.js';
 export {
 	manualValidator,
 	type ManualValidator,

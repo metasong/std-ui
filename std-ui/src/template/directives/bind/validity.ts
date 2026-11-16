@@ -4,8 +4,7 @@
 
 import { effect } from '../../../signal/index.js';
 import { trackTouched } from '../../../touched.js';
-import type { ValidationError } from '../../../signal/state/index.js';
-import type { WritableSignal } from './types.js';
+import type { BindValidationError as ValidationError, WritableSignal } from './types.js';
 
 type ErrorReader = () => readonly ValidationError[];
 /** Structural match for `FormElement` (lives in std-ui-ext), so core needn't import it. */

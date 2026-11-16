@@ -1,5 +1,6 @@
 import { FormElement } from './element.js';
-import { trackTouched, type ValidationError } from 'std-ui';
+import { trackTouched } from 'std-ui';
+import type { ValidationError } from '../state/check/index.js';
 
 /** An inner control that can own validity: another `FormElement` (or group) or a native control. */
 export type ValidationErrorTarget = FormElement | HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement;

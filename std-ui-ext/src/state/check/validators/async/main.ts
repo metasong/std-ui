@@ -1,4 +1,5 @@
-import { deepEqual, flags, signal } from 'std-ui';
+import { deepEqual, signal } from 'std-ui';
+import { flags } from '../../flags.js';
 import type { ValidationError, Validator } from '../../main.js';
 
 type Result = ValidationError | readonly ValidationError[] | null | undefined | void;

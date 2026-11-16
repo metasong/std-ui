@@ -1,5 +1,5 @@
 import type { Validator } from '../../main.js';
-import { flags } from 'std-ui';
+import { flags } from '../../flags.js';
 
 type Num = number | null | undefined;
 

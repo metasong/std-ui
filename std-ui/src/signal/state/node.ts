@@ -1,7 +1,5 @@
 // Shared contract between the tree's container nodes (./array, ./object) and their children.
 
-import type { PathError } from './validation.js';
-
 /**
  * Carried by every tree node: `node.with(feature)` calls `feature(node)` and returns its result, so
  * separate features chain onto a node: `state(0).with(check).with(changes)`. The core knows no feature.
@@ -23,15 +21,13 @@ export const EQUALS = Symbol('equals');
 
 /**
  * Minimal node contract needed from each child node (satisfied by `Signal`, arrays, and objects).
- * Only what a parent reads from a child is listed: `valid` and `allErrors` for its own aggregates.
- * `errors` is not needed (it is already part of the child's `allErrors`).
+ * Only what a parent reads from a child is listed. Features (`check`, `changes`) add their own
+ * members from outside, so they are not part of this contract.
  */
 export interface ItemNode<T> {
 	(): T;
 	peek(): T;
 	set(value: any): void;
-	/** Present on tree nodes; plain signals have none and count as valid. */
-	check?: { allValid: () => boolean; allErrors: () => PathError[]; allPending?: () => boolean };
 	changes?: { reset: (next?: any) => void };
 }
 

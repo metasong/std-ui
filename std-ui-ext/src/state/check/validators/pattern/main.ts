@@ -1,5 +1,5 @@
 import type { ValidationError, Validator } from '../../main.js';
-import { flags } from 'std-ui';
+import { flags } from '../../flags.js';
 
 /** Fails when a non-empty string does not match `regex`. Empty and nullish values pass (use `required`). */
 export function pattern<T extends string | null | undefined = string>(

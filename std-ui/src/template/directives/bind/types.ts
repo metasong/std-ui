@@ -1,7 +1,12 @@
 // Public and internal types for `bind()`. See `./design.md` for the mental model.
 
 import type { StateDepth } from '../../../signal/index.js';
-import type { ValidationError } from '../../../signal/state/index.js';
+
+/** The error shape `bind()` reads (structural; the full type lives with the validation feature in `std-ui-ext`). */
+export interface BindValidationError {
+	flag: string;
+	message: string;
+}
 
 /** Model side for `bind({ get, set })` when you don't have a signal. */
 export interface BindAccessor {
@@ -64,5 +69,5 @@ export interface Binding {
 	/** Applied to a view value before it is stored in the model (keeps numeric models numeric). */
 	readonly coerce: (view: unknown, currentModel: unknown) => unknown;
 	/** Own validation errors of the bound state (tracked); set only for validated states on form elements. */
-	readonly errors?: () => readonly ValidationError[];
+	readonly errors?: () => readonly BindValidationError[];
 }

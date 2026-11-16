@@ -11,13 +11,12 @@ import {
 	signal,
 	type Computed,
 	type ItemNode,
-	type PathError,
 	type Signal,
 	type SignalArray,
 	type SignalObject,
 	type TreeNode,
-	type ValidationError,
 } from 'std-ui';
+import type { PathError, ValidationError } from './validation.js';
 
 export type { PathError, ValidationError };
 
@@ -179,7 +178,7 @@ const builtVersion = signal(0);
 function view(child: ItemNode<unknown>): { check?: Validation<any>; nested: Entries } {
 	const state = (child as { [STATE]?: CheckState })[STATE];
 	if (!state) {
-		const own = child.check as Validation<any> | undefined; // custom node with its own `check`
+		const own = (child as { check?: Validation<any> }).check; // custom node with its own `check`
 		if (own || !isTreeNode(child)) return { check: own, nested: [] };
 		return { nested: childEntries(child) as Entries }; // tree node never given `check`: valid unless a descendant has one
 	}
