@@ -4,6 +4,11 @@
 	box-sizing: border-box;
 }
 
+/* Avoid flash of unstyled slotted links before the element is defined. */
+demo-nav:not(:defined) {
+	visibility: hidden;
+}
+
 html,
 body {
 	margin: 0;
