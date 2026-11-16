@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
-import { Directive, directive } from './directive.js';
-import { t } from './html.js';
+import { Directive, directive } from '../directive.js';
+import { t } from './index.js';
 import { render, unmount } from './render.js';
 
 let log: string[] = [];

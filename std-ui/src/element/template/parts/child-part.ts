@@ -1,4 +1,4 @@
-import { isTemplateResult } from '../html.js';
+import { isTemplateResult } from '../html/index.js';
 import {
 	applyDirective,
 	isDirectiveResult,

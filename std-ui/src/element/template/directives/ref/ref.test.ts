@@ -1,6 +1,6 @@
 import { describe, expect, it, vi } from 'vitest';
-import { t } from '../../html.js';
-import { render, unmount } from '../../render.js';
+import { t } from '../../html/index.js';
+import { render, unmount } from '../../html/render.js';
 import { createRef, ref } from './index.js';
 
 describe('ref directive', () => {

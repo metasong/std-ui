@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { query, queryAll, queryAsync, queryElement, queryElementAsync, queryElements, tag, UIElement } from '../../ui-element.js';
-import { t } from '../../template/html.js';
+import { t } from '../../template/html/index.js';
 import { state } from '../../../reactive/index.js';
 
 describe('@query()', () => {

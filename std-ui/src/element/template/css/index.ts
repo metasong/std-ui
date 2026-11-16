@@ -19,7 +19,7 @@
 //   const theme = css`${base} button { color: var(--accent); }`;
 //
 // Each distinct literal's `CSSStyleSheet` is constructed once and cached (keyed by the literal's
-// `strings` identity, same trick as `html.ts`), then shared by reference across every component
+// `strings` identity, same trick as `html/index.ts`), then shared by reference across every component
 // instance/class that uses it - cheap to "apply" (just pushes onto `adoptedStyleSheets`), and a
 // single edit to the sheet (rare; not something this module does) would apply everywhere at once.
 
@@ -54,12 +54,18 @@ const cssResultCache = new WeakMap<TemplateStringsArray, CSSResult>();
  * Tags a template literal as CSS. Interpolated values must themselves be `CSSResult`s (from
  * `css` or `unsafeCSS`) or plain numbers - arbitrary strings are rejected to avoid accidentally
  * splicing untrusted/dynamic text into a stylesheet (a standard guard). Use
- * `unsafeCSS()` to explicitly opt out of that check.
+ * `unsafeCSS()` to explicitly opt out of that check:
+ * ```ts
+ * css`button { color: ${unsafeCSS(userColor)}; }`
+ * ```
+ *
+ * Note: values can contains CSSResult which is embedded by composition.
  */
 export function css(strings: TemplateStringsArray, ...values: Array<CSSResult | number>): CSSResult {
 	const cached = values.length === 0 ? cssResultCache.get(strings) : undefined;
 	if (cached) return cached;
 
+	// string + (value + string)*: string + (value + string) + ...
 	const cssText = values.reduce<string>(
 		(acc, value, i) => acc + cssValueToString(value) + strings[i + 1],
 		strings[0],

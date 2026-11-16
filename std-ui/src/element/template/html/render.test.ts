@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { t, svg } from './html.js';
+import { t, svg } from './index.js';
 import { render } from './render.js';
 
 describe('render', () => {

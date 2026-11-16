@@ -32,8 +32,8 @@
 // for the one case plain `t` can't handle: a namespace-less fragment (no `<svg>` wrapper of its
 // own) meant to be interpolated as a child of an existing `<svg>` element.
 //
-// This module ties the pieces (compilation, parts, rendering) together; see the sibling files for
-// each concern: `compile.ts`, `parts/`, `render.ts`, `directive.ts`.
+// This module ties the pieces (compilation, parts, rendering) together; see sibling modules for
+// each concern: `../compiler/`, `../parts/`, `./render.ts`, `../directive.ts`.
 
 /** The result of calling `t`/`svg` - inert until passed to `render()`. */
 export interface TemplateResult {

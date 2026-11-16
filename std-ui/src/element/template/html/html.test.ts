@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { t, isTemplateResult, svg } from './html.js';
+import { t, isTemplateResult, svg } from './index.js';
 
 describe('t', () => {
 	it('captures strings/values without doing any DOM work', () => {

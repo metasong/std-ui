@@ -56,7 +56,7 @@ static override styles = [sharedTokens, layoutStyles, buttonStyles];
 
 Where the styles actually land depends on whether the component uses a shadow root
 (`static shadowRootOptions`) or renders into light DOM (the default) — see
-[`../element-styles.ts`](../element-styles.ts) for the implementation (`ElementStyles` class),
+[`../../element-styles.ts`](../../element-styles.ts) for the implementation (`ElementStyles` class),
 summarized here:
 
 | Render root | Mechanism | Scoping |
@@ -137,10 +137,10 @@ ElementStyles()`.
 
 ## Related reading
 
-- [`css.ts`](./css.ts) — `css`/`unsafeCSS`/`CSSResult`/`flattenCSSResults`/`flattenCSSText`/`hostSelectorsToScope`.
-- [`../element-styles.ts`](../element-styles.ts) — `ElementStyles`, consumed by `UIElement`.
-- [`../ui-element.ts`](../ui-element.ts) — `static styles`, `#ensureRenderRoot()`, `#requestUpdate()`.
-- [`html.md`](./html.md) — the analogous usage/design doc for `t`/`render` (the templating half
+- [`index.ts`](./index.ts) — `css`/`unsafeCSS`/`CSSResult`/`flattenCSSResults`/`flattenCSSText`/`hostSelectorsToScope`.
+- [`../../element-styles.ts`](../../element-styles.ts) — `ElementStyles`, consumed by `UIElement`.
+- [`../../ui-element.ts`](../../ui-element.ts) — `static styles`, `#ensureRenderRoot()`, `#requestUpdate()`.
+- [`../html/html.md`](../html/html.md) — the analogous usage/design doc for `t`/`render` (the templating half
   of this same "tagged template, cached by call site" family of tricks).
-- [`css.test.ts`](./css.test.ts) / [`../element-styles.test.ts`](../element-styles.test.ts) /
-  [`../ui-element.test.ts`](../ui-element.test.ts) — behavior tests.
+- [`css.test.ts`](./css.test.ts) / [`../../element-styles.test.ts`](../../element-styles.test.ts) /
+  [`../../ui-element.test.ts`](../../ui-element.test.ts) — behavior tests.

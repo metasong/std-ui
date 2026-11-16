@@ -1,6 +1,6 @@
 import { describe, expect, it, vi } from 'vitest';
-import { t } from '../../html.js';
-import { render } from '../../render.js';
+import { t } from '../../html/index.js';
+import { render } from '../../html/render.js';
 import { state } from '../../../../reactive/index.js';
 import { attribute, tag, UIElement } from '../../../ui-element.js';
 import { bind } from './index.js';

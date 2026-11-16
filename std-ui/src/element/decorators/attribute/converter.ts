@@ -46,7 +46,7 @@ const numberConverter: AttributeConverter<number> = {
 };
 
 const booleanConverter: AttributeConverter<boolean> = {
-	// Presence-based, matching `?attr` in `../template/html.md`: any text (including `""`) means
+	// Presence-based, matching `?attr` in `../template/html/html.md`: any text (including `""`) means
 	// `true`; only an absent/removed attribute means `false`.
 	fromAttribute: value => value !== null,
 	toAttribute: value => (value ? '' : null),

@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { css, CSSResult, flattenCSSResults, flattenCSSText, hostSelectorsToScope, unsafeCSS } from './css.js';
+import { css, CSSResult, flattenCSSResults, flattenCSSText, hostSelectorsToScope, unsafeCSS } from './index.js';
 
 describe('css', () => {
 	it('captures the literal text', () => {

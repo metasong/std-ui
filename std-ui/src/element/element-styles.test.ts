@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { ElementStyles } from './element-styles.js';
-import { css } from './template/css.js';
+import { css } from './template/css/index.js';
 
 describe('ElementStyles#apply', () => {
 	it('is a no-op when styles is undefined', () => {
