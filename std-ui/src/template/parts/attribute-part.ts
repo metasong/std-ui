@@ -6,7 +6,7 @@ import {
 	type AttributePartInfo,
 	type Directive,
 } from '../directive.js';
-import { type Modifier, type Part, warnIgnoredModifiers } from './main.js';
+import { type Modifier, type Part, warnIgnoredModifiers } from './part.js';
 
 /**
  * Binds an attribute's full value, which may be composed of static text segments (`literals`)

@@ -2,7 +2,7 @@ import { Directive, directive, PartType, type PartInfo } from '../../directive.j
 import { getTemplate, instantiate } from '../../compiler/index.js';
 import { isTemplateResult, type TemplateResult } from '../../html.js';
 import { Committer, commitWith } from '../../parts/committers/index.js';
-import { updateParts, type Part } from '../../parts/main.js';
+import { updateParts, type Part } from '../../parts/part.js';
 
 interface Entry {
 	parts: Part[];

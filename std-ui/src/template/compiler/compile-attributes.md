@@ -205,7 +205,7 @@ Rules:
   interprets the ones it knows: `EventPart` (`parts/event-part.ts`) receives the raw `modifiers`
   and turns `capture`/`once`/`passive` into `addEventListener` options and
   `prevent`/`stop`/`stop-immediate`/`self` into handler filters. Each part warns about modifiers it doesn't support (`warnIgnoredModifiers` in
-  `parts/main.ts`): DEV only, once per distinct message, logged when the part is first created
+  `parts/part.ts`): DEV only, once per distinct message, logged when the part is first created
   rather than at compile time. Unsupported modifiers have no other effect.
 - Static args only, for now. Modifier args are compile-time strings (`.debounce:300` would be
   `{ name: 'debounce', arg: '300' }`; no kind consumes it yet).
@@ -251,7 +251,7 @@ flowchart LR
 | `compile.ts` | std-ui syntax: sigils, descriptor kinds, `createPart`, SVG, dev warnings |
 | `design.md` | Engine/hook architecture |
 | `parts/attribute-part.ts` | `AttributePart` |
-| `parts/main.ts` | `updateParts` |
+| `parts/part.ts` | `updateParts` |
 | `render.ts` | Root `render()` calling `updateParts` |
 
 ---

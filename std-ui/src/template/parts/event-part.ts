@@ -1,4 +1,4 @@
-import { type Modifier, type Part, warnIgnoredModifiers } from './main.js';
+import { type Modifier, type Part, warnIgnoredModifiers } from './part.js';
 
 const OPTION_MODIFIERS = ['capture', 'once', 'passive'] as const;
 const FILTER_MODIFIERS = ['prevent', 'stop', 'stop-immediate', 'self'] as const;
