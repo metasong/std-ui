@@ -112,5 +112,8 @@ export function flattenCSSText(group: CSSResultGroup): string {
  * like `:host` matches the shadow host.
  */
 export function hostSelectorsToScope(cssText: string): string {
-	return cssText.replace(/:host\b/g, ':scope');
+	// `:host(<sel>)` -> `:scope:is(<sel>)` (`:scope` isn't functional); allows one level of nested parens.
+	return cssText
+		.replace(/:host\(((?:[^()]|\([^()]*\))*)\)/g, ':scope:is($1)')
+		.replace(/:host\b/g, ':scope');
 }
