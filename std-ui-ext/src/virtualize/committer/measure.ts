@@ -1,6 +1,6 @@
 // Reading real sizes/positions back from the DOM into the `RowModel`.
 
-import type { KeyedRows } from '../../keyed-rows/index.js';
+import type { KeyedRows } from 'std-ui';
 import type { RowModel, Window as ItemWindow } from '../layout.js';
 import type { Axis, Scroller } from './axis.js';
 

@@ -1,6 +1,6 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
-import { t } from '../../html.js';
-import { AttributePart, ChildPart } from '../../parts/index.js';
+import { t } from 'std-ui';
+import { AttributePart, ChildPart } from 'std-ui';
 import { virtualize } from './main.js';
 import { VirtualizeController } from './controller.js';
 import { computeWindow, RowModel, scrollTarget, spacerSize } from './layout.js';

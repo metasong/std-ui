@@ -1,5 +1,6 @@
 // Horizontal scroll.
-import { tag, t, UIElement, virtualize, VirtualizeController } from '../../../../std-ui/src/index.js';
+import { tag, t, UIElement,  } from '../../../../std-ui/src/index.js';
+import { virtualize, VirtualizeController } from '../../../../std-ui-ext/src/index.js';
 
 type Card = { i: number };
 

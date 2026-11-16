@@ -29,9 +29,8 @@ export {
 	type PartInfo,
 	type CSSResultGroup,
 } from './template/index.js';
-export { bind, classMap, styleMap, mapByKey, slot, ref, createRef, virtualize, VirtualizeController } from './template/directives/index.js';
+export { bind, classMap, styleMap, mapByKey, slot, ref, createRef } from './template/directives/index.js';
 export type { BindAccessor, BindOptions, BindSource, Ref, RefCallback, RefOrCallback } from './template/directives/index.js';
-export type { VirtualizeOptions, ScrollToIndexOptions, ScrollAlign } from './template/directives/index.js';
 export {
 	state,
 	toSignal,
@@ -62,4 +61,7 @@ export {
 	type ToSignalOptions,
 	type ToSignalFromOptions,
 } from './signal/index.js';
+export { Committer, commitWith } from './template/parts/committers/index.js';
+export { AttributePart, ChildPart } from './template/parts/index.js';
+export { KeyedRows, type KeyedEntries } from './template/directives/keyed-rows/index.js';
 export { markTouched, trackTouched } from './touched.js';

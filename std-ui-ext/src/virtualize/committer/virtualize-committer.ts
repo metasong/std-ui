@@ -1,5 +1,5 @@
-import { Committer } from '../../../parts/committers/committer.js';
-import { KeyedRows, type KeyedEntries } from '../../keyed-rows/index.js';
+import { Committer } from 'std-ui';
+import { KeyedRows, type KeyedEntries } from 'std-ui';
 import type { ControllerTarget, ScrollToIndexOptions, VirtualizeController } from '../controller.js';
 import {
 	computeWindow,

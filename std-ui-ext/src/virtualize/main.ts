@@ -1,5 +1,5 @@
-import { Directive, directive, PartType, type PartInfo } from '../../directive.js';
-import { commitWith } from '../../parts/committers/index.js';
+import { Directive, directive, PartType, type PartInfo } from 'std-ui';
+import { commitWith } from 'std-ui';
 import { VirtualizeCommitter } from './committer/index.js';
 import type { VirtualizeOptions } from './options.js';
 

@@ -2,8 +2,6 @@ export { bind, type BindAccessor, type BindOptions, type BindSource } from './bi
 export { classMap } from './class-map/index.js';
 export { styleMap } from './style-map/index.js';
 export { mapByKey } from './map-by-key/index.js';
-export { virtualize, VirtualizeController } from './virtualize/index.js';
-export type { VirtualizeOptions, ScrollToIndexOptions, ScrollAlign } from './virtualize/index.js';
 export { cache } from './cache/index.js';
 export { slot } from './slot/index.js';
 export { ref, createRef } from './ref/index.js';

@@ -68,7 +68,7 @@ Then open [http://localhost:5174/feature-demo/virtualize.html](http://localhost:
 | Grid | [`feature-demo/sections/virtualize/grid-section.ts`](./feature-demo/sections/virtualize/grid-section.ts) | `lanes: 4` grid |
 | Horizontal | [`feature-demo/sections/virtualize/horizontal-section.ts`](./feature-demo/sections/virtualize/horizontal-section.ts) | `direction: 'horizontal'` |
 
-API notes: [`../std-ui/src/template/directives/virtualize/README.md`](../std-ui/src/template/directives/virtualize/README.md).
+API notes: [`../std-ui-ext/src/virtualize/README.md`](../std-ui-ext/src/virtualize/README.md).
 
 ## Sections
 
