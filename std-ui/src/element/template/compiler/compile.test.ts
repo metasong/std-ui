@@ -1,7 +1,8 @@
 import { describe, expect, it, vi } from 'vitest';
 import { getTemplate, instantiate } from './compile.js';
 import { t, svg } from '../tag-funcs/html/index.js';
-import { updateParts } from '../parts/index.js';
+import { updateParts, BooleanAttributePart, PropertyPart, EventPart } from '../parts/index.js';
+import { registerBindingExtension } from './binding-extension.js';
 
 describe('getTemplate/instantiate', () => {
 	it('compiles a child binding to a comment-anchored ChildPart', () => {
@@ -30,11 +31,11 @@ describe('getTemplate/instantiate', () => {
 	it('recognizes ?/./@-prefixed bindings as bool/prop/event kinds', () => {
 		const { strings } = t`<input ?disabled="${true}" .value="${'v'}" @click="${() => {}}" />`;
 		const template = getTemplate(strings);
-		expect(template.parts.map(p => [p.kind, p.name])).toEqual([
-			['boolean-attribute', 'disabled'],
-			['property', 'value'],
-			['event', 'click'],
-		]);
+		expect(template.parts.map(p => p.name)).toEqual(['disabled', 'value', 'click']);
+		const { parts } = instantiate(template);
+		expect(parts[0]).toBeInstanceOf(BooleanAttributePart);
+		expect(parts[1]).toBeInstanceOf(PropertyPart);
+		expect(parts[2]).toBeInstanceOf(EventPart);
 	});
 
 	it('keeps `.modifier`s on an `@`-prefixed event binding, in source order', () => {
@@ -42,7 +43,6 @@ describe('getTemplate/instantiate', () => {
 		const template = getTemplate(strings);
 		expect(template.parts).toHaveLength(1);
 		expect(template.parts[0]).toMatchObject({
-			kind: 'event',
 			name: 'click',
 			modifiers: [{ name: 'once' }, { name: 'capture' }, { name: 'passive' }],
 		});
@@ -72,18 +72,18 @@ describe('getTemplate/instantiate', () => {
 		expect(values[0]).toHaveBeenCalledTimes(1);
 	});
 
-	it('parses `:arg` on modifiers', () => {
+	it('parses `:value` on modifiers', () => {
 		const { strings } = t`<input @input.bogus:300="${() => {}}" />`;
-		expect(getTemplate(strings).parts[0].modifiers).toEqual([{ name: 'bogus', arg: '300' }]);
+		expect(getTemplate(strings).parts[0].modifiers).toEqual([{ name: 'bogus', value: '300' }]);
 	});
 
-	it('compiles class:name and style:prop bindings', () => {
-		const { strings, values } = t`<div class:active="${true}" style:--gap=${'4px'} style:color="${'red'}"></div>`;
+	it('compiles class.name and style.prop bindings', () => {
+		const { strings, values } = t`<div class.active="${true}" style.--gap=${'4px'} style.color="${'red'}"></div>`;
 		const template = getTemplate(strings);
-		expect(template.parts.map(p => [p.kind, p.name, p.arg])).toEqual([
-			['attribute', 'class', 'active'],
-			['attribute', 'style', '--gap'],
-			['attribute', 'style', 'color'],
+		expect(template.parts.map(p => [p.kind, p.name, p.modifiers!.map(m => m.name)])).toEqual([
+			['attribute', 'class', ['active']],
+			['attribute', 'style', ['--gap']],
+			['attribute', 'style', ['color']],
 		]);
 		const { fragment, parts } = instantiate(template);
 		updateParts(parts, values);
@@ -93,13 +93,51 @@ describe('getTemplate/instantiate', () => {
 		expect(div.style.getPropertyValue('--gap')).toBe('4px');
 	});
 
-	it('rejects `:arg` on names other than class/style', () => {
+	it('reserves `:arg` on binding names', () => {
 		const { strings } = t`<div foo:bar="${1}"></div>`;
 		expect(() => getTemplate(strings)).toThrow(/:arg/);
 	});
 
-	it('rejects static text in a class:name binding', () => {
-		const { strings } = t`<div class:active="x${1}"></div>`;
+	it('requires exactly one modifier on class/style entries', () => {
+		expect(() => getTemplate(t`<div class.a.b=${1}></div>`.strings)).toThrow(/exactly one entry/);
+		expect(() => getTemplate(t`<div style.color:red=${1}></div>`.strings)).toThrow(/exactly one entry/);
+	});
+
+	it('registers custom binding extensions', () => {
+		const seen: unknown[] = [];
+		registerBindingExtension({
+			sigil: '', name: 'tmpext',
+			createPart: (_el, b) => ({ valueCount: 1, update: v => seen.push([b.arg, b.modifiers, v[0]]) }),
+		});
+		const { strings, values } = t`<div tmpext:a.m:1=${5}></div>`;
+		const { parts } = instantiate(getTemplate(strings));
+		updateParts(parts, values);
+		expect(seen).toEqual([['a', [{ name: 'm', value: '1' }], 5]]);
+	});
+
+	it('supports a new sigil with arg, modifiers and a composed value', () => {
+		const seen: unknown[] = [];
+		registerBindingExtension({
+			sigil: '#', name: 'tag',
+			createPart: (_el, b, _host, v) => ({
+				valueCount: v.valueCount,
+				update: vals => seen.push([b.arg, b.modifiers, v.literals, vals]),
+			}),
+		});
+		const { strings, values } = t`<div #tag:a.m:1="abc ${'x'} d ${'y'}"></div>`;
+		const { parts, fragment } = instantiate(getTemplate(strings));
+		updateParts(parts, values);
+		expect(seen).toEqual([['a', [{ name: 'm', value: '1' }], ['abc ', ' d ', ''], ['x', 'y']]]);
+		expect(fragment.querySelector('div')!.attributes.length).toBe(0);
+	});
+
+	it('rejects an unknown sigil', () => {
+		const { strings } = t`<div %nope="${1}"></div>`;
+		expect(() => getTemplate(strings)).toThrow(/unknown binding sigil/);
+	});
+
+	it('rejects static text in a class.name binding', () => {
+		const { strings } = t`<div class.active="x${1}"></div>`;
 		expect(() => getTemplate(strings)).toThrow(/exactly one interpolation/);
 	});
 

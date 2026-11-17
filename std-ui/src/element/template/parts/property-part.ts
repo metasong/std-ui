@@ -27,7 +27,7 @@ export class PropertyPart implements Part {
 		modifiers?: readonly Modifier[],
 	) {
 		warnIgnoredModifiers(`.${name}`, modifiers);
-		this.#partInfo = { type: PartType.PROPERTY, element: el, name };
+		this.#partInfo = { type: PartType.ATTRIBUTE, element: el, name, property: true };
 	}
 
 	disconnect(): void {

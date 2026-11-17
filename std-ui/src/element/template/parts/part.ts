@@ -7,25 +7,21 @@
 import { DEV } from '../../../dev/index.js';
 
 /**
- * The kind of template position a part is bound to. Single source of truth shared by the compiler
- * (`PartDescriptor.kind`, which picks the `Part` class to build), each `Part` (its `PartInfo.type`)
- * and directives, which check `partInfo.type` and throw if used somewhere they don't support, e.g.
- * `classMap` requiring `ATTRIBUTE` + `name === 'class'`, or `html` requiring `CHILD`.
+ * The template positions a directive can be bound to: the discriminator of `PartInfo.type`, set by each
+ * `Part` that accepts directives and shared with the compiler for slot descriptors. Directives check
+ * `partInfo.type` and throw if used somewhere they don't support, e.g. `classMap` requiring `ATTRIBUTE` + `name === 'class'`, or `html` requiring `CHILD`.
  */
 export const PartType = {
 	ATTRIBUTE: 'attribute',
-	BOOLEAN_ATTRIBUTE: 'boolean-attribute',
-	PROPERTY: 'property',
-	EVENT: 'event',
 	CHILD: 'child',
 	ELEMENT: 'element',
 } as const;
 export type PartType = (typeof PartType)[keyof typeof PartType];
 
-/** A parsed `.name[:arg]` modifier from a binding name, e.g. `.once` or `.debounce:300`. */
+/** A parsed `.name[:value]` modifier from a binding name, e.g. `.once` or `.debounce:300`. */
 export interface Modifier {
 	name: string;
-	arg?: string;
+	value?: string;
 }
 
 const warned = new Set<string>();
@@ -34,9 +30,9 @@ const warned = new Set<string>();
  *  swallowed. Deduped by message, since a part is constructed once per template instance. */
 export function warnIgnoredModifiers(binding: string, modifiers: readonly Modifier[] = [], known: readonly string[] = []): void {
 	if (!DEV) return;
-	for (const { name, arg } of modifiers) {
-		if (known.includes(name) && arg === undefined) continue;
-		const message = `std-ui html: unsupported modifier ".${name}${arg === undefined ? '' : `:${arg}`}" on "${binding}" was ignored.`;
+	for (const { name, value } of modifiers) {
+		if (known.includes(name) && value === undefined) continue;
+		const message = `std-ui html: unsupported modifier ".${name}${value === undefined ? '' : `:${value}`}" on "${binding}" was ignored.`;
 		if (warned.has(message)) continue;
 		warned.add(message);
 		console.warn(message);

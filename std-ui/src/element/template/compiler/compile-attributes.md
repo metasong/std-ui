@@ -161,7 +161,7 @@ flowchart LR
 | Boolean | `?hidden=${v}` | Exactly **one** interpolation, **no** extra static text in the value. |
 | Property | `.value=${v}` | Same. |
 | Event | `@click=${fn}` | Same (plus optional `.modifier`s on the **name**, see [grammar](#binding-name-grammar)). |
-| Class / style | `class:active=${on}`, `style:color=${c}` | Same. |
+| Class / style | `class.active=${on}`, `style.color=${c}` | Same. |
 
 Sigiled kinds bind a **single JS value** (boolean, property, listener), not a composed string, so the compiler rejects multiple interpolations or static glue inside the quoted value.
 
@@ -179,10 +179,10 @@ The attribute *name* (everything before `=`) follows one grammar for every kind.
 it over raw; `parseBinding` in `compile.ts` parses it.
 
 ```
-binding   := sigil? name ( ":" arg )? modifier* ( "=" value )?
+binding   := sigil? name ( ":" arg )? modifier* ( "=" value )?   // name:arg is reserved
 sigil     := "." | "?" | "@"            // prop | bool | event; none = plain attr
-modifier  := "." ident ( ":" arg )?
-ident, arg := [\w-]+                      // static only; no "." (it starts the next modifier)
+modifier  := "." ident ( ":" value )?
+ident, arg, value := [\w-]+              // static only; no "." (it starts the next modifier)
 ```
 
 Only a *leading* `.` is a sigil; every later `.` starts a modifier. Examples:
@@ -193,22 +193,35 @@ Only a *leading* `.` is a sigil; every later `.` starts a modifier. Examples:
 | `@submit.prevent.stop=${h}` | event | `preventDefault()` / `stopPropagation()` before the handler |
 | `@click.stop-immediate=${h}` | event | `stopImmediatePropagation()`: also blocks later listeners on the same element |
 | `@click.self=${h}` | event | handler only runs when `target === currentTarget` |
-| `class:active=${on}` | attr (with `arg`) | `classList.toggle('active', Boolean(on))` |
-| `style:--gap=${v}` | attr (with `arg`) | `style.setProperty('--gap', v)`; nullish/`false` removes it |
+| `class.active=${on}` | attr (`active` is the entry) | `classList.toggle('active', Boolean(on))` |
+| `style.--gap=${v}` | attr (`--gap` is the entry) | `style.setProperty('--gap', v)`; nullish/`false` removes it |
 
 Rules:
 
-- `name:arg` is only valid on `class` and `style` (it selects *which* class / style property).
-  Anywhere else it throws at compile time. `class:x`/`style:x` are single-value bindings like the
-  other sigiled kinds (one interpolation, no static text). Use kebab-case for style properties.
-- The descriptor always carries the parsed `modifiers: { name, arg? }[]`. Each kind then
+- The parser is generic: it produces `{ sigil, name, arg?, modifiers }` and never decides what the
+  pieces *mean*. A **binding extension** (`compiler/binding-extension.ts`) owns one `(sigil, name)` pair: it
+  validates the binding at compile time and builds the `Part`. Register with
+  `registerBindingExtension()` before the template is first compiled (templates are cached).
+  The native kinds are binding extensions too (`extensions/builtin.ts`): plain attribute, `.prop`, `?bool` and
+  `@event`, each registered for its sigil with the wildcard name `*`. An exact `(sigil, name)`
+  extension wins when its `matches()` accepts the binding, otherwise the sigil's wildcard applies. A new
+  sigil (e.g. `#name:arg.mod:value="a ${x}"`) is just another registration; mixed text and several
+  interpolations are allowed by default; `single: true` requires exactly one interpolation. An unregistered sigil throws at compile time.
+- `class` and `style` are binding extensions (`extensions/class-style.ts`, self-contained so they can move to
+  `std-ui-ext`): they accept **exactly one** modifier as the entry (`class.active`, `style.color`,
+  `style.--gap`); more than one, or a `:value` on it, throws. With no modifier, `class=${x}` is
+  the plain attribute. Entry bindings are single-value (one interpolation, no static text). Use
+  kebab-case for style properties; `!important` and the like belong in the bound value.
+- `name:arg` is part of the grammar but **reserved**: it is carried as `arg` on the descriptor and
+  only a binding extension may accept it; anywhere else it throws at compile time.
+- The descriptor always carries the parsed `modifiers: { name, value? }[]`. Each kind then
   interprets the ones it knows: `EventPart` (`parts/event-part.ts`) receives the raw `modifiers`
   and turns `capture`/`once`/`passive` into `addEventListener` options and
   `prevent`/`stop`/`stop-immediate`/`self` into handler filters. Each part warns about modifiers it doesn't support (`warnIgnoredModifiers` in
   `parts/part.ts`): DEV only, once per distinct message, logged when the part is first created
   rather than at compile time. Unsupported modifiers have no other effect.
-- Static args only, for now. Modifier args are compile-time strings (`.debounce:300` would be
-  `{ name: 'debounce', arg: '300' }`; no kind consumes it yet).
+- Static values only, for now. Modifier values are compile-time strings (`.debounce:300` would be
+  `{ name: 'debounce', value: '300' }`; no kind consumes it yet).
 
 ### Not supported yet: dynamic args (`:${value}`)
 
@@ -216,7 +229,7 @@ Rules:
 parser cannot carry. It would need a third scanner state in `engine.ts` that swaps in-name gaps for
 unique placeholder names, raises `valueCount` for the part, and has `EventPart` diff its options
 each update. Names are also lowercased by the HTML parser for markup, but we parse from the raw
-`strings`, so case is preserved in `name`/`arg`.
+`strings`, so case is preserved in `name` and modifier names.
 
 ---
 

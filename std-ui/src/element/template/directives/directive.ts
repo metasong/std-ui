@@ -59,13 +59,17 @@ export interface AttributePartInfo {
 	readonly staticText?: string;
 }
 
-/** Metadata + live DOM access for a `.name=${...}` property binding - see `PropertyPart` in
- *  `parts/`. */
-export interface PropertyPartInfo {
-	readonly type: typeof PartType.PROPERTY;
-	readonly element: Element;
-	/** Property name without the `.` sigil, e.g. `'value'`. */
-	readonly name: string;
+/** A `.name=${...}` property binding (see `PropertyPart` in `parts/`) reports as an attribute part
+ *  (`type: ATTRIBUTE`) with `property: true`; `name` is the property name without the `.` sigil,
+ *  e.g. `'value'`. */
+export interface PropertyPartInfo extends AttributePartInfo {
+	/** Marks a property binding; absent on plain attribute parts. */
+	readonly property: true;
+}
+
+/** Whether `info` belongs to a `.name=${...}` property binding (as opposed to a plain attribute). */
+export function isPropertyPartInfo(info: PartInfo): info is PropertyPartInfo {
+	return (info as Partial<PropertyPartInfo>).property === true;
 }
 
 /** Metadata + live DOM access for an element binding - an interpolation inside an opening tag with
@@ -92,8 +96,8 @@ export interface ChildPartInfo {
 /** Every `Part`/`PartInfo` shape this engine constructs; see `AttributePartInfo`/`ChildPartInfo`.
  *  A directive's constructor/`update()` narrows via `partInfo.type`/`part.type` to find out which
  *  one it actually got. */
-export type PartInfo = AttributePartInfo | ChildPartInfo | PropertyPartInfo | ElementPartInfo;
-export type Part = AttributePartInfo | ChildPartInfo | PropertyPartInfo | ElementPartInfo;
+export type PartInfo = AttributePartInfo | ChildPartInfo | ElementPartInfo;
+export type Part = AttributePartInfo | ChildPartInfo | ElementPartInfo;
 
 /**
  * Base class for a custom attribute directive. One instance is created *per binding position* the

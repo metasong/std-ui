@@ -5,8 +5,7 @@
 //
 // A `Binding` (`./resolve.ts`) describes both sides; this file only wires them to the element.
 
-import { Directive, directive, noChange, type DirectiveResult, type PartInfo, type PropertyPartInfo } from '../directive.js';
-import { PartType } from '../../parts/part.js';
+import { Directive, directive, noChange, type DirectiveResult, isPropertyPartInfo, type PartInfo, type PropertyPartInfo } from '../directive.js';
 import { assertBindableTarget, isRadio } from './defaults.js';
 import { pullRadioSiblings, registerRadio, unregisterRadio } from './radio-group.js';
 import { BIND_USAGE, isWritableSignal, resolveBinding } from './resolve.js';
@@ -32,7 +31,7 @@ class BindDirective extends Directive {
 
 	constructor(partInfo: PartInfo) {
 		super(partInfo);
-		if (partInfo.type !== PartType.PROPERTY) {
+		if (!isPropertyPartInfo(partInfo)) {
 			throw new Error('std-ui bind(): must be used as a property binding (e.g. `.value=${bind(...)}`).');
 		}
 		assertBindableTarget(partInfo.element, partInfo.name);

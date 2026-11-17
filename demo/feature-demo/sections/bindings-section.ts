@@ -1,5 +1,5 @@
 // Demonstrates: event modifiers (`@click.once`, `.prevent`, `.stop`, `.self`, `.stop-immediate`)
-// and single-entry bindings (`class:name`, `style:prop`).
+// and single-entry bindings (`class.name`, `style.prop`).
 import { tag, t, css, UIElement, state } from '../../../std-ui/src/index.js';
 
 @tag('demo-bindings-section')
@@ -40,7 +40,7 @@ export class DemoBindingsSection extends UIElement {
 			<p class="desc">
 				<code>@event.modifier</code> adds <code>once</code>, <code>prevent</code>, <code>stop</code>,
 				<code>stop-immediate</code> and <code>self</code> without handler boilerplate.
-				<code>class:name</code> / <code>style:prop</code> bind one class or style property and leave the rest alone.
+				<code>class.name</code> / <code>style.prop</code> bind one class or style property and leave the rest alone.
 			</p>
 
 			<div class="demo-actions">
@@ -70,13 +70,13 @@ export class DemoBindingsSection extends UIElement {
 			<div class="demo-actions">
 				<button
 					type="button"
-					class:active=${this.active()}
-					style:background=${this.active() ? `hsl(${this.hue()} 70% 45%)` : null}
-					style:color=${this.active() ? 'white' : null}
-					style:--hue=${this.hue()}
+					class.active=${this.active()}
+					style.background=${this.active() ? `hsl(${this.hue()} 70% 45%)` : null}
+					style.color=${this.active() ? 'white' : null}
+					style.--hue=${this.hue()}
 					@click=${() => this.active.set(!this.active())}
 				>
-					class:active + style:background
+					class.active + style.background
 				</button>
 				<label>
 					hue

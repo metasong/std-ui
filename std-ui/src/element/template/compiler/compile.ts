@@ -12,23 +12,25 @@
 // See `html.ts` for the overall design.
 
 import { DEV, warnOnUndefinedElements } from '../../../dev/index.js';
+import { findBindingExtension, type BindingExtension, type BindingName } from './binding-extension.js';
+import '../extensions/builtin.js';
+import '../extensions/class-style.js';
 import { createEngine, type EngineHooks, type SlotDescriptor, type Template as EngineTemplate } from './engine.js';
 // Parts import `instantiate` for nested templates; they are only touched lazily inside hooks, so
 // the module cycle is harmless.
-import {
-	AttributePart, BooleanAttributePart, PropertyPart, EventPart, ElementPart, ChildPart,
-	AttributeEntryPart, PartType, type Modifier, type Part,
-} from '../parts/index.js';
+import { ElementPart, ChildPart, PartType, type Modifier, type Part } from '../parts/index.js';
 
 export interface PartDescriptor extends SlotDescriptor {
-	kind: PartType;
+	/** Slots are `CHILD`/`ELEMENT`; every attribute-like binding is `ATTRIBUTE` (its extension builds the part). */
+	kind: typeof PartType.CHILD | typeof PartType.ELEMENT | typeof PartType.ATTRIBUTE;
 	/** Attribute/property/event name, sans its `.`/`?`/`@` sigil, `:arg` and any `.modifier`s. Unused for `kind: PartType.CHILD`. */
 	name: string;
-	/** `kind: PartType.ATTRIBUTE` only: the `:arg` selecting one entry of a `class`/`style` attribute, e.g.
-	 *  `active` in `class:active=${on}`. Absent for a whole-attribute binding. */
+	/** The `:arg` of `name:arg`. Reserved: unused by the built-in kinds, only extensions may consume it. */
 	arg?: string;
-	/** Every parsed `.modifier[:arg]`, in source order; each kind interprets the ones it knows. */
+	/** Parsed `.modifier[:value]`s in source order; each kind interprets the ones it knows. */
 	modifiers?: Modifier[];
+	/** Set when a registered `BindingExtension` handles this binding (e.g. `class.active`); it builds the part. */
+	extension?: { binding: BindingName; extension: BindingExtension };
 	/** `kind: PartType.ATTRIBUTE` only: the static text segments surrounding each interpolation in this
 	 *  attribute's value, e.g. `class="a-${x}-b-${y}"` -> `['a-', '-b-', '']`. Always has exactly
 	 *  `valueCount + 1` entries; `['', '']` for a bare `attr=${value}` with no static text. */
@@ -46,21 +48,14 @@ export type TemplateType = 'html' | 'svg';
 
 // --- Binding syntax -----------------------------------------------------------------------------
 
-/** `[sigil]name[:arg](.modifier[:arg])*`, the full attribute name as handed over by the engine.
- *  Static args are `[\w-]+` (no `.`, which would start the next modifier). See `compile-attributes.md`. */
-const BINDING_NAME_RE = /^([.?@]?)([\w-]+)(?::([\w-]+))?((?:\.[\w-]+(?::[\w-]+)?)*)$/;
-
-const SIGIL_KIND: Record<string, PartType> = { '.': PartType.PROPERTY, '?': PartType.BOOLEAN_ATTRIBUTE, '@': PartType.EVENT, '': PartType.ATTRIBUTE };
-const KIND_SIGIL: Record<string, string> = { [PartType.PROPERTY]: '.', [PartType.BOOLEAN_ATTRIBUTE]: '?', [PartType.EVENT]: '@' };
-
-/** Attributes that accept `name:arg` to bind a single entry (`class:active`, `style:color`). */
-const ENTRY_ATTRIBUTES = new Set(['class', 'style']);
+/** `[sigil]name[:arg](.modifier[:value])*`, the full attribute name as handed over by the engine.
+ *  Static args/values are `[\w-]+` (no `.`, which would start the next modifier). See `compile-attributes.md`. */
+const BINDING_NAME_RE = /^([^\w\s"'<>\/=:-]?)([\w-]+)(?::([\w-]+))?((?:\.[\w-]+(?::[\w-]+)?)*)$/;
 
 interface OpenBinding {
-	kind: PartType;
-	name: string;
-	arg?: string;
-	modifiers: Modifier[];
+	rawName: string;
+	binding: BindingName;
+	extension: BindingExtension;
 }
 
 function parseModifiers(raw: string): Modifier[] {
@@ -69,8 +64,8 @@ function parseModifiers(raw: string): Modifier[] {
 		.slice(1)
 		.split('.')
 		.map(part => {
-			const [name, arg] = part.split(':');
-			return arg === undefined ? { name } : { name, arg };
+			const [name, value] = part.split(':');
+			return value === undefined ? { name } : { name, value };
 		});
 }
 
@@ -80,36 +75,35 @@ function parseBinding(rawName: string, markup: string): OpenBinding {
 		throw new Error(`std-ui html: could not parse an attribute binding near "...${markup.slice(-40)}"`);
 	}
 	const [, sigil, name, arg, rawModifiers] = match;
-	const open: OpenBinding = { kind: SIGIL_KIND[sigil], name, modifiers: parseModifiers(rawModifiers) };
-
-	if (arg !== undefined) {
-		if (sigil !== '' || !ENTRY_ATTRIBUTES.has(name)) {
-			throw new Error(`std-ui html: "${rawName}" - ":arg" is only supported on class:name and style:prop bindings.`);
-		}
-		open.arg = arg;
+	const binding: BindingName = { sigil, name, arg, modifiers: parseModifiers(rawModifiers) };
+	const extension = findBindingExtension(binding);
+	if (!extension) {
+		throw new Error(`std-ui html: unknown binding sigil "${sigil}" in "${rawName}" - register a BindingExtension for it.`);
 	}
-	return open;
+	extension.validate?.(binding);
+	return { rawName, binding, extension };
 }
 
 function describeBinding(open: OpenBinding, literals: readonly string[], valueCount: number): PartDescriptor {
-	const isEntry = open.arg !== undefined;
-	if (open.kind !== PartType.ATTRIBUTE || isEntry) {
-		const label = isEntry ? `${open.name}:${open.arg}` : `${KIND_SIGIL[open.kind]}${open.name}`;
+	const { binding, extension, rawName } = open;
+	const mustBeSingle = extension.single === true;
+	if (mustBeSingle) {
 		if (valueCount !== 1 || literals.some(s => s !== '')) {
 			throw new Error(
-				`std-ui html: "${label}" must bind exactly one interpolation with no static ` +
-					`text, e.g. ${label}="\${value}" - only plain attributes (no sigil) support ` +
+				`std-ui html: "${rawName}" must bind exactly one interpolation with no static ` +
+					`text, e.g. ${rawName}="\${value}" - only plain attributes (no sigil) support ` +
 					`multiple/mixed interpolations like class="\${a} \${b}".`,
 			);
 		}
 	}
 	return {
-		kind: open.kind,
-		name: open.name,
-		arg: open.arg,
-		modifiers: open.modifiers,
+		kind: PartType.ATTRIBUTE,
+		name: binding.name,
+		arg: binding.arg,
+		modifiers: [...binding.modifiers],
+		extension: { binding, extension },
 		nodeIndex: -1,
-		literals: open.kind === PartType.ATTRIBUTE && !isEntry ? [...literals] : undefined,
+		literals: mustBeSingle ? undefined : [...literals],
 		valueCount,
 	};
 }
@@ -117,19 +111,16 @@ function describeBinding(open: OpenBinding, literals: readonly string[], valueCo
 // --- Part creation ------------------------------------------------------------------------------
 
 function createPart(descriptor: PartDescriptor, target: Node, host?: unknown): Part {
-	switch (descriptor.kind) {
-		case PartType.CHILD: return new ChildPart(target as Comment, host);
-		case PartType.ATTRIBUTE:
-			return descriptor.arg === undefined
-				? new AttributePart(target as Element, descriptor.name, descriptor.literals, descriptor.modifiers)
-				: new AttributeEntryPart(target as Element, descriptor.name as 'class' | 'style', descriptor.arg, descriptor.modifiers);
-		case PartType.BOOLEAN_ATTRIBUTE: return new BooleanAttributePart(target as Element, descriptor.name, descriptor.modifiers);
-		case PartType.PROPERTY: return new PropertyPart(target as Element, descriptor.name, descriptor.modifiers);
-		case PartType.EVENT: return new EventPart(target as Element, descriptor.name, descriptor.modifiers, host);
-		case PartType.ELEMENT: return new ElementPart(target as Element, host);
+	if (descriptor.extension) {
+		return descriptor.extension.extension.createPart(
+			target as Element, descriptor.extension.binding, host,
+			{ literals: descriptor.literals ?? ['', ''], valueCount: descriptor.valueCount },
+		);
 	}
+	// Attribute-like kinds all come from extensions (see above); only slots are built in.
+	if (descriptor.kind === PartType.CHILD) return new ChildPart(target as Comment, host);
+	return new ElementPart(target as Element, host);
 }
-
 // --- SVG namespace ------------------------------------------------------------------------------
 
 /** Parse inside a temporary `<svg>` so the HTML parser assigns the SVG namespace, then hoist the

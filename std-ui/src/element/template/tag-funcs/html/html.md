@@ -26,8 +26,8 @@ Each `${...}` interpolation is bound based on *where* it appears in the markup:
 | `.`-prefixed attribute | `.value=${value}` | `el.value = value` (a JS property, not an HTML attribute) |
 | `@`-prefixed attribute | `@click=${handler}` | `el.addEventListener('click', handler)` |
 | `@`-prefixed attribute with modifiers | `@click.once.capture.passive=${handler}` | `el.addEventListener('click', handler, { once: true, capture: true, passive: true })` |
-| `class:` entry | `class:active=${on}` | `el.classList.toggle('active', Boolean(on))` |
-| `style:` entry | `style:color=${value}` | `el.style.setProperty('color', value)` (removed if `value` is `null`/`undefined`/`false`) |
+| `class.` entry | `class.active=${on}` | `el.classList.toggle('active', Boolean(on))` |
+| `style.` entry | `style.color=${value}` | `el.style.setProperty('color', value)` (removed if `value` is `null`/`undefined`/`false`) |
 
 ### Event modifiers
 
@@ -51,25 +51,24 @@ Unknown modifiers have no effect; in dev builds a one-time `console.warn` names 
 the modifier. Modifiers on a binding kind that takes none (`?hidden.foo`, `.value.bar`, plain
 attributes) are ignored the same way.
 
-### `class:` and `style:` entries
+### `class.` and `style.` entries
 
-`class:name=${bool}` toggles a single class and `style:prop=${value}` sets a single style
+`class.name=${bool}` toggles a single class and `style.prop=${value}` sets a single style
 property, without touching the rest of `class`/`style`.
 
 ```ts
-t`<button class="btn" class:active=${isActive} class:disabled=${!enabled}
-          style:color=${color} style:--gap=${gap} style:display=${visible && 'block'}>
+t`<button class="btn" class.active=${isActive} class.disabled=${!enabled}
+          style.color=${color} style.--gap=${gap} style.display=${visible && 'block'}>
   Save
 </button>`;
 // isActive = true, enabled = true, color = 'red', gap = '4px', visible = false
 // -> <button class="btn active" style="color: red; --gap: 4px;">
 ``` Use kebab-case for style properties;
-custom properties work (`style:--gap=${v}`). Like `?`/`.`/`@` bindings, each takes exactly one
-interpolation with no static text. `:arg` is only valid on `class` and `style`; any other
-`name:arg` throws at compile time. Prefer these over [`classMap`/`styleMap`](./directives/README.md)
+custom properties work (`style.--gap=${v}`). Like `?`/`.`/`@` bindings, each takes exactly one
+interpolation with no static text. The entry is the binding's single modifier; `name:arg` is reserved and throws at compile time. Prefer these over [`classMap`/`styleMap`](./directives/README.md)
 when you only toggle a few known names; use the directives for dynamic key sets.
 
-The full binding-name grammar (`[sigil]name[:arg](.modifier[:arg])*`) is in
+The full binding-name grammar (`[sigil]name[:arg](.modifier[:value])*`) is in
 [`compiler/compile-attributes.md`](./compiler/compile-attributes.md#binding-name-grammar).
 
 A plain attribute's value may mix static text with any number of interpolations - they're joined
@@ -120,8 +119,7 @@ position; no async/`ElementPart`/boolean-attribute/property/event directives):
 
 ```ts
 export const PartType = {
-	ATTRIBUTE: 'attribute', BOOLEAN_ATTRIBUTE: 'boolean-attribute', PROPERTY: 'property',
-	EVENT: 'event', CHILD: 'child', ELEMENT: 'element',
+	ATTRIBUTE: 'attribute', PROPERTY: 'property', CHILD: 'child', ELEMENT: 'element',
 } as const;
 
 export interface AttributePartInfo {

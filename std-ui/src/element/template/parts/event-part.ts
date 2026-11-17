@@ -11,9 +11,9 @@ function extractEventModifiers(modifiers: readonly Modifier[]) {
 	const options: AddEventListenerOptions = {};
 	const filters: EventFilters = {};
 	for (const mod of modifiers) {
-		if ((OPTION_MODIFIERS as readonly string[]).includes(mod.name) && mod.arg === undefined) {
+		if ((OPTION_MODIFIERS as readonly string[]).includes(mod.name) && mod.value === undefined) {
 			options[mod.name as (typeof OPTION_MODIFIERS)[number]] = true;
-		} else if ((FILTER_MODIFIERS as readonly string[]).includes(mod.name) && mod.arg === undefined) {
+		} else if ((FILTER_MODIFIERS as readonly string[]).includes(mod.name) && mod.value === undefined) {
 			filters[mod.name as keyof EventFilters] = true;
 		}
 	}
