@@ -207,7 +207,7 @@ Rules:
   extension wins when its `matches()` accepts the binding, otherwise the sigil's wildcard applies. A new
   sigil (e.g. `#name:arg.mod:value="a ${x}"`) is just another registration; mixed text and several
   interpolations are allowed by default; `single: true` requires exactly one interpolation. An unregistered sigil throws at compile time.
-- `class` and `style` entries are Custom attributes that live in `std-ui-ext` (`element/template/custom-attributes/class-style.ts`;
+- `class` and `style` entries are Custom attributes that live in `std-ui-ext` (`element/template/custom-attributes/class-style.custom-attribute.ts`;
   importing the package registers them, core does not): they accept **exactly one** modifier as the entry (`class.active`, `style.color`,
   `style.--gap`); more than one, or a `:value` on it, throws. With no modifier, `class=${x}` is
   the plain attribute. Entry bindings are single-value (one interpolation, no static text). Use

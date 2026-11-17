@@ -1,2 +1,2 @@
-export { classAttributeExtension, styleAttributeExtension } from './class-style.js';
-export { eventModifiersExtension, ModifierEventPart } from './event.js';
+export { classAttributeExtension, styleAttributeExtension } from './class-style.custom-attribute.js';
+export { eventModifiersExtension, ModifierEventPart } from './event.custom-attribute.js';

@@ -1,30 +1,22 @@
 ---
-description: Modules with top-level registration side effects must be listed in package.json "sideEffects"
+description: Files with top-level registration side effects must be listed in package.json "sideEffects"
 globs: std-ui/src/**/*.ts,std-ui-ext/src/**/*.ts,std-ui/package.json,std-ui-ext/package.json
 alwaysApply: false
 ---
 
 # `sideEffects` whitelist
 
-Both `std-ui/package.json` and `std-ui-ext/package.json` use a `"sideEffects"` **whitelist** (not `true`/`false`).
-Bundlers drop any module not on the list when nothing from it is imported, so a file whose only job is a
-top-level registration silently disappears from production builds (dev and tests still work).
+`std-ui` and `std-ui-ext` use a `"sideEffects"` whitelist in `package.json`. Unlisted modules are dropped by
+bundlers when nothing is imported from them, so a registration-only file silently vanishes from production builds.
 
-When you add, move, rename, or delete a file with a top-level call such as:
+When adding, moving, renaming, or deleting a file with a top-level `registerCustomAttribute(...)`,
+`registerUIElementHooks(...)`, or similar registration, update that package's `sideEffects`. Entries are `dist`
+paths (mirror `src`, `.ts` -> `.js`, under `./dist/esm/`).
 
-- `registerCustomAttribute(...)`
-- `registerUIElementHooks(...)`
-- `customElements.define(...)` or any other module-level registration
+- `std-ui`: glob `custom-attributes/**/*.custom-attribute.js`. Name new built-in bindings `*.custom-attribute.ts`,
+  register inside the file, and import its `index.js` from `compile.ts`.
+- `std-ui-ext`: explicit files (`custom-attributes/event.custom-attribute.js`, `custom-attributes/class-style.custom-attribute.js`,
+  `decorators/context/wire-provide.js`, `decorators/context/wire-consume.js`). A new registering file needs a new entry.
 
-update the `sideEffects` array in that package's `package.json`. Entries are `dist` paths, which mirror `src`
-(`rootDir: ./src`, `outDir: ./dist/esm`), with `.ts` replaced by `.js`.
-
-Current entries:
-
-- `std-ui`: `./dist/esm/element/template/custom-attributes/**/*.custom-attribute.js`. A new built-in binding must be
-  named `*.custom-attribute.ts` and call `registerCustomAttribute` itself, and `compile.ts` must import its `index.js`.
-- `std-ui-ext`: `custom-attributes/event.js`, `custom-attributes/class-style.js`, `decorators/context/wire-provide.js`,
-  `decorators/context/wire-consume.js`. These are listed explicitly, so a new registering file needs a new entry.
-
-Overrides rely on registry replacement: `registerCustomAttribute` replaces the extension for the same
-`(sigil, name)`, so `std-ui-ext`'s `@*` (event modifiers) replaces std-ui's default `@*` once imported.
+`registerCustomAttribute` replaces any extension with the same `(sigil, name)`; that is how `std-ui-ext`'s `@*`
+(modifiers) overrides std-ui's default.
