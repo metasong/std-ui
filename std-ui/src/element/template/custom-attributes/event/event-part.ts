@@ -1,39 +1,18 @@
 import { type Modifier, type Part, warnIgnoredModifiers } from '../../parts/part.js';
 
-const OPTION_MODIFIERS = ['capture', 'once', 'passive'] as const;
-const FILTER_MODIFIERS = ['prevent', 'stop', 'stop-immediate', 'self'] as const;
-
-type EventFilters = Partial<Record<(typeof FILTER_MODIFIERS)[number], true>>;
-
-/** Splits `@event.modifier` modifiers into `addEventListener` options (`capture`/`once`/`passive`)
- *  and handler filters (`prevent`/`stop`/`stop-immediate`/`self`). Unrecognized ones are ignored. */
-function extractEventModifiers(modifiers: readonly Modifier[]) {
-	const options: AddEventListenerOptions = {};
-	const filters: EventFilters = {};
-	for (const mod of modifiers) {
-		if ((OPTION_MODIFIERS as readonly string[]).includes(mod.name) && mod.value === undefined) {
-			options[mod.name as (typeof OPTION_MODIFIERS)[number]] = true;
-		} else if ((FILTER_MODIFIERS as readonly string[]).includes(mod.name) && mod.value === undefined) {
-			filters[mod.name as keyof EventFilters] = true;
-		}
-	}
-	return { options, filters };
-}
-
+/** `@event=${handler}`. Modifiers are not interpreted here (they warn in DEV); `std-ui-ext`
+ *  replaces this binding with one that handles `.capture`, `.once`, `.prevent`, etc. */
 export class EventPart implements Part, EventListenerObject {
 	readonly valueCount = 1;
 	#listener: EventListenerOrEventListenerObject | undefined;
 	#attached = false;
-	readonly #options: AddEventListenerOptions;
-	readonly #filters: EventFilters;
 	constructor(
 		private readonly el: Element,
 		private readonly name: string,
 		modifiers: readonly Modifier[] = [],
 		private readonly host?: unknown,
 	) {
-		warnIgnoredModifiers(`@${name}`, modifiers, [...OPTION_MODIFIERS, ...FILTER_MODIFIERS]);
-		({ options: this.#options, filters: this.#filters } = extractEventModifiers(modifiers));
+		warnIgnoredModifiers(`@${name}`, modifiers);
 	}
 	update(values: readonly unknown[]): void {
 		const value = values[0];
@@ -44,20 +23,14 @@ export class EventPart implements Part, EventListenerObject {
 		// The part itself is the one registered listener (stable identity), so swapping handlers
 		// between renders needs no remove/add, and `this` inside a handler is the host.
 		if (listener && !this.#attached) {
-			this.el.addEventListener(this.name, this, this.#options);
+			this.el.addEventListener(this.name, this);
 			this.#attached = true;
 		} else if (!listener && this.#attached) {
-			this.el.removeEventListener(this.name, this, this.#options);
+			this.el.removeEventListener(this.name, this);
 			this.#attached = false;
 		}
 	}
 	handleEvent(event: Event): void {
-		if (this.#options.once) this.#attached = false; // the browser removed us
-		const f = this.#filters;
-		if (f.self && event.target !== event.currentTarget) return;
-		if (f.prevent) event.preventDefault();
-		if (f.stop) event.stopPropagation();
-		if (f['stop-immediate']) event.stopImmediatePropagation();
 		const l = this.#listener;
 		if (typeof l === 'function') l.call(this.host ?? this.el, event);
 		else l?.handleEvent(event);

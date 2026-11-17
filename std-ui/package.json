@@ -4,7 +4,9 @@
 	"description": "Minimal UI on web standards: reactive signals, tagged HTML templates, and Custom Elements - no virtual DOM, no framework runtime.",
 	"type": "module",
 	"license": "MIT",
-	"sideEffects": false,
+	"sideEffects": [
+		"./dist/esm/element/template/custom-attributes/**/*.custom-attribute.js"
+	],
 	"main": "./dist/esm/index.js",
 	"module": "./dist/esm/index.js",
 	"types": "./dist/esm/index.d.ts",

@@ -4,7 +4,12 @@
 	"description": "Optional extensions for std-ui. First extension: context (@provide / @consume).",
 	"type": "module",
 	"license": "MIT",
-	"sideEffects": true,
+	"sideEffects": [
+		"./dist/esm/element/template/custom-attributes/event.js",
+		"./dist/esm/element/template/custom-attributes/class-style.js",
+		"./dist/esm/element/decorators/context/wire-provide.js",
+		"./dist/esm/element/decorators/context/wire-consume.js"
+	],
 	"main": "./dist/esm/index.js",
 	"module": "./dist/esm/index.js",
 	"types": "./dist/esm/index.d.ts",

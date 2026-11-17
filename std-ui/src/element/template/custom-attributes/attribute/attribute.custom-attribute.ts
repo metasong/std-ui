@@ -1,4 +1,4 @@
-import { WILDCARD, type CustomAttribute } from '../../compiler/custom-attribute.js';
+import { WILDCARD, registerCustomAttribute, type CustomAttribute } from '../../compiler/custom-attribute.js';
 import { AttributePart } from './attribute-part.js';
 
 export const plainAttributeExtension: CustomAttribute = {
@@ -9,3 +9,5 @@ export const plainAttributeExtension: CustomAttribute = {
 	},
 	createPart: (el, b, _host, v) => new AttributePart(el, b.name, [...v.literals], b.modifiers),
 };
+
+registerCustomAttribute(plainAttributeExtension);

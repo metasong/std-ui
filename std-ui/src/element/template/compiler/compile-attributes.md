@@ -202,7 +202,7 @@ Rules:
   pieces *mean*. A **custom attribute** (`compiler/custom-attribute.ts`) owns one `(sigil, name)` pair: it
   validates the binding at compile time and builds the `Part`. Register with
   `registerCustomAttribute()` before the template is first compiled (templates are cached).
-  The native kinds are Custom attributes too (`custom-attributes/builtin.ts`): plain attribute, `.prop`, `?bool` and
+  The native kinds are Custom attributes too (`custom-attributes/*/*.custom-attribute.ts`): plain attribute, `.prop`, `?bool` and
   `@event`, each registered for its sigil with the wildcard name `*`. An exact `(sigil, name)`
   extension wins when its `matches()` accepts the binding, otherwise the sigil's wildcard applies. A new
   sigil (e.g. `#name:arg.mod:value="a ${x}"`) is just another registration; mixed text and several

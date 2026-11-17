@@ -178,37 +178,6 @@ describe('PropertyPart', () => {
 	});
 });
 
-describe('EventPart filters', () => {
-	it('applies prevent/stop and skips handler for .self on child targets', () => {
-		const parent = document.createElement('div');
-		const child = document.createElement('span');
-		parent.append(child);
-		const handler = vi.fn();
-		new EventPart(parent, 'click', [{ name: 'prevent' }, { name: 'stop' }, { name: 'self' }]).update([handler]);
-
-		const own = new Event('click', { cancelable: true, bubbles: true });
-		parent.dispatchEvent(own);
-		expect(handler).toHaveBeenCalledTimes(1);
-		expect(own.defaultPrevented).toBe(true);
-
-		child.dispatchEvent(new Event('click', { bubbles: true }));
-		expect(handler).toHaveBeenCalledTimes(1);
-	});
-});
-
-describe('EventPart stop-immediate', () => {
-	it('blocks later listeners on the same element', () => {
-		const el = document.createElement('div');
-		const later = vi.fn();
-		const handler = vi.fn();
-		new EventPart(el, 'click', [{ name: 'stop-immediate' }]).update([handler]);
-		el.addEventListener('click', later);
-		el.dispatchEvent(new Event('click'));
-		expect(handler).toHaveBeenCalledTimes(1);
-		expect(later).not.toHaveBeenCalled();
-	});
-});
-
 describe('EventPart', () => {
 	it('adds the listener and invokes it on dispatch', () => {
 		const el = document.createElement('button');
@@ -240,25 +209,6 @@ describe('EventPart', () => {
 		el.dispatchEvent(new Event('click'));
 		expect(handler).not.toHaveBeenCalled();
 	});
-
-	it('passes options (e.g. capture/once/passive) through to add/removeEventListener', () => {
-		const el = document.createElement('button');
-		const addEventListener = vi.spyOn(el, 'addEventListener');
-		const removeEventListener = vi.spyOn(el, 'removeEventListener');
-		const options = { once: true, capture: true, passive: true };
-		const DirectivePart = new EventPart(el, 'click', [{ name: 'once' }, { name: 'capture' }, { name: 'passive' }]);
-		const first = vi.fn();
-		DirectivePart.update([first]);
-		expect(addEventListener).toHaveBeenCalledWith('click', DirectivePart, options);
-
-		// Swapping handlers keeps the one registered listener (the DirectivePart itself).
-		const second = vi.fn();
-		DirectivePart.update([second]);
-		expect(addEventListener).toHaveBeenCalledTimes(1);
-		DirectivePart.update([undefined]);
-		expect(removeEventListener).toHaveBeenCalledWith('click', DirectivePart, options);
-	});
-
 	it('calls handlers with `this` = host (or the element when no host)', () => {
 		const el = document.createElement('button');
 		const host = {};
@@ -273,16 +223,6 @@ describe('EventPart', () => {
 		new EventPart(el2, 'click').update([handler]);
 		el2.dispatchEvent(new Event('click'));
 		expect(seen).toBe(el2);
-	});
-
-	it('honors the `once` option: handler fires once then self-removes', () => {
-		const el = document.createElement('button');
-		const DirectivePart = new EventPart(el, 'click', [{ name: 'once' }]);
-		const handler = vi.fn();
-		DirectivePart.update([handler]);
-		el.dispatchEvent(new Event('click'));
-		el.dispatchEvent(new Event('click'));
-		expect(handler).toHaveBeenCalledTimes(1);
 	});
 });
 
