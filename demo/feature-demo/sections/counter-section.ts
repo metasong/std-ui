@@ -1,7 +1,7 @@
 // Demonstrates: `state`/`computed`, `UIElement.template()` re-rendering on signal change,
 // `@click` event binding, `?disabled` boolean-attribute binding.
-import { tag, t, UIElement } from '../../../std-ui/src/index.js';
-import { state, computed } from '../../../std-ui/src/reactive/index.js';
+import { tag, t, UIElement } from '../../../core/src/index.js';
+import { state, computed } from '../../../core/src/reactive/index.js';
 
 const count = state(0);
 const label = computed(() => (count() < 2 ? 'click' : 'clicks'));

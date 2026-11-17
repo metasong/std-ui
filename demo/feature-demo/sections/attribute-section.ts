@@ -1,6 +1,6 @@
 // Demonstrates: `@attribute()` (attribute <-> property sync, with `reflect: true`) vs. a plain `state()` field
 // (store-backed, no attribute at all).
-import { tag, t, UIElement, attribute, state, css } from '../../../std-ui/src/index.js';
+import { tag, t, UIElement, attribute, state, css } from '../../../core/src/index.js';
 
 @tag('demo-attribute-section')
 export class DemoAttributeSection extends UIElement {

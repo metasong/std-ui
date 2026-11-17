@@ -1,6 +1,6 @@
 // Multi-lane grid (4 columns).
-import { tag, t, UIElement } from '../../../../std-ui/src/index.js';
-import { virtualize } from '../../../../std-ui-ext/src/index.js';
+import { tag, t, UIElement } from '../../../../core/src/index.js';
+import { virtualize } from '../../../../ext/src/index.js';
 
 type Cell = { i: number };
 

@@ -1,5 +1,5 @@
 // Vite 8 transforms TS with oxc, which does not lower stage-3 decorators (used throughout
-// `std-ui`). This plugin keeps esbuild (target es2022) as the TS transformer instead.
+// `@std-ui/core`). This plugin keeps esbuild (target es2022) as the TS transformer instead.
 import { transform } from 'esbuild';
 import type { Plugin } from 'vite';
 

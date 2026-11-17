@@ -12,17 +12,17 @@ const walk = d =>
 
 let out = '### Browser bundles (`<pkg>/dist/browser`; `std-ui-ext` keeps `std-ui` external)\n\n| File | Minified | Gzip | Brotli |\n|---|---|---|---|\n';
 for (const f of [
-	'std-ui/dist/browser/std-ui.min.js',
-	'std-ui/dist/browser/std-ui.iife.min.js',
-	'std-ui-ext/dist/browser/std-ui-ext.min.js',
-	'std-ui-ext/dist/browser/std-ui-ext.iife.min.js',
+	'core/dist/browser/std-ui-core.min.js',
+	'core/dist/browser/std-ui-core.iife.min.js',
+	'ext/dist/browser/std-ui-ext.min.js',
+	'ext/dist/browser/std-ui-ext.iife.min.js',
 ]) {
 	const b = fs.readFileSync(f);
 	out += `| \`${path.basename(f)}\` | ${kb(b.length)} | ${kb(zlib.gzipSync(b, { level: 9 }).length)} | ${kb(zlib.brotliCompressSync(b).length)} |\n`;
 }
 
 out += '\n### npm packages (compiled `.js`, unminified; excludes maps and `.d.ts`)\n\n| Package | Files | Raw | Gzip |\n|---|---|---|---|\n';
-for (const d of ['std-ui', 'std-ui-ext']) {
+for (const d of ['core', 'ext']) {
 	const files = walk(`${d}/dist/esm`).filter(f => f.endsWith('.js'));
 	const all = Buffer.concat(files.map(f => fs.readFileSync(f)));
 	out += `| \`${d}\` | ${files.length} | ${kb(all.length)} | ${kb(zlib.gzipSync(all, { level: 9 }).length)} |\n`;

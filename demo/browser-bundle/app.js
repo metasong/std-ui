@@ -1,5 +1,5 @@
 // App entry — a classic script using the `StdUI` global from the prebuilt IIFE bundle
-// (`../std-ui/dist/browser/std-ui.iife.min.js`, loaded first in index.html; run `npm run build` first).
+// (`../core/dist/browser/std-ui-core.iife.min.js`, loaded first in index.html; run `npm run build` first).
 (() => {
 	const { state, computed, effect, t, render, UIElement, classMap } = StdUI;
 

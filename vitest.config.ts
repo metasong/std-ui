@@ -6,10 +6,10 @@ export default defineConfig({
 	oxc: false,
 	plugins: [esbuildTs()],
 	resolve: {
-		alias: { 'std-ui': fileURLToPath(new URL('./std-ui/src/index.ts', import.meta.url)) },
+		alias: { '@std-ui/core': fileURLToPath(new URL('./core/src/index.ts', import.meta.url)) },
 	},
 	test: {
 		environment: 'jsdom',
-		include: ['std-ui/**/*.test.ts', 'std-ui-ext/**/*.test.ts'],
+		include: ['core/**/*.test.ts', 'ext/**/*.test.ts'],
 	},
 });

@@ -1,4 +1,4 @@
-// Standalone Vite dev server for the `std-ui` feature demo — independent from the
+// Standalone Vite dev server for the `@std-ui/core` feature demo — independent from the
 // fireworks app's own `vite.config.js` at the repo root. Run from `src/std-ui/demo`:
 //
 //   npx vite
@@ -6,7 +6,7 @@
 // (or `npm run demo` from `src/std-ui`, see `package.json`).
 //
 // Same `esbuild.target: 'es2022'` as the root config: stage-3 decorators (used throughout
-// `../std-ui/src/**`) need `es2022` to be transpiled rather than passed through as raw `@...` syntax.
+// `../core/src/**`) need `es2022` to be transpiled rather than passed through as raw `@...` syntax.
 import { fileURLToPath } from 'node:url';
 import { defineConfig } from 'vite';
 import { esbuildTs } from '../scripts/esbuild-ts.ts';
@@ -16,7 +16,7 @@ const dirname = fileURLToPath(new URL('.', import.meta.url));
 export default defineConfig({
 	root: dirname,
 	resolve: {
-		alias: { 'std-ui': fileURLToPath(new URL('../std-ui/src/index.ts', import.meta.url)) },
+		alias: { '@std-ui/core': fileURLToPath(new URL('../core/src/index.ts', import.meta.url)) },
 	},
 	base: './',
 	build: {

@@ -11,7 +11,7 @@
 		<h1>std-ui in the browser</h1>
 		<p>
 			This page loads the prebuilt
-			<code>dist/browser/std-ui.iife.min.js</code> with a plain <code>&lt;script&gt;</code> tag and uses
+			<code>dist/browser/std-ui-core.iife.min.js</code> with a plain <code>&lt;script&gt;</code> tag and uses
 			the <code>StdUI</code> global — no modules, no bundler. App code is plain <code>app.js</code>
 			(no <code>@decorator</code> syntax; use <code>customElements.define</code>, or see the Babel demo).
 		</p>
@@ -33,7 +33,7 @@
 	</main>
 
 	<!-- Classic scripts, in order: the library defines the `StdUI` global, then the app uses it. -->
-	<script src="./std-ui.iife.min.js"></script>
+	<script src="./std-ui-core.iife.min.js"></script>
 	<script src="./app.js"></script>
 </body>
 </html>

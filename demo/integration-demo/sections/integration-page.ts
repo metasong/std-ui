@@ -1,6 +1,6 @@
 // Page body of the integration demo: each section wrapped in `<code-preview>`, with its sources passed in
 // through a one-way `.files` property binding.
-import { t, tag, UIElement } from '../../../std-ui/src/index.js';
+import { t, tag, UIElement } from '../../../core/src/index.js';
 import '../../shared/code-preview.js';
 import './signup-form-section.js';
 import './directory-section.js';
