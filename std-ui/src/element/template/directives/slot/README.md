@@ -40,4 +40,4 @@ class Card extends UIElement {
 Reading slotted content from the component: [`@queryAssignedNodes`](../../../decorators/query/query-assigned.decorator.md)
 reads the same captured content in light DOM (and the native `<slot>` in shadow DOM).
 
-Implementation: `SlotCommitter` in `index.ts`, handed to `ChildPart` via `commitWith()`; capture in `slot-content.ts`.
+Implementation: `SlotRenderer` in `index.ts`, handed to `ChildPart` via `renderWith()`; capture in `slot-content.ts`.

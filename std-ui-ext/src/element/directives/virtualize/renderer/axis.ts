@@ -1,4 +1,4 @@
-// Axis-dependent DOM reads/writes. Everything else in the committer speaks in "main-axis" terms
+// Axis-dependent DOM reads/writes. Everything else in the renderer speaks in "main-axis" terms
 // (position, size, offset), so supporting horizontal lists only needs this one switch.
 
 export type Scroller = Element | Window;

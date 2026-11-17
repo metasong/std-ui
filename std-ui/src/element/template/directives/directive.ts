@@ -111,7 +111,7 @@ export type Part = AttributePartInfo | ChildPartInfo | PropertyPartInfo | Elemen
  *   - `noChange` - you already updated the DOM yourself (or there is nothing to do);
  *   - a raw value (string, `null`/`undefined` to remove an attribute, a template, ...) for the
  *     part to commit;
- *   - a committer (`commitWith(MyCommitter, value)`) for a `ChildPart` to commit through.
+ *   - a renderer (`renderWith(MyRenderer, value)`) for a `ChildPart` to commit through.
  *
  *   class HelloDirective extends Directive {
  *   	update(_part: Part, name: string) {
@@ -125,7 +125,7 @@ export abstract class Directive {
 	constructor(_partInfo: PartInfo) {}
 
 	/** The one output hook: mutate the DOM via `part` and return `noChange`, or return a raw value /
-	 *  committer for the part to commit. Declare whatever typed parameters you need after `part`. */
+	 *  renderer for the part to commit. Declare whatever typed parameters you need after `part`. */
 	abstract update(part: Part, ...args: readonly unknown[]): DirectiveReturn;
 
 	/** Optional cleanup hook (default: no-op). Called once when this instance stops being used at

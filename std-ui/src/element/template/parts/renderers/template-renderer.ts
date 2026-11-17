@@ -1,9 +1,9 @@
 import type { TemplateResult } from '../../tag-funcs/html/index.js';
 import { getTemplate, instantiate } from '../../compiler/index.js';
 import { type Part, updateParts } from '../part.js';
-import { Committer } from './committer.js';
+import { ChildRenderer } from './child-renderer.js';
 
-export class TemplateCommitter extends Committer<TemplateResult> {
+export class TemplateRenderer extends ChildRenderer<TemplateResult> {
 	#strings: TemplateStringsArray | undefined;
 	#parts: Part[] = [];
 	#nodes: ChildNode[] = [];

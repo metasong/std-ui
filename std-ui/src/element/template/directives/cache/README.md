@@ -20,4 +20,4 @@ t`${cache(loggedIn ? t`<x-home></x-home>` : t`<x-login></x-login>`)}`;
 - Only valid in child positions; attribute, property or element bindings throw.
 - A stashed template's parts are not disconnected until the whole binding is torn down.
 
-Implementation: `CacheCommitter` in `index.ts`, handed to `ChildPart` via `commitWith()`.
+Implementation: `CacheRenderer` in `index.ts`, handed to `ChildPart` via `renderWith()`.

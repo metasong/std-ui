@@ -6,23 +6,23 @@ Implementation of the built-in child directive that keeps switched-out templates
 
 | File | Owns |
 |---|---|
-| [`index.ts`](./index.ts) | `CacheDirective`, `CacheCommitter`, and `export const cache = directive(CacheDirective)`. |
+| [`index.ts`](./index.ts) | `CacheDirective`, `CacheRenderer`, and `export const cache = directive(CacheDirective)`. |
 | [`../index.ts`](../index.ts) | Public re-export with other directives. |
 
-`ChildPart` has no knowledge of `cache`; the directive hands it a committer via `commitWith()`, the same
+`ChildPart` has no knowledge of `cache`; the directive hands it a renderer via `renderWith()`, the same
 pattern as [`../html/unsafe-html.ts`](../html/unsafe-html.ts).
 
-## Why a committer, not just `render()`
+## Why a renderer, not just `render()`
 
-A plain `render()` returning the `TemplateResult` would let `ChildPart` use `TemplateCommitter`, which tears down
+A plain `render()` returning the `TemplateResult` would let `ChildPart` use `TemplateRenderer`, which tears down
 its DOM when `strings` change (`update()` returns `false`, `ChildPart` disposes and rebuilds). Cache needs to own
-the DOM of several templates at once, so the directive returns `commitWith(CacheCommitter, value)`.
+the DOM of several templates at once, so the directive returns `renderWith(CacheRenderer, value)`.
 
 ## State
 
-One `CacheCommitter` per binding position (`ChildPart` reuses it while the directive stays the same):
+One `CacheRenderer` per binding position (`ChildPart` reuses it while the directive stays the same):
 
-- `#start` — comment inserted before `anchor` once; together with `anchor` it brackets everything this committer
+- `#start` — comment inserted before `anchor` once; together with `anchor` it brackets everything this renderer
   has rendered, including content that nested child parts insert later.
 - `#entries` — `Map<TemplateStringsArray, { parts, stash }>`. `parts` are the live instantiated parts; `stash` is
   a `DocumentFragment` that holds the entry's nodes while inactive.
@@ -90,6 +90,6 @@ between `#start` and `anchor`, or its stash.
 ## Related reading
 
 - [`README.md`](./README.md) — public API.
-- [`../html/unsafe-html.ts`](../html/unsafe-html.ts) — another directive built on `commitWith()`.
-- [`../../parts/committers/committer.ts`](../../parts/committers/committer.ts) — `Committer`, `commitWith`.
-- [`../../parts/committers/template-committer.ts`](../../parts/committers/template-committer.ts) — the non-caching equivalent.
+- [`../html/unsafe-html.ts`](../html/unsafe-html.ts) — another directive built on `renderWith()`.
+- [`../../parts/renderers/child-renderer.ts`](../../parts/renderers/child-renderer.ts) — `ChildRenderer`, `renderWith`.
+- [`../../parts/renderers/template-renderer.ts`](../../parts/renderers/template-renderer.ts) — the non-caching equivalent.

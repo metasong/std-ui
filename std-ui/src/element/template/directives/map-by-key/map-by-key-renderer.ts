@@ -1,9 +1,9 @@
-import { Committer } from '../../parts/committers/committer.js';
+import { ChildRenderer } from '../../parts/renderers/child-renderer.js';
 import { KeyedRows, type KeyedEntries } from '../_lib/keyed-rows/index.js';
 
 export type MapByKeyEntries = KeyedEntries;
 
-export class MapByKeyCommitter extends Committer<MapByKeyEntries> {
+export class MapByKeyRenderer extends ChildRenderer<MapByKeyEntries> {
 	#rows = new KeyedRows(this.anchor, this.host);
 	update(entries: MapByKeyEntries): boolean {
 		this.#rows.update(entries);

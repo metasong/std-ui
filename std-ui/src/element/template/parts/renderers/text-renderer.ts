@@ -1,6 +1,6 @@
-import { Committer } from './committer.js';
+import { ChildRenderer } from './child-renderer.js';
 
-export class TextCommitter extends Committer<string> {
+export class TextRenderer extends ChildRenderer<string> {
 	#node: Text | undefined;
 	update(text: string): boolean {
 		if (this.#node) {

@@ -1,6 +1,6 @@
 import { Directive, directive, PartType, type Part, type PartInfo } from 'std-ui';
-import { commitWith } from 'std-ui';
-import { VirtualizeCommitter } from './committer/index.js';
+import { renderWith } from 'std-ui';
+import { VirtualizeRenderer } from './renderer/index.js';
 import type { VirtualizeOptions } from './options.js';
 
 class VirtualizeDirective extends Directive {
@@ -19,7 +19,7 @@ class VirtualizeDirective extends Directive {
 		if (options.isHeader && typeof options.lanes === 'number' && options.lanes > 1) {
 			throw new Error('std-ui virtualize(): isHeader requires lanes = 1.');
 		}
-		return commitWith(VirtualizeCommitter, { items, options });
+		return renderWith(VirtualizeRenderer, { items, options });
 	}
 }
 

@@ -7,12 +7,12 @@ Light-DOM slot projection. Usage: [`README.md`](./README.md).
 | File | Owns |
 |---|---|
 | [`slot-content.ts`](./slot-content.ts) | `snapshotLightChildren(host)` and `getSlotContent(host, name)`; two `WeakMap`s keyed by host. |
-| [`index.ts`](./index.ts) | `SlotDirective`, `SlotCommitter`, `export const slot = directive(SlotDirective)`. |
+| [`index.ts`](./index.ts) | `SlotDirective`, `SlotRenderer`, `export const slot = directive(SlotDirective)`. |
 | [`slot.test.ts`](./slot.test.ts) | Named/default projection, fallback, re-render stability. |
 | [`../../../ui-element.ts`](../../../ui-element.ts) | Calls `snapshotLightChildren(this)` in `#ensureRenderRoot` when the render root is the host. |
 | [`../../../decorators/query/query-assigned.decorator.ts`](../../../decorators/query/query-assigned.decorator.ts) | Reads `getSlotContent` in light DOM. |
 
-`ChildPart` has no knowledge of `slot`; the directive hands it a committer via `commitWith()`, same pattern as
+`ChildPart` has no knowledge of `slot`; the directive hands it a renderer via `renderWith()`, same pattern as
 [`../cache/`](../cache/design.md).
 
 ## The problem
@@ -38,16 +38,16 @@ are moved around the host and must stay reachable even while a slot is disposed.
 
 ## Commit: move once, stay put
 
-`SlotCommitter` (one per binding position):
+`SlotRenderer` (one per binding position):
 
 - First `update()`: `getSlotContent(host, name)` then `anchor.before(node)` for each node. Moves them out of wherever
   they are (initially the host, or a previous position).
 - Later `update()` with the same name: nothing to do for projected nodes (idempotent), so parent content is never
-  re-created or diffed. A different name returns `false`, so `ChildPart` disposes and replaces the committer.
-- Fallback: when the slot has no nodes and a `fallback` template is given, a nested `TemplateCommitter` renders it
+  re-created or diffed. A different name returns `false`, so `ChildPart` disposes and replaces the renderer.
+- Fallback: when the slot has no nodes and a `fallback` template is given, a nested `TemplateRenderer` renders it
   before its own comment anchor (`#fallbackAnchor`), and diffs it on re-render like any template. If the template's
   `strings` change, it is replaced.
-- `disconnect()` forwards to the fallback committer only; projected nodes belong to the parent, which owns their
+- `disconnect()` forwards to the fallback renderer only; projected nodes belong to the parent, which owns their
   lifecycle.
 - `dispose()` removes the projected nodes from the DOM (they stay in `grouped`, so recreating the slot re-inserts them)
   and removes the fallback and its anchor.

@@ -3,28 +3,28 @@ import { applyDirective, isDirectiveResult, noChange, type ChildPartInfo, type D
 import { PartType } from './part.js';
 import type { Part } from './part.js';
 import {
-	isCommitWith,
-	ListCommitter,
-	TemplateCommitter,
-	TextCommitter,
-	type Committer,
-	type CommitterClass,
-} from './committers/index.js';
+	isRenderWith,
+	ListRenderer,
+	TemplateRenderer,
+	TextRenderer,
+	type ChildRenderer,
+	type ChildRendererClass,
+} from './renderers/index.js';
 
-/** Maps a resolved (post-directive) value to the committer class that handles it, plus the value
- *  that committer expects; `undefined` means "render nothing". */
-function pickCommitter(value: unknown): { Ctor: CommitterClass; value: unknown } | undefined {
-	if (isCommitWith(value)) return { Ctor: value.Ctor, value: value.value };
-	if (Array.isArray(value)) return { Ctor: ListCommitter, value };
-	if (isTemplateResult(value)) return { Ctor: TemplateCommitter, value };
+/** Maps a resolved (post-directive) value to the renderer class that handles it, plus the value
+ *  that renderer expects; `undefined` means "render nothing". */
+function pickRenderer(value: unknown): { Ctor: ChildRendererClass; value: unknown } | undefined {
+	if (isRenderWith(value)) return { Ctor: value.Ctor, value: value.value };
+	if (Array.isArray(value)) return { Ctor: ListRenderer, value };
+	if (isTemplateResult(value)) return { Ctor: TemplateRenderer, value };
 	if (value == null || value === false) return undefined;
-	return { Ctor: TextCommitter, value: String(value) };
+	return { Ctor: TextRenderer, value: String(value) };
 }
 
 /** Binds a child-content position, anchored by a persistent comment node (`anchor`) in the DOM. */
 export class ChildPart implements Part {
 	readonly valueCount = 1;
-	#committer: Committer<any> | undefined;
+	#renderer: ChildRenderer<any> | undefined;
 	/** The `Directive` instance bound here, if a `directive()`-made value (e.g. `html()`) was
 	 *  ever applied to this position; reused across renders - see `directives/directive.ts`. */
 	#directive: Directive | undefined;
@@ -48,20 +48,20 @@ export class ChildPart implements Part {
 			if (resolved === noChange) return;
 			value = resolved;
 		}
-		const picked = pickCommitter(value);
+		const picked = pickRenderer(value);
 		if (!picked) {
 			this.#clear();
 			return;
 		}
-		if (this.#committer?.constructor === picked.Ctor && this.#committer.update(picked.value)) return;
+		if (this.#renderer?.constructor === picked.Ctor && this.#renderer.update(picked.value)) return;
 		this.#clear();
-		this.#committer = new picked.Ctor(this.anchor, this.host);
-		this.#committer.update(picked.value);
+		this.#renderer = new picked.Ctor(this.anchor, this.host);
+		this.#renderer.update(picked.value);
 	}
 
 	#clear(): void {
-		this.#committer?.dispose();
-		this.#committer = undefined;
+		this.#renderer?.dispose();
+		this.#renderer = undefined;
 	}
 
 	#disconnectDirective(): void {
@@ -73,7 +73,7 @@ export class ChildPart implements Part {
 	 *  leaving the DOM untouched (so a detached element keeps its last rendered output). */
 	disconnect(): void {
 		this.#disconnectDirective();
-		this.#committer?.disconnect();
+		this.#renderer?.disconnect();
 	}
 
 	/** Removes this part's content and its anchor. @internal */

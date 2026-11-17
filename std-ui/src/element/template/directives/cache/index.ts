@@ -1,7 +1,7 @@
 import { Directive, directive, type Part as DirectivePart, type PartInfo } from '../directive.js';
 import { getTemplate, instantiate } from '../../compiler/index.js';
 import { isTemplateResult, type TemplateResult } from '../../tag-funcs/html/index.js';
-import { Committer, commitWith } from '../../parts/committers/index.js';
+import { ChildRenderer, renderWith } from '../../parts/renderers/index.js';
 import { PartType, updateParts, type Part } from '../../parts/part.js';
 
 interface Entry {
@@ -12,7 +12,7 @@ interface Entry {
 
 /** Renders the current template, stashing the DOM + live parts of any template swapped out so
  *  switching back re-inserts it instead of re-instantiating. Non-template values render as text. */
-class CacheCommitter extends Committer<unknown> {
+class CacheRenderer extends ChildRenderer<unknown> {
 	readonly #start = document.createComment('');
 	readonly #entries = new Map<TemplateStringsArray, Entry>();
 	#active: Entry | undefined;
@@ -91,7 +91,7 @@ class CacheDirective extends Directive {
 	}
 
 	override update(_part: DirectivePart, value: unknown) {
-		return commitWith(CacheCommitter, value);
+		return renderWith(CacheRenderer, value);
 	}
 }
 

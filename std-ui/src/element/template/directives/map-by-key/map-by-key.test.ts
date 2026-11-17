@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { t } from '../../tag-funcs/html/index.js';
 import { AttributePart, ChildPart } from '../../parts/index.js';
-import { MapByKeyCommitter } from './map-by-key-committer.js';
+import { MapByKeyRenderer } from './map-by-key-renderer.js';
 import { mapByKey } from './main.js';
 
 describe('mapByKey', () => {
@@ -108,19 +108,19 @@ describe('mapByKey', () => {
 		expect(container.querySelector('p')!.getAttribute('data-id')).toBe('stay');
 	});
 
-	it('MapByKeyCommitter removes stale keys on direct update', () => {
+	it('MapByKeyRenderer removes stale keys on direct update', () => {
 		const container = document.createElement('div');
 		const anchor = document.createComment('std-ui-part');
 		container.appendChild(anchor);
-		const committer = new MapByKeyCommitter(anchor);
+		const renderer = new MapByKeyRenderer(anchor);
 
-		committer.update([
+		renderer.update([
 			{ key: 0, value: 'a' },
 			{ key: 1, value: 'b' },
 		]);
 		expect(container.textContent).toBe('ab');
 
-		committer.update([{ key: 0, value: 'a' }]);
+		renderer.update([{ key: 0, value: 'a' }]);
 		expect(container.textContent).toBe('a');
 	});
 });

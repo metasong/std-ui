@@ -1,10 +1,10 @@
 import { Directive, directive, type Part, type PartInfo } from '../directive.js';
 import { PartType } from '../../parts/part.js';
-import { Committer, commitWith } from '../../parts/committers/index.js';
+import { ChildRenderer, renderWith } from '../../parts/renderers/index.js';
 
 /** Parses markup and inserts the resulting nodes before the part's anchor; re-parses only when
  *  the markup string changes. */
-class UnsafeHtmlCommitter extends Committer<string> {
+class UnsafeHtmlRenderer extends ChildRenderer<string> {
 	#markupStr: string | undefined;
 	#childNodes: ChildNode[] = [];
 	update(markup: string): boolean {
@@ -23,8 +23,8 @@ class UnsafeHtmlCommitter extends Committer<string> {
 	}
 }
 
-/** Validates the binding position and hands the markup to `UnsafeHtmlCommitter` via
- *  `commitWith()` - `ChildPart` has no built-in knowledge of this directive. */
+/** Validates the binding position and hands the markup to `UnsafeHtmlRenderer` via
+ *  `renderWith()` - `ChildPart` has no built-in knowledge of this directive. */
 class UnsafeHtmlDirective extends Directive {
 	constructor(partInfo: PartInfo) {
 		super(partInfo);
@@ -34,7 +34,7 @@ class UnsafeHtmlDirective extends Directive {
 	}
 
 	override update(_part: Part, markup: string) {
-		return commitWith(UnsafeHtmlCommitter, markup);
+		return renderWith(UnsafeHtmlRenderer, markup);
 	}
 }
 

@@ -1,7 +1,7 @@
 import { Directive, directive, type Part, type PartInfo } from '../directive.js';
 import { PartType } from '../../parts/part.js';
-import { commitWith } from '../../parts/committers/index.js';
-import { MapByKeyCommitter } from './map-by-key-committer.js';
+import { renderWith } from '../../parts/renderers/index.js';
+import { MapByKeyRenderer } from './map-by-key-renderer.js';
 
 class MapByKeyDirective extends Directive {
 	constructor(partInfo: PartInfo) {
@@ -27,7 +27,7 @@ class MapByKeyDirective extends Directive {
 			entries.push({ key, value: template(item, index) });
 			index++;
 		}
-		return commitWith(MapByKeyCommitter, entries);
+		return renderWith(MapByKeyRenderer, entries);
 	}
 }
 

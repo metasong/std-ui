@@ -1,4 +1,4 @@
-import { Committer } from 'std-ui';
+import { ChildRenderer } from 'std-ui';
 import { KeyedRows, type KeyedEntries } from 'std-ui';
 import type { ControllerTarget, ScrollToIndexOptions, VirtualizeController } from '../controller.js';
 import {
@@ -32,7 +32,7 @@ interface Grid {
  * - `StickyHeaders`: the pinned header row, if `isHeader` is set.
  * - measure.ts: reading sizes/positions back from the DOM.
  */
-export class VirtualizeCommitter extends Committer<VirtualizeValue> implements ControllerTarget {
+export class VirtualizeRenderer extends ChildRenderer<VirtualizeValue> implements ControllerTarget {
 	#value!: VirtualizeValue;
 	#axis = new Axis(false);
 	#model = new RowModel(1, 0);
@@ -55,7 +55,7 @@ export class VirtualizeCommitter extends Committer<VirtualizeValue> implements C
 	#lanesNow = 1;
 	#signature = '';
 
-	// --- Committer protocol --------------------------------------------------------------------
+	// --- ChildRenderer protocol --------------------------------------------------------------------
 
 	update(value: VirtualizeValue): boolean {
 		this.#value = value;

@@ -20,7 +20,7 @@
 //  4. Later `render()` calls into the same container with the *same* `strings` reference skip compile,
 //     clone, and part creation entirely - `render.ts` just calls `.update()` on the existing `Part`s.
 //     Unchanged values are skipped when each part can tell nothing changed (e.g. `Object.is` on
-//     `.`/ `?` bindings, string equality on composed attributes, committer reuse in child positions).
+//     `.`/ `?` bindings, string equality on composed attributes, renderer reuse in child positions).
 //
 // What's intentionally left out, as a deliberate scope choice: most directives (built-ins include `bind`,
 // `classMap`, `styleMap`, `mapByKey`, `virtualize`, `html` (raw markup child directive) - see `./directives/` and

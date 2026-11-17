@@ -8,20 +8,20 @@ usage and API, see [`README.md`](./README.md).
 | File | Owns |
 |---|---|
 | [`main.ts`](./main.ts) | `MapByKeyDirective`, `export const mapByKey`, duplicate-key validation, building `{ key, value }[]`. |
-| [`map-by-key-committer.ts`](./map-by-key-committer.ts) | `MapByKeyCommitter`, keyed DOM create / move / remove. |
+| [`map-by-key-renderer.ts`](./map-by-key-renderer.ts) | `MapByKeyRenderer`, keyed DOM create / move / remove. |
 | [`index.ts`](./index.ts) | Public re-export of `mapByKey`. |
-| [`map-by-key.test.ts`](./map-by-key.test.ts) | Behavior through `ChildPart` (and committer edge cases). |
+| [`map-by-key.test.ts`](./map-by-key.test.ts) | Behavior through `ChildPart` (and renderer edge cases). |
 | [`../directives.test.ts`](../directives.test.ts) | End-to-end through `t()` / `render()`. |
 
-`mapByKey` does not live in `../parts/`: `ChildPart` only knows the generic `commitWith()` protocol
-from [`../../parts/committers/committer.ts`](../../parts/committers/committer.ts). The directive
-supplies its own committer class, same pattern as [`../unsafe-html/`](../unsafe-html/).
+`mapByKey` does not live in `../parts/`: `ChildPart` only knows the generic `renderWith()` protocol
+from [`../../parts/renderers/child-renderer.ts`](../../parts/renderers/child-renderer.ts). The directive
+supplies its own renderer class, same pattern as [`../unsafe-html/`](../unsafe-html/).
 
 ## Why `render()`, not `update()`
 
 Unlike `classMap` / `styleMap`, `mapByKey` overrides **`render()`** and returns
-`commitWith(MapByKeyCommitter, entries)`. The directive does not mutate the DOM itself; it prepares
-keyed entries and delegates reconciliation to `MapByKeyCommitter` on each application.
+`renderWith(MapByKeyRenderer, entries)`. The directive does not mutate the DOM itself; it prepares
+keyed entries and delegates reconciliation to `MapByKeyRenderer` on each application.
 
 ## Data flow
 
@@ -29,18 +29,18 @@ keyed entries and delegates reconciliation to `MapByKeyCommitter` on each applic
 flowchart LR
   A["mapByKey(items, keyFn, template)"] --> B["MapByKeyDirective.render()"]
   B --> C["entries: { key, value }[]"]
-  C --> D["commitWith(MapByKeyCommitter, entries)"]
-  D --> E["ChildPart picks MapByKeyCommitter"]
-  E --> F["MapByKeyCommitter.update(entries)"]
+  C --> D["renderWith(MapByKeyRenderer, entries)"]
+  D --> E["ChildPart picks MapByKeyRenderer"]
+  E --> F["MapByKeyRenderer.update(entries)"]
 ```
 
 1. **`MapByKeyDirective.render()`** walks `items`, assigns keys (`keyFn` or index), checks uniqueness,
    and maps each item through `template()` into `value`.
-2. **`ChildPart`** sees `isCommitWith`, reuses or instantiates `MapByKeyCommitter` anchored on the
+2. **`ChildPart`** sees `isRenderWith`, reuses or instantiates `MapByKeyRenderer` anchored on the
    part's end comment.
-3. **`MapByKeyCommitter.update()`** reconciles against a `Map<key, KeyedItem>`.
+3. **`MapByKeyRenderer.update()`** reconciles against a `Map<key, KeyedItem>`.
 
-## `MapByKeyCommitter` DOM model
+## `MapByKeyRenderer` DOM model
 
 Each logical row owns a **range** `[startComment … endComment]`:
 
@@ -67,13 +67,13 @@ order, using a single forward reference `ref`.
 
 | Hook | Behavior |
 |---|---|
-| `MapByKeyCommitter.disconnect()` | `disconnect()` on each nested `ChildPart` (directives in rows), DOM kept. |
-| `MapByKeyCommitter.dispose()` | Full teardown when committer is replaced or part cleared. |
-| `ChildPart` swap | If a non-`commitWith` value arrives, `ChildPart` disposes the committer. |
+| `MapByKeyRenderer.disconnect()` | `disconnect()` on each nested `ChildPart` (directives in rows), DOM kept. |
+| `MapByKeyRenderer.dispose()` | Full teardown when renderer is replaced or part cleared. |
+| `ChildPart` swap | If a non-`renderWith` value arrives, `ChildPart` disposes the renderer. |
 
-## Comparison with `ListCommitter`
+## Comparison with `ListRenderer`
 
-| | `ListCommitter` (plain array) | `MapByKeyCommitter` |
+| | `ListRenderer` (plain array) | `MapByKeyRenderer` |
 |---|---|---|
 | Identity | Index `i` | User key |
 | Reorder | Patch value at index `i` | Move DOM ranges |
@@ -83,6 +83,6 @@ order, using a single forward reference `ref`.
 ## Related reading
 
 - [`README.md`](./README.md) — public API.
-- [`../../parts/child-part.ts`](../../parts/child-part.ts) — committer selection and directive application.
-- [`../unsafe-html/`](../unsafe-html/) — another `commitWith()` child directive.
-- [`../../parts/committers/list-committer.ts`](../../parts/committers/list-committer.ts) — positional list diff.
+- [`../../parts/child-part.ts`](../../parts/child-part.ts) — renderer selection and directive application.
+- [`../unsafe-html/`](../unsafe-html/) — another `renderWith()` child directive.
+- [`../../parts/renderers/list-renderer.ts`](../../parts/renderers/list-renderer.ts) — positional list diff.

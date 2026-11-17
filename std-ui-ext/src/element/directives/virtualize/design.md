@@ -1,18 +1,18 @@
 # `virtualize` — internal design
 
-Windowed rendering for large lists/grids as a `commitWith()` child directive, like
+Windowed rendering for large lists/grids as a `renderWith()` child directive, like
 [`mapByKey`](../map-by-key/design.md). Usage: [`README.md`](./README.md).
 
 ## Module split
 
 ```
 virtualize/
-  main.ts                 VirtualizeDirective: arg validation, commitWith(VirtualizeCommitter, …)
+  main.ts                 VirtualizeDirective: arg validation, renderWith(VirtualizeRenderer, …)
   options.ts              VirtualizeOptions, VirtualizeValue (public types)
   controller.ts           VirtualizeController handle (+ pre-attach pending call)
   layout.ts               RowModel + pure window / scroll-target math (no DOM)
-  committer/
-    virtualize-committer.ts   orchestration: lifecycle, refresh loop, scrollToIndex
+  renderer/
+    virtualize-renderer.ts   orchestration: lifecycle, refresh loop, scrollToIndex
     axis.ts                   vertical-vs-horizontal DOM reads/writes (the only direction switch)
     scroller-binding.ts       scroll listener, ResizeObservers, scroller lookup
     spacers.ts                the two hidden stand-in elements
@@ -21,13 +21,13 @@ virtualize/
 ../_lib/keyed-rows/       KeyedRows: keyed range reconciliation, shared with mapByKey
 ```
 
-Dependencies flow one way: `virtualize-committer` uses the others; `measure`, `sticky-headers`,
+Dependencies flow one way: `virtualize-renderer` uses the others; `measure`, `sticky-headers`,
 `spacers` and `scroller-binding` don't know about each other (they share `Axis`, `RowModel` and
 `KeyedRows` through parameters).
-## Why a committer owns the window
+## Why a renderer owns the window
 
 `render()` runs when the *parent* re-renders; scrolling doesn't re-render the parent. So the
-committer listens to the scroller itself, and holds `items` + `options` from the last `update()` so
+renderer listens to the scroller itself, and holds `items` + `options` from the last `update()` so
 it can recompute the window and call `renderItem` for newly visible items without a parent render.
 `render()` is O(1): it never walks `items`.
 
@@ -59,7 +59,7 @@ one `gap` separates it from its neighbour: height for `n` hidden rows is `n * (i
 
 ## Horizontal direction
 
-One code path, axis-switched (`Axis` in `committer/axis.ts`). `RowModel` already works in *main-axis* sizes, so both directions share it, with `lanes` items per row. Only the DOM reads/writes differ: `scrollLeft`/`scrollX` vs `scrollTop`/`scrollY`, `clientWidth`/`innerWidth` vs `clientHeight`/`innerHeight`, `rect.left`/`width` vs `rect.top`/`height`, spacer `width` vs `height`. A `lanes` function receives the cross-axis container size. Spacers use `grid-row: 1 / -1` (horizontal) instead of `grid-column: 1 / -1`. Direction is read per call, but spacer styling is fixed at creation, so changing it later is unsupported.
+One code path, axis-switched (`Axis` in `renderer/axis.ts`). `RowModel` already works in *main-axis* sizes, so both directions share it, with `lanes` items per row. Only the DOM reads/writes differ: `scrollLeft`/`scrollX` vs `scrollTop`/`scrollY`, `clientWidth`/`innerWidth` vs `clientHeight`/`innerHeight`, `rect.left`/`width` vs `rect.top`/`height`, spacer `width` vs `height`. A `lanes` function receives the cross-axis container size. Spacers use `grid-row: 1 / -1` (horizontal) instead of `grid-column: 1 / -1`. Direction is read per call, but spacer styling is fixed at creation, so changing it later is unsupported.
 
 ## Measuring
 
@@ -88,7 +88,7 @@ Unchanged window signature (`start:end:lanes:count:height:gap`) skips the reconc
 the item's row. Instant: set `scrollTop` (or `window.scrollTo({behavior:'instant'})`) then refresh
 synchronously, so the target row exists on return. Smooth: `scrollTo({behavior:'smooth'})` and the
 window follows scroll events. Exact in fixed mode; in variable mode smooth scrolling aims at the current estimate.
-Calls before the scroller is attached are queued (in the committer and in the controller).
+Calls before the scroller is attached are queued (in the renderer and in the controller).
 
 ## Lifecycle
 

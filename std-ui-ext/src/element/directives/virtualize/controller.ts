@@ -7,7 +7,7 @@ export interface ScrollToIndexOptions {
 	behavior?: ScrollBehavior;
 }
 
-/** Internal surface the committer implements. */
+/** Internal surface the renderer implements. */
 export interface ControllerTarget {
 	scrollToIndex(index: number, options: ScrollToIndexOptions): void;
 }

@@ -1,7 +1,7 @@
 import { ChildPart } from '../child-part.js';
-import { Committer } from './committer.js';
+import { ChildRenderer } from './child-renderer.js';
 
-export class ListCommitter extends Committer<readonly unknown[]> {
+export class ListRenderer extends ChildRenderer<readonly unknown[]> {
 	#items: ChildPart[] = [];
 	update(values: readonly unknown[]): boolean {
 		const items = this.#items;

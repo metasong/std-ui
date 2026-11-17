@@ -36,7 +36,7 @@ export interface VirtualizeOptions<T = unknown> {
 	spacerTag?: string;
 }
 
-/** What `virtualize()` hands to its committer on each render. */
+/** What `virtualize()` hands to its renderer on each render. */
 export interface VirtualizeValue {
 	items: ArrayLike<unknown>;
 	options: VirtualizeOptions<any>;

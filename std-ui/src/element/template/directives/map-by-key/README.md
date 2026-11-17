@@ -71,7 +71,7 @@ Vitest walkthrough — [`../../../../../doc/map-by-key-sort.example.test.ts`](..
 
 ## When to use `mapByKey` vs a plain array
 
-Binding `${items.map(...)}` or `${rows}` uses `ListCommitter`: index `i` always patches the *i*th
+Binding `${items.map(...)}` or `${rows}` uses `ListRenderer`: index `i` always patches the *i*th
 child part. Inserting or reordering in the middle shifts which data sits at which index, so DOM and
 state can end up on the wrong row.
 
@@ -90,7 +90,7 @@ Use a **plain array** when the list only grows or shrinks at the end and order i
 
 ## Related reading
 
-- [`design.md`](./design.md) — module layout, `MapByKeyCommitter`, `commitWith()` protocol.
+- [`design.md`](./design.md) — module layout, `MapByKeyRenderer`, `renderWith()` protocol.
 - [`../directive.ts`](../directive.ts) — generic `Directive` / `directive()` protocol.
 - [`../../tag-funcs/html/html.md`](../../tag-funcs/html/html.md#directives) — writing custom directives.
 - [`map-by-key.test.ts`](./map-by-key.test.ts) / [`../directives.test.ts`](../directives.test.ts) — tests.

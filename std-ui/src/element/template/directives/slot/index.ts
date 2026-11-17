@@ -1,7 +1,7 @@
 import { Directive, directive, type Part, type PartInfo } from '../directive.js';
 import { PartType } from '../../parts/part.js';
 import type { TemplateResult } from '../../tag-funcs/html/index.js';
-import { Committer, commitWith, TemplateCommitter } from '../../parts/committers/index.js';
+import { ChildRenderer, renderWith, TemplateRenderer } from '../../parts/renderers/index.js';
 import { DEV, assertSlotDirectiveInLightDom } from '../../../../dev/index.js';
 import { getSlotContent } from './slot-content.js';
 
@@ -15,11 +15,11 @@ interface SlotValue {
 /** Moves the host's assigned light-DOM nodes in before the anchor (once); renders `fallback`
  *  instead when the slot has no content. Nodes stay in the content store, so a disposed-then-
  *  recreated slot re-inserts them. */
-class SlotCommitter extends Committer<SlotValue> {
+class SlotRenderer extends ChildRenderer<SlotValue> {
 	#name: string | undefined;
 	#nodes: readonly Node[] = [];
 	#fallbackAnchor: Comment | undefined;
-	#fallback: TemplateCommitter | undefined;
+	#fallback: TemplateRenderer | undefined;
 
 	update({ name, fallback }: SlotValue): boolean {
 		if (this.#name === undefined) {
@@ -34,11 +34,11 @@ class SlotCommitter extends Committer<SlotValue> {
 			if (!this.#fallback) {
 				this.#fallbackAnchor = document.createComment('');
 				this.anchor.before(this.#fallbackAnchor);
-				this.#fallback = new TemplateCommitter(this.#fallbackAnchor, this.host);
+				this.#fallback = new TemplateRenderer(this.#fallbackAnchor, this.host);
 			}
 			if (!this.#fallback.update(fallback)) {
 				this.#fallback.dispose();
-				this.#fallback = new TemplateCommitter(this.#fallbackAnchor!, this.host);
+				this.#fallback = new TemplateRenderer(this.#fallbackAnchor!, this.host);
 				this.#fallback.update(fallback);
 			}
 		}
@@ -65,7 +65,7 @@ class SlotDirective extends Directive {
 	}
 
 	override update(_part: Part, name: string = '', fallback?: TemplateResult) {
-		return commitWith(SlotCommitter, { name, fallback });
+		return renderWith(SlotRenderer, { name, fallback });
 	}
 }
 
