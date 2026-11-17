@@ -2,7 +2,7 @@ import { describe, expect, it, vi } from 'vitest';
 import { getTemplate, instantiate } from './compile.js';
 import { t, svg } from '../tag-funcs/html/index.js';
 import { updateParts, BooleanAttributePart, PropertyPart, EventPart } from '../parts/index.js';
-import { registerBindingExtension } from './binding-extension.js';
+import { registerCustomAttribute } from './custom-attribute.js';
 
 describe('getTemplate/instantiate', () => {
 	it('compiles a child binding to a comment-anchored ChildPart', () => {
@@ -77,35 +77,14 @@ describe('getTemplate/instantiate', () => {
 		expect(getTemplate(strings).parts[0].modifiers).toEqual([{ name: 'bogus', value: '300' }]);
 	});
 
-	it('compiles class.name and style.prop bindings', () => {
-		const { strings, values } = t`<div class.active="${true}" style.--gap=${'4px'} style.color="${'red'}"></div>`;
-		const template = getTemplate(strings);
-		expect(template.parts.map(p => [p.kind, p.name, p.modifiers!.map(m => m.name)])).toEqual([
-			['attribute', 'class', ['active']],
-			['attribute', 'style', ['--gap']],
-			['attribute', 'style', ['color']],
-		]);
-		const { fragment, parts } = instantiate(template);
-		updateParts(parts, values);
-		const div = fragment.querySelector('div')!;
-		expect(div.classList.contains('active')).toBe(true);
-		expect(div.style.color).toBe('red');
-		expect(div.style.getPropertyValue('--gap')).toBe('4px');
-	});
-
 	it('reserves `:arg` on binding names', () => {
 		const { strings } = t`<div foo:bar="${1}"></div>`;
 		expect(() => getTemplate(strings)).toThrow(/:arg/);
 	});
 
-	it('requires exactly one modifier on class/style entries', () => {
-		expect(() => getTemplate(t`<div class.a.b=${1}></div>`.strings)).toThrow(/exactly one entry/);
-		expect(() => getTemplate(t`<div style.color:red=${1}></div>`.strings)).toThrow(/exactly one entry/);
-	});
-
-	it('registers custom binding extensions', () => {
+	it('registers custom Custom attributes', () => {
 		const seen: unknown[] = [];
-		registerBindingExtension({
+		registerCustomAttribute({
 			sigil: '', name: 'tmpext',
 			createPart: (_el, b) => ({ valueCount: 1, update: v => seen.push([b.arg, b.modifiers, v[0]]) }),
 		});
@@ -117,7 +96,7 @@ describe('getTemplate/instantiate', () => {
 
 	it('supports a new sigil with arg, modifiers and a composed value', () => {
 		const seen: unknown[] = [];
-		registerBindingExtension({
+		registerCustomAttribute({
 			sigil: '#', name: 'tag',
 			createPart: (_el, b, _host, v) => ({
 				valueCount: v.valueCount,
@@ -134,11 +113,6 @@ describe('getTemplate/instantiate', () => {
 	it('rejects an unknown sigil', () => {
 		const { strings } = t`<div %nope="${1}"></div>`;
 		expect(() => getTemplate(strings)).toThrow(/unknown binding sigil/);
-	});
-
-	it('rejects static text in a class.name binding', () => {
-		const { strings } = t`<div class.active="x${1}"></div>`;
-		expect(() => getTemplate(strings)).toThrow(/exactly one interpolation/);
 	});
 
 	it('strips bound attributes from the parsed static markup, leaving unrelated static attributes', () => {

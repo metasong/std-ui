@@ -1,20 +1,20 @@
 // --- `class.name=${on}` / `style.prop=${value}`: bind one entry of the class/style attribute. -------
 //
-// Self-contained on purpose: it only uses the public extension API (`registerBindingExtension`), so it
-// can live in an extension package. The single modifier names the entry; everything else about the
-// binding is validated here.
+// Built only on std-ui's public custom-attribute API. Importing `std-ui-ext` registers both. The
+// single modifier names the entry; everything else about the binding is validated here.
 
-import { registerBindingExtension, type BindingExtension, type BindingName } from '../compiler/binding-extension.js';
-import type { Part } from '../parts/index.js';
+import { registerCustomAttribute, type CustomAttribute, type AttributeInfo, type BindingPart } from 'std-ui';
 
-/** Sets one entry of an attribute: `apply(el, entry, value)`. Re-applies only when the value changes. */
-class EntryPart implements Part {
+type ApplyEntry = (el: Element, entry: string, value: unknown) => void;
+
+/** Sets one entry of an attribute via `apply`. Re-applies only when the value changes. */
+class EntryPart implements BindingPart {
 	readonly valueCount = 1;
 	#value: unknown;
 	constructor(
 		private readonly el: Element,
 		private readonly entry: string,
-		private readonly apply: (el: Element, entry: string, value: unknown) => void,
+		private readonly apply: ApplyEntry,
 	) {}
 	update(values: readonly unknown[]): void {
 		if (Object.is(values[0], this.#value)) return;
@@ -24,16 +24,13 @@ class EntryPart implements Part {
 }
 
 /** An extension for plain attribute `name` (no sigil) whose single modifier is the entry to set. */
-function singleEntryAttributeExtension(
-	name: string,
-	apply: (el: Element, entry: string, value: unknown) => void,
-): BindingExtension {
+function singleEntryAttributeExtension(name: string, apply: ApplyEntry): CustomAttribute {
 	return {
 		sigil: '',
 		name,
 		single: true,
 		matches: b => b.modifiers.length > 0 || b.arg !== undefined,
-		validate(b: BindingName) {
+		validate(b: AttributeInfo) {
 			if (b.arg !== undefined) throw new Error(`std-ui html: "${name}:${b.arg}" - ":arg" is not supported on ${name}.`);
 			if (b.modifiers.length !== 1 || b.modifiers[0].value !== undefined) {
 				throw new Error(`std-ui html: ${name} takes exactly one entry, e.g. ${name}.entry=\${value}.`);
@@ -55,5 +52,5 @@ export const styleAttributeExtension = singleEntryAttributeExtension('style', (e
 	else style.setProperty(entry, String(value));
 });
 
-registerBindingExtension(classAttributeExtension);
-registerBindingExtension(styleAttributeExtension);
+registerCustomAttribute(classAttributeExtension);
+registerCustomAttribute(styleAttributeExtension);

@@ -51,7 +51,9 @@ Unknown modifiers have no effect; in dev builds a one-time `console.warn` names 
 the modifier. Modifiers on a binding kind that takes none (`?hidden.foo`, `.value.bar`, plain
 attributes) are ignored the same way.
 
-### `class.` and `style.` entries
+### `class.` and `style.` entries (`std-ui-ext`)
+
+These two bindings come from `std-ui-ext`: `import 'std-ui-ext'` registers them (before the templates that use them are first compiled).
 
 `class.name=${bool}` toggles a single class and `style.prop=${value}` sets a single style
 property, without touching the rest of `class`/`style`.

@@ -12,9 +12,8 @@
 // See `html.ts` for the overall design.
 
 import { DEV, warnOnUndefinedElements } from '../../../dev/index.js';
-import { findBindingExtension, type BindingExtension, type BindingName } from './binding-extension.js';
+import { findCustomAttribute, type CustomAttribute, type AttributeInfo } from './custom-attribute.js';
 import '../extensions/builtin.js';
-import '../extensions/class-style.js';
 import { createEngine, type EngineHooks, type SlotDescriptor, type Template as EngineTemplate } from './engine.js';
 // Parts import `instantiate` for nested templates; they are only touched lazily inside hooks, so
 // the module cycle is harmless.
@@ -29,8 +28,8 @@ export interface PartDescriptor extends SlotDescriptor {
 	arg?: string;
 	/** Parsed `.modifier[:value]`s in source order; each kind interprets the ones it knows. */
 	modifiers?: Modifier[];
-	/** Set when a registered `BindingExtension` handles this binding (e.g. `class.active`); it builds the part. */
-	extension?: { binding: BindingName; extension: BindingExtension };
+	/** Set when a registered `CustomAttribute` handles this binding (e.g. `class.active`); it builds the part. */
+	extension?: { binding: AttributeInfo; extension: CustomAttribute };
 	/** `kind: PartType.ATTRIBUTE` only: the static text segments surrounding each interpolation in this
 	 *  attribute's value, e.g. `class="a-${x}-b-${y}"` -> `['a-', '-b-', '']`. Always has exactly
 	 *  `valueCount + 1` entries; `['', '']` for a bare `attr=${value}` with no static text. */
@@ -54,8 +53,8 @@ const BINDING_NAME_RE = /^([^\w\s"'<>\/=:-]?)([\w-]+)(?::([\w-]+))?((?:\.[\w-]+(
 
 interface OpenBinding {
 	rawName: string;
-	binding: BindingName;
-	extension: BindingExtension;
+	binding: AttributeInfo;
+	extension: CustomAttribute;
 }
 
 function parseModifiers(raw: string): Modifier[] {
@@ -75,10 +74,10 @@ function parseBinding(rawName: string, markup: string): OpenBinding {
 		throw new Error(`std-ui html: could not parse an attribute binding near "...${markup.slice(-40)}"`);
 	}
 	const [, sigil, name, arg, rawModifiers] = match;
-	const binding: BindingName = { sigil, name, arg, modifiers: parseModifiers(rawModifiers) };
-	const extension = findBindingExtension(binding);
+	const binding: AttributeInfo = { sigil, name, arg, modifiers: parseModifiers(rawModifiers) };
+	const extension = findCustomAttribute(binding);
 	if (!extension) {
-		throw new Error(`std-ui html: unknown binding sigil "${sigil}" in "${rawName}" - register a BindingExtension for it.`);
+		throw new Error(`std-ui html: unknown binding sigil "${sigil}" in "${rawName}" - register a CustomAttribute for it.`);
 	}
 	extension.validate?.(binding);
 	return { rawName, binding, extension };

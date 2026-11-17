@@ -3,7 +3,7 @@ export { html } from './directives/html/index.js';
 export { render, unmount, disconnectRendered, type RenderOptions } from './render.js';
 export { Directive, directive, noChange, type Part, type PartInfo } from './directives/directive.js';
 export { PartType, type Part as BindingPart, type Modifier } from './parts/index.js';
-export { registerBindingExtension, type BindingExtension, type BindingName, type BindingValue } from './compiler/binding-extension.js';
+export { registerCustomAttribute, type CustomAttribute, type AttributeInfo, type BindingValue } from './compiler/custom-attribute.js';
 export {
 	css,
 	unsafeCSS,
