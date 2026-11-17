@@ -8,7 +8,7 @@ function attributePart(el: Element, name: string): Part {
 
 class EchoDirective extends Directive {
 	renderCalls: unknown[][] = [];
-	override render(...args: unknown[]): string {
+	override update(_part: Part, ...args: unknown[]): string {
 		this.renderCalls.push(args);
 		return String(args[0]);
 	}
@@ -31,8 +31,8 @@ describe('directive()', () => {
 	});
 });
 
-describe('Directive default update()', () => {
-	it('calls and returns render() when update() is not overridden', () => {
+describe('Directive update() return value', () => {
+	it('returns update() raw value for the part to commit', () => {
 		const el = document.createElement('div');
 		const { value } = applyDirective(attributePart(el, 'title'), echo('hi'), undefined);
 		expect(value).toBe('hi');
@@ -40,7 +40,7 @@ describe('Directive default update()', () => {
 });
 
 describe('applyDirective()', () => {
-	it('constructs a new instance on first use and calls update() (which calls render())', () => {
+	it('constructs a new instance on first use and calls update()', () => {
 		const el = document.createElement('div');
 		const { instance } = applyDirective(attributePart(el, 'title'), echo('hi'), undefined);
 		expect((instance as EchoDirective).renderCalls).toEqual([['hi']]);
@@ -64,7 +64,7 @@ describe('applyDirective()', () => {
 		expect(second).not.toBe(first);
 	});
 
-	it("threads a directive overriding update() straight through, using part.element and bypassing render()", () => {
+	it("threads a directive overriding update() straight through, using part.element", () => {
 		class ImperativeDirective extends Directive {
 			override update(part: Part, label: string): typeof noChange {
 				part.element.setAttribute(part.name, `imperative:${label}`);
@@ -97,7 +97,7 @@ describe('applyDirective()', () => {
 				super(partInfo);
 				if (partInfo.name !== 'class') throw new Error('must be "class"');
 			}
-			override render(): string {
+			override update(_part: Part): string {
 				return 'ok';
 			}
 		}

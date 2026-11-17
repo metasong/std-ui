@@ -1,4 +1,4 @@
-import { Directive, directive, type PartInfo } from '../directive.js';
+import { Directive, directive, type Part, type PartInfo } from '../directive.js';
 import { PartType } from '../../parts/part.js';
 import { Committer, commitWith } from '../../parts/committers/index.js';
 
@@ -33,7 +33,7 @@ class UnsafeHtmlDirective extends Directive {
 		}
 	}
 
-	override render(markup: string) {
+	override update(_part: Part, markup: string) {
 		return commitWith(UnsafeHtmlCommitter, markup);
 	}
 }

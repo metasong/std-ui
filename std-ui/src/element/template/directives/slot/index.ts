@@ -1,4 +1,4 @@
-import { Directive, directive, type PartInfo } from '../directive.js';
+import { Directive, directive, type Part, type PartInfo } from '../directive.js';
 import { PartType } from '../../parts/part.js';
 import type { TemplateResult } from '../../tag-funcs/html/index.js';
 import { Committer, commitWith, TemplateCommitter } from '../../parts/committers/index.js';
@@ -64,7 +64,7 @@ class SlotDirective extends Directive {
 		}
 	}
 
-	override render(name: string = '', fallback?: TemplateResult) {
+	override update(_part: Part, name: string = '', fallback?: TemplateResult) {
 		return commitWith(SlotCommitter, { name, fallback });
 	}
 }

@@ -101,30 +101,20 @@ export type Part = AttributePartInfo | ChildPartInfo | PropertyPartInfo | Elemen
  * at that same position - so instance fields are exactly where to keep "what did I do last time"
  * state (e.g. `classMap`'s previously-added classes).
  *
- * Three lifecycle hooks, roles:
+ * One output hook, `update()`:
  *
  * - `constructor(partInfo)` - one-time setup, run only the first time this directive is used at a
- *   given position. Receives metadata about where it's bound; useful for validating it's being
- *   used somewhere it supports (see `PartType` above), e.g. "must be the `class` attribute".
- * - `render()` - declarative: return the value to commit (a string, or `null`/`undefined` to
- *   remove the attribute). Implement this for a directive that just computes a value with no need
- *   to touch the DOM directly.
- * - `update(part, ...args)` - imperative: called on every render instead of `render()`, with
- *   direct access to the live `part` (its `.element` for an `AttributePart`, or `.anchor` for a
- *   `ChildPart`). `args` are the same values `render()` would receive - as real trailing
- *   parameters, not a single bundled array, so you can declare however many typed parameters the
- *   directive actually takes (e.g. `update(part, classes: ClassInfo)`, or `update(part, a: number,
- *   b: string)`). The default implementation just calls and returns `render(...args)`; override
- *   `update()` instead when you need to mutate the DOM yourself - typically returning `noChange`
- *   once you have, so `AttributePart`/`ChildPart` does nothing further.
- *
- * `directive()` infers the callable function's parameters from *whichever* of the two you actually
- * gave a concrete signature - override `update()` alone, with its own typed trailing parameters,
- * and that's all you need; there's no requirement to also implement `render()` just so
- * `directive()` can see the argument types (see `DirectiveArgs`/`directive()` below).
+ *   given position (e.g. validate it's bound somewhere supported, see `PartType`).
+ * - `update(part, ...args)` - the single way to produce output, called on every render with the
+ *   live `part`. `args` are real typed trailing parameters (e.g. `update(part, a: number, b:
+ *   string)`), and `directive()` infers the callable's signature from them. Return:
+ *   - `noChange` - you already updated the DOM yourself (or there is nothing to do);
+ *   - a raw value (string, `null`/`undefined` to remove an attribute, a template, ...) for the
+ *     part to commit;
+ *   - a committer (`commitWith(MyCommitter, value)`) for a `ChildPart` to commit through.
  *
  *   class HelloDirective extends Directive {
- *   	render(name: string) {
+ *   	update(_part: Part, name: string) {
  *   		return `Hello, ${name}!`;
  *   	}
  *   }
@@ -134,18 +124,9 @@ export type Part = AttributePartInfo | ChildPartInfo | PropertyPartInfo | Elemen
 export abstract class Directive {
 	constructor(_partInfo: PartInfo) {}
 
-	/** Declarative rendering: return the value `AttributePart` should commit. Called by the default
-	 *  `update()` - implement this unless you override `update()` instead. */
-	render(...args: readonly unknown[]): DirectiveReturn {
-		throw new Error('Directive subclasses must implement render() or override update().');
-	}
-
-	/** Imperative DOM access: override to read/mutate `part.element` directly, declaring whatever
-	 *  typed parameters you need after `part` (same values `render()` would receive). Defaults to
-	 *  calling and returning `this.render(...args)`. */
-	update(part: Part, ...args: readonly unknown[]): DirectiveReturn {
-		return this.render(...args);
-	}
+	/** The one output hook: mutate the DOM via `part` and return `noChange`, or return a raw value /
+	 *  committer for the part to commit. Declare whatever typed parameters you need after `part`. */
+	abstract update(part: Part, ...args: readonly unknown[]): DirectiveReturn;
 
 	/** Optional cleanup hook (default: no-op). Called once when this instance stops being used at
 	 *  its position: the position is later given a plain value or a different directive, or its
@@ -164,15 +145,7 @@ type UpdateArgs<C extends DirectiveClass> = Parameters<InstanceType<C>['update']
 	? Rest
 	: never;
 
-/** `directive()`'s inferred parameter list: whatever trailing parameters `update()` declares after
- *  `part`, or `render()`'s parameters if `update()` wasn't overridden (i.e. its trailing parameters
- *  are still the base class's generic `readonly unknown[]` rest). This is what lets `directive()`
- *  infer a directive function's argument types from *either* lifecycle method, so a directive that
- *  only overrides `update()` doesn't also need a `render()` implementation just for `directive()`
- *  to see its argument types. */
-type DirectiveArgs<C extends DirectiveClass> = readonly unknown[] extends UpdateArgs<C>
-	? Parameters<InstanceType<C>['render']>
-	: UpdateArgs<C>;
+type DirectiveArgs<C extends DirectiveClass> = UpdateArgs<C>;
 
 /** What a `directive()`-made function actually returns: inert until `AttributePart` applies it. */
 export interface DirectiveResult {

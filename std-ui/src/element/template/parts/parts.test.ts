@@ -8,7 +8,7 @@ import {
 } from './index.js';
 import { t } from '../tag-funcs/html/index.js';
 import { html } from '../directives/html/index.js';
-import { Directive, directive, noChange } from '../directives/directive.js';
+import { Directive, directive, noChange, type Part } from '../directives/directive.js';
 import { classMap } from '../directives/class-map/index.js';
 import { styleMap } from '../directives/style-map/index.js';
 
@@ -118,7 +118,7 @@ describe('AttributePart', () => {
 	it("Directive protocol: constructs a fresh instance (losing prior state) when a different " +
 		'directive function is bound at the same position', () => {
 		class TagDirective extends Directive {
-			override render(label: string): string {
+			override update(_part: Part, label: string): string {
 				return label;
 			}
 		}

@@ -1,4 +1,4 @@
-import { Directive, directive, type PartInfo } from '../directive.js';
+import { Directive, directive, type Part as DirectivePart, type PartInfo } from '../directive.js';
 import { getTemplate, instantiate } from '../../compiler/index.js';
 import { isTemplateResult, type TemplateResult } from '../../tag-funcs/html/index.js';
 import { Committer, commitWith } from '../../parts/committers/index.js';
@@ -90,7 +90,7 @@ class CacheDirective extends Directive {
 		}
 	}
 
-	override render(value: unknown) {
+	override update(_part: DirectivePart, value: unknown) {
 		return commitWith(CacheCommitter, value);
 	}
 }

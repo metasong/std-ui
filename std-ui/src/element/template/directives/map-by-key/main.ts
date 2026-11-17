@@ -1,4 +1,4 @@
-import { Directive, directive, type PartInfo } from '../directive.js';
+import { Directive, directive, type Part, type PartInfo } from '../directive.js';
 import { PartType } from '../../parts/part.js';
 import { commitWith } from '../../parts/committers/index.js';
 import { MapByKeyCommitter } from './map-by-key-committer.js';
@@ -11,7 +11,8 @@ class MapByKeyDirective extends Directive {
 		}
 	}
 
-	override render(
+	override update(
+		_part: Part,
 		items: Iterable<unknown>,
 		keyFn: (item: unknown, index: number) => unknown,
 		template: (item: unknown, index: number) => unknown,
