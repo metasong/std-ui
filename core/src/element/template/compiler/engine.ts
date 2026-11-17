@@ -85,8 +85,11 @@ export interface EngineHooks<D extends SlotDescriptor, Part, Type extends string
 	onInstantiated?(fragment: DocumentFragment, parts: Part[]): void;
 }
 
+/** A compiled template, cached per `strings` identity and type. */
 export interface Template<D extends SlotDescriptor = SlotDescriptor> {
+	/** Parsed markup with markers in place of interpolations; cloned on each instantiation. */
 	element: HTMLTemplateElement;
+	/** One descriptor per interpolation, in source order. */
 	parts: D[];
 }
 
@@ -134,7 +137,25 @@ export interface EngineOptions<Type extends string> {
  */
 const ATTR_START_RE = /([^\s"'<>\/=]+)\s*=\s*(["'])((?:(?!\2).)*)$/;
 
-/** Unquoted attribute value about to start at the end of `markup`: `name=`. */
+/**
+ * Unquoted attribute value about to start at the end of `markup` (before the next `${...}`), e.g. `class=`.
+ *
+ * ```
+ * (                       start capture group 1 → attribute name
+ *   [^\s"'<>\/=]+         one or more chars that are NOT:
+ *                           \s  whitespace (name can't contain spaces unquoted)
+ *                           " ' angle brackets, slash, equals (tag/attr syntax)
+ * )
+ * \s*                     optional whitespace before =
+ * =                       literal equals
+ * \s*                     optional whitespace after =
+ * $                       end of string — markup stops right after `=`, no quote opened
+ * ```
+ *
+ * Example: markup = `<div class=` before `${x}` → (1)=class
+ *
+ * @see ATTR_START_RE when the value is quoted (`class="${x}"`).
+ */
 const UNQUOTED_ATTR_RE = /([^\s"'<>\/=]+)\s*=\s*$/;
 
 /** True if `markup` currently sits inside an unclosed tag, i.e. in attribute position. */
@@ -151,9 +172,11 @@ interface OpenAttr<Open> {
 }
 
 /** Scanner state: between tags, or inside an unclosed quoted attribute value. */
+const ScanKind = { TEXT: 'TEXT', ATTR_VALUE: 'ATTR_VALUE' } as const;
+
 type ScanState<Open> =
-	| { readonly kind: 'TEXT' }
-	| { readonly kind: 'ATTR_VALUE'; readonly attr: OpenAttr<Open> };
+	| { readonly kind: typeof ScanKind.TEXT }
+	| { readonly kind: typeof ScanKind.ATTR_VALUE; readonly attr: OpenAttr<Open> };
 
 export function createEngine<D extends SlotDescriptor, Part, Type extends string, Open = unknown>(
 	hooks: EngineHooks<D, Part, Type, Open>,
@@ -164,22 +187,13 @@ export function createEngine<D extends SlotDescriptor, Part, Type extends string
 	/** Tag-level slots have no attribute of their own, so a placeholder attribute (valued `MARKER`) is
 	 *  injected; names must be unique per element since the parser drops duplicate attributes. */
 	const tagMarker = (n: number) => ` ${MARKER}-tag-${n}="${MARKER}"`;
-	const TEXT: ScanState<Open> = { kind: 'TEXT' };
+	const TEXT: ScanState<Open> = { kind: ScanKind.TEXT };
 	const cache = new WeakMap<TemplateStringsArray, Partial<Record<Type, Template<D>>>>();
 
 	const finalize = (init: DescriptorInit<D>): D => {
 		init.nodeIndex = -1;
 		return init as D;
 	};
-
-	/** Starts an attribute binding if `markup` ends inside an open quoted value; `null` otherwise. */
-	function openAttr(markup: string): OpenAttr<Open> | null {
-		const match = ATTR_START_RE.exec(markup);
-		if (!match) return null;
-		const [, rawName, quote, prefix] = match;
-		const open = hooks.onAttributeOpen({ rawName, quote, prefix, markup });
-		return { open, quote, literals: [prefix], valueCount: 1 };
-	}
 
 	function closeAttr(attr: OpenAttr<Open>): D {
 		return finalize(hooks.onAttributeClose(attr.open, { literals: attr.literals, valueCount: attr.valueCount }));
@@ -194,11 +208,20 @@ export function createEngine<D extends SlotDescriptor, Part, Type extends string
 		if (quoteIndex === -1) {
 			attr.literals.push(chunk);
 			attr.valueCount++;
-			return { state: { kind: 'ATTR_VALUE', attr }, append: '' };
+			return { state: { kind: ScanKind.ATTR_VALUE, attr }, append: '' };
 		}
 		attr.literals.push(chunk.slice(0, quoteIndex));
 		descriptors.push(closeAttr(attr));
 		return { state: TEXT, append: MARKER + chunk.slice(quoteIndex) };
+	}
+
+	/** Starts an attribute binding if `markup` ends inside an open quoted value; `null` otherwise. */
+	function openAttr(markup: string): OpenAttr<Open> | null {
+		const match = ATTR_START_RE.exec(markup);
+		if (!match) return null;
+		const [, rawName, quote, prefix] = match;
+		const open = hooks.onAttributeOpen({ rawName, quote, prefix, markup });
+		return { open, quote, literals: [prefix], valueCount: 1 };
 	}
 
 	/** `rewind`: trailing chars of `markup` to drop - the attribute's static prefix is recomposed at
@@ -209,46 +232,55 @@ export function createEngine<D extends SlotDescriptor, Part, Type extends string
 		counters: { tagSlots: number },
 	): { state: ScanState<Open>; append: string; rewind: number } {
 		if (isInsideTag(markup)) {
-			// The interpolation sits inside an opening tag. Two possibilities:
+			// The interpolation sits inside an opening tag. Three possibilities, checked in order:
 
-			// 1. Attribute slot - it is the value of a quoted attribute: `<div class="${x}">`.
+			// 1. Quoted attribute slot - inside the value of a quoted attribute: `<div class="${x}">`.
 			//    Keep scanning until the closing quote.
 			const attr = openAttr(markup);
 			if (attr) {
-				// Quoted in source; ATTR_START_RE matched — opening `"` or `'` is already in markup.
-				// Example: t`<div class="static-${x}"></div>` → strings[0] ends with `class="static-`.
-				// Example: t`<div class="${x}"></div>`     → prefix "" (opening quote only).
+				// The attribute value is quoted and its opening quote is already in `markup`.
+				// Text typed before the `${...}` inside the value (e.g. `static-`) is a literal prefix.
 				//
-				// markup before return:     `<div class="static-`
-				// rewind prefix length:     `<div class="`  (prefix lives in attr.literals[0] for runtime join)
-				// append '':               wait for closing quote in a later strings[i] via stepAttrValue
-				// then MARKER replaces value: `<div class="std-ui-part">`
+				//   t`<div class="static-${x}">`  -> markup so far: `<div class="static-`, prefix `static-`
+				//   t`<div class="${x}">`         -> markup so far: `<div class="`,        prefix ``
 				//
-				// Multiple `${...}` in one value stay ATTR_VALUE until the matching closing quote.
-				// state ATTR_VALUE: next gaps use stepAttrValue, not another openAttr.
-				return { state: { kind: 'ATTR_VALUE', attr }, append: '', rewind: attr.literals[0].length };
+				// What happens here:
+				//  - The prefix is saved in `attr.literals[0]` and removed from `markup` (via `rewind`),
+				//    because it is joined with the interpolated values at runtime, not parsed as HTML.
+				//  - Nothing is appended yet: the closing quote has not been seen.
+				//  - The state becomes ATTR_VALUE, so later interpolations in the same value go through
+				//    `stepAttrValue` until the closing quote is found.
+				//  - Once closed, the whole value is replaced by `MARKER`:
+				//
+				//      t`<div class="static-${x}">`    -> `<div class="std-ui-part">`
+				//      t`<div class="a ${x} b ${y}">`  -> `<div class="std-ui-part">`  (one placeholder, two values)
+				return { state: { kind: ScanKind.ATTR_VALUE, attr }, append: '', rewind: attr.literals[0].length };
 			}
 
-			// 2. Tag slot - it belongs to the tag itself, with no attribute name: `<div ${directive()}>`.
-			//    Not allowed: an unquoted attribute value (`<div a=${x}>`), or hooks without `onTagSlot`.
-			// 1b. Unquoted attribute slot: `<div class=${x}>` - exactly one interpolation,
-			//     closed immediately. A quoted placeholder is emitted so the parser sees a valid attribute.
+			// 2. Unquoted attribute slot - the value is the whole interpolation: `<div class=${x}>`.
+			//    There is no quote to wait for, so the attribute is opened and closed right here.
 			const unquoted = UNQUOTED_ATTR_RE.exec(markup);
 			if (unquoted) {
 				const open = hooks.onAttributeOpen({ rawName: unquoted[1], quote: '', prefix: '', markup });
 				descriptors.push(closeAttr({ open, quote: '', literals: ['', ''], valueCount: 1 }));
-				// Unquoted in source; one `${...}` only (no quote delimiter to scan in later strings).
-				// Example: t`<div class=${x}></div>` → strings[0] ends with `class=` at this gap.
+				// Only one `${...}` is possible (no text before or after it inside the value).
 				//
-				// markup before return:     `<div class=`
-				// append `"${MARKER}"`:     `<div class="std-ui-part"`  (quotes added for innerHTML only)
-				// strings[1] then adds:    `>`
+				//   t`<div class=${x}></div>`
+				//     markup so far:   `<div class=`           (strings[0])
+				//     append:          `"std-ui-part"`         (quotes added so the HTML parser accepts it)
+				//     next string:     `></div>`               (strings[1], added by the next loop step)
+				//     result:          `<div class="std-ui-part"></div>`
 				//
-				// Runtime: literals ['', ''] + valueCount 1 → setAttribute('class', '' + x + '').
-				// state TEXT (not ATTR_VALUE): attribute part is complete; no stepAttrValue pass.
-				// rewind 0: nothing was moved into literals from trailing markup (contrast quoted prefix).
+				// What happens here:
+				//  - `literals: ['', '']` with `valueCount: 1` means the runtime value is `'' + x + ''`.
+				//  - The state goes back to TEXT: the attribute is already complete, so no
+				//    `stepAttrValue` pass is needed.
+				//  - `rewind: 0`: no prefix exists to move out of `markup` (unlike the quoted case).
 				return { state: TEXT, append: `"${MARKER}"`, rewind: 0 };
 			}
+
+			// 3. Tag slot - the interpolation belongs to the tag itself, with no attribute name:
+			//    `<div ${directive()}>`. It needs the optional `onTagSlot` hook; without it, reject.
 
 			if (!hooks.onTagSlot) {
 				throw new Error(
@@ -263,6 +295,11 @@ export function createEngine<D extends SlotDescriptor, Part, Type extends string
 		return { state: TEXT, append: MARKER_COMMENT, rewind: 0 };
 	}
 
+	/**
+	 * Joins the template `strings` into one markup string, replacing each interpolation with a marker
+	 * (comment for text slots, placeholder for attributes) and collecting one descriptor per interpolation.
+	 * Tracks whether the scanner is in text or inside a quoted attribute value to pick the right hook.
+	 */
 	function buildMarkup(strings: TemplateStringsArray): { markup: string; descriptors: D[] } {
 		let markup = '';
 		const descriptors: D[] = [];
@@ -272,15 +309,15 @@ export function createEngine<D extends SlotDescriptor, Part, Type extends string
 		for (let i = 0; i < strings.length - 1; i++) {
 			const chunk = strings[i];
 
-			if (state.kind === 'ATTR_VALUE') {
+			if (state.kind === ScanKind.ATTR_VALUE) {
 				const step = stepAttrValue(state.attr, chunk, descriptors);
 				state = step.state;
 				markup += step.append;
 				// Still inside the attribute: this interpolation extended it. Otherwise the closing
 				// quote was found mid-chunk and *this* interpolation needs a fresh decision below.
-				if (state.kind === 'ATTR_VALUE') continue;
+				if (state.kind === ScanKind.ATTR_VALUE) continue;
 			}
-			else {
+			else { // TEXT
 				markup += chunk;
 			}
 
@@ -290,7 +327,7 @@ export function createEngine<D extends SlotDescriptor, Part, Type extends string
 		}
 
 		const lastChunk = strings[strings.length - 1];
-		if (state.kind === 'ATTR_VALUE') {
+		if (state.kind === ScanKind.ATTR_VALUE) {
 			const quoteIndex = lastChunk.indexOf(state.attr.quote);
 			if (quoteIndex === -1) {
 				throw new Error(`std-ui html: unterminated attribute value near "...${lastChunk.slice(-40)}"`);
@@ -302,6 +339,23 @@ export function createEngine<D extends SlotDescriptor, Part, Type extends string
 		else {
 			markup += lastChunk;
 		}
+		// Example: t`<p class="a ${x}" title="e${y}f${z}g" ${d}>Hi ${w}!</p>` returns
+		//   markup:      `<p class="std-ui-part" title="std-ui-part" std-ui-part-tag-0="std-ui-part">Hi <!--std-ui-part-->!</p>`
+		//   descriptors (source order; shape is up to the hooks, shown here for `PartDescriptor`):
+		//     [
+		//       { kind: ATTRIBUTE, name: 'class', literals: ['a ', ''],         valueCount: 1 },  // `class="a ${x}"`
+		//       { kind: ATTRIBUTE, name: 'title', literals: ['e', 'f', 'g'],    valueCount: 2 },  // `title="e${y}f${z}g"`
+		//       { kind: ELEMENT,   name: '',                                    valueCount: 1 },  // tag slot `${d}`
+		//       { kind: CHILD,     name: '',                                    valueCount: 1 },  // text slot `${w}` (the text around it stays in `markup`)
+		//     ]
+		// An attribute with several interpolations is still one descriptor and one placeholder:
+		// `literals` always has `valueCount + 1` entries, joined at runtime as `'e' + y + 'f' + z + 'g'`.
+		// The tag slot has no attribute of its own, so it is marked with a placeholder attribute
+		// (`std-ui-part-tag-N`, N counts tag slots) that lets the engine find its element.
+		// The engine only requires `nodeIndex` and `valueCount`. `nodeIndex` is filled in later by
+		// `resolveIndices`: the index of the placeholder's node among all elements/comments in the
+		// parsed markup (text nodes are not counted). Here 0 for the attribute and tag slot (both
+		// live on `<p>`) and 1 for the `<!--std-ui-part-->` comment.
 		return { markup, descriptors };
 	}
 
@@ -331,17 +385,50 @@ export function createEngine<D extends SlotDescriptor, Part, Type extends string
 	}
 
 	function compile(strings: TemplateStringsArray, type: Type): Template<D> {
+		// Running example: t`<p class="a ${x}" title="e${y}f${z}g" ${d}>Hi ${w}!</p>`
+
+		// Step 1: join the strings, replacing each interpolation with a marker (see `buildMarkup`).
+		//   markup:      `<p class="std-ui-part" title="std-ui-part" std-ui-part-tag-0="std-ui-part">Hi <!--std-ui-part-->!</p>`
+		//   descriptors: [class, title, tag slot, text slot], none has a `nodeIndex` yet.
 		const { markup, descriptors } = buildMarkup(strings);
+
+		// Step 2: parse the markup (optionally wrapped, e.g. in `<svg>`, so nodes get the right namespace).
+		//   element.content: <p class="std-ui-part" title="std-ui-part" std-ui-part-tag-0="std-ui-part">
+		//                      "Hi " <!--std-ui-part--> "!"
+		//                    </p>
 		const element = document.createElement('template');
 		element.innerHTML = hooks.wrapMarkup ? hooks.wrapMarkup(markup, type) : markup;
+
+		// Step 3: remove the wrapper again, so node indices match the unwrapped markup.
+		//   (no-op in this example, as nothing was wrapped)
 		hooks.unwrapContent?.(element.content, type);
+
+		// Step 4: walk the nodes in document order, give each descriptor its `nodeIndex`, and strip the
+		// placeholder attributes. Text nodes are not counted; the text-slot comment is kept as the anchor.
+		//   element.content: <p>Hi <!--std-ui-part-->!</p>
+		//   class, title, tag slot -> nodeIndex 0 (`<p>`), text slot -> nodeIndex 1 (the comment)
 		resolveIndices(element.content, descriptors);
+
+		// Step 5: the finished template. `instantiate` clones `element.content` and uses each `nodeIndex`
+		// to find the node for its part.
+		//   parts: [
+		//     { kind: ATTRIBUTE, name: 'class', literals: ['a ', ''],      valueCount: 1, nodeIndex: 0 },
+		//     { kind: ATTRIBUTE, name: 'title', literals: ['e', 'f', 'g'], valueCount: 2, nodeIndex: 0 },
+		//     { kind: ELEMENT,   name: '',                                 valueCount: 1, nodeIndex: 0 },
+		//     { kind: CHILD,     name: '',                                 valueCount: 1, nodeIndex: 1 },
+		//   ]
 		const template: Template<D> = { element, parts: descriptors };
 		hooks.onCompiled?.(template, type);
 		return template;
 	}
 
 	return {
+		/**
+		 * @param strings The tagged template's `strings` array. The same call site always passes the
+		 *   same array object, so it is the cache key (a `WeakMap`, entries go away with it).
+		 * @param type How to parse the markup (e.g. `'html'` or `'svg'`), defaults to `options.defaultType`.
+		 *   The same `strings` can be compiled once per type, so the cache is `strings` -> `type` -> template.
+		 */
 		getTemplate(strings, type = options.defaultType) {
 			let byType = cache.get(strings);
 			if (!byType) {

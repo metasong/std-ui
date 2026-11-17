@@ -33,9 +33,9 @@ export interface CustomAttribute {
 	readonly sigil: string;
 	/** The attribute name, or `WILDCARD` for every name under `sigil`. */
 	readonly name: string;
-	/** Whether this extension handles `attributeInfo`; when it returns `false` the built-in handling
-	 *  applies instead (e.g. plain `class=${x}` with no modifiers). Defaults to always.
-	 *  A specific-name extension that declines falls through to the sigil's `WILDCARD` extension. */
+	/** Optional filter. Lookup tries the exact `(sigil, name)` extension, then the sigil's `WILDCARD`
+	 *  one; the first whose `matches` function is absent or returns `true` wins. If none does, built-in
+	 *  handling applies (e.g. plain attribute with no modifiers). */
 	matches?(attributeInfo: AttributeInfo): boolean;
 	/** `false` (default): the value may mix static text and several interpolations, e.g.
 	 *  `#name="abc ${a} ${b}"`. Set `true` to require exactly one interpolation with no static text. */
