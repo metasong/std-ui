@@ -13,7 +13,7 @@
 
 import { DEV, warnOnUndefinedElements } from '../../../dev/index.js';
 import { findCustomAttribute, type CustomAttribute, type AttributeInfo } from './custom-attribute.js';
-import '../extensions/builtin.js';
+import '../custom-attributes/builtin.js';
 import { createEngine, type EngineHooks, type SlotDescriptor, type Template as EngineTemplate } from './engine.js';
 // Parts import `instantiate` for nested templates; they are only touched lazily inside hooks, so
 // the module cycle is harmless.

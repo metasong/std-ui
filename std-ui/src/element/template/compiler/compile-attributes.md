@@ -202,12 +202,12 @@ Rules:
   pieces *mean*. A **custom attribute** (`compiler/custom-attribute.ts`) owns one `(sigil, name)` pair: it
   validates the binding at compile time and builds the `Part`. Register with
   `registerCustomAttribute()` before the template is first compiled (templates are cached).
-  The native kinds are Custom attributes too (`extensions/builtin.ts`): plain attribute, `.prop`, `?bool` and
+  The native kinds are Custom attributes too (`custom-attributes/builtin.ts`): plain attribute, `.prop`, `?bool` and
   `@event`, each registered for its sigil with the wildcard name `*`. An exact `(sigil, name)`
   extension wins when its `matches()` accepts the binding, otherwise the sigil's wildcard applies. A new
   sigil (e.g. `#name:arg.mod:value="a ${x}"`) is just another registration; mixed text and several
   interpolations are allowed by default; `single: true` requires exactly one interpolation. An unregistered sigil throws at compile time.
-- `class` and `style` entries are Custom attributes that live in `std-ui-ext` (`element/template/bindings/class-style.ts`;
+- `class` and `style` entries are Custom attributes that live in `std-ui-ext` (`element/template/custom-attributes/class-style.ts`;
   importing the package registers them, core does not): they accept **exactly one** modifier as the entry (`class.active`, `style.color`,
   `style.--gap`); more than one, or a `:value` on it, throws. With no modifier, `class=${x}` is
   the plain attribute. Entry bindings are single-value (one interpolation, no static text). Use
