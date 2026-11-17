@@ -47,6 +47,10 @@ export function warnIgnoredModifiers(binding: string, modifiers: readonly Modifi
  */
 export interface Part {
 	readonly valueCount: number;
+	/** Called with this part's slice of `values[]` (exactly `valueCount` entries): on the initial render
+	 *  and again on every re-render of the owning template, normally via `updateParts()`. Also called
+	 *  directly by renderers that own parts, e.g. list items and keyed rows (`part.update([value])`).
+	 *  Implementations must no-op when the values are `Object.is`-equal to the previous ones. */
 	update(values: readonly unknown[]): void;
 	/** Optional: called when the part's content is torn down, so any bound directive's
 	 *  `disconnected()` runs. */

@@ -1,6 +1,6 @@
 // Demonstrates: event modifiers (`@click.once`, `.prevent`, `.stop`, `.self`, `.stop-immediate`)
 // and single-entry bindings (`class.name`, `style.prop`).
-import { tag, t, css, UIElement, state } from '../../../std-ui/src/index.js';
+import { tag, t, css, UIElement, state, withEventOptions } from '../../../std-ui/src/index.js';
 // Registers the `class.name` / `style.prop` bindings used below.
 import '../../../std-ui-ext/src/index.js';
 
@@ -36,6 +36,22 @@ export class DemoBindingsSection extends UIElement {
 		this.log.set([message, ...this.log()].slice(0, 6));
 	}
 
+	// Handlers carrying an `options` property: `addEventListener` options without modifiers.
+	// With std-ui-ext (imported above) they override anything set by `.capture` / `.once` / `.passive`.
+	private readonly onceHandler = Object.assign(
+		() => this.note('handler.options { once }: fired (and removed)'),
+		{ options: { once: true } satisfies AddEventListenerOptions },
+	);
+	private readonly captureHandler = withEventOptions(
+		() => this.note('handler.options { capture }: runs BEFORE the inner click'),
+		{ capture: true }
+	);
+	// `.once` modifier is overridden by `options.once = false`: keeps firing.
+	private readonly overrideHandler = withEventOptions(
+		() => this.note('modifier .once overridden by options { once: false }: still firing'),
+		{ once: false }
+	);
+
 	protected override template() {
 		return t`
 			<h2>Binding modifiers</h2>
@@ -67,6 +83,15 @@ export class DemoBindingsSection extends UIElement {
 				>
 					@click.self <button type="button" class="tonal">inner (ignored)</button>
 				</span>
+			</div>
+
+			<div class="demo-actions">
+				<button type="button" @click=${this.onceHandler}>handler.options once</button>
+				<span class="demo-self" @click=${this.captureHandler}>
+					capture on parent
+					<button type="button" class="tonal" @click=${() => this.note('inner click')}>inner</button>
+				</span>
+				<button type="button" @click.once=${this.overrideHandler}>.once overridden by options</button>
 			</div>
 
 			<div class="demo-actions">

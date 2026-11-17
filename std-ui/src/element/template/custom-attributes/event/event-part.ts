@@ -1,11 +1,21 @@
 import { type Modifier, type Part, warnIgnoredModifiers } from '../../parts/part.js';
 
+/** Attaches `addEventListener` options to a handler, e.g. `@click=${withEventOptions(fn, { once: true })}`.
+ *  Typed so the options are checked as `AddEventListenerOptions`; read back by `EventPart`. */
+export function withEventOptions<H extends EventListenerOrEventListenerObject>(
+	handler: H,
+	options: AddEventListenerOptions,
+): H & { options: AddEventListenerOptions } {
+	return Object.assign(handler, { options });
+}
+
 /** `@event=${handler}`. Modifiers are not interpreted here (they warn in DEV); `std-ui-ext`
  *  replaces this binding with one that handles `.capture`, `.once`, `.prevent`, etc. */
 export class EventPart implements Part, EventListenerObject {
 	readonly valueCount = 1;
 	#listener: EventListenerOrEventListenerObject | undefined;
 	#attached = false;
+	#active: AddEventListenerOptions | undefined;
 	constructor(
 		private readonly el: Element,
 		private readonly name: string,
@@ -14,23 +24,47 @@ export class EventPart implements Part, EventListenerObject {
 	) {
 		warnIgnoredModifiers(`@${name}`, modifiers);
 	}
+	/** Extension hook: merges the handler's own `options` with any part-level options. */
+	protected resolveOptions(own: AddEventListenerOptions | undefined): AddEventListenerOptions | undefined {
+		return own;
+	}
+	/** Extension hook: runs before the handler; return `false` to skip it (after any side effects). */
+	protected shouldHandle(_event: Event): boolean {
+		return true;
+	}
 	update(values: readonly unknown[]): void {
 		const value = values[0];
 		const listener = typeof value === 'function' || (typeof value === 'object' && value !== null)
 			? (value as EventListenerOrEventListenerObject)
 			: undefined;
 		this.#listener = listener;
+		if (!listener) {
+			this.#detach();
+			return;
+		}
+		// A static `options` property on the handler supplies `addEventListener` options.
+		const own = (listener as { options?: AddEventListenerOptions }).options;
+		const next = this.resolveOptions(typeof own === 'object' && own !== null ? own : undefined);
+		const cur = this.#active;
+		if (this.#attached && (cur?.capture !== next?.capture || cur?.once !== next?.once || cur?.passive !== next?.passive || cur?.signal !== next?.signal)) {
+			this.#detach();
+		}
 		// The part itself is the one registered listener (stable identity), so swapping handlers
 		// between renders needs no remove/add, and `this` inside a handler is the host.
-		if (listener && !this.#attached) {
-			this.el.addEventListener(this.name, this);
+		if (!this.#attached) {
+			this.#active = next && { ...next };
+			this.el.addEventListener(this.name, this, this.#active);
 			this.#attached = true;
-		} else if (!listener && this.#attached) {
-			this.el.removeEventListener(this.name, this);
-			this.#attached = false;
 		}
 	}
+	#detach(): void {
+		if (!this.#attached) return;
+		this.el.removeEventListener(this.name, this, this.#active);
+		this.#attached = false;
+	}
 	handleEvent(event: Event): void {
+		if (this.#active?.once) this.#attached = false; // the browser removed us
+		if (!this.shouldHandle(event)) return;
 		const l = this.#listener;
 		if (typeof l === 'function') l.call(this.host ?? this.el, event);
 		else l?.handleEvent(event);

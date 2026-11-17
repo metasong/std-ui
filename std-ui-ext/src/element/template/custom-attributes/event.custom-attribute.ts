@@ -2,7 +2,7 @@
 //
 // Importing `std-ui-ext` registers this over std-ui's default `@` binding, which ignores modifiers.
 
-import { registerCustomAttribute, type CustomAttribute, type Modifier, type Part } from 'std-ui';
+import { EventPart, registerCustomAttribute, type CustomAttribute, type Modifier } from 'std-ui';
 
 const OPTION_MODIFIERS = ['capture', 'once', 'passive'] as const;
 const FILTER_MODIFIERS = ['prevent', 'stop', 'stop-immediate', 'self'] as const;
@@ -31,44 +31,25 @@ function extractEventModifiers(binding: string, modifiers: readonly Modifier[]) 
 	return { options, filters };
 }
 
-export class ModifierEventPart implements Part, EventListenerObject {
-	readonly valueCount = 1;
-	#listener: EventListenerOrEventListenerObject | undefined;
-	#attached = false;
+/** `EventPart` plus modifiers; listener lifecycle is inherited, only options and filtering differ. */
+export class ModifierEventPart extends EventPart {
 	readonly #options: AddEventListenerOptions;
 	readonly #filters: EventFilters;
-	constructor(
-		private readonly el: Element,
-		private readonly name: string,
-		modifiers: readonly Modifier[] = [],
-		private readonly host?: unknown,
-	) {
+	constructor(el: Element, name: string, modifiers: readonly Modifier[] = [], host?: unknown) {
+		super(el, name, [], host); // no modifiers passed up: the base would warn about all of them
 		({ options: this.#options, filters: this.#filters } = extractEventModifiers(`@${name}`, modifiers));
 	}
-	update(values: readonly unknown[]): void {
-		const value = values[0];
-		const listener = typeof value === 'function' || (typeof value === 'object' && value !== null)
-			? (value as EventListenerOrEventListenerObject)
-			: undefined;
-		this.#listener = listener;
-		if (listener && !this.#attached) {
-			this.el.addEventListener(this.name, this, this.#options);
-			this.#attached = true;
-		} else if (!listener && this.#attached) {
-			this.el.removeEventListener(this.name, this, this.#options);
-			this.#attached = false;
-		}
+	// A static `options` property on the handler overrides the modifier-derived options.
+	protected override resolveOptions(own: AddEventListenerOptions | undefined): AddEventListenerOptions {
+		return { ...this.#options, ...own };
 	}
-	handleEvent(event: Event): void {
-		if (this.#options.once) this.#attached = false; // the browser removed us
+	protected override shouldHandle(event: Event): boolean {
 		const f = this.#filters;
-		if (f.self && event.target !== event.currentTarget) return;
+		if (f.self && event.target !== event.currentTarget) return false;
 		if (f.prevent) event.preventDefault();
 		if (f.stop) event.stopPropagation();
 		if (f['stop-immediate']) event.stopImmediatePropagation();
-		const l = this.#listener;
-		if (typeof l === 'function') l.call(this.host ?? this.el, event);
-		else l?.handleEvent(event);
+		return true;
 	}
 }
 

@@ -69,6 +69,6 @@ export {
 	type ToSignalFromOptions,
 } from './reactive/index.js';
 export { ChildRenderer, renderWith } from './element/template/parts/renderers/index.js';
-export { AttributePart, ChildPart } from './element/template/parts/index.js';
+export { AttributePart, ChildPart, EventPart, withEventOptions } from './element/template/parts/index.js';
 export { KeyedRows, type KeyedEntries } from './element/template/directives/_lib/keyed-rows/index.js';
 export { markTouched, trackTouched } from './touched.js';
