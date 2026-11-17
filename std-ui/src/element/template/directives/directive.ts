@@ -9,13 +9,13 @@
 
 const directiveTag = Symbol('directiveResult');
 
-/** Returned from `render()`/`update()` to mean "I already applied my update (or there's nothing
+/** Returned from `update()` to mean "I already applied my update (or there's nothing
  *  new to apply) - leave whatever's currently on the element alone". Distinct from returning
  *  `null`/`undefined`, which still means "remove this attribute". */
 export const noChange: unique symbol = Symbol('noChange');
 
 /**
- * What `render()`/`update()` may return. Deliberately `unknown`, not a fixed union: what's
+ * What `update()` may return. Deliberately `unknown`, not a fixed union: what's
  * actually committable depends on which kind of position the directive is bound to -
  * `string`/`number`/`null`/`undefined` for an `AttributePart` (stringified/removed), or anything
  * a `ChildPart` already knows how to commit (a string, `TemplateResult`, array, `null`/`undefined`
@@ -74,7 +74,7 @@ export interface PropertyPartInfo {
 export interface ElementPartInfo {
 	readonly type: typeof PartType.ELEMENT;
 	readonly element: Element;
-	/** The `host` passed to `render()` (the component), if any. */
+	/** The `host` passed to the top-level `render()` (the component), if any. */
 	readonly host?: unknown;
 }
 
@@ -168,10 +168,8 @@ export function isDirectiveResult(value: unknown): value is DirectiveResult {
 /**
  * Turns a `Directive` subclass into the callable directive function consumers actually use in a
  * template, e.g. `directive(HelloDirective)` -> `hello`, used as `` t`...${hello('Ada')}...` ``.
- * The returned function's parameters are inferred from whichever of `render()`/`update()` the
- * subclass gave a concrete signature (see `DirectiveArgs`) - rule that "the
- * parameters defined for the render() method determine the signature of the directive function",
- * extended to also work for directives that only override `update()`.
+ * The returned function's parameters are inferred from `update()`'s trailing parameters (see
+ * `DirectiveArgs`).
  *
  * @param Ctor - The `Directive` subclass (not an instance) to wrap, e.g. `HelloDirective`.
  * @returns A function - e.g. `hello` - that consumers call inside a template interpolation. It
@@ -198,7 +196,7 @@ export interface AppliedDirective {
  *
  * @param part - The live binding position being updated - an `AttributePartInfo` or
  *   `ChildPartInfo`; passed to the constructor (as `PartInfo`) when a new instance is built, and
- *   to `update()`/`render()` on every call.
+ *   to `update()` on every call.
  * @param result - This render's `directive()`-made value: which `Directive` subclass to use
  *   (`result.Ctor`) and the arguments to call its lifecycle methods with (`result.args`).
  * @param previous - The `Directive` instance bound at this position last render, or `undefined`

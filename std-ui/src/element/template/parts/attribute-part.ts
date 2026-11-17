@@ -121,7 +121,7 @@ export class AttributePart implements Part {
 	}
 
 	/** Shared commit path for a bare single value, whether it came straight from `values[0]` or
-	 *  from a directive's `render()`/`update()`: `null`/`undefined` removes the attribute, anything
+	 *  from a directive's `update()`: `null`/`undefined` removes the attribute, anything
 	 *  else is stringified and set, no-op'ing when unchanged from last time. */
 	#commitValue(value: unknown): void {
 		if (value == null) {

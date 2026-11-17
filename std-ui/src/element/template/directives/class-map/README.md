@@ -32,7 +32,7 @@ calls `classList.add` / `remove` for keys that changed.
 
 ## Related reading
 
-- [`design.md`](./design.md) — implementation (`ClassMapDirective`, `update()` vs `render()`).
+- [`design.md`](./design.md) — implementation (`ClassMapDirective`, `update()` returning `noChange`).
 - [`../directive.ts`](../directive.ts) — `Directive` / `directive()` protocol.
 - [`../../tag-funcs/html/html.md`](../../tag-funcs/html/html.md#directives) — binding kinds and custom directives.
 - [`../style-map/README.md`](../style-map/README.md) — sibling `styleMap` directive.

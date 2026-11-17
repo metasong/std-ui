@@ -17,7 +17,7 @@ export abstract class ChildRenderer<V> {
 export type ChildRendererClass = new (anchor: Comment, host?: unknown) => ChildRenderer<any>;
 
 // --- Directive-supplied renderers --------------------------------------------------------------
-// A child directive can return `renderWith(MyRenderer, value)` from `render()`/`update()` to have
+// A child directive can return `renderWith(MyRenderer, value)` from `update()` to have
 // `ChildPart` render `value` using the directive's own renderer, so `ChildPart` needs no
 // knowledge of the directive and all its logic can live in the directive's module.
 

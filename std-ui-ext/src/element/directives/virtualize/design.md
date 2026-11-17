@@ -26,10 +26,10 @@ Dependencies flow one way: `virtualize-renderer` uses the others; `measure`, `st
 `KeyedRows` through parameters).
 ## Why a renderer owns the window
 
-`render()` runs when the *parent* re-renders; scrolling doesn't re-render the parent. So the
+The directive's `update()` runs when the *parent* re-renders; scrolling doesn't re-render the parent. So the
 renderer listens to the scroller itself, and holds `items` + `options` from the last `update()` so
 it can recompute the window and call `renderItem` for newly visible items without a parent render.
-`render()` is O(1): it never walks `items`.
+`update()` is O(1): it never walks `items`.
 
 ## DOM model
 

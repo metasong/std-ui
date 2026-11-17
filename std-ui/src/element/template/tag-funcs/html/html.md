@@ -137,11 +137,10 @@ export type Part = AttributePartInfo | ChildPartInfo; // every Part/PartInfo sha
 
 export abstract class Directive {
 	constructor(partInfo: PartInfo) {}
-	render(...args: readonly unknown[]): DirectiveReturn { /* implement, or override update() */ }
-	update(part: Part, ...args: readonly unknown[]): DirectiveReturn { return this.render(...args); }
+	abstract update(part: Part, ...args: readonly unknown[]): DirectiveReturn;
 }
 
-// Infers args from whichever of render()/update() you gave a concrete signature.
+// Infers args from update()'s trailing parameters.
 export function directive<C extends new (partInfo: PartInfo) => Directive>(Ctor: C): (...args: DirectiveArgs<C>) => DirectiveResult;
 ```
 
@@ -151,48 +150,43 @@ export function directive<C extends new (partInfo: PartInfo) => Directive>(Ctor:
 `AttributePart`/`ChildPart` respectively) - the union has room to grow if more binding kinds gain
 directive support later.
 
-What's committable from `render()`/`update()` depends on which kind of `Part` the directive is
+What `update()` may return depends on which kind of `Part` the directive is
 bound to: a string/`null`/`undefined` for an attribute position (stringified/removed by
 `AttributePart`), or anything a `ChildPart` already knows how to commit (string, nested `t`
 result, array, `null`/`undefined`/`false`, or another directive's own wrapper, e.g.
 `html()`'s) for a child position. `noChange` is the one value both recognize the same way:
 "I already applied my update myself - do nothing further."
 
-Three lifecycle hooks, roles:
+One output hook, `update()`:
 
 - `constructor(partInfo)` - one-time setup, run only the first time a directive is used at a given
   position. Validate `partInfo.type`/`partInfo.name` here if the directive only supports certain
   bindings (e.g. "must be the `class` attribute").
-- `render(...args)` - declarative: return the value to commit (a string, or `null`/`undefined` to
-  remove the attribute). Implement this for a directive with no need to touch the DOM directly.
-- `update(part, ...args)` - imperative: called on every render *instead of* `render()`, with
-  direct access to the live `part` (its `.element`/`.name`). `args` are real trailing parameters -
-  declare as many individually-typed ones as the directive actually takes (e.g.
-  `update(part, classes: ClassInfo)`, or `update(part, a: number, b: string)`), not one bundled
-  array to destructure. Defaults to calling and returning `render(...args)`; override `update()`
-  instead to mutate the DOM yourself (e.g. via `classList`/`el.style`) rather than return a value -
-  typically returning `noChange` once you have, telling `AttributePart` there's nothing left to
-  commit.
+- `update(part, ...args)` - called on every render with the live `part`. `args` are real trailing
+  parameters - declare as many individually-typed ones as the directive takes (e.g.
+  `update(part, classes: ClassInfo)`, or `update(part, a: number, b: string)`). Return one of:
+  - `noChange` - you already updated the DOM yourself (e.g. via `classList`/`el.style`);
+  - a raw value (a string, or `null`/`undefined` to remove the attribute; for a child position, a
+    template, array, ...) for the part to commit;
+  - `renderWith(MyRenderer, value)` - for a child position, hand the value to your own
+    `ChildRenderer`.
 
-`directive()` infers the callable function's parameters from *whichever* of `render()`/`update()`
-you actually gave a concrete signature - override `update()` alone, with its own typed trailing
-parameters, and that's all you need; there's no requirement to also implement a `render()` just so
-`directive()` can see the argument types:
+`directive()` infers the callable function's parameters from `update()`'s trailing parameters:
 
 ```ts
 import { Directive, directive, noChange, type Part } from './directive.js';
 
-// Declarative - only render() needed:
+// Return a value for the part to commit:
 class HelloDirective extends Directive {
-	render(name: string): string {
+	update(_part: Part, name: string): string {
 		return `Hello, ${name}!`;
 	}
 }
 export const hello = directive(HelloDirective);
 // t`<div title=${hello('Ada')}></div>`
 
-// Imperative - only update() needed, no render() required for typing. Real trailing parameters,
-// not an array to destructure - works for any number of them:
+// Mutate the DOM yourself and return noChange. Real trailing parameters, not an array to
+// destructure - works for any number of them:
 class LogAttributeDirective extends Directive {
 	update(part: Part, level: string, message: string): typeof noChange {
 		console.log(`[${level}] ${part.name}:`, message);
@@ -211,8 +205,8 @@ from `AttributePart`/`ChildPart` themselves. All of a directive's logic - includ
 kind/name it's valid on - lives in its own module; `AttributePart`/`ChildPart` only dispatch. See
 `./directives/class-map/` and `./directives/style-map/` for complete attribute-directive
 examples - both override `update(part, classes)`/`update(part, styles)` for imperative
-`classList`/`el.style` access and don't implement `render()` at all, since their own `update()`
-signature is already what `directive()` infers `classMap`'s/`styleMap`'s argument types from:
+`classList`/`el.style` access and return `noChange`; their `update()` signatures are what
+`directive()` infers `classMap`'s/`styleMap`'s argument types from:
 
 ```ts
 import { t, render, classMap, styleMap } from './index.js';
@@ -238,12 +232,10 @@ const row = (active: boolean, big: boolean) => t`
 
 `html()` (see [`./directives/unsafe-html/`](./directives/unsafe-html/)) is the one built-in **child**
 directive: its constructor requires `partInfo.type === PartType.CHILD` (throws if bound to an
-attribute instead), and it only needs `render(markup)` - no DOM access required, since parsing
-and inserting the markup is handled centrally by `ChildPart` once it recognizes the resolved
-`{ markup, ... }` wrapper `render()` returns, same as it already does for a plain `t` result or
-array. This is the pattern to follow for a child directive that computes a committable value
-declaratively rather than touching the DOM itself: let `ChildPart`'s existing commit logic do the
-work, don't duplicate it.
+attribute instead), and its `update(part, markup)` returns `renderWith(UnsafeHtmlRenderer, markup)`, so parsing and
+inserting the markup lives in that renderer and `ChildPart` just runs it. This is the pattern to
+follow for a child directive that doesn't touch the DOM itself: return a value (or `renderWith(...)`)
+and let `ChildPart` do the work, don't duplicate it.
 
 ## Embedding templates
 

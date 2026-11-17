@@ -17,9 +17,9 @@ usage and API, see [`README.md`](./README.md).
 from [`../../parts/renderers/child-renderer.ts`](../../parts/renderers/child-renderer.ts). The directive
 supplies its own renderer class, same pattern as [`../unsafe-html/`](../unsafe-html/).
 
-## Why `render()`, not `update()`
+## Why it returns a renderer instead of touching the DOM
 
-Unlike `classMap` / `styleMap`, `mapByKey` overrides **`render()`** and returns
+Unlike `classMap` / `styleMap`, `mapByKey`'s `update()` returns
 `renderWith(MapByKeyRenderer, entries)`. The directive does not mutate the DOM itself; it prepares
 keyed entries and delegates reconciliation to `MapByKeyRenderer` on each application.
 
@@ -27,14 +27,14 @@ keyed entries and delegates reconciliation to `MapByKeyRenderer` on each applica
 
 ```mermaid
 flowchart LR
-  A["mapByKey(items, keyFn, template)"] --> B["MapByKeyDirective.render()"]
+  A["mapByKey(items, keyFn, template)"] --> B["MapByKeyDirective.update()"]
   B --> C["entries: { key, value }[]"]
   C --> D["renderWith(MapByKeyRenderer, entries)"]
   D --> E["ChildPart picks MapByKeyRenderer"]
   E --> F["MapByKeyRenderer.update(entries)"]
 ```
 
-1. **`MapByKeyDirective.render()`** walks `items`, assigns keys (`keyFn` or index), checks uniqueness,
+1. **`MapByKeyDirective.update()`** walks `items`, assigns keys (`keyFn` or index), checks uniqueness,
    and maps each item through `template()` into `value`.
 2. **`ChildPart`** sees `isRenderWith`, reuses or instantiates `MapByKeyRenderer` anchored on the
    part's end comment.

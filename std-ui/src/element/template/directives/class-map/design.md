@@ -15,9 +15,9 @@ Implementation of the built-in `class` attribute directive. Usage: [`README.md`]
 `main.ts` does not import `../../parts/` or `../../compile.ts`; dispatch is generic — see
 [`../directive.ts`](../directive.ts).
 
-## Why `update()`, not `render()`
+## Why it mutates the DOM and returns `noChange`
 
-`render()` would return one string for `setAttribute`, replacing the entire `class` attribute. This
+Returning a value would give one string for `setAttribute`, replacing the entire `class` attribute. This
 directive must diff only the classes **it** applied, leaving static markup and other sources
 untouched. It overrides `update()`, mutates `part.element.classList`, and returns `noChange`.
 

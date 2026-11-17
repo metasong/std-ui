@@ -12,9 +12,9 @@ Implementation of the built-in child directive that keeps switched-out templates
 `ChildPart` has no knowledge of `cache`; the directive hands it a renderer via `renderWith()`, the same
 pattern as [`../html/unsafe-html.ts`](../html/unsafe-html.ts).
 
-## Why a renderer, not just `render()`
+## Why a renderer, not just returning the template
 
-A plain `render()` returning the `TemplateResult` would let `ChildPart` use `TemplateRenderer`, which tears down
+Plain `update()` returning the `TemplateResult` would let `ChildPart` use `TemplateRenderer`, which tears down
 its DOM when `strings` change (`update()` returns `false`, `ChildPart` disposes and rebuilds). Cache needs to own
 the DOM of several templates at once, so the directive returns `renderWith(CacheRenderer, value)`.
 

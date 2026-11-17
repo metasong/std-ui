@@ -14,9 +14,9 @@ Implementation of the built-in `style` attribute directive. Usage: [`README.md`]
 
 Dispatch is generic — see [`../directive.ts`](../directive.ts).
 
-## Why `update()`, not `render()`
+## Why it mutates the DOM and returns `noChange`
 
-`render()` would return one string for `setAttribute`, replacing the entire `style` attribute. This
+Returning a value would give one string for `setAttribute`, replacing the entire `style` attribute. This
 directive diffs only properties **it** set. It overrides `update()`, mutates `element.style`, and
 returns `noChange`.
 
