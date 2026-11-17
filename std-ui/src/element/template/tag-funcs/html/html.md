@@ -133,11 +133,11 @@ export interface ChildPartInfo {
 	readonly type: typeof PartType.CHILD;
 	readonly anchor: Comment;
 }
-export type Part = AttributePartInfo | ChildPartInfo; // every Part/PartInfo shape built today
+export type DirectivePart = AttributePartInfo | ChildPartInfo; // every Part/PartInfo shape built today
 
 export abstract class Directive {
 	constructor(partInfo: PartInfo) {}
-	abstract update(part: Part, ...args: readonly unknown[]): DirectiveReturn;
+	abstract update(part: DirectivePart, ...args: readonly unknown[]): DirectiveReturn;
 }
 
 // Infers args from update()'s trailing parameters.
@@ -174,11 +174,11 @@ One output hook, `update()`:
 `directive()` infers the callable function's parameters from `update()`'s trailing parameters:
 
 ```ts
-import { Directive, directive, noChange, type Part } from './directive.js';
+import { Directive, directive, noChange, type DirectivePart } from './directive.js';
 
 // Return a value for the part to commit:
 class HelloDirective extends Directive {
-	update(_part: Part, name: string): string {
+	update(_part: DirectivePart, name: string): string {
 		return `Hello, ${name}!`;
 	}
 }
@@ -188,7 +188,7 @@ export const hello = directive(HelloDirective);
 // Mutate the DOM yourself and return noChange. Real trailing parameters, not an array to
 // destructure - works for any number of them:
 class LogAttributeDirective extends Directive {
-	update(part: Part, level: string, message: string): typeof noChange {
+	update(part: DirectivePart, level: string, message: string): typeof noChange {
 		console.log(`[${level}] ${part.name}:`, message);
 		return noChange;
 	}

@@ -1,4 +1,4 @@
-import { Directive, directive, PartType, type Part, type PartInfo } from 'std-ui';
+import { Directive, directive, PartType, type DirectivePart, type PartInfo } from 'std-ui';
 import { renderWith } from 'std-ui';
 import { VirtualizeRenderer } from './renderer/index.js';
 import type { VirtualizeOptions } from './options.js';
@@ -11,7 +11,7 @@ class VirtualizeDirective extends Directive {
 		}
 	}
 
-	override update(_part: Part, items: ArrayLike<unknown>, options: VirtualizeOptions<any>) {
+	override update(_part: DirectivePart, items: ArrayLike<unknown>, options: VirtualizeOptions<any>) {
 		for (const name of ['itemSize', 'estimatedItemSize'] as const) {
 			const h = options[name];
 			if (h !== undefined && !(h > 0)) throw new Error(`std-ui virtualize(): ${name} must be > 0.`);

@@ -1,4 +1,4 @@
-import { type Modifier, type Part, warnIgnoredModifiers } from './part.js';
+import { type Modifier, type Part, warnIgnoredModifiers } from '../../parts/part.js';
 
 export class BooleanAttributePart implements Part {
 	readonly valueCount = 1;

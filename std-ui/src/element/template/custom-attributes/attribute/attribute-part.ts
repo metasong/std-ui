@@ -1,5 +1,5 @@
-import { applyDirective, isDirectiveResult, noChange, type AttributePartInfo, type Directive } from '../directives/directive.js';
-import { PartType, type Modifier, type Part, warnIgnoredModifiers } from './part.js';
+import { applyDirective, isDirectiveResult, noChange, type AttributePartInfo, type Directive } from '../../directives/directive.js';
+import { PartType, type Modifier, type Part, warnIgnoredModifiers } from '../../parts/part.js';
 
 /**
  * Binds an attribute's full value, which may be composed of static text segments (`literals`)

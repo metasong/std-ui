@@ -1,14 +1,14 @@
 import { describe, expect, it } from 'vitest';
-import { Directive, applyDirective, directive, isDirectiveResult, noChange, type Part } from './directive.js';
+import { Directive, applyDirective, directive, isDirectiveResult, noChange, type DirectivePart } from './directive.js';
 import { PartType } from '../parts/part.js';
 
-function attributePart(el: Element, name: string): Part {
+function attributePart(el: Element, name: string): DirectivePart {
 	return { type: PartType.ATTRIBUTE, element: el, name };
 }
 
 class EchoDirective extends Directive {
 	renderCalls: unknown[][] = [];
-	override update(_part: Part, ...args: unknown[]): string {
+	override update(_part: DirectivePart, ...args: unknown[]): string {
 		this.renderCalls.push(args);
 		return String(args[0]);
 	}
@@ -32,7 +32,7 @@ describe('directive()', () => {
 });
 
 describe('Directive update() return value', () => {
-	it('returns update() raw value for the part to commit', () => {
+	it('returns update() raw value for the DirectivePart to commit', () => {
 		const el = document.createElement('div');
 		const { value } = applyDirective(attributePart(el, 'title'), echo('hi'), undefined);
 		expect(value).toBe('hi');
@@ -48,9 +48,9 @@ describe('applyDirective()', () => {
 
 	it('reuses the previous instance (same state) when the same directive function is used again', () => {
 		const el = document.createElement('div');
-		const part = attributePart(el, 'title');
-		const first = applyDirective(part, echo('a'), undefined).instance as EchoDirective;
-		const second = applyDirective(part, echo('b'), first).instance as EchoDirective;
+		const DirectivePart = attributePart(el, 'title');
+		const first = applyDirective(DirectivePart, echo('a'), undefined).instance as EchoDirective;
+		const second = applyDirective(DirectivePart, echo('b'), first).instance as EchoDirective;
 		expect(second).toBe(first);
 		expect(second.renderCalls).toEqual([['a'], ['b']]);
 	});
@@ -58,16 +58,16 @@ describe('applyDirective()', () => {
 	it('constructs a fresh instance when a different directive function is bound at the same position', () => {
 		const otherEcho = directive(class extends EchoDirective {});
 		const el = document.createElement('div');
-		const part = attributePart(el, 'title');
-		const first = applyDirective(part, echo('a'), undefined).instance;
-		const second = applyDirective(part, otherEcho('b'), first).instance;
+		const DirectivePart = attributePart(el, 'title');
+		const first = applyDirective(DirectivePart, echo('a'), undefined).instance;
+		const second = applyDirective(DirectivePart, otherEcho('b'), first).instance;
 		expect(second).not.toBe(first);
 	});
 
-	it("threads a directive overriding update() straight through, using part.element", () => {
+	it("threads a directive overriding update() straight through, using DirectivePart.element", () => {
 		class ImperativeDirective extends Directive {
-			override update(part: Part, label: string): typeof noChange {
-				part.element.setAttribute(part.name, `imperative:${label}`);
+			override update(DirectivePart: DirectivePart, label: string): typeof noChange {
+				DirectivePart.element.setAttribute(DirectivePart.name, `imperative:${label}`);
 				return noChange;
 			}
 		}
@@ -80,8 +80,8 @@ describe('applyDirective()', () => {
 
 	it('threads multiple real trailing update() parameters through individually, not as one bundled array', () => {
 		class ConcatDirective extends Directive {
-			override update(part: Part, a: string, b: number): typeof noChange {
-				part.element.setAttribute(part.name, `${a}-${b}`);
+			override update(DirectivePart: DirectivePart, a: string, b: number): typeof noChange {
+				DirectivePart.element.setAttribute(DirectivePart.name, `${a}-${b}`);
 				return noChange;
 			}
 		}
@@ -93,11 +93,11 @@ describe('applyDirective()', () => {
 
 	it("runs the directive's constructor validation only on first construction at a position", () => {
 		class StrictDirective extends Directive {
-			constructor(partInfo: Part) {
+			constructor(partInfo: DirectivePart) {
 				super(partInfo);
 				if (partInfo.name !== 'class') throw new Error('must be "class"');
 			}
-			override update(_part: Part): string {
+			override update(_part: DirectivePart): string {
 				return 'ok';
 			}
 		}

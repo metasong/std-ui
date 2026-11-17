@@ -1,4 +1,4 @@
-import { Directive, directive, type Part as DirectivePart, type PartInfo } from '../directive.js';
+import { Directive, directive, type DirectivePart, type PartInfo } from '../directive.js';
 import { getTemplate, instantiate } from '../../compiler/index.js';
 import { isTemplateResult, type TemplateResult } from '../../tag-funcs/html/index.js';
 import { ChildRenderer, renderWith } from '../../parts/renderers/index.js';

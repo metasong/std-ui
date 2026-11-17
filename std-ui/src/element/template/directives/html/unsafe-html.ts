@@ -1,8 +1,8 @@
-import { Directive, directive, type Part, type PartInfo } from '../directive.js';
+import { Directive, directive, type DirectivePart, type PartInfo } from '../directive.js';
 import { PartType } from '../../parts/part.js';
 import { ChildRenderer, renderWith } from '../../parts/renderers/index.js';
 
-/** Parses markup and inserts the resulting nodes before the part's anchor; re-parses only when
+/** Parses markup and inserts the resulting nodes before the DirectivePart's anchor; re-parses only when
  *  the markup string changes. */
 class UnsafeHtmlRenderer extends ChildRenderer<string> {
 	#markupStr: string | undefined;
@@ -33,7 +33,7 @@ class UnsafeHtmlDirective extends Directive {
 		}
 	}
 
-	override update(_part: Part, markup: string) {
+	override update(_part: DirectivePart, markup: string) {
 		return renderWith(UnsafeHtmlRenderer, markup);
 	}
 }

@@ -3,12 +3,12 @@
 // Built only on std-ui's public custom-attribute API. Importing `std-ui-ext` registers both. The
 // single modifier names the entry; everything else about the binding is validated here.
 
-import { registerCustomAttribute, type CustomAttribute, type AttributeInfo, type BindingPart } from 'std-ui';
+import { registerCustomAttribute, type CustomAttribute, type AttributeInfo, type Part } from 'std-ui';
 
 type ApplyEntry = (el: Element, entry: string, value: unknown) => void;
 
 /** Sets one entry of an attribute via `apply`. Re-applies only when the value changes. */
-class EntryPart implements BindingPart {
+class EntryPart implements Part {
 	readonly valueCount = 1;
 	#value: unknown;
 	constructor(

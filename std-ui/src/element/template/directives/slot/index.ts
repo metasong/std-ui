@@ -1,4 +1,4 @@
-import { Directive, directive, type Part, type PartInfo } from '../directive.js';
+import { Directive, directive, type DirectivePart, type PartInfo } from '../directive.js';
 import { PartType } from '../../parts/part.js';
 import type { TemplateResult } from '../../tag-funcs/html/index.js';
 import { ChildRenderer, renderWith, TemplateRenderer } from '../../parts/renderers/index.js';
@@ -64,7 +64,7 @@ class SlotDirective extends Directive {
 		}
 	}
 
-	override update(_part: Part, name: string = '', fallback?: TemplateResult) {
+	override update(_part: DirectivePart, name: string = '', fallback?: TemplateResult) {
 		return renderWith(SlotRenderer, { name, fallback });
 	}
 }

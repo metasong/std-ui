@@ -1,8 +1,8 @@
 export { t, svg, type TemplateResult } from './tag-funcs/html/index.js';
 export { html } from './directives/html/index.js';
 export { render, unmount, disconnectRendered, type RenderOptions } from './render.js';
-export { Directive, directive, noChange, type Part, type PartInfo } from './directives/directive.js';
-export { PartType, type Part as BindingPart, type Modifier } from './parts/index.js';
+export { Directive, directive, noChange, type DirectivePart, type PartInfo } from './directives/directive.js';
+export { PartType, type Part, type Modifier } from './parts/index.js';
 export { registerCustomAttribute, type CustomAttribute, type AttributeInfo, type BindingValue } from './compiler/custom-attribute.js';
 export {
 	css,

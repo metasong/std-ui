@@ -1,11 +1,11 @@
 import { describe, expect, it } from 'vitest';
-import { Directive, directive, type Part } from './directives/directive.js';
+import { Directive, directive, type DirectivePart } from './directives/directive.js';
 import { t, svg } from './tag-funcs/html/index.js';
 import { render, unmount } from './render.js';
 
 let log: string[] = [];
 class Probe extends Directive {
-	override update(_part: Part, _v: string) { return 'x'; }
+	override update(_part: DirectivePart, _v: string) { return 'x'; }
 	override disconnected() { log.push('disconnected'); }
 }
 const probe = directive(Probe);

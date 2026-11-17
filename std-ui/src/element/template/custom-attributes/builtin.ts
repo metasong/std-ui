@@ -8,39 +8,11 @@
 // Each is registered for its sigil with the wildcard name `'*'`, so a more specific extension
 // (`class.active`) wins when it matches. Nothing in the compiler special-cases them.
 
-import { registerCustomAttribute, WILDCARD, type CustomAttribute } from '../compiler/custom-attribute.js';
-import { AttributePart, BooleanAttributePart, EventPart, PropertyPart } from '../parts/index.js';
-
-export const plainAttributeExtension: CustomAttribute = {
-	sigil: '', name: WILDCARD,
-	validate(b) {
-		// `name:arg` is part of the grammar but reserved: only extensions may consume it.
-		if (b.arg !== undefined) throw new Error(`std-ui html: "${b.name}:${b.arg}" - ":arg" on a binding name is reserved and not supported yet.`);
-	},
-	createPart: (el, b, _host, v) => new AttributePart(el, b.name, [...v.literals], b.modifiers),
-};
-
-export const propertyExtension: CustomAttribute = {
-	sigil: '.', name: WILDCARD, single: true,
-	validate: b => rejectArg(b.sigil, b.name, b.arg),
-	createPart: (el, b) => new PropertyPart(el, b.name, b.modifiers),
-};
-
-export const booleanAttributeExtension: CustomAttribute = {
-	sigil: '?', name: WILDCARD, single: true,
-	validate: b => rejectArg(b.sigil, b.name, b.arg),
-	createPart: (el, b) => new BooleanAttributePart(el, b.name, b.modifiers),
-};
-
-export const eventExtension: CustomAttribute = {
-	sigil: '@', name: WILDCARD, single: true,
-	validate: b => rejectArg(b.sigil, b.name, b.arg),
-	createPart: (el, b, host) => new EventPart(el, b.name, b.modifiers, host),
-};
-
-function rejectArg(sigil: string, name: string, arg: string | undefined): void {
-	if (arg !== undefined) throw new Error(`std-ui html: "${sigil}${name}:${arg}" - ":arg" on a binding name is reserved and not supported yet.`);
-}
+import { registerCustomAttribute } from '../compiler/custom-attribute.js';
+import { plainAttributeExtension } from './attribute/index.js';
+import { propertyExtension } from './property/index.js';
+import { booleanAttributeExtension } from './boolean/index.js';
+import { eventExtension } from './event/index.js';
 
 for (const extension of [plainAttributeExtension, propertyExtension, booleanAttributeExtension, eventExtension]) {
 	registerCustomAttribute(extension);

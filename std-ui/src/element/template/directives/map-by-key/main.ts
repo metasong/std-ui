@@ -1,4 +1,4 @@
-import { Directive, directive, type Part, type PartInfo } from '../directive.js';
+import { Directive, directive, type DirectivePart, type PartInfo } from '../directive.js';
 import { PartType } from '../../parts/part.js';
 import { renderWith } from '../../parts/renderers/index.js';
 import { MapByKeyRenderer } from './map-by-key-renderer.js';
@@ -12,7 +12,7 @@ class MapByKeyDirective extends Directive {
 	}
 
 	override update(
-		_part: Part,
+		_part: DirectivePart,
 		items: Iterable<unknown>,
 		keyFn: (item: unknown, index: number) => unknown,
 		template: (item: unknown, index: number) => unknown,

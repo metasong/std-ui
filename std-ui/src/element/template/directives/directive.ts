@@ -25,14 +25,14 @@ export const noChange: unique symbol = Symbol('noChange');
  */
 export type DirectiveReturn = unknown;
 
-// `PartType` lives in `parts/part.ts` (shared with the compiler); re-exported for directive authors.
+// `PartType` lives in `parts/DirectivePart.ts` (shared with the compiler); re-exported for directive authors.
 import { PartType } from '../parts/part.js';
 
 /** Metadata + live DOM access for a plain `name=${...}` attribute binding. Passed to a
  *  `Directive`'s constructor (as `PartInfo`, for one-time validation) and to `update()` (as
- *  `Part`, for imperative DOM access) - see `Directive` below. These are distinct
- *  interfaces (`PartInfo` is metadata-only; `Part` adds live DOM refs); they're unified here since
- *  this engine never needs metadata without the live part. */
+ *  `DirectivePart`, for imperative DOM access) - see `Directive` below. These are distinct
+ *  interfaces (`PartInfo` is metadata-only; `DirectivePart` adds live DOM refs); they're unified here since
+ *  this engine never needs metadata without the live DirectivePart. */
 export interface AttributePartInfo {
 	readonly type: typeof PartType.ATTRIBUTE;
 	/** The element this attribute is on. */
@@ -59,7 +59,7 @@ export interface AttributePartInfo {
 	readonly staticText?: string;
 }
 
-/** A `.name=${...}` property binding (see `PropertyPart` in `parts/`) reports as an attribute part
+/** A `.name=${...}` property binding (see `PropertyPart` in `parts/`) reports as an attribute DirectivePart
  *  (`type: ATTRIBUTE`) with `property: true`; `name` is the property name without the `.` sigil,
  *  e.g. `'value'`. */
 export interface PropertyPartInfo extends AttributePartInfo {
@@ -93,11 +93,11 @@ export interface ChildPartInfo {
 	readonly anchor: Comment;
 }
 
-/** Every `Part`/`PartInfo` shape this engine constructs; see `AttributePartInfo`/`ChildPartInfo`.
- *  A directive's constructor/`update()` narrows via `partInfo.type`/`part.type` to find out which
+/** Every `DirectivePart`/`PartInfo` shape this engine constructs; see `AttributePartInfo`/`ChildPartInfo`.
+ *  A directive's constructor/`update()` narrows via `partInfo.type`/`DirectivePart.type` to find out which
  *  one it actually got. */
 export type PartInfo = AttributePartInfo | ChildPartInfo | ElementPartInfo;
-export type Part = AttributePartInfo | ChildPartInfo | ElementPartInfo;
+export type DirectivePart = AttributePartInfo | ChildPartInfo | ElementPartInfo;
 
 /**
  * Base class for a custom attribute directive. One instance is created *per binding position* the
@@ -109,16 +109,16 @@ export type Part = AttributePartInfo | ChildPartInfo | ElementPartInfo;
  *
  * - `constructor(partInfo)` - one-time setup, run only the first time this directive is used at a
  *   given position (e.g. validate it's bound somewhere supported, see `PartType`).
- * - `update(part, ...args)` - the single way to produce output, called on every render with the
- *   live `part`. `args` are real typed trailing parameters (e.g. `update(part, a: number, b:
+ * - `update(DirectivePart, ...args)` - the single way to produce output, called on every render with the
+ *   live `DirectivePart`. `args` are real typed trailing parameters (e.g. `update(DirectivePart, a: number, b:
  *   string)`), and `directive()` infers the callable's signature from them. Return:
  *   - `noChange` - you already updated the DOM yourself (or there is nothing to do);
  *   - a raw value (string, `null`/`undefined` to remove an attribute, a template, ...) for the
- *     part to commit;
+ *     DirectivePart to commit;
  *   - a renderer (`renderWith(MyRenderer, value)`) for a `ChildPart` to commit through.
  *
  *   class HelloDirective extends Directive {
- *   	update(_part: Part, name: string) {
+ *   	update(_part: DirectivePart, name: string) {
  *   		return `Hello, ${name}!`;
  *   	}
  *   }
@@ -128,9 +128,9 @@ export type Part = AttributePartInfo | ChildPartInfo | ElementPartInfo;
 export abstract class Directive {
 	constructor(_partInfo: PartInfo) {}
 
-	/** The one output hook: mutate the DOM via `part` and return `noChange`, or return a raw value /
-	 *  renderer for the part to commit. Declare whatever typed parameters you need after `part`. */
-	abstract update(part: Part, ...args: readonly unknown[]): DirectiveReturn;
+	/** The one output hook: mutate the DOM via `DirectivePart` and return `noChange`, or return a raw value /
+	 *  renderer for the DirectivePart to commit. Declare whatever typed parameters you need after `DirectivePart`. */
+	abstract update(DirectivePart: DirectivePart, ...args: readonly unknown[]): DirectiveReturn;
 
 	/** Optional cleanup hook (default: no-op). Called once when this instance stops being used at
 	 *  its position: the position is later given a plain value or a different directive, or its
@@ -141,11 +141,11 @@ export abstract class Directive {
 
 type DirectiveClass = new (partInfo: PartInfo) => Directive;
 
-/** Everything after `update()`'s first (`part`) parameter, as declared on an override - so a
+/** Everything after `update()`'s first (`DirectivePart`) parameter, as declared on an override - so a
  *  directive can take any number of individually-typed trailing parameters, not just one bundled
- *  array. Resolves to `never` if `update()`'s `Parameters<>` somehow doesn't start with a `Part`
+ *  array. Resolves to `never` if `update()`'s `Parameters<>` somehow doesn't start with a `DirectivePart`
  *  (shouldn't happen for a `Directive` subclass). */
-type UpdateArgs<C extends DirectiveClass> = Parameters<InstanceType<C>['update']> extends [Part, ...infer Rest]
+type UpdateArgs<C extends DirectiveClass> = Parameters<InstanceType<C>['update']> extends [DirectivePart, ...infer Rest]
 	? Rest
 	: never;
 
@@ -192,13 +192,13 @@ export interface AppliedDirective {
 }
 
 /**
- * Applies `result` to `part`, reusing `previous`'s `Directive` instance (and thus its state) when
+ * Applies `result` to `DirectivePart`, reusing `previous`'s `Directive` instance (and thus its state) when
  * `result` was made by the same `directive()` call site as last time, or constructing a fresh one
  * otherwise (first use at this position, or a different directive than last render - this is also
  * when the constructor's one-time `partInfo` validation runs). Called by `AttributePart`/
  * `ChildPart`; exported so it stays the one place that owns this per-position instance cache.
  *
- * @param part - The live binding position being updated - an `AttributePartInfo` or
+ * @param DirectivePart - The live binding position being updated - an `AttributePartInfo` or
  *   `ChildPartInfo`; passed to the constructor (as `PartInfo`) when a new instance is built, and
  *   to `update()` on every call.
  * @param result - This render's `directive()`-made value: which `Directive` subclass to use
@@ -209,13 +209,13 @@ export interface AppliedDirective {
  * @returns The instance that ended up handling this update (new or reused) plus whatever its
  *   `update()` returned, for `AttributePart` to commit (or skip, on `noChange`).
  */
-export function applyDirective(part: Part, result: DirectiveResult, previous: Directive | undefined): AppliedDirective {
+export function applyDirective(DirectivePart: DirectivePart, result: DirectiveResult, previous: Directive | undefined): AppliedDirective {
 	let instance: Directive;
 	if (previous?.constructor === result.Ctor) instance = previous;
 	else {
 		previous?.disconnected();
-		instance = new result.Ctor(part);
+		instance = new result.Ctor(DirectivePart);
 	}
-	const value = instance.update(part, ...result.args);
+	const value = instance.update(DirectivePart, ...result.args);
 	return { instance, value };
 }

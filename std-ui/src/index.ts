@@ -26,8 +26,9 @@ export {
 	CSSResult,
 	hostSelectorsToScope,
 	type TemplateResult,
+
+	type DirectivePart,
 	type Part,
-	type BindingPart,
 	type CustomAttribute,
 	type AttributeInfo,
 	type BindingValue,
