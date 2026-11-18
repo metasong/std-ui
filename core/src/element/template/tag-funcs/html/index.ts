@@ -42,7 +42,7 @@ export interface TemplateResult {
 	/** `'svg'` for results from `svg\`...\``; tells `compile.ts` to parse the markup inside a
 	 *  temporary `<svg>` wrapper so its elements land in the SVG namespace. Absent (`undefined`)
 	 *  for plain `t` results. */
-	readonly type?: 'svg';
+	readonly type?: 'svg' | 'math';
 }
 
 /**
@@ -64,6 +64,19 @@ export function t(strings: TemplateStringsArray, ...values: unknown[]): Template
  */
 export function svg(strings: TemplateStringsArray, ...values: unknown[]): TemplateResult {
 	return { strings, values, type: 'svg' };
+}
+
+/**
+ * MathML counterpart of `svg`: for namespace-less MathML fragments (no `<math>` wrapper of their own) meant to be
+ * interpolated as a child of an existing `<math>` element:
+ *
+ *   const term = (x: string) => math`<mi>${x}</mi>`;
+ *   t`<math>${term('x')}<mo>+</mo>${term('y')}</math>`;
+ *
+ * A complete `<math>...</math>` works with plain `t`.
+ */
+export function math(strings: TemplateStringsArray, ...values: unknown[]): TemplateResult {
+	return { strings, values, type: 'math' };
 }
 
 export function isTemplateResult(value: unknown): value is TemplateResult {

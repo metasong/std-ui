@@ -120,7 +120,7 @@ const icon = t`<svg viewBox="0 0 10 10"><path d="M0 0L10 10" /></svg>`;
 - Passing markup that already starts with `<svg>` to `svg` yields `<svg><svg>...</svg></svg>` during
   parse. It is harmless, since only the temporary outer wrapper is removed, but it is not the intended use.
 - A fragment rendered outside an `<svg>` is typed correctly but not drawn.
-- There is no `mathml` equivalent.
+- MathML uses the same mechanism through the `math` tag (wrapper `<math>`, template type `'math'`), with the same limitations.
 
 ## Verification
 

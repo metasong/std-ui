@@ -13,4 +13,5 @@ import './sections/bindings-section.js';
 import './sections/todo-section.js';
 import './sections/map-by-key-section.js';
 import './sections/svg-section.js';
+import './sections/mathml-section.js';
 import './feature-page.js';

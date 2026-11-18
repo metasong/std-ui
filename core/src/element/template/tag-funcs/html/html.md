@@ -361,7 +361,9 @@ and when the fast path is lost), see [`../../../../doc/saved-ui-rerendering.md`]
 - **Small built-in directive set** (`classMap`, `styleMap`, `mapByKey`, `html`, …) - no `ref`,
   `guard`, `cache`, etc.,
   though the generic `AttributeDirective` protocol (see above) supports writing your own.
-- **No MathML support.** There's no `mathml` tag function analogous to `svg` below.
+- **MathML needs the `math` tag for namespace-less fragments**, exactly like `svg` below: a complete
+  `<math>...</math>` works with plain `t`, but a fragment such as `<mi>x</mi>` to be interpolated into an
+  existing `<math>` must use `` math`<mi>x</mi>` ``.
 - **SVG needs the `svg` tag for namespace-less fragments.** Markup containing its own top-level
   `<svg>...</svg>` works fine with plain `t` - the parser assigns the SVG namespace as soon as
   it sees the `<svg>` tag, even inside a `<template>`. But a reusable snippet meant to be

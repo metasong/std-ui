@@ -14,6 +14,7 @@ export { createClassRegistry, ownMetadata, metadataSymbol, type ClassRegistry } 
 export {
 	t,
 	svg,
+	math,
 	render,
 	html,
 	Directive,

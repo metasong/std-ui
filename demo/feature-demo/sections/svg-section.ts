@@ -23,12 +23,12 @@ export class DemoSvgSection extends UIElement {
 				existing <code>&lt;svg&gt;</code>. A complete <code>&lt;svg&gt;...&lt;/svg&gt;</code> works with plain <code>t</code>.
 			</p>
 			<div class="demo-actions">
-				<div>
-					<p><code>t</code> fragment - not drawn</p>
+				<div style="background:#fce8e6;border:1px solid #ea4335;border-radius:12px;padding:0.5rem 1rem">
+					<p style="color:#c5221f;font-weight:500">&#10008; <code>t</code> fragment - not drawn</p>
 					<svg id="svg-plain" width="240" height="80" style="border:1px solid #888">${xs.map(plainCircle)}</svg>
 				</div>
-				<div>
-					<p><code>svg</code> fragment - drawn</p>
+				<div style="background:#e6f4ea;border:1px solid #34a853;border-radius:12px;padding:0.5rem 1rem">
+					<p style="color:#137333;font-weight:500">&#10004; <code>svg</code> fragment - drawn</p>
 					<svg id="svg-tag" width="240" height="80" style="border:1px solid #888">${xs.map(svgCircle)}</svg>
 				</div>
 			</div>

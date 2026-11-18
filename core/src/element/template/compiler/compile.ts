@@ -6,7 +6,7 @@
 //   - binding syntax   : `.prop`, `?bool`, `@event.modifier`, plain `attr` (+ single-interpolation rules),
 //                        and bare element slots `<div ${x}>`
 //   - part creation    : descriptor kind -> `Part` class
-//   - SVG namespace    : wrap/unwrap markup meant to be interpolated into an existing `<svg>`
+//   - SVG/MathML namespace : wrap/unwrap markup meant to be interpolated into an existing `<svg>`/`<math>`
 //   - dev diagnostics  : warn on undefined custom elements
 //
 // See `html.ts` for the overall design.
@@ -45,9 +45,9 @@ export interface PartDescriptor extends SlotDescriptor {
 
 export type Template = EngineTemplate<PartDescriptor>;
 
-/** `'svg'` wraps the compiled markup in a temporary `<svg>` during parsing so elements land in the
- *  SVG namespace. See `html.ts`'s `svg()`. */
-export type TemplateType = 'html' | 'svg';
+/** `'svg'`/`'math'` wrap the compiled markup in a temporary `<svg>`/`<math>` during parsing so elements
+ *  land in the SVG/MathML namespace. See `html.ts`'s `svg()` and `math()`. */
+export type TemplateType = 'html' | 'svg' | 'math';
 
 // --- Binding syntax -----------------------------------------------------------------------------
 
@@ -124,15 +124,21 @@ function createPart(descriptor: PartDescriptor, target: Node, host?: unknown): P
 	if (descriptor.kind === PartType.CHILD) return new ChildPart(target as Comment, host);
 	return new ElementPart(target as Element, host);
 }
-// --- SVG namespace ------------------------------------------------------------------------------
+// --- Foreign namespaces (SVG, MathML) -----------------------------------------------------------
 
-/** Parse inside a temporary `<svg>` so the HTML parser assigns the SVG namespace, then hoist the
- *  children back so node indices line up exactly like the `'html'` path. */
-const svgSupport = {
-	wrapMarkup: (markup: string, type: TemplateType) => (type === 'svg' ? `<svg>${markup}</svg>` : markup),
+/** Root tag that makes the HTML parser switch namespace for each foreign template type. */
+const FOREIGN_ROOT: Partial<Record<TemplateType, string>> = { svg: 'svg', math: 'math' };
+
+/** Parse inside a temporary `<svg>`/`<math>` so the HTML parser assigns the SVG/MathML namespace, then
+ *  hoist the children back so node indices line up exactly like the `'html'` path. */
+const foreignSupport = {
+	wrapMarkup(markup: string, type: TemplateType) {
+		const root = FOREIGN_ROOT[type];
+		return root ? `<${root}>${markup}</${root}>` : markup;
+	},
 	unwrapContent(content: DocumentFragment, type: TemplateType) {
-		if (type !== 'svg') return;
-		const wrapper = content.firstChild as SVGElement;
+		if (!FOREIGN_ROOT[type]) return;
+		const wrapper = content.firstChild as Element;
 		while (wrapper.firstChild) content.appendChild(wrapper.firstChild);
 		wrapper.remove();
 	},
@@ -146,8 +152,8 @@ const hooks: EngineHooks<PartDescriptor, Part, TemplateType, OpenBinding> = {
 	onAttributeOpen: ({ rawName, markup }) => parseBinding(rawName, markup),
 	onAttributeClose: (open, { literals, valueCount }) => describeBinding(open, literals, valueCount),
 
-	wrapMarkup: svgSupport.wrapMarkup,
-	unwrapContent: svgSupport.unwrapContent,
+	wrapMarkup: foreignSupport.wrapMarkup,
+	unwrapContent: foreignSupport.unwrapContent,
 	onCompiled(template) {
 		if (DEV) warnOnUndefinedElements(template.element.content);
 	},

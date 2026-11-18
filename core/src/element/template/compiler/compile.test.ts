@@ -1,6 +1,6 @@
 import { describe, expect, it, vi } from 'vitest';
 import { getTemplate, instantiate } from './compile.js';
-import { t, svg } from '../tag-funcs/html/index.js';
+import { t, svg, math } from '../tag-funcs/html/index.js';
 import { updateParts, BooleanAttributePart, PropertyPart, EventPart } from '../parts/index.js';
 import { render } from '../render.js';
 import { registerCustomAttribute } from './custom-attribute.js';
@@ -248,6 +248,23 @@ describe('getTemplate/instantiate', () => {
 			'HTMLUnknownElement',
 		]);
 		expect(circles.map((c) => c.namespaceURI)).toEqual(Array(3).fill('http://www.w3.org/1999/xhtml'));
+	});
+
+	it('renders `math` fragments in the MathML namespace; plain `t` fragments are HTMLUnknownElement', () => {
+		const MATHML_NS = 'http://www.w3.org/1998/Math/MathML';
+		const plain = t`<mi>x</mi>`;
+		const mathFragment = math`<mi>x</mi>`;
+
+		const plainContainer = document.createElement('div');
+		render(t`<math>${plain}</math>`, plainContainer);
+		const plainMi = plainContainer.querySelector('mi')!;
+		expect(plainMi.namespaceURI).toBe('http://www.w3.org/1999/xhtml');
+
+		const mathContainer = document.createElement('div');
+		render(t`<math>${mathFragment}</math>`, mathContainer);
+		const mathMi = mathContainer.querySelector('mi')!;
+		expect(mathMi.namespaceURI).toBe(MATHML_NS);
+		expect(mathContainer.querySelectorAll('math math')).toHaveLength(0); // wrapper removed
 	});
 
 	it('renders plain-`t` fragments that carry their own <svg> wrapper (nested <svg>) as real SVG elements', () => {

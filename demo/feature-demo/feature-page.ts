@@ -12,6 +12,7 @@ import bindings from './sections/bindings-section.ts?raw';
 import todo from './sections/todo-section.ts?raw';
 import mapByKey from './sections/map-by-key-section.ts?raw';
 import svgSection from './sections/svg-section.ts?raw';
+import mathmlSection from './sections/mathml-section.ts?raw';
 
 const files = (name: string, source: string) => ({ [name]: source });
 
@@ -51,6 +52,9 @@ export class DemoFeaturePage extends UIElement {
 			</code-preview>
 			<code-preview id="svg" .files=${files('svg-section.ts', svgSection)}>
 				<demo-svg-section></demo-svg-section>
+			</code-preview>
+			<code-preview id="mathml" .files=${files('mathml-section.ts', mathmlSection)}>
+				<demo-mathml-section></demo-mathml-section>
 			</code-preview>
 		`;
 	}
