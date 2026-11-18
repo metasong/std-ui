@@ -8,7 +8,7 @@
 //   - pending: `check.pending` (async validators) → `:state(pending)` / `[data-pending]` and `aria-busy`
 //   - effective readonly / disabled → the element (property, attribute and aria)
 
-import { createBind, effect, type BindPlugin, type BindPluginContext } from '@std-ui/core';
+import { bind, createBind, effect, type BindPlugin, type BindPluginContext } from '@std-ui/core';
 import { setFlag } from '../../../form/flags.js';
 import type { FormUi } from '../../../../reactive/state/form-ui/index.js';
 import type { ValidationError } from '../../../../reactive/state/check/index.js';
@@ -236,4 +236,4 @@ export const formUiPlugin: BindPlugin = (context) => {
  * form.name.formUi.disabled.own.set(true); // input is disabled
  * ```
  */
-export const formBind = createBind([formUiPlugin]);
+export const formBind: typeof bind = createBind([formUiPlugin]);
