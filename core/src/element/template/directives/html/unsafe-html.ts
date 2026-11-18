@@ -9,6 +9,7 @@ class UnsafeHtmlRenderer extends ChildRenderer<string> {
 	#childNodes: ChildNode[] = [];
 	update(markup: string): boolean {
 		if (this.#markupStr === markup) return true;
+
 		this.dispose();
 		const container = document.createElement('template');
 		container.innerHTML = markup;
