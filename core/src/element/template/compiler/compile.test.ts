@@ -2,6 +2,7 @@ import { describe, expect, it, vi } from 'vitest';
 import { getTemplate, instantiate } from './compile.js';
 import { t, svg } from '../tag-funcs/html/index.js';
 import { updateParts, BooleanAttributePart, PropertyPart, EventPart } from '../parts/index.js';
+import { render } from '../render.js';
 import { registerCustomAttribute } from './custom-attribute.js';
 
 describe('getTemplate/instantiate', () => {
@@ -197,6 +198,70 @@ describe('getTemplate/instantiate', () => {
 		const circle = fragment.firstChild as Element;
 		expect(circle.namespaceURI).toBe('http://www.w3.org/2000/svg');
 		expect(circle.tagName.toLowerCase()).toBe('circle');
+	});
+
+	it('plain `t` does NOT put a bare <circle> fragment in the SVG namespace (why `svg` exists)', () => {
+		const { strings } = t`<circle r="${3}"></circle>`;
+		const { fragment } = instantiate(getTemplate(strings));
+		const circle = fragment.firstChild as Element;
+		expect(circle.namespaceURI).toBe('http://www.w3.org/1999/xhtml');
+		expect(circle instanceof SVGElement).toBe(false);
+
+		// moving it into a real <svg> afterwards does not fix it
+		const host = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+		host.appendChild(circle);
+		expect(circle.namespaceURI).toBe('http://www.w3.org/1999/xhtml');
+	});
+
+	it('renders plain-`t` <circle> fragments embedded in <svg>: are they real SVG elements?', () => {
+		const a = t`<circle r="1"></circle>`;
+		const container = document.createElement('div');
+		render(t`<svg>${[1, 2, 3].map(() => a)}</svg>`, container);
+
+		const circles = container.querySelectorAll('circle');
+		expect(circles).toHaveLength(3);
+		for (const c of circles) {
+			expect(c.namespaceURI).toBe('http://www.w3.org/1999/xhtml');
+			expect(c instanceof SVGElement).toBe(false);
+		}
+	});
+
+	it('renders `svg` <circle> fragments embedded in <svg> as real SVG elements', () => {
+		const a = svg`<circle r="1"></circle>`;
+		const container = document.createElement('div');
+		render(t`<svg>${[1, 2, 3].map(() => a)}</svg>`, container);
+
+		const circles = container.querySelectorAll('circle');
+		expect(circles).toHaveLength(3);
+		for (const c of circles) expect(c.namespaceURI).toBe('http://www.w3.org/2000/svg');
+	});
+
+	it('renders un-wrapped plain-`t` <circle> fragments as HTMLUnknownElement in the xhtml namespace', () => {
+		const a = t`<circle r="1"></circle>`;
+		const container = document.createElement('div');
+		render(t`<svg>${[1, 2, 3].map(() => a)}</svg>`, container);
+
+		const circles = [...container.querySelectorAll('circle')];
+		expect(circles.map((c) => c.constructor.name)).toEqual([
+			'HTMLUnknownElement',
+			'HTMLUnknownElement',
+			'HTMLUnknownElement',
+		]);
+		expect(circles.map((c) => c.namespaceURI)).toEqual(Array(3).fill('http://www.w3.org/1999/xhtml'));
+	});
+
+	it('renders plain-`t` fragments that carry their own <svg> wrapper (nested <svg>) as real SVG elements', () => {
+		const a = t`<svg><circle r="1"></circle></svg>`;
+		const container = document.createElement('div');
+		render(t`<svg>${[1, 2, 3].map(() => a)}</svg>`, container);
+
+		const circles = container.querySelectorAll('circle');
+		expect(circles).toHaveLength(3);
+		for (const c of circles) {
+			expect(c.namespaceURI).toBe('http://www.w3.org/2000/svg');
+			expect(c instanceof SVGElement).toBe(true);
+		}
+		expect(container.querySelectorAll('svg svg')).toHaveLength(3);
 	});
 
 	it('instantiate() clones fresh, independent fragments/parts from the same compiled template', () => {

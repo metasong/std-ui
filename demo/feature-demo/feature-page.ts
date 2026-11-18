@@ -11,6 +11,7 @@ import directives from './sections/directives-section.ts?raw';
 import bindings from './sections/bindings-section.ts?raw';
 import todo from './sections/todo-section.ts?raw';
 import mapByKey from './sections/map-by-key-section.ts?raw';
+import svgSection from './sections/svg-section.ts?raw';
 
 const files = (name: string, source: string) => ({ [name]: source });
 
@@ -47,6 +48,9 @@ export class DemoFeaturePage extends UIElement {
 			</code-preview>
 			<code-preview id="map-by-key" .files=${files('map-by-key-section.ts', mapByKey)}>
 				<demo-map-by-key-section></demo-map-by-key-section>
+			</code-preview>
+			<code-preview id="svg" .files=${files('svg-section.ts', svgSection)}>
+				<demo-svg-section></demo-svg-section>
 			</code-preview>
 		`;
 	}

@@ -12,4 +12,5 @@ import './sections/directives-section.js';
 import './sections/bindings-section.js';
 import './sections/todo-section.js';
 import './sections/map-by-key-section.js';
+import './sections/svg-section.js';
 import './feature-page.js';
