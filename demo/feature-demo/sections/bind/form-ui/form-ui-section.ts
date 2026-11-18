@@ -129,7 +129,7 @@ export class DemoBindFormUiSection extends UIElement {
 				<p class="desc">
 					<code>formUi</code> keeps the flags on the state; <code>formBind()</code> shows them on the
 					bound element (<code>readOnly</code> / <code>disabled</code>, <code>aria-*</code>, and
-					<code>[touched]</code> for the error outline). Tick a box on the <em>account</em> row: both
+					<code>[data-touched]</code> for the error outline). Tick a box on the <em>account</em> row: both
 					account fields follow, <em>address</em> does not.
 				</p>
 

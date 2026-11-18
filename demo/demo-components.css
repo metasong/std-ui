@@ -243,11 +243,11 @@ demo-shadow-section p {
 }
 
 /* bind validation demo: show errors only after the control was touched */
-:state(touched):invalid, [touched]:invalid, [touched]:invalid input { outline: 2px solid #b3261e; }
+:state(touched):invalid, [data-touched]:invalid, [data-touched]:invalid input { outline: 2px solid #b3261e; }
 
 
 
 /* merged-control error icon: always laid out (it is the validation anchor), only visible when touched + invalid */
 demo-bind-merged { position: relative; display: inline-block; }
 demo-bind-merged .error-icon { position: absolute; left: 100%; top: 50%; translate: 0 -50%; display: inline-flex; align-items: center; justify-content: center; width: 18px; height: 18px; margin-left: 8px; border-radius: 50%; background: #b3261e; color: #fff; font: 700 12px/1 sans-serif; vertical-align: middle; opacity: 0; pointer-events: none; outline: none; }
-demo-bind-merged:state(touched):invalid .error-icon, demo-bind-merged[touched]:invalid .error-icon { opacity: 1; }
+demo-bind-merged:state(touched):invalid .error-icon, demo-bind-merged[data-touched]:invalid .error-icon { opacity: 1; }

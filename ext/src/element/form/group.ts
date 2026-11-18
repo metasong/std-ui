@@ -1,5 +1,4 @@
 import { FormElement } from './element.js';
-import { trackTouched } from './touched.js';
 import type { ValidationError } from '../../reactive/state/check/index.js';
 
 /** An inner control that can own validity: another `FormElement` (or group) or a native control. */
@@ -10,7 +9,6 @@ function applyValidationErrors(
 	property: string,
 	errors: readonly ValidationError[],
 ): void {
-	trackTouched(target);
 	if (target instanceof FormElement) return target.setErrors(property, errors);
 	// Native controls only expose `customError` to script.
 	const message = errors.map(e => e.message).filter(Boolean).join('\n');

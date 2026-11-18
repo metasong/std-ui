@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { render, state, t } from '@std-ui/core';
-import { check } from '../../../../reactive/state/check/index.js';
+import { asyncValidator, check, required } from '../../../../reactive/state/check/index.js';
+import { changes } from '../../../../reactive/state/changes/index.js';
 import { formUi } from '../../../../reactive/state/form-ui/index.js';
 import { formBind } from './index.js';
 
@@ -73,16 +74,72 @@ describe('formBind()', () => {
 		expect(input.readOnly).toBe(false);
 	});
 
-	it('focusout touches the state, which shows as [touched]; untouch clears it', async () => {
+	it('focusout touches the state, which shows as [data-touched]; untouch clears it', async () => {
 		const { form, input } = setup();
-		expect(input.hasAttribute('touched')).toBe(false);
+		expect(input.hasAttribute('data-touched')).toBe(false);
 		input.dispatchEvent(new Event('focusout'));
 		await tick();
 		expect(form.name.formUi.touched()).toBe(true);
-		expect(input.hasAttribute('touched')).toBe(true);
+		expect(input.hasAttribute('data-touched')).toBe(true);
 		form.name.formUi.untouch();
 		await tick();
-		expect(input.hasAttribute('touched')).toBe(false);
+		expect(input.hasAttribute('data-touched')).toBe(false);
+	});
+
+	it('shows changes.dirty as [data-dirty]', async () => {
+		const form = changes(state({ name: 'a' }));
+		const container = document.createElement('div');
+		render(t`<input .value=${formBind(form.name)} />`, container);
+		const input = container.querySelector('input') as HTMLInputElement;
+		expect(input.hasAttribute('data-dirty')).toBe(false);
+		form.name.set('b');
+		await tick();
+		expect(input.hasAttribute('data-dirty')).toBe(true);
+		form.name.changes.reset();
+		await tick();
+		expect(input.hasAttribute('data-dirty')).toBe(false);
+	});
+
+	it('shows check.pending as [data-pending] and aria-busy while an async validator waits', async () => {
+		const { form, input } = setup();
+		form.name.check.validators.set([asyncValidator<string>(async () => null, { debounce: 0 })]);
+		await tick();
+		expect(input.hasAttribute('data-pending')).toBe(true);
+		expect(input.getAttribute('aria-busy')).toBe('true');
+		await new Promise((r) => setTimeout(r, 20));
+		expect(input.hasAttribute('data-pending')).toBe(false);
+		expect(input.hasAttribute('aria-busy')).toBe(false);
+	});
+
+	it('sets aria-required while a required() validator is on the node', async () => {
+		const { form, input } = setup();
+		expect(input.hasAttribute('aria-required')).toBe(false);
+		form.name.check.validators.set([required()]);
+		await tick();
+		expect(input.getAttribute('aria-required')).toBe('true');
+		expect(input.required).toBe(false);
+		form.name.check.validators.set([]);
+		await tick();
+		expect(input.hasAttribute('aria-required')).toBe(false);
+	});
+
+	it('sets aria-invalid and the aria-errormessage text from check errors', async () => {
+		const { form, container, input } = setup();
+		const message = document.createElement('span');
+		message.id = 'name-error';
+		container.append(message);
+		document.body.append(container);
+		input.setAttribute('aria-errormessage', 'name-error');
+		form.name.check.validators.set([(v) => (v === 'bad' ? { flag: 'customError' as const, message: 'nope' } : undefined)]);
+		form.name.set('bad');
+		await tick();
+		expect(input.getAttribute('aria-invalid')).toBe('true');
+		expect(message.textContent).toBe('nope');
+		form.name.set('ok');
+		await tick();
+		expect(input.hasAttribute('aria-invalid')).toBe(false);
+		expect(message.textContent).toBe('');
+		container.remove();
 	});
 
 	it('mirrors check errors into setCustomValidity', async () => {

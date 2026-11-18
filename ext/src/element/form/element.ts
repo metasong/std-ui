@@ -1,5 +1,5 @@
 import { UIElement } from '@std-ui/core';
-import { markTouched, trackTouched } from './touched.js';
+import { setFlag } from './flags.js';
 import type { ValidationError } from '../../reactive/state/check/index.js';
 
 /**
@@ -44,11 +44,29 @@ function getMessage(errorsByProperty: ReadonlyMap<string, readonly ValidationErr
 	return lines.join('\n');
 }
 
+/** A constraint-validation participant (native control or form-associated element). */
+function isControl(target: EventTarget | null): target is Element {
+	return target instanceof Element && 'validity' in target;
+}
+
 export abstract class FormElement extends UIElement {
 	static readonly formAssociated = true;
 
 	readonly internals: ElementInternals = this.attachInternals();
 	#value: File | string | FormData | null = null;
+
+	constructor() {
+		super();
+		// Listeners on the host itself live and die with it: no dedupe or cleanup needed.
+		// `focusout` bubbles from inner controls; `invalid` doesn't, so capture it.
+		this.addEventListener('focusout', e => {
+			setFlag(this, 'touched', true);
+			if (isControl(e.target)) setFlag(e.target, 'touched', true);
+		});
+		this.addEventListener('invalid', e => {
+			if (isControl(e.target)) setFlag(e.target, 'touched', true);
+		}, true);
+	}
 
 	/** Return `null`/`undefined` when valid, or a `ValidationResult` describing the failure. */
 	protected validate?(): ValidationResult | null | undefined | void;
@@ -75,7 +93,7 @@ export abstract class FormElement extends UIElement {
 
 	checkValidity(): boolean { return this.internals.checkValidity(); }
 	reportValidity(): boolean {
-		markTouched(this);
+		setFlag(this, 'touched', true);
 		return this.internals.reportValidity();
 	}
 
@@ -121,7 +139,6 @@ export abstract class FormElement extends UIElement {
 	}
 
 	protected override connect(): void {
-		trackTouched(this);
 		this.revalidate();
 	}
 

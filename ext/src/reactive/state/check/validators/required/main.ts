@@ -1,14 +1,15 @@
 import type { Validator } from '../../main.js';
 import { flags } from '../../flags.js';
+import { flagged } from '../flagged.js';
 
 /** Fails for `null`, `undefined`, `''` and `[]`. Everything else (`0`, `false`, `' '`) counts as filled. */
-export function required<T = unknown>(message = 'Required'): Validator<T> {
-	return (value) => {
+export function required<T = unknown>(message = 'Required'): Validator<T> & { readonly flag: 'valueMissing' } {
+	return flagged((value) => {
 		const empty =
 			value === null ||
 			value === undefined ||
 			(typeof value === 'string' && value === '') ||
 			(Array.isArray(value) && value.length === 0);
 		return empty ? { flag: flags.valueMissing, message } : null;
-	};
+	}, flags.valueMissing);
 }

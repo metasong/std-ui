@@ -8,6 +8,7 @@ import validation from './sections/bind/validation/validation-section.ts?raw';
 import merged from './sections/bind/validation/merged-control.ts?raw';
 import range from './sections/bind/validation/range-control.ts?raw';
 import formUiDemo from './sections/bind/form-ui/form-ui-section.ts?raw';
+import formFlagsDemo from './sections/bind/form-flags/form-flags-section.ts?raw';
 
 const formFiles = { 'form-section.ts': form };
 const customFiles = { 'custom-section.ts': custom, 'knob-control.ts': knob };
@@ -17,6 +18,7 @@ const validationFiles = {
 	'range-control.ts (FormGroup)': range,
 };
 const formUiFiles = { 'form-ui-section.ts': formUiDemo };
+const formFlagsFiles = { 'form-flags-section.ts': formFlagsDemo };
 
 @tag('demo-bind-page')
 export class DemoBindPage extends UIElement {
@@ -28,6 +30,9 @@ export class DemoBindPage extends UIElement {
 				<demo-bind-validation-section></demo-bind-validation-section>
 			</code-preview>
 			<code-preview .files=${formUiFiles}><demo-bind-form-ui-section></demo-bind-form-ui-section></code-preview>
+			<code-preview .files=${formFlagsFiles}>
+				<demo-bind-form-flags-section></demo-bind-form-flags-section>
+			</code-preview>
 		`;
 	}
 }
