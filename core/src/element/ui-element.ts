@@ -14,7 +14,7 @@ import {
 	resolveInferredConverter,
 } from './decorators/index.js';
 import { ElementStyles } from './element-styles.js';
-import { uiElementHooks } from './ui-element-hooks.js';
+import { uiElementHooks, type UIElementHooks } from './ui-element-hooks.js';
 import {
 	effect as createEffect,
 	type OnCleanup,
@@ -48,6 +48,7 @@ export abstract class UIElement extends HTMLElement {
 	#connected = false;
 	#firstRenderDone = false;
 	#effectDisposers: Array<() => void> = [];
+	#instanceHooks: UIElementHooks[] = [];
 	#renderRoot: Element | DocumentFragment | null = null;
 	/**
 	 * When set on a subclass, `template()` renders into a shadow root (`attachShadow`) instead of
@@ -83,6 +84,18 @@ export abstract class UIElement extends HTMLElement {
 	 * ```
 	 */
 	static styles?: CSSResultGroup;
+
+	/**
+	 * Registers lifecycle hooks for this element instance only (global ones come from
+	 * `registerUIElementHooks()`). Call before connect to receive every phase. Returns an unregister function.
+	 */
+	addHooks(hooks: UIElementHooks): () => void {
+		this.#instanceHooks.push(hooks);
+		return () => {
+			const i = this.#instanceHooks.indexOf(hooks);
+			if (i >= 0) this.#instanceHooks.splice(i, 1);
+		};
+	}
 
 	/** Where `template()` is rendered — the host element (light DOM) or `shadowRoot`. */
 	get renderRoot(): Element | DocumentFragment {
@@ -174,7 +187,7 @@ export abstract class UIElement extends HTMLElement {
 					this.#runCleanupHooks('firstRendered');
 				}
 				this.rendered?.();
-				for (const h of uiElementHooks) h.rendered?.(this);
+				for (const h of [...uiElementHooks, ...this.#instanceHooks]) h.rendered?.(this);
 			},
 		));
 	}
@@ -206,7 +219,7 @@ export abstract class UIElement extends HTMLElement {
 
 	/** Runs a cleanup-returning hook phase on every registered extension; returned cleanups run on disconnect. */
 	#runCleanupHooks(phase: 'beforeConnect' | 'connected' | 'firstRendered'): void {
-		for (const hooks of [...uiElementHooks]) {
+		for (const hooks of [...uiElementHooks, ...this.#instanceHooks]) {
 			const cleanup = hooks[phase]?.(this);
 			if (cleanup) this.#effectDisposers.push(cleanup);
 		}

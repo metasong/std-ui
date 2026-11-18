@@ -23,6 +23,7 @@ export interface UIElementHooks {
 	rendered?(el: UIElement): void;
 }
 
+/** Global (module-level) hooks, run for every UIElement. For per-instance hooks use `el.addHooks()`. */
 export const uiElementHooks: UIElementHooks[] = [];
 
 /** Registers lifecycle hooks for all UIElements. Returns an unregister function. */
