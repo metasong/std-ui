@@ -1,5 +1,5 @@
 import { FormElement } from './element.js';
-import { trackTouched } from '@std-ui/core';
+import { trackTouched } from './touched.js';
 import type { ValidationError } from '../../reactive/state/check/index.js';
 
 /** An inner control that can own validity: another `FormElement` (or group) or a native control. */

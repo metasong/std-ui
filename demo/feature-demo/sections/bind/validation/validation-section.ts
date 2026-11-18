@@ -1,13 +1,14 @@
-// bind() mirrors a state's validator errors into the element's constraint validation.
+// formBind() = bind() + form UI: it mirrors a state's validator errors into the element's constraint
+// validation, and shows the state's `formUi` (touched / readonly / disabled) on the element.
 // Three targets: native controls, a plain FormElement (merged state) and a FormGroup (routed to inner controls).
-import { bind, t, tag, UIElement, state } from '../../../../../core/src/index.js';
-import { check } from '../../../../../ext/src/index.js';
+import { t, tag, UIElement, state } from '../../../../../core/src/index.js';
+import { check, formBind, formUi } from '../../../../../ext/src/index.js';
 import './range-control.js';
 import './merged-control.js';
 
 const required = (message: string) => (v: unknown) => (v ? undefined : { flag: 'valueMissing' as const, message });
 
-const form = check(state({ name: '', age: 5 }));
+const form = formUi(check(state({ name: '', age: 5 })));
 form.name.check.validators.set([
 	required('Name is required'),
 	v => (String(v).length >= 3 ? undefined : { flag: 'tooShort', message: 'At least 3 characters' }),
@@ -16,11 +17,11 @@ form.age.check.validators.set([
 	v => (v >= 2 && v <= 8 ? undefined : { flag: 'rangeOverflow', message: 'Age must be between 2 and 8' }),
 ]);
 
-const range = check(state({ start: '', end: '' }));
+const range = formUi(check(state({ start: '', end: '' })));
 range.start.check.validators.set([required('Start required')]);
 range.end.check.validators.set([required('End required')]);
 
-const person = check(state({ first: '', last: '' }));
+const person = formUi(check(state({ first: '', last: '' })));
 person.first.check.validators.set([required('First name required')]);
 person.last.check.validators.set([required('Last name required')]);
 
@@ -51,21 +52,22 @@ export class DemoBindValidationSection extends UIElement {
 			<section class="demo-bind-block" id="validation">
 				<h2>Validation</h2>
 				<p class="desc">
-					When the bound state has validators, <code>bind()</code> copies its errors onto the target's
+					When the bound state has validators, <code>formBind()</code> copies its errors onto the target's
 					constraint validation: <code>:invalid</code>, <code>validity</code>, <code>validationMessage</code>,
-					<code>checkValidity()</code> and form submission follow the model.
+					<code>checkValidity()</code> and form submission follow the model. Plain <code>bind()</code> only
+					syncs the value; for touched, readonly and disabled see the <em>Form UI</em> demo below.
 				</p>
 
 				<h3>1. Native controls</h3>
 				<p class="desc">Only <code>customError</code> is available to script; the message carries the detail.</p>
 				<label class="demo-bind-field">
 					Name
-					<input type="text" .value=${bind(form.name)} />
+					<input type="text" .value=${formBind(form.name)} />
 				</label>
 				<p class="demo-bind-mirror">Errors: <code>${errorsOf(form.name)}</code></p>
 				<label class="demo-bind-field">
 					Age
-					<input type="number" .value=${bind(form.age)} />
+					<input type="number" .value=${formBind(form.age)} />
 				</label>
 				<p class="demo-bind-mirror">Errors: <code>${errorsOf(form.age)}</code></p>
 				<div class="demo-actions">
@@ -84,7 +86,7 @@ export class DemoBindValidationSection extends UIElement {
 					anchor is <code>validationAnchor</code> (the error icon on the right, shown once the host is touched
 					and invalid). Fill only one: the host stays invalid for the other.
 				</p>
-				<demo-bind-merged id="merged" .first=${bind(person.first)} .last=${bind(person.last)}></demo-bind-merged>
+				<demo-bind-merged id="merged" .first=${formBind(person.first)} .last=${formBind(person.last)}></demo-bind-merged>
 				<p class="demo-bind-mirror">first: <code>${errorsOf(person.first)}</code> · last: <code>${errorsOf(person.last)}</code></p>
 				<div class="demo-actions">
 					<button type="button" class="tonal" @click=${() => this.#snapshot('#merged')}>inspect host validity</button>
@@ -98,7 +100,7 @@ export class DemoBindValidationSection extends UIElement {
 					<em>end</em>: <em>start</em> stays invalid. <code>reportValidity()</code> fires
 					<code>invalid</code> on every routed input (both messages show) and leaves the bubble on the first.
 				</p>
-				<demo-bind-range id="range" .start=${bind(range.start)} .end=${bind(range.end)}></demo-bind-range>
+				<demo-bind-range id="range" .start=${formBind(range.start)} .end=${formBind(range.end)}></demo-bind-range>
 				<p class="demo-bind-mirror">start: <code>${errorsOf(range.start)}</code> · end: <code>${errorsOf(range.end)}</code></p>
 				<div class="demo-actions">
 					<button type="button" class="tonal" @click=${() => this.#snapshot('#range')}>inspect host validity</button>

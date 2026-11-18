@@ -142,6 +142,20 @@ t`
 
 Do **not** bind `@input` / `@change` on the same property when using `bind()` — the directive installs its own listener.
 
+## Validation, touched, readonly, disabled: `formBind()`
+
+`bind()` is a pure value binding. For forms use `formBind()` from `@std-ui/ext`: the same API, plus
+- the state's `check` errors → the element's constraint validation (`setCustomValidity` / `setErrors`);
+- `focusout` / `invalid` → `formUi.touched`, shown as `:state(touched)` / `[touched]`;
+- the state's effective `formUi.readonly` / `disabled` → `readOnly` / `disabled` and `aria-*`.
+
+```ts
+const form = state({ name: '' }).with(check).with(formUi);
+t`<input .value=${formBind(form.name)} />`;
+```
+
+Build your own with `createBind([plugin])` (see [`design.md`](./design.md#plugins-createbind)).
+
 ## Default events
 
 Resolved from the **property name** on the bound element (`PropertyPart.name`):

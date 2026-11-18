@@ -107,14 +107,14 @@ describe('asyncValidator', () => {
 		expect(calls).toEqual(['abc']);
 	});
 
-	it('aggregates into allValid / allPending on parents', async () => {
+	it('aggregates into allValid / anyPending on parents', async () => {
 		const s = check(state({ user: { name: 'ann' } }));
 		s.user.name.check.validators.set([asyncValidator<string>(async () => null)]);
-		expect(s.check.allPending()).toBe(true);
+		expect(s.check.anyPending()).toBe(true);
 		expect(s.check.allValid()).toBe(false);
 		expect(s.user.check.valid()).toBe(true); // own validators only: none on `user`
 		await tick();
-		expect(s.check.allPending()).toBe(false);
+		expect(s.check.anyPending()).toBe(false);
 		expect(s.check.allValid()).toBe(true);
 	});
 

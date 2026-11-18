@@ -26,13 +26,13 @@ validates costs nothing beyond a small record. Every container passes:
 
 ## Aggregates look through unbuilt nodes
 
-`allValid`, `allErrors` and `allPending` must include descendants that have validators, but must not
+`allValid`, `allErrors` and `anyPending` must include descendants that have validators, but must not
 force every descendant to build its `check`. A parent therefore does not read `child.check` directly;
 it calls `view(child)` (in `main.ts`), which returns one of:
 
 | Child state | What the parent does |
 | --- | --- |
-| `check` built | Uses the child's own `allValid()` / `allErrors()` / `allPending()` (its subtree included) |
+| `check` built | Uses the child's own `allValid()` / `allErrors()` / `anyPending()` (its subtree included) |
 | `check` not built | The child cannot have validators, so it adds nothing itself. The parent descends into the child's own children, because a deeper node may have built its `check` |
 | Not a tree node (custom `ItemNode`) | Falls back to `child.check` if present |
 

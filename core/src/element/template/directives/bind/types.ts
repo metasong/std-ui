@@ -2,12 +2,6 @@
 
 import type { StateDepth } from '../../../../reactive/index.js';
 
-/** The error shape `bind()` reads (structural; the full type lives with the validation feature in `@std-ui/ext`). */
-export interface BindValidationError {
-	flag: string;
-	message: string;
-}
-
 /** Model side for `bind({ get, set })` when you don't have a signal. */
 export interface BindAccessor {
 	get: () => unknown;
@@ -68,6 +62,18 @@ export interface Binding {
 	readonly equals: (model: unknown, view: unknown) => boolean;
 	/** Applied to a view value before it is stored in the model (keeps numeric models numeric). */
 	readonly coerce: (view: unknown, currentModel: unknown) => unknown;
-	/** Own validation errors of the bound state (tracked); set only for validated states on form elements. */
-	readonly errors?: () => readonly BindValidationError[];
 }
+
+/** What a `BindPlugin` is told about the bound position. */
+export interface BindPluginContext {
+	readonly element: Element;
+	readonly property: string;
+	/** The latest first argument of `bind()` (a signal/state node or an accessor); refreshed every render. */
+	readonly source: () => unknown;
+}
+
+/**
+ * Element-side extension of a bind directive (see `createBind`). Runs once per bound element (again
+ * if the element changes); the returned disposer runs on element change and on disconnect.
+ */
+export type BindPlugin = (context: BindPluginContext) => (() => void) | void;

@@ -1,10 +1,10 @@
 // Integration: a people directory combining several features at once.
 //   - `state` + validators      → the "add person" form model
-//   - `bind()`                        → two-way search box and form fields, validation mirrored onto the inputs
+//   - `bind()` / `formBind()`   → two-way search box; form fields with validation + touched mirrored onto the inputs
 //   - `virtualize()`                  → the (filtered) list stays windowed however many people exist
 //   - `state` + `UIElement`/`t` → the list itself and re-rendering
 import { bind, t, tag, UIElement, state } from '../../../core/src/index.js';
-import { check, virtualize } from '../../../ext/src/index.js';
+import { check, formBind, formUi, virtualize } from '../../../ext/src/index.js';
 
 type Person = { id: number; name: string; age: number };
 
@@ -12,7 +12,7 @@ const NAMES = ['Ada', 'Alan', 'Grace', 'Linus', 'Margaret', 'Dennis', 'Barbara',
 const seed = (): Person[] =>
 	Array.from({ length: 5_000 }, (_, id) => ({ id, name: `${NAMES[id % NAMES.length]} #${id}`, age: 18 + (id % 60) }));
 
-const draft = state({ name: '', age: 30 }).with(check);
+const draft = state({ name: '', age: 30 }).with(check).with(formUi);
 draft.name.check.validators.set([
 	v => (v ? undefined : { flag: 'valueMissing' as const, message: 'Name is required' }),
 	v => (String(v).length >= 3 ? undefined : { flag: 'tooShort' as const, message: 'At least 3 characters' }),
@@ -34,6 +34,7 @@ export class DemoIntegrationDirectory extends UIElement {
 	}
 
 	#add(): void {
+		draft.formUi.touchAll();
 		if (!draft.check.allValid()) {
 			this.querySelector<HTMLFormElement>('form')?.reportValidity();
 			return;
@@ -41,6 +42,7 @@ export class DemoIntegrationDirectory extends UIElement {
 		const person: Person = { id: this.#nextId++, name: draft.name(), age: Number(draft.age()) };
 		this.people.update(list => [person, ...list]);
 		draft.name.set('');
+		draft.formUi.untouchAll();
 	}
 
 	protected override template() {
@@ -49,8 +51,8 @@ export class DemoIntegrationDirectory extends UIElement {
 			<section class="demo-bind-block" id="directory">
 				<h2>People directory</h2>
 				<p class="desc">
-					<code>bind()</code> drives the search box and the form, validators on the model are mirrored onto
-					the inputs, and <code>virtualize()</code> keeps the list small however many people match.
+					<code>bind()</code> drives the search box, <code>formBind()</code> the form: validators on the model
+					are mirrored onto the inputs and <code>formUi</code> tracks touched, and <code>virtualize()</code> keeps the list small however many people match.
 				</p>
 
 				<label class="demo-bind-field">
@@ -79,11 +81,11 @@ export class DemoIntegrationDirectory extends UIElement {
 				<form @submit=${(e: Event) => { e.preventDefault(); this.#add(); }}>
 					<label class="demo-bind-field">
 						Name
-						<input type="text" .value=${bind(draft.name)} />
+						<input type="text" .value=${formBind(draft.name)} />
 					</label>
 					<label class="demo-bind-field">
 						Age
-						<input type="number" .value=${bind(draft.age)} />
+						<input type="number" .value=${formBind(draft.age)} />
 					</label>
 					<div class="demo-actions">
 						<button type="submit">Add</button>

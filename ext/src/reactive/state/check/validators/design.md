@@ -10,7 +10,7 @@ validators (signal) ─┐
 node value (read()) ─┼─► errors (computed) ─┬─► valid ─────────┐
 signals read by      │                      └─► allErrors      ├─► allValid (+ children)
 each validator ──────┘
-validators + value + pending() reads ─► pending (computed) ─► allPending (+ children)
+validators + value + pending() reads ─► pending (computed) ─► anyPending (+ children)
 ```
 
 - `errors` is one computed. Inside it, `read()` (the node's plain value) and `validators()` are

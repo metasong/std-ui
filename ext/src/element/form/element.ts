@@ -1,5 +1,5 @@
 import { UIElement } from '@std-ui/core';
-import { markTouched, trackTouched } from '@std-ui/core';
+import { markTouched, trackTouched } from './touched.js';
 import type { ValidationError } from '../../reactive/state/check/index.js';
 
 /**

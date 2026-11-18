@@ -17,15 +17,24 @@ Everything else is defaulting: given `(element, property)`, which `event`, `equa
 
 | File | Owns |
 |------|------|
-| [`types.ts`](./types.ts) | Public types (`BindOptions`, `BindSource`, `WritableSignal`) and the internal `Binding`. |
+| [`types.ts`](./types.ts) | Public types (`BindOptions`, `BindSource`, `BindPlugin`, `WritableSignal`) and the internal `Binding`. |
 | [`defaults.ts`](./defaults.ts) | Element-aware defaults: event, equals, coerce, `.checked` target validation. Pure functions. |
 | [`resolve.ts`](./resolve.ts) | `bind()` arguments → one `Binding` (`options ?? default`). |
 | [`radio-group.ts`](./radio-group.ts) | Keeps same-named radio bindings consistent. |
-| [`main.ts`](./main.ts) | `BindDirective` (DOM wiring + lifecycle) and the `bind()` function. |
+| [`main.ts`](./main.ts) | `BindDirective` (DOM wiring + lifecycle), `createBind(plugins)` and the `bind()` function (`createBind([])`). |
 | [`index.ts`](./index.ts) | Public exports. |
 | [`bind.test.ts`](./bind.test.ts) | Tests through `t()` / `render()`. |
 
 Related: [`../../parts/property-part.ts`](../../parts/property-part.ts) (`PropertyPart` directive dispatch), [`../directive.ts`](../directive.ts) (`PropertyPartInfo`).
+
+## Plugins (`createBind`)
+
+`bind()` only syncs values. Anything else that belongs to the element (validity, touched, readonly,
+disabled, ...) is a `BindPlugin`: `({ element, property, source }) => disposer | void`. A plugin runs once
+per bound element (again if the element changes) and is disposed on element change and `disconnected()`.
+`source()` returns the latest first argument of `bind()`, so a plugin can read optional features of the
+state (`check`, `formUi`) structurally, without core importing them. `formBind()` in `@std-ui/ext` is
+`createBind([formUiPlugin])`; it is composition, not inheritance: the directive class stays private.
 
 ## Why a property directive
 

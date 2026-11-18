@@ -58,7 +58,7 @@ While the result for the node's current value is unknown:
 | Member | Value |
 | --- | --- |
 | `check.pending` | `true` when any of the node's own validators is pending |
-| `check.allPending` | `true` when the node or any descendant is pending |
+| `check.anyPending` | `true` when the node or any descendant is pending |
 | `check.valid` / `check.allValid` | `false` (a form is not submittable mid-request) |
 | `check.errors` | the async validator reports nothing yet |
 

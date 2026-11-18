@@ -197,7 +197,7 @@ describe('lazy check', () => {
 		const own = Object.getOwnPropertyDescriptor(s.a.b, 'check')!;
 		expect(typeof own.get).toBe('function');
 		expect(s.check.allErrors()).toEqual([]);
-		expect(s.check.allPending()).toBe(false);
+		expect(s.check.anyPending()).toBe(false);
 	});
 });
 

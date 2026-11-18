@@ -213,8 +213,32 @@ form.user.name.changes.reset();
 form.changes.dirty();       // false
 ```
 
-The initial value starts as the value at creation; change it with `reset(next)`. `touched` is not
-implemented.
+The initial value starts as the value at creation; change it with `reset(next)`.
+
+## Form UI: `touched`, `readonly`, `disabled`
+
+Provided by `@std-ui/ext` (`import { formUi } from '@std-ui/ext'`), applied with `state(...).with(formUi)`.
+On every node under `node.formUi`. The state only holds the flags; [`formBind()`](../../../../ext/src/element/template/directives/form-bind/main.ts)
+shows them on the bound element.
+
+| Member | Role |
+| --- | --- |
+| `node.formUi.readonly()` / `disabled()` | Tracked: true when the node **or any ancestor** is set (a node shared by several trees: any parent). |
+| `node.formUi.touched()` | Tracked: true when the node **or any descendant** is touched (the other direction). |
+| `node.formUi.readonly.own` / `disabled.own` / `touched.own` | Writable `Signal<boolean>`: this node's own flag, e.g. `formUi.disabled.own.set(true)`. |
+| `node.formUi.touch()` / `untouch()` | Set / clear this node's own `touched` (a touched descendant still makes `touched()` true). |
+| `node.formUi.touchAll()` / `untouchAll()` | Same for the node and every descendant (e.g. on submit / reset). |
+
+```ts
+const form = state({ name: '', age: 5 }).with(check).with(formUi);
+t`<input .value=${formBind(form.name)} />`;
+form.formUi.disabled.own.set(true); // every bound input becomes disabled
+form.formUi.touchAll();             // every bound input shows its errors
+```
+
+Parent links for the cascade are learned when `formUi` is applied and re-scanned when a node with no
+known parent is read, so members added later are found; links to removed members are dropped at the
+next re-scan.
 
 ## Notes / gotchas
 

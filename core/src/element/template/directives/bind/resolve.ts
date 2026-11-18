@@ -8,7 +8,6 @@ import {
 	readProperty,
 	writeProperty,
 } from './defaults.js';
-import { errorReaderOf } from './validity.js';
 import type { StateDepth } from '../../../../reactive/index.js';
 import type { BindAccessor, BindOptions, BindSource, Binding, WritableSignal } from './types.js';
 
@@ -54,6 +53,5 @@ export function resolveBinding(args: readonly unknown[], element: Element, prope
 		},
 		equals: options.equals ?? defaultEquals(element, property),
 		coerce: defaultCoerce(element, property),
-		errors: isWritableSignal(first) ? errorReaderOf(first, element) : undefined,
 	};
 }

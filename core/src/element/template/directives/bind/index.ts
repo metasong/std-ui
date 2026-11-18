@@ -1,2 +1,9 @@
-export { bind } from './main.js';
-export type { BindAccessor, BindOptions, BindSource, WritableSignal } from './types.js';
+export { bind, createBind } from './main.js';
+export type {
+	BindAccessor,
+	BindOptions,
+	BindPlugin,
+	BindPluginContext,
+	BindSource,
+	WritableSignal,
+} from './types.js';

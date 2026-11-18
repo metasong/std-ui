@@ -40,7 +40,7 @@ export interface Validation<T> {
 	/** Tracked; true while any of this node's own validators is still waiting for a result (async). */
 	readonly pending: Computed<boolean>;
 	/** Tracked; true while this node or any descendant is pending. */
-	readonly allPending: Computed<boolean>;
+	readonly anyPending: Computed<boolean>;
 	/**
 	 * Tracked; true when this node's own validators report no errors and none is pending
 	 * (descendants ignored).
@@ -137,9 +137,9 @@ export function createValidation<T>(
 		for (const v of validators()) if (v.pending?.(value)) any = true;
 		return any;
 	});
-	const allPending = computed(() => {
+	const anyPending = computed(() => {
 		if (pending()) return true;
-		for (const [, child] of children()) if (anyPending(child)) return true;
+		for (const [, child] of children()) if (childPending(child)) return true;
 		return false;
 	});
 	const valid = computed(() => errors().length === 0 && !pending());
@@ -157,7 +157,7 @@ export function createValidation<T>(
 		for (const e of errors()) out.push({ ...e, path: [] });
 		return out;
 	});
-	return { validators, errors, pending, allPending, valid, allValid, allErrors };
+	return { validators, errors, pending, anyPending, valid, allValid, allErrors };
 }
 
 type Entries = readonly (readonly [string | number, ItemNode<unknown>])[];
@@ -191,10 +191,10 @@ function isAllValid(child: ItemNode<unknown>): boolean {
 	if (v.check) return v.check.allValid();
 	return v.nested.every(([, c]) => isAllValid(c));
 }
-function anyPending(child: ItemNode<unknown>): boolean {
+function childPending(child: ItemNode<unknown>): boolean {
 	const v = view(child);
-	if (v.check) return !!v.check.allPending?.();
-	return v.nested.some(([, c]) => anyPending(c));
+	if (v.check) return !!v.check.anyPending?.();
+	return v.nested.some(([, c]) => childPending(c));
 }
 function errorsOf(child: ItemNode<unknown>): PathError[] {
 	const v = view(child);
