@@ -29,7 +29,7 @@ class UnsafeHtmlDirective extends Directive {
 	constructor(partInfo: PartInfo) {
 		super(partInfo);
 		if (partInfo.type !== PartType.CHILD) {
-			throw new Error('std-ui html(): must be bound to a child position, not an attribute.');
+			throw new Error('std-ui unsafeHtml(): must be bound to a child position, not an attribute.');
 		}
 	}
 
@@ -39,11 +39,23 @@ class UnsafeHtmlDirective extends Directive {
 }
 
 /**
- * Escape hatch for injecting markup that's already
- * HTML string - e.g. an SVG icon loaded via `?raw` - as a child binding, bypassing the normal
- * text-node-only handling. Caller is responsible for the markup being trusted/sanitized; this
+ * Unsafe HTML directive: Caller is responsible for the markup being trusted/sanitized; this
  * does no escaping.
  *
- *   t`<button>${html(iconSvg)}</button>`
+ * Escape hatch for injecting markup that's already
+ * HTML string - e.g. an SVG icon loaded via `?raw` - as a child binding, bypassing the normal
+ * text-node-only handling.
+ *
+ *   t`<button>${unsafeHtml(iconSvg)}</button>`
+ *
+ * UNSAFE: the string is parsed with `innerHTML` and inserted as live DOM, with no sanitizing.
+ * Never pass untrusted input (user data, query params, third-party content). Injected markup can
+ * run script (XSS) and, for example:
+ * - inline handlers: `<img src=x onerror="...">`, `<svg onload="...">`;
+ * - `javascript:` URLs: `<a href="javascript:...">`;
+ * - script-capable embeds: `<iframe srcdoc>`, `<object>`, `<embed>`;
+ * - steal cookies/`localStorage`, call APIs as the user, log keystrokes;
+ * - spoof the UI (fake login forms, overlays) even with no JS.
+ * Only use with constants or content you control; otherwise sanitize first (e.g. DOMPurify).
  */
-export const html = directive(UnsafeHtmlDirective);
+export const unsafeHtml = directive(UnsafeHtmlDirective);

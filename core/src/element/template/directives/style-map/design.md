@@ -47,4 +47,4 @@ on elements that support inline `style`).
 - [`../class-map/`](../class-map/) — `classMap` (same protocol, `classList`).
 - [`../directive.ts`](../directive.ts) — `Directive`, `PartType`, `noChange`, `staticText`.
 - [`../map-by-key/design.md`](../map-by-key/design.md) — child directive using `renderWith()`.
-- [`../html/`](../html/) — `html()` child directive.
+- [`../html/`](../html/) — `unsafeHtml()` child directive.

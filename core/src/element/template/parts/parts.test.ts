@@ -7,7 +7,7 @@ import {
 	PropertyPart,
 } from './index.js';
 import { t } from '../tag-funcs/html/index.js';
-import { html } from '../directives/html/index.js';
+import { unsafeHtml } from '../directives/html/index.js';
 import { Directive, directive, noChange, type DirectivePart } from '../directives/directive.js';
 import { classMap } from '../directives/class-map/index.js';
 import { styleMap } from '../directives/style-map/index.js';
@@ -278,7 +278,7 @@ describe('ChildPart', () => {
 
 	it('renders html markup as real parsed nodes', () => {
 		const { DirectivePart, container } = makePart();
-		DirectivePart.update([html('<em>hi</em>')]);
+		DirectivePart.update([unsafeHtml('<em>hi</em>')]);
 		expect(container.querySelector('em')!.textContent).toBe('hi');
 	});
 

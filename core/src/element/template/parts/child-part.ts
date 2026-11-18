@@ -25,7 +25,7 @@ function pickRenderer(value: unknown): { Ctor: ChildRendererClass; value: unknow
 export class ChildPart implements Part {
 	readonly valueCount = 1;
 	#renderer: ChildRenderer<any> | undefined;
-	/** The `Directive` instance bound here, if a `directive()`-made value (e.g. `html()`) was
+	/** The `Directive` instance bound here, if a `directive()`-made value (e.g. `unsafeHtml()`) was
 	 *  ever applied to this position; reused across renders - see `directives/directive.ts`. */
 	#directive: Directive | undefined;
 	/** This position's `ChildPartInfo`, built once and handed to directives - see `directives/directive.ts`. */

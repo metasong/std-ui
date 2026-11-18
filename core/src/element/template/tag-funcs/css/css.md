@@ -20,21 +20,21 @@ class ThemedButton extends UIElement {
 }
 ```
 
-## `css` / `CSSResult` / `unsafeCSS`
+## `css` / `CSSResult` / `unsafeCss`
 
 - `css` tags a literal, returning a `CSSResult` — a thin wrapper around the resolved `cssText`,
   with a `styleSheet` getter that lazily constructs (once) and caches a `CSSStyleSheet` via
   `replaceSync`.
-- Interpolated values must themselves be `CSSResult`s (nested `css`/`unsafeCSS`) or plain numbers —
+- Interpolated values must themselves be `CSSResult`s (nested `css`/`unsafeCss`) or plain numbers —
   arbitrary strings are rejected (`TypeError`) to avoid accidentally splicing untrusted/dynamic text
   into a stylesheet:
 
   ```ts
   const radius = css`4px`;
   css`button { border-radius: ${radius}; padding: ${8}px; }`; // fine
-  css`button { color: ${userInput}; }`; // throws - use unsafeCSS() to opt in explicitly
+  css`button { color: ${userInput}; }`; // throws - use unsafeCss() to opt in explicitly
   ```
-- `unsafeCSS(value)` wraps an arbitrary value (stringified) as a trusted `CSSResult`, for the rare
+- `unsafeCss(value)` wraps an arbitrary value (stringified) as a trusted `CSSResult`, for the rare
   case of CSS text loaded or computed at runtime.
 - Like `t`, a literal with **no interpolations** is cached (keyed by the literal's `strings`
   identity - the same object every time that exact call site runs) - calling the same zero-arg
@@ -137,7 +137,7 @@ ElementStyles()`.
 
 ## Related reading
 
-- [`index.ts`](./index.ts) — `css`/`unsafeCSS`/`CSSResult`/`flattenCSSResults`/`flattenCSSText`/`hostSelectorsToScope`.
+- [`index.ts`](./index.ts) — `css`/`unsafeCss`/`CSSResult`/`flattenCSSResults`/`flattenCSSText`/`hostSelectorsToScope`.
 - [`../../../element-styles.ts`](../../../element-styles.ts) — `ElementStyles`, consumed by `UIElement`.
 - [`../../../ui-element.ts`](../../../ui-element.ts) — `static styles`, `#ensureRenderRoot()`, `#requestUpdate()`.
 - [`../html/html.md`](../html/html.md) — the analogous usage/design doc for `t`/`render` (the templating half

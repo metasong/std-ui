@@ -46,7 +46,7 @@ export interface TemplateResult {
 }
 
 /**
- * create a std-ui template.
+ * create a std-ui html template.
 */
 export function t(strings: TemplateStringsArray, ...values: unknown[]): TemplateResult {
 	return { strings, values };

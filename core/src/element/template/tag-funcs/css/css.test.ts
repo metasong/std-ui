@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { css, CSSResult, flattenCSSResults, flattenCSSText, hostSelectorsToScope, unsafeCSS } from './index.js';
+import { css, CSSResult, flattenCSSResults, flattenCSSText, hostSelectorsToScope, unsafeCss } from './index.js';
 
 describe('css', () => {
 	it('captures the literal text', () => {
@@ -38,15 +38,15 @@ describe('css', () => {
 	});
 });
 
-describe('unsafeCSS', () => {
+describe('unsafeCss', () => {
 	it('wraps an arbitrary string as a trusted CSSResult', () => {
-		const result = unsafeCSS('button { color: red; }');
+		const result = unsafeCss('button { color: red; }');
 		expect(result).toBeInstanceOf(CSSResult);
 		expect(result.cssText).toBe('button { color: red; }');
 	});
 
 	it('can be interpolated into a css literal', () => {
-		const dynamic = unsafeCSS('red');
+		const dynamic = unsafeCss('red');
 		const result = css`button { color: ${dynamic}; }`;
 		expect(result.cssText).toBe('button { color: red; }');
 	});

@@ -91,7 +91,7 @@ Child content accepts:
 - `string` / `number` → rendered as a text node.
 - `null` / `undefined` / `false` → renders nothing (clears any previous content).
 - Another `t` result → rendered as a nested template, diffed independently.
-- `html(markup)` → parses `markup` as HTML and inserts the resulting nodes directly (the one
+- `unsafeHtml(markup)` → parses `markup` as HTML and inserts the resulting nodes directly (the one
   escape hatch for already-HTML strings, e.g. an SVG icon loaded via `?raw`
   `html` directive). Caller is responsible for the markup being trusted. Itself a built-in
   **directive** (see [Directives](#directives) below) bound to the child position.
@@ -100,7 +100,7 @@ Child content accepts:
 A plain, bare attribute binding (single interpolation, no static text, e.g. `class=${...}`)
 accepts an **attribute directive** - a value that applies itself directly to the element instead of
 being stringified. `classMap()`/`styleMap()` are the two built in. A child-content position accepts
-a **child directive** - `html()` is the one built in. See [Directives](#directives) below.
+a **child directive** - `unsafeHtml()` is the one built in. See [Directives](#directives) below.
 
 ```ts
 t`
@@ -154,7 +154,7 @@ What `update()` may return depends on which kind of `Part` the directive is
 bound to: a string/`null`/`undefined` for an attribute position (stringified/removed by
 `AttributePart`), or anything a `ChildPart` already knows how to commit (string, nested `t`
 result, array, `null`/`undefined`/`false`, or another directive's own wrapper, e.g.
-`html()`'s) for a child position. `noChange` is the one value both recognize the same way:
+`unsafeHtml()`'s) for a child position. `noChange` is the one value both recognize the same way:
 "I already applied my update myself - do nothing further."
 
 One output hook, `update()`:
@@ -230,7 +230,7 @@ const row = (active: boolean, big: boolean) => t`
 - Each must be the attribute's *only* interpolation, with no surrounding static text - same rule as
   `?`/`.`/`@`-prefixed bindings, since these bind a live object rather than a composed string.
 
-`html()` (see [`./directives/unsafe-html/`](./directives/unsafe-html/)) is the one built-in **child**
+`unsafeHtml()` (see [`./directives/unsafe-html/`](./directives/unsafe-html/)) is the one built-in **child**
 directive: its constructor requires `partInfo.type === PartType.CHILD` (throws if bound to an
 attribute instead), and its `update(part, markup)` returns `renderWith(UnsafeHtmlRenderer, markup)`, so parsing and
 inserting the markup lives in that renderer and `ChildPart` just runs it. This is the pattern to

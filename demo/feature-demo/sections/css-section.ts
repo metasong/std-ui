@@ -60,7 +60,7 @@ export class DemoCssSection extends UIElement {
 			<h2>CSS templates</h2>
 			<p class="desc">
 				<code>css\`...\`</code> tags a literal as CSS (cached, composable, rejects raw strings —
-				use <code>unsafeCSS()</code> to opt in). <code>static styles</code> on a
+				use <code>unsafeCss()</code> to opt in). <code>static styles</code> on a
 				<code>UIElement</code> applies it as a real <code>CSSStyleSheet</code>: adopted via
 				<code>adoptedStyleSheets</code> for a shadow root (shared by reference, one instance
 				below), or — with no shadow boundary to hold it — adopted onto <code>document</code>

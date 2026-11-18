@@ -1,1 +1,1 @@
-export { html } from './unsafe-html.js';
+export { unsafeHtml } from './unsafe-html.js';

