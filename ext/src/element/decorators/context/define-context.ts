@@ -7,9 +7,11 @@
 // defineContext(Child, { consume: { theme: ThemeKey } });
 // ``
 
-import { ownMetadata } from '@std-ui/core';
+import { addClassHooks, ownMetadata } from '@std-ui/core';
 import type { ContextKey } from './key.js';
 import { consumedContexts, providedContexts } from './metadata.js';
+import { consumeHooks } from './wire-consume.js';
+import { provideHooks } from './wire-provide.js';
 
 /** Keys of `I` whose value is a store (readable, writable, peekable). */
 type StoreKeys<I> = {
@@ -37,9 +39,11 @@ export function defineContext<C extends abstract new (...args: any[]) => object>
 	const meta = ownMetadata(ctor);
 	for (const [key, contextKey] of Object.entries(options.provide ?? {})) {
 		providedContexts.register(meta, { key, contextKey: contextKey as ContextKey<unknown> });
+		addClassHooks(meta, provideHooks);
 	}
 	for (const [key, contextKey] of Object.entries(options.consume ?? {})) {
 		consumedContexts.register(meta, { key, contextKey: contextKey as ContextKey<unknown> });
+		addClassHooks(meta, consumeHooks);
 	}
 	return ctor;
 }

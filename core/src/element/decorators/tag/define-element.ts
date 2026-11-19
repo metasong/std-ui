@@ -17,6 +17,8 @@
 import { ownMetadata } from '../class-registry.js';
 import type { AttributeOptions } from '../attribute/attribute.decorator.js';
 import { attributeDefs, createAttributeDef, defineObservedAttributes } from '../attribute/metadata.js';
+import { addClassHooks } from '../../ui-element-hooks.js';
+import { reflectHooks } from '../attribute/wire-reflect.js';
 
 /** Keys of `I` whose value is a store (readable, writable, peekable) - the fields that can mirror an attribute. */
 type StoreKeys<I> = {
@@ -39,7 +41,9 @@ export function defineElement<C extends CustomElementConstructor>(
 ): C {
 	const meta = ownMetadata(ctor);
 	for (const [key, attributeOptions] of Object.entries(options.attributes ?? {})) {
-		attributeDefs.register(meta, createAttributeDef(key, (attributeOptions ?? {}) as AttributeOptions));
+		const def = createAttributeDef(key, (attributeOptions ?? {}) as AttributeOptions);
+		attributeDefs.register(meta, def);
+		if (def.reflect) addClassHooks(meta, reflectHooks);
 	}
 	defineObservedAttributes(ctor);
 	customElements.define(name, ctor);

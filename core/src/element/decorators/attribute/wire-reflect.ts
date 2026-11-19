@@ -5,7 +5,7 @@
 
 import { effect as createEffect } from '../../../reactive/index.js';
 import { readValue, type ItemNode } from '../../../reactive/state/index.js';
-import { registerUIElementHooks } from '../../ui-element-hooks.js';
+import type { UIElementHooks } from '../../ui-element-hooks.js';
 import { serializeAttribute } from './converter.js';
 import { attributeDefs, resolveInferredConverter } from './metadata.js';
 
@@ -31,10 +31,11 @@ export function wireReflectedAttributes(host: HTMLElement, registerEffectDispose
 	}
 }
 
-registerUIElementHooks({
+/** Attached to a class by `@attribute` / `defineElement({ attributes })`. */
+export const reflectHooks: UIElementHooks = {
 	connected(el) {
 		const disposers: Array<() => void> = [];
 		wireReflectedAttributes(el, dispose => void disposers.push(dispose));
 		return () => disposers.forEach(dispose => dispose());
 	},
-});
+};

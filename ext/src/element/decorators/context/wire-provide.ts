@@ -3,7 +3,7 @@
 // fields and `defineElement({ provide })` entries. `stopPropagation()` on a match gives
 // nearest-provider-wins — see `./request-event.ts`.
 
-import { effect as createEffect, registerUIElementHooks } from '@std-ui/core';
+import { effect as createEffect, type UIElementHooks } from '@std-ui/core';
 import { providedContexts } from './metadata.js';
 import { CONTEXT_REQUEST_EVENT, ContextRequestEvent } from './request-event.js';
 
@@ -41,11 +41,12 @@ export function wireProvidedContextListeners(
 	}
 }
 
-registerUIElementHooks({
+/** Attached to a class by `@provide` / `defineContext({ provide })`. */
+export const provideHooks: UIElementHooks = {
 	beforeConnect(el) {
 		const disposers: Array<() => void> = [];
 		const add = (dispose: () => void): void => void disposers.push(dispose);
 		wireProvidedContextListeners(el, add, add);
 		return () => disposers.forEach(dispose => dispose());
 	},
-});
+};

@@ -1,15 +1,17 @@
-// Lifecycle hook registry for `UIElement` (`./ui-element.ts`). Kept in its own module (type-only
-// import of `UIElement`) so decorators/directives can register themselves without a circular
-// runtime import on `ui-element.ts`.
+// Lifecycle hooks for `UIElement` (`./ui-element.ts`). Hooks are owned by the class they are
+// registered on (stored in its decorator metadata via `ClassRegistry`, inherited by subclasses), so
+// an element only runs the hooks of the features it actually uses - no module-level global state
+// and no import-time side effects. Type-only import of `UIElement` avoids a circular runtime import.
 
 import type { UIElement } from './ui-element.js';
+import { createClassRegistry } from './decorators/class-registry.js';
 
 /** Optional teardown a connect hook returns; runs when the element disconnects. */
 export type Cleanup = void | (() => void);
 
 /**
- * Lifecycle callbacks that extensions (decorators, directives, ...) register once via
- * `registerUIElementHooks()`; they're invoked for every UIElement instance. To undo something on
+ * Lifecycle callbacks that extensions (decorators, directives, ...) attach to a class via
+ * `addClassHooks()` (or to one instance via `UIElement.addHooks()`). To undo something on
  * disconnect, return a cleanup function from `beforeConnect` / `connected`.
  */
 export interface UIElementHooks {
@@ -23,14 +25,18 @@ export interface UIElementHooks {
 	rendered?(el: UIElement): void;
 }
 
-/** Global (module-level) hooks, run for every UIElement. For per-instance hooks use `el.addHooks()`. */
-export const uiElementHooks: UIElementHooks[] = [];
+const classHookRegistry = createClassRegistry<UIElementHooks>('uiElementHooks');
 
-/** Registers lifecycle hooks for all UIElements. Returns an unregister function. */
-export function registerUIElementHooks(hooks: UIElementHooks): () => void {
-	uiElementHooks.push(hooks);
-	return () => {
-		const i = uiElementHooks.indexOf(hooks);
-		if (i >= 0) uiElementHooks.splice(i, 1);
-	};
+/**
+ * Attaches `hooks` to the class that owns `meta` (`context.metadata` in a decorator,
+ * `ownMetadata(ctor)` otherwise). Idempotent: the same hooks object is added at most once per
+ * class hierarchy, so a decorator can call it for every decorated field.
+ */
+export function addClassHooks(meta: object, hooks: UIElementHooks): void {
+	if (!classHookRegistry.has(meta, hooks)) classHookRegistry.register(meta, hooks);
+}
+
+/** Hooks of `ctor` and its ancestors, most-derived class first. */
+export function getClassHooks(ctor: Function): readonly UIElementHooks[] {
+	return classHookRegistry.get(ctor);
 }

@@ -9,7 +9,7 @@ export {
 	type AttributeType,
 	type DefineElementOptions,
 } from './element/ui-element.js';
-export { registerUIElementHooks, type UIElementHooks, type Cleanup } from './element/ui-element-hooks.js';
+export { addClassHooks, type UIElementHooks, type Cleanup } from './element/ui-element-hooks.js';
 export { createClassRegistry, ownMetadata, metadataSymbol, type ClassRegistry } from './element/decorators/index.js';
 export {
 	t,

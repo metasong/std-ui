@@ -10,13 +10,12 @@ alwaysApply: false
 bundlers when nothing is imported from them, so a registration-only file silently vanishes from production builds.
 
 When adding, moving, renaming, or deleting a file with a top-level `registerCustomAttribute(...)`,
-`registerUIElementHooks(...)`, or similar registration, update that package's `sideEffects`. Entries are `dist`
+or similar registration (UI element hooks are class-owned via `addClassHooks`, not a side effect), update that package's `sideEffects`. Entries are `dist`
 paths (mirror `src`, `.ts` -> `.js`, under `./dist/esm/`).
 
 - `std-ui`: glob `custom-attributes/**/*.custom-attribute.js`. Name new built-in bindings `*.custom-attribute.ts`,
   register inside the file, and import its `index.js` from `compile.ts`.
-- `std-ui-ext`: explicit files (`custom-attributes/event.custom-attribute.js`, `custom-attributes/class-style.custom-attribute.js`,
-  `decorators/context/wire-provide.js`, `decorators/context/wire-consume.js`). A new registering file needs a new entry.
+- `std-ui-ext`: explicit files (`custom-attributes/event.custom-attribute.js`, `custom-attributes/class-style.custom-attribute.js`). A new registering file needs a new entry.
 
 `registerCustomAttribute` replaces any extension with the same `(sigil, name)`; that is how `std-ui-ext`'s `@*`
 (modifiers) overrides std-ui's default.

@@ -14,6 +14,8 @@
 
 import { type AttributeConverter, type AttributeType } from './converter.js';
 import { attributeDefs, createAttributeDef } from './metadata.js';
+import { addClassHooks } from '../../ui-element-hooks.js';
+import { reflectHooks } from './wire-reflect.js';
 
 export interface AttributeOptions<V = unknown> {
 	/**
@@ -92,6 +94,8 @@ export function attribute(options: AttributeOptions = {}) {
 		// Registered per class (shared by every instance); if neither `type` nor `converter` was
 		// given, the def's converter is inferred from the store's value on first use - see
 		// `resolveInferredConverter()` in `./metadata.ts`.
-		attributeDefs.register(context.metadata as object, createAttributeDef(context.name, options));
+		const def = createAttributeDef(context.name, options);
+		attributeDefs.register(context.metadata as object, def);
+		if (def.reflect) addClassHooks(context.metadata as object, reflectHooks);
 	};
 }

@@ -7,8 +7,8 @@
 // Readers (`UIElement`, `tag()`) see both through `get()`. Nothing is kept per instance.
 //
 // Why `context.metadata` and not `ctor[Symbol.metadata]` for decorators: the latter is only assigned
-// after the class is fully defined (class decorators have already run), so `get()` accepts the
-// decorator's `context.metadata` as an override for a class decorator (`tag()`) reading what member
+// after the class is fully defined (class decorators have already run), so `read(meta)` takes the
+// decorator's `context.metadata` directly for a class decorator (`tag()`) reading what member
 // decorators registered *during its own call*.
 
 /**
@@ -47,12 +47,15 @@ export function ownMetadata(ctor: Function): object {
 export interface ClassRegistry<D> {
 	/** Records `def` onto a class's metadata object - `context.metadata` in a decorator, `ownMetadata(ctor)` otherwise. */
 	register(meta: object, def: D): void;
+	/** Whether `def` is already registered on `meta` or any ancestor metadata (identity comparison). */
+	has(meta: object, def: D): boolean;
 	/**
-	 * Every def of `ctor` and its ancestors, most-derived class first. `meta` overrides
-	 * `ctor[Symbol.metadata]` - pass a class decorator's `context.metadata` while that decorator is
-	 * still running (see the file header).
+	 * Every def reachable from a metadata object (itself and ancestors), most-derived class first.
+	 * Use this while a decorator is still running, passing its `context.metadata` (see the file header).
 	 */
-	get(ctor: Function, meta?: object | null): readonly D[];
+	read(meta: object | null | undefined): readonly D[];
+	/** Every def of `ctor` and its ancestors, most-derived class first (reads `ctor[Symbol.metadata]`). */
+	get(ctor: Function): readonly D[];
 }
 
 /** `name` only labels the metadata slot (a fresh `Symbol(name)`), so registries never collide. */
@@ -60,7 +63,7 @@ export function createClassRegistry<D>(name: string): ClassRegistry<D> {
 	const metaKey = Symbol(name);
 	const hasOwn = (object: object, key: symbol): boolean => Object.prototype.hasOwnProperty.call(object, key);
 
-	return {
+	const registry: ClassRegistry<D> = {
 		register(meta, def) {
 			const typed = meta as Record<symbol, D[] | undefined>;
 			// Own-property check: a subclass's metadata object inherits the base's through its prototype,
@@ -69,7 +72,15 @@ export function createClassRegistry<D>(name: string): ClassRegistry<D> {
 			typed[metaKey]!.push(def);
 		},
 
-		get(ctor, meta = (ctor as unknown as Record<symbol, object | undefined>)[metadataSymbol]) {
+		has(meta, def) {
+			return registry.read(meta).includes(def);
+		},
+
+		get(ctor) {
+			return registry.read((ctor as unknown as Record<symbol, object | undefined>)[metadataSymbol]);
+		},
+
+		read(meta) {
 			const defs: D[] = [];
 			// Metadata objects mirror the class hierarchy through their prototype chain.
 			for (let level: object | null = meta ?? null; level; level = Object.getPrototypeOf(level)) {
@@ -78,4 +89,5 @@ export function createClassRegistry<D>(name: string): ClassRegistry<D> {
 			return defs;
 		},
 	};
+	return registry;
 }

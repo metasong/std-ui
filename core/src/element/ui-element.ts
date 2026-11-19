@@ -14,7 +14,7 @@ import {
 	resolveInferredConverter,
 } from './decorators/index.js';
 import { ElementStyles } from './element-styles.js';
-import { uiElementHooks, type UIElementHooks } from './ui-element-hooks.js';
+import { getClassHooks, type UIElementHooks } from './ui-element-hooks.js';
 import {
 	effect as createEffect,
 	type OnCleanup,
@@ -41,7 +41,7 @@ export {
 	type DefineElementOptions,
 } from './decorators/index.js';
 
-export { registerUIElementHooks, type Cleanup, type UIElementHooks } from './ui-element-hooks.js';
+export { addClassHooks, type Cleanup, type UIElementHooks } from './ui-element-hooks.js';
 
 
 export abstract class UIElement extends HTMLElement {
@@ -86,8 +86,8 @@ export abstract class UIElement extends HTMLElement {
 	static styles?: CSSResultGroup;
 
 	/**
-	 * Registers lifecycle hooks for this element instance only (global ones come from
-	 * `registerUIElementHooks()`). Call before connect to receive every phase. Returns an unregister function.
+	 * Registers lifecycle hooks for this element instance only (class-level ones come from
+	 * `addClassHooks()`). Call before connect to receive every phase. Returns an unregister function.
 	 */
 	addHooks(hooks: UIElementHooks): () => void {
 		this.#instanceHooks.push(hooks);
@@ -187,7 +187,7 @@ export abstract class UIElement extends HTMLElement {
 					this.#runCleanupHooks('firstRendered');
 				}
 				this.rendered?.();
-				for (const h of [...uiElementHooks, ...this.#instanceHooks]) h.rendered?.(this);
+				for (const h of this.#allHooks()) h.rendered?.(this);
 			},
 		));
 	}
@@ -217,9 +217,14 @@ export abstract class UIElement extends HTMLElement {
 		this.#wireTemplateRenderEffect();
 	}
 
+	/** Class-level hooks (inherited) followed by this instance's own; a fresh array, safe against mid-iteration changes. */
+	#allHooks(): UIElementHooks[] {
+		return [...getClassHooks(this.constructor), ...this.#instanceHooks];
+	}
+
 	/** Runs a cleanup-returning hook phase on every registered extension; returned cleanups run on disconnect. */
 	#runCleanupHooks(phase: 'beforeConnect' | 'connected' | 'firstRendered'): void {
-		for (const hooks of [...uiElementHooks, ...this.#instanceHooks]) {
+		for (const hooks of this.#allHooks()) {
 			const cleanup = hooks[phase]?.(this);
 			if (cleanup) this.#effectDisposers.push(cleanup);
 		}

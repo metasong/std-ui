@@ -8,7 +8,8 @@
 // back off the instance (`this[name]`) and answers matching `context-request` events with it (see
 // `./wire-provide.ts`).
 
-import type { SignalState } from '@std-ui/core';
+import { addClassHooks, type SignalState } from '@std-ui/core';
+import { provideHooks } from './wire-provide.js';
 import type { ContextKey } from './key.js';
 import { providedContexts } from './metadata.js';
 
@@ -36,5 +37,6 @@ export function provide<V>(contextKey: ContextKey<V>) {
 			throw new Error("@provide() can only decorate a plain class field, e.g. `@provide(key) foo = state(0);` (no 'accessor').");
 		}
 		providedContexts.register(ctx.metadata as object, { key: ctx.name, contextKey: contextKey as ContextKey<unknown> });
+		addClassHooks(ctx.metadata as object, provideHooks);
 	};
 }

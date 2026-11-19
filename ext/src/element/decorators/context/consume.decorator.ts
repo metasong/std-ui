@@ -7,7 +7,9 @@
 // property on the instance as a getter over a signal it owns.
 
 import type { ContextKey } from './key.js';
+import { addClassHooks } from '@std-ui/core';
 import { consumedContexts } from './metadata.js';
+import { consumeHooks } from './wire-consume.js';
 
 /**
  * Field decorator that exposes the nearest ancestor provider's value (`@provide(key)`), reactively.
@@ -29,5 +31,6 @@ export function consume<V>(contextKey: ContextKey<V>) {
 		}
 		// Storage: per-class (keyed off the constructor, inherited via prototype chain of metadata objects).
 		consumedContexts.register(ctx.metadata as object, { key: ctx.name, contextKey: contextKey as ContextKey<unknown> });
+		addClassHooks(ctx.metadata as object, consumeHooks);
 	};
 }

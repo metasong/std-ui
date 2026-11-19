@@ -67,7 +67,7 @@ export interface AttributeDefOptions {
  * back via `attributeDefs.get(ctor)`. Call before `customElements.define()`. No-op if none are registered.
  */
 export function defineObservedAttributes(ctor: CustomElementConstructor, context?: ClassDecoratorContext): void {
-	const defs = attributeDefs.get(ctor, context?.metadata);
+	const defs = context ? attributeDefs.read(context.metadata) : attributeDefs.get(ctor);
 	if (defs.length === 0) return;
 
 	const attributes = Array.from(new Set(defs.map(def => def.attribute)));
