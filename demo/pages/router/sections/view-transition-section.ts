@@ -3,14 +3,14 @@ import { css, state, t, tag, UIElement } from '@std-ui/core';
 import '@std-ui/router';
 import { createRouter } from '@std-ui/router';
 import { createMemoryNavigation } from '@std-ui/router/testing';
-import { demoRoutes } from './pages.js';
+import { demoRoutes, navigateWithTransitionName } from './pages.js';
 
 // One CSS block per name below, selected by `<html data-rt-effect>`.
 const EFFECTS = ['slide', 'zoom', 'flip', 'blur', 'wipe', 'spin'] as const;
 
 // Scoped to this element (light DOM: wrapped in `@scope (demo-router-view-transition-section)`).
 const elementStyles = css`
-	.demo-rt-outlet { display: block; min-height: 8rem; view-transition-name: demo-rt; }
+	.demo-rt-outlet { display: block; min-height: 8rem; }
 `;
 
 // View-transition pseudo-elements hang off `:root`, outside any element scope, so these rules must live on
@@ -83,7 +83,8 @@ export class DemoRouterViewTransitionSection extends UIElement {
 		const next = choices[Math.floor(Math.random() * choices.length)]!;
 		document.documentElement.dataset.rtEffect = next;
 		this.chosen.set(next);
-		void this.router.navigate(path);
+		// Named only for this navigation: a transition elsewhere on the page must not animate this outlet.
+		void navigateWithTransitionName(this.querySelector('.demo-rt-outlet'), 'demo-rt', () => this.router.navigate(path));
 	}
 
 	protected override template() {
@@ -94,7 +95,7 @@ export class DemoRouterViewTransitionSection extends UIElement {
 				<p class="desc">
 					With <code>viewTransition: true</code> (or the <code>view-transition</code> attribute) the commit runs inside
 					<code>document.startViewTransition</code>, so the outlet content animates between pages. Style it with
-					<code>::view-transition-old/new(name)</code>; here the outlet has <code>view-transition-name: demo-rt</code>.
+					<code>::view-transition-old/new(name)</code>; here the outlet gets <code>view-transition-name: demo-rt</code> while this section navigates (the name is document-wide, so it is not left on permanently).
 					Each click picks a random effect by setting <code>data-rt-effect</code> on <code>&lt;html&gt;</code> before navigating.
 					Unsupported browsers and <code>prefers-reduced-motion</code> get a plain swap.
 				</p>

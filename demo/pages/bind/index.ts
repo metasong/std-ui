@@ -1,0 +1,8 @@
+import './sections/form-section.js';
+import './sections/custom-section.js';
+import './sections/validation/validation-section.js';
+import './sections/validation/conditional-section.js';
+import './sections/validation/parent-kept-validation-rule-section.js';
+import './sections/form-ui/form-ui-section.js';
+import './sections/form-flags/form-flags-section.js';
+import './page.js';

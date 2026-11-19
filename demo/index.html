@@ -2,22 +2,24 @@
 <html lang="en">
 <head>
 	<meta charset="UTF-8" />
-	<title>std-ui — demos</title>
+	<title>std-ui demos</title>
 	<meta name="viewport" content="width=device-width, initial-scale=1" />
-	<link rel="stylesheet" href="./material-theme.css" />
-	<link rel="stylesheet" href="./demo-components.css" />
+	<link rel="preconnect" href="https://fonts.googleapis.com" />
+	<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+	<link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&family=Roboto+Mono:wght@400&display=swap" rel="stylesheet" />
+	<link rel="stylesheet" href="/styles/material-theme.css" />
+	<link rel="stylesheet" href="/styles/demo-components.css" />
+	<link rel="stylesheet" href="/styles/virtualize-list.css" />
+	<link rel="stylesheet" href="/pages/virtualize/virtualize.css" />
+	<style>
+		/* Wider so each code block can show the rendered demo beside it. */
+		.demo-main { max-width: none; width: 90%; box-sizing: border-box; }
+		code-preview { scroll-margin-top: 4rem; }
+		html { scroll-behavior: smooth; }
+	</style>
 </head>
 <body>
-	<header class="demo-app-bar">
-		<h1>std-ui</h1>
-		<p class="lead">Minimal UI on web standards.</p>
-	</header>
-	<main class="demo-main">
-		<ul>
-			<li><a href="./feature-demo/index.html">Feature demo</a> — one feature per section, nothing mixed (<a href="./feature-demo/bind.html">bind</a>, <a href="./feature-demo/virtualize.html">virtualize</a>, <a href="./feature-demo/slot.html">slot</a>, <a href="./feature-demo/router.html">router</a>).</li>
-			<li><a href="./integration-demo/index.html">Integration demo</a> — several features working together.</li>
-			<li><a href="./browser-bundle/index.html">Browser bundle</a> — static page, no build step for the page itself (needs <code>npm run build</code> once for <code>dist/</code>).</li>
-		</ul>
-	</main>
+	<demo-app></demo-app>
+	<script type="module" src="/app/main.ts"></script>
 </body>
 </html>

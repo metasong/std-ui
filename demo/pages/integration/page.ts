@@ -2,12 +2,12 @@
 // through a one-way `.files` property binding.
 import { t, tag, UIElement } from '@std-ui/core';
 import '../../shared/code-preview.js';
-import './signup-form-section.js';
-import './directory-section.js';
-import signup from './signup-form-section.ts?raw';
-import merged from '../../feature-demo/sections/bind/validation/merged-control.ts?raw';
-import range from '../../feature-demo/sections/bind/validation/range-control.ts?raw';
-import directory from './directory-section.ts?raw';
+import './sections/signup-form-section.js';
+import './sections/directory-section.js';
+import signup from './sections/signup-form-section.ts?raw';
+import merged from '../bind/sections/validation/merged-control.ts?raw';
+import range from '../bind/sections/validation/range-control.ts?raw';
+import directory from './sections/directory-section.ts?raw';
 
 const signupFiles = {
 	'signup-form-section.ts': signup,

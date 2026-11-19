@@ -1,4 +1,6 @@
 interface ViewTransitionLike {
+	ready: Promise<void>;
+	finished: Promise<void>;
 	updateCallbackDone: Promise<void>;
 }
 
@@ -30,6 +32,10 @@ export async function withViewTransition(update: () => void): Promise<void> {
 		update();
 		await flushEffects();
 	});
-	// A skipped transition still runs the callback; ignore its rejection like other abort noise.
+	// Only one view transition runs per document: a newer one (another router, or a quick second navigation)
+	// aborts the older, rejecting its `ready`/`finished` promises. Nobody awaits those, so swallow them or they
+	// surface as `Uncaught (in promise) InvalidStateError`. A skipped transition still runs the callback.
+	t.ready.catch(() => {});
+	t.finished.catch(() => {});
 	await t.updateCallbackDone.catch(() => {});
 }

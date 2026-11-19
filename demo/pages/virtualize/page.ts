@@ -1,10 +1,10 @@
 // Body of the virtualize demo: each section wrapped in `<code-preview>`.
 import { t, tag, UIElement } from '@std-ui/core';
-import '../shared/code-preview.js';
-import vertical from './sections/virtualize/vertical-section.ts?raw';
-import headers from './sections/virtualize/headers-section.ts?raw';
-import grid from './sections/virtualize/grid-section.ts?raw';
-import horizontal from './sections/virtualize/horizontal-section.ts?raw';
+import '../../shared/code-preview.js';
+import vertical from './sections/vertical-section.ts?raw';
+import headers from './sections/headers-section.ts?raw';
+import grid from './sections/grid-section.ts?raw';
+import horizontal from './sections/horizontal-section.ts?raw';
 
 const verticalFiles = { 'vertical-section.ts': vertical };
 const headersFiles = { 'headers-section.ts': headers };

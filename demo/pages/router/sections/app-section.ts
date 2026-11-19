@@ -1,9 +1,15 @@
 import { css, t, tag, state, UIElement } from '@std-ui/core';
-import { routeParam, searchParam } from '@std-ui/router';
+import { createRouter, routeParam, searchParam } from '@std-ui/router';
 import '@std-ui/router'; // defines <std-router>, <std-route>, <std-outlet>
-import type { Router, StdRouter } from '@std-ui/router';
+import { createMemoryNavigation } from '@std-ui/router/testing';
+import { navigateWithTransitionName } from './pages.js';
+import type { RouteDef, Router, StdRouter } from '@std-ui/router';
 
-const routerOf = (el: Element): Router => (el.closest('std-router') as StdRouter).router;
+// Reads the router signal, so templates re-render when <std-router> gets its .router assigned after connecting.
+const routerOf = (el: Element): Router => {
+	const host = el.closest('std-router') as StdRouter;
+	return host.routerSignal() ?? host.router;
+};
 const flag = (key: string): boolean => localStorage.getItem(key) === '1';
 
 // ---- page elements (plain custom elements; the outlet sets `params`, `data`, `error`) ----
@@ -16,8 +22,6 @@ const appStyles = css`
 	.rt-links a[aria-current='page'] { background: var(--md-sys-color-secondary-container, #e8def8); }
 	.rt-panel { border: 1px solid var(--md-sys-color-outline-variant, #cac4d0); border-radius: 12px; padding: 1rem; margin-block: 1rem; }
 	.rt-status { font: 400 0.8rem/1.4 'Roboto Mono', monospace; color: var(--md-sys-color-on-surface-variant, #49454f); }
-	/* View transition: slide the page content. */
-	std-outlet { view-transition-name: rt-page; }
 `;
 
 // View-transition pseudo-elements hang off `:root`, outside any element scope, so they live on `document`.
@@ -28,6 +32,12 @@ const transitionStyles = css`
 	@keyframes rt-in { from { opacity: 0; transform: translateY(8px); } }
 `;
 
+const html = (markup: string): HTMLTemplateElement => {
+	const template = document.createElement('template');
+	template.innerHTML = markup;
+	return template;
+};
+
 const loadUser = async ({ params }: { params: Record<string, string> }) => {
 	await new Promise((r) => setTimeout(r, 300)); // simulated fetch
 	return { id: params.id, name: `User #${params.id}` };
@@ -37,10 +47,35 @@ const loadAdmin = () => {
 	if (flag('rt-fail')) throw new Error('Admin loader failed on purpose');
 };
 
+// Config routes (the same shape <std-route> markup builds): nested routes, a loader, a guard, redirects and a 404.
+const routes = (): RouteDef[] => [
+	{ path: '/', title: 'Home - router demo', template: html('<div class="rt-panel"><h2>Home</h2><p>Plain inline template route.</p></div>') },
+	{
+		path: '/users', element: 'demo-rt-layout', title: 'Users - router demo',
+		children: [{ index: true, element: 'demo-rt-users' }, { path: ':id', element: 'demo-rt-user', load: loadUser }],
+	},
+	{ path: '/editor', element: 'demo-rt-editor', title: 'Editor - router demo' },
+	{ path: '/admin', element: 'demo-rt-admin', errorElement: 'demo-rt-error', guard: guardAdmin, load: loadAdmin },
+	{ path: '/old-users', redirect: '/users' },
+	{ path: '*', template: html('<div class="rt-panel"><h2>404</h2><p>No route matches.</p></div>') },
+];
+
 @tag('demo-router-full-section')
 export class DemoRouterFullSection extends UIElement {
 	static override styles = appStyles;
 	#observer?: MutationObserver;
+	// In-memory history: the address bar belongs to the app's own router, so this one never touches it.
+	private readonly router = createRouter({ routes: routes(), navigation: createMemoryNavigation('/'), viewTransition: true });
+
+	/** Links inside the demo go to the in-memory router, not the browser's. */
+	private readonly onLinkClick = (e: MouseEvent): void => {
+		const a = (e.target as Element).closest('a');
+		if (!a || a.closest('std-router') !== e.currentTarget) return;
+		e.preventDefault();
+		e.stopPropagation();
+		// The outlet is named only while this router navigates, so other sections' transitions do not animate it.
+		void navigateWithTransitionName(a.closest('std-router')!.querySelector('std-outlet'), 'rt-page', () => routerOf(a).navigate(a.getAttribute('href')!));
+	};
 
 	protected override connect(): void {
 		const sheet = transitionStyles.styleSheet;
@@ -65,38 +100,23 @@ export class DemoRouterFullSection extends UIElement {
 			<section class="demo-router-block" id="full-router">
 				<h2>Full router</h2>
 				<p class="desc">
-					Navigation API router with <code>&lt;std-route&gt;</code> markup: nested routes, a lazy-style loader, a guard,
-					redirects, and a <code>beforeLeave</code> / tab-close guard. Uses real URLs under <code>/feature-demo/router/</code>
-					(dev server only).
+					Navigation API router: nested routes, a lazy-style loader, a guard,
+					redirects, and a <code>beforeLeave</code> / tab-close guard. Runs on an in-memory history, so the address bar stays on this app's own route.
 				</p>
-				<std-router base="/feature-demo/router" view-transition>
+				<std-router .router=${this.router} @click=${this.onLinkClick}>
 					<nav class="rt-links">
-						<a href="/feature-demo/router/">Home</a>
-						<a href="/feature-demo/router/users">Users</a>
-						<a href="/feature-demo/router/users/3">User 3</a>
-						<a href="/feature-demo/router/editor">Editor (unsaved guard)</a>
-						<a href="/feature-demo/router/admin">Admin (guarded)</a>
-						<a href="/feature-demo/router/old-users">Old URL (redirect)</a>
-						<a href="/feature-demo/router/nowhere">Nowhere (404)</a>
+						<a href="/">Home</a>
+						<a href="/users">Users</a>
+						<a href="/users/3">User 3</a>
+						<a href="/editor">Editor (unsaved guard)</a>
+						<a href="/admin">Admin (guarded)</a>
+						<a href="/old-users">Old URL (redirect)</a>
+						<a href="/nowhere">Nowhere (404)</a>
 					</nav>
 
 					<demo-rt-controls></demo-rt-controls>
 					<demo-rt-status></demo-rt-status>
 					<p class="rt-status">announced to screen readers: <output id="rt-announced">(navigate to see)</output></p>
-
-					<std-route path="/" title="Home - router demo">
-						<template><div class="rt-panel"><h2>Home</h2><p>Plain inline <code>&lt;template&gt;</code> route.</p></div></template>
-					</std-route>
-					<std-route path="/users" element="demo-rt-layout" title="Users - router demo">
-						<std-route index element="demo-rt-users"></std-route>
-						<std-route path=":id" element="demo-rt-user" .load=${loadUser}></std-route>
-					</std-route>
-					<std-route path="/editor" element="demo-rt-editor" title="Editor - router demo"></std-route>
-					<std-route path="/admin" element="demo-rt-admin" error-element="demo-rt-error" .guard=${guardAdmin} .load=${loadAdmin}></std-route>
-					<std-route path="/old-users" redirect="/users"></std-route>
-					<std-route path="*">
-						<template><div class="rt-panel"><h2>404</h2><p>No route matches.</p></div></template>
-					</std-route>
 
 					<std-outlet></std-outlet>
 				</std-router>
@@ -143,7 +163,7 @@ class Layout extends UIElement {
 @tag('demo-rt-users')
 class Users extends UIElement {
 	protected override template() {
-		return t`<ul>${[1, 2, 3].map((n) => t`<li><a href="/feature-demo/router/users/${n}">User ${n}</a></li>`)}</ul>`;
+		return t`<ul>${[1, 2, 3].map((n) => t`<li><a href="/users/${n}">User ${n}</a></li>`)}</ul>`;
 	}
 }
 
@@ -155,7 +175,7 @@ class User extends UIElement {
 	protected override template() {
 		return t`<p>${this.data?.name ?? 'loading…'}</p>
 			<p>id=${this.userId} · tab=${this.tab ?? '(none)'}
-				· <a href="/feature-demo/router/users/${this.userId}?tab=posts">posts</a> <a href="/feature-demo/router/users/${this.userId}?tab=likes">likes</a></p>`;
+				· <a href="/users/${this.userId}?tab=posts">posts</a> <a href="/users/${this.userId}?tab=likes">likes</a></p>`;
 	}
 }
 

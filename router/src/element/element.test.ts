@@ -8,7 +8,10 @@ import { tag, UIElement } from '@std-ui/core';
 class UserPage extends UIElement {
 	params: Record<string, string> = {};
 }
+@tag('rt-host')
+class Host extends UIElement {}
 void UserPage;
+void Host;
 
 const tick = () => new Promise((r) => setTimeout(r, 0));
 
@@ -53,6 +56,20 @@ describe('<std-router> markup', () => {
 		layout.appendChild(document.createElement('std-outlet'));
 		await tick();
 		expect(layout.querySelector('std-outlet > rt-index')).not.toBeNull();
+	});
+
+	it('a router nested in a routed page renders its own outlet at depth 0', async () => {
+		const outer = mount(
+			`<std-route path="/" element="rt-host"></std-route><std-outlet></std-outlet>`,
+			'/',
+		);
+		await tick();
+		const inner = document.createElement('std-router') as StdRouter;
+		inner.navigation = createMemoryNavigation('/');
+		inner.innerHTML = `<std-route path="/"><template><p>inner</p></template></std-route><std-outlet></std-outlet>`;
+		outer.querySelector('rt-host')!.appendChild(inner);
+		await tick();
+		expect(inner.querySelector('std-outlet p')?.textContent).toBe('inner');
 	});
 
 	it('renders inline <template> content', async () => {

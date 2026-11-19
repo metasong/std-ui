@@ -1,12 +1,12 @@
 // Body of the router demo: each section wrapped in `<code-preview>`.
 import { t, tag, UIElement } from '@std-ui/core';
-import '../shared/code-preview.js';
-import announcer from './sections/router/announcer-section.ts?raw';
-import full from './sections/router/app-section.ts?raw';
-import pages from './sections/router/pages.ts?raw';
-import viewTransition from './sections/router/view-transition-section.ts?raw';
+import '../../shared/code-preview.js';
+import announcer from './sections/announcer-section.ts?raw';
+import full from './sections/app-section.ts?raw';
+import pages from './sections/pages.ts?raw';
+import viewTransition from './sections/view-transition-section.ts?raw';
 
-const fullFiles = { 'app-section.ts': full };
+const fullFiles = { 'app-section.ts': full, 'pages.ts': pages };
 const announcerFiles = { 'announcer-section.ts': announcer, 'pages.ts': pages };
 const viewTransitionFiles = { 'view-transition-section.ts': viewTransition, 'pages.ts': pages };
 

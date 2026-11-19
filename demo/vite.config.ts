@@ -13,24 +13,15 @@ import { esbuildTs } from '../scripts/esbuild-ts.ts';
 
 const dirname = fileURLToPath(new URL('.', import.meta.url));
 
-// The full router demo uses real paths (`/feature-demo/router/users/3`). Serve router.html for any
-// extensionless path under it, and pin a <base> so the page's relative URLs keep working on deep routes.
-// Dev server only; the production build has no such fallback.
-const routerDemoSpa = (): Plugin => ({
-	name: 'router-demo-spa',
-	apply: 'serve',
-	configureServer(server) {
-		server.middlewares.use((req, _res, next) => {
-			const [path, query = ''] = (req.url ?? '').split('?');
-			if (path!.startsWith('/feature-demo/router/') && !path!.split('/').pop()!.includes('.')) {
-				req.url = '/feature-demo/router.html' + (query ? `?${query}` : '');
-			}
-			next();
-		});
-	},
-	transformIndexHtml(_html, ctx) {
-		if (ctx.path !== '/feature-demo/router.html') return;
-		return [{ tag: 'base', attrs: { href: '/feature-demo/' }, injectTo: 'head-prepend' }];
+// The app uses real paths (`/bind`, `/router/...`). Vite's dev server already serves `index.html` for any
+// extensionless path; for static hosting the build also writes `404.html` (a copy of `index.html`), which hosts
+// such as GitHub Pages serve for unknown paths.
+const spaFallback404 = (): Plugin => ({
+	name: 'spa-fallback-404',
+	apply: 'build',
+	generateBundle(_options, bundle) {
+		const index = bundle['index.html'];
+		if (index?.type === 'asset') this.emitFile({ type: 'asset', fileName: '404.html', source: index.source });
 	},
 });
 
@@ -44,21 +35,8 @@ export default defineConfig({
 			'@std-ui/router': fileURLToPath(new URL('../router/src/index.ts', import.meta.url)),
 		},
 	},
-	base: './',
-	build: {
-		rollupOptions: {
-			input: {
-				main: `${dirname}/index.html`,
-				features: `${dirname}/feature-demo/index.html`,
-				bind: `${dirname}/feature-demo/bind.html`,
-				slot: `${dirname}/feature-demo/slot.html`,
-				router: `${dirname}/feature-demo/router.html`,
-				virtualize: `${dirname}/feature-demo/virtualize.html`,
-				integration: `${dirname}/integration-demo/index.html`,
-			},
-		},
-	},
-	plugins: [esbuildTs(), routerDemoSpa()],
+	base: '/', // absolute: deep links like /bind/ must still find /assets/...
+	plugins: [esbuildTs(), spaFallback404()],
 	server: {
 		open: true,
 		port: 5174,

@@ -1,16 +1,16 @@
 // Body of the bind demo: each section wrapped in `<code-preview>` (section source + helper components as tabs).
 import { t, tag, UIElement } from '@std-ui/core';
-import '../shared/code-preview.js';
-import form from './sections/bind/form-section.ts?raw';
-import custom from './sections/bind/custom-section.ts?raw';
-import knob from './sections/bind/knob-control.ts?raw';
-import validation from './sections/bind/validation/validation-section.ts?raw';
-import conditional from './sections/bind/validation/conditional-section.ts?raw';
-import parentKept from './sections/bind/validation/parent-kept-validation-rule-section.ts?raw';
-import merged from './sections/bind/validation/merged-control.ts?raw';
-import range from './sections/bind/validation/range-control.ts?raw';
-import formUiDemo from './sections/bind/form-ui/form-ui-section.ts?raw';
-import formFlagsDemo from './sections/bind/form-flags/form-flags-section.ts?raw';
+import '../../shared/code-preview.js';
+import form from './sections/form-section.ts?raw';
+import custom from './sections/custom-section.ts?raw';
+import knob from './sections/knob-control.ts?raw';
+import validation from './sections/validation/validation-section.ts?raw';
+import conditional from './sections/validation/conditional-section.ts?raw';
+import parentKept from './sections/validation/parent-kept-validation-rule-section.ts?raw';
+import merged from './sections/validation/merged-control.ts?raw';
+import range from './sections/validation/range-control.ts?raw';
+import formUiDemo from './sections/form-ui/form-ui-section.ts?raw';
+import formFlagsDemo from './sections/form-flags/form-flags-section.ts?raw';
 
 const formFiles = { 'form-section.ts': form };
 const customFiles = { 'custom-section.ts': custom, 'knob-control.ts': knob };

@@ -1,6 +1,6 @@
 // Page body of the feature demo: each section wrapped in `<code-preview>` with its own source as the tab.
 import { t, tag, UIElement } from '@std-ui/core';
-import '../shared/code-preview.js';
+import '../../shared/code-preview.js';
 import counter from './sections/counter-section.ts?raw';
 import attribute from './sections/attribute-section.ts?raw';
 import context from './sections/context-section.ts?raw';

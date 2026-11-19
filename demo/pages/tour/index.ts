@@ -1,4 +1,3 @@
-import '../shared/demo-nav.js';
 // std-ui feature demo — each `<demo-*-section>` custom element is defined by importing it (the `@tag()`
 // class decorator calls `customElements.define()` as a side effect). `feature-page` then places the
 // tags in the page, each inside a `<code-preview>`.
@@ -14,4 +13,4 @@ import './sections/todo-section.js';
 import './sections/map-by-key-section.js';
 import './sections/svg-section.js';
 import './sections/mathml-section.js';
-import './feature-page.js';
+import './page.js';

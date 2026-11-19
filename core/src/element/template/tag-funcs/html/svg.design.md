@@ -129,6 +129,6 @@ const icon = t`<svg viewBox="0 0 10 10"><path d="M0 0L10 10" /></svg>`;
     a real `<svg>`;
   - `svg` fragments become SVG-namespace elements with no leftover wrapper;
   - cache entries are separate per template type.
-- Browser demo: the "SVG" section of the feature demo (`demo/feature-demo/sections/svg-section.ts`) shows
+- Browser demo: the "SVG" section of the feature demo (`demo/pages/tour/sections/svg-section.ts`) shows
   both cases side by side. Plain `t` circles are 0x0 and `svg` circles are 40x40 and drawn. Layout size is
   only observable in a real browser, because jsdom has no layout.

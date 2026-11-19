@@ -24,10 +24,15 @@ export function findRouterSignal(from: Node): ReadonlySignal<Router | undefined>
 	return findAncestor<StdRouter>(from, 'std-router')?.routerSignal;
 }
 
+/**
+ * Number of `tagName` ancestors of `from` that belong to the same router, i.e. that sit below the nearest
+ * `<std-router>`. Outlets of an enclosing router (a router nested in a routed page) are not counted.
+ */
 export function countAncestors(from: Node, tagName: string): number {
+	const boundary = findAncestor(from, 'std-router');
 	let count = 0;
 	let node: Element | null = findAncestor(from, tagName);
-	while (node) {
+	while (node && (!boundary || boundary.contains(node))) {
 		count++;
 		node = findAncestor(node, tagName);
 	}

@@ -6,8 +6,8 @@
 // The browser's own submit validation then blocks the submit while any control is invalid.
 import { bind, css, t, tag, UIElement, state } from '@std-ui/core';
 import { check, formBind, formUi, required, email } from '@std-ui/ext';
-import '../../feature-demo/sections/bind/validation/merged-control.js';
-import '../../feature-demo/sections/bind/validation/range-control.js';
+import '../../bind/sections/validation/merged-control.js';
+import '../../bind/sections/validation/range-control.js';
 
 const model = state({ email: '', first: '', last: '', start: '', end: '' }).with(check).with(formUi);
 model.email.check.validators.set([required('Email is required'), email('Not a valid email')]);
