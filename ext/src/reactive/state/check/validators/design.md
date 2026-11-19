@@ -94,6 +94,14 @@ requested. `wanted` cannot be written from inside the computed either, so `ensur
 `queueMicrotask`. This is why the direct form is `false` before the first read and lags a value
 change by one microtask; `node.check.pending.own` (which passes the value) does not lag.
 
+## Enabling: `when` and `check.enabled`
+
+Both are plain reads inside the existing computeds, so they need no new tracking. `when` wraps
+validators and forwards `pending`, short-circuiting on `enabled() &&` so a disabled async validator
+is never asked (no `ensure`, no request). It drops `flag` because the constraint is conditional.
+`check.enabled` is a signal checked at the top of `ownErrors` and `pendingOwn`; it covers the node's
+own validators only, so parent aggregates see a disabled child as valid and not pending.
+
 ## Laziness
 
 Computeds are lazy: nothing runs until something reads `errors`, `valid`, `pending` or their

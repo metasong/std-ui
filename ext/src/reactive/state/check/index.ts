@@ -22,4 +22,6 @@ export {
 	max,
 	pattern,
 	email,
+	when,
+	type Enabled,
 } from './validators/index.js';

@@ -11,7 +11,7 @@
 		"lib": ["ES2022", "DOM", "DOM.Iterable"],
 		"moduleResolution": "bundler",
 		// Workspace-local resolution of the sibling packages (published consumers use node_modules).
-		"paths": { "@std-ui/core": ["./core/src/index.ts"] },
+		"paths": { "@std-ui/core": ["./core/src/index.ts"], "@std-ui/ext": ["./ext/src/index.ts"] },
 		"checkJs": true,
 		"allowJs": true,
 		"skipLibCheck": true,

@@ -29,6 +29,24 @@ How validators are tracked (and why async checks are not): [`design.md`](./desig
 | [`pattern`](./pattern/README.md) | `pattern`, `email` | `patternMismatch`, `typeMismatch` |
 | [`manual`](./manual/README.md) | `manualValidator` | `customError` |
 | [`async`](./async/README.md) | `asyncValidator` (pending state, `deps`) | any |
+| [`when`](./when/README.md) | `when` (conditional wrapper) | none |
+
+## Enabling conditionally
+
+`when(enabled, validator | validators[])` applies validators only while `enabled()` (a signal,
+computed or `() => boolean`) is true. Disabled means no errors, not pending, and the validator is
+not called (an async one starts no request). `null` means always enabled. The `flag` tag is not
+kept, since the constraint is conditional.
+
+```ts
+form.vat.check.validators.set([required(), when(isCompany, [minLength(8), pattern(/^[A-Z]{2}/)])]);
+```
+
+To switch off a whole node's own validation, set `node.check.enabled.set(false)` (default `true`);
+then `valid.own` is true and `errors` is empty. Descendants keep their own `enabled`.
+
+With `formUi` on the tree, a node whose `formUi.disabled()` is true (own or inherited from an
+ancestor) is treated the same way, like a native disabled control.
 
 Built-ins use the `ValidityState` flag names (as accepted by `ElementInternals.setValidity()`) for
 `flag`, and treat empty values as valid so `required` stays the only rule about presence.

@@ -36,6 +36,12 @@ export interface Validation<T> {
 	/** Validators for this node's own value; replace them with `validators.set([...])`. */
 	readonly validators: Signal<Validator<T>[]>;
 	/**
+	 * Switch for this node's own validation, default `true`. While `false` its validators are not run:
+	 * no own errors, not pending, so `valid.own` is true (like a disabled form control). Descendants
+	 * are unaffected; they keep their own `enabled`.
+	 */
+	readonly enabled: Signal<boolean>;
+	/**
 	 * Tracked errors from this node's own validators only (`[]` when valid). `errors.all` lists the
 	 * errors of this node and all descendants, each with its path below this node (post-order: each
 	 * child's subtree, deepest first, then this node's own errors).
@@ -99,6 +105,8 @@ function attach(node: object): void {
 			n.shallow?.(); // tracked: which members exist
 			return childEntries(n) as Entries;
 		},
+		// Duck-typed link to the form UI feature (when present): disabled nodes are not validated.
+		() => !!(n as { formUi?: { disabled(): boolean } }).formUi?.disabled(),
 	);
 }
 
@@ -112,10 +120,15 @@ const sameErrors = (a: ValidationError[], b: ValidationError[]): boolean =>
 export function createValidation<T>(
 	read: () => T,
 	children: () => readonly (readonly [string | number, ItemNode<unknown>])[] = () => [],
+	suppressed?: () => boolean,
 ): Validation<T> {
 	const validators = signal<Validator<T>[]>([], { equals: () => false });
+	const enabled = signal(true);
+	// Off when switched off, or (default) when the node's form UI says it is disabled.
+	const off = () => !enabled() || !!suppressed?.();
 	const ownErrors = computed<ValidationError[]>(
 		() => {
+			if (off()) return [];
 			const value = read();
 			const out: ValidationError[] = [];
 			for (const validate of validators()) {
@@ -129,6 +142,7 @@ export function createValidation<T>(
 		{ equals: sameErrors },
 	);
 	const pendingOwn = computed(() => {
+		if (off()) return false;
 		const value = read();
 		let any = false;
 		// No early exit: every pending() call also (re)starts that validator's request for `value`.
@@ -162,7 +176,7 @@ export function createValidation<T>(
 		return out;
 	});
 	const errors = Object.assign(ownErrors, { all: allErrors });
-	return { validators, errors, pending, valid };
+	return { validators, enabled, errors, pending, valid };
 }
 
 type Entries = readonly (readonly [string | number, ItemNode<unknown>])[];
@@ -214,14 +228,14 @@ function errorsOf(child: ItemNode<unknown>): PathError[] {
  * cached. `read` / `children` are the same arguments as for `createValidation`. Parent aggregates
  * look through unbuilt nodes, so reading a parent's `valid` etc. does not build its descendants.
  */
-export function attachCheck<T>(node: object, read: () => T, children?: () => Entries): void {
+export function attachCheck<T>(node: object, read: () => T, children?: () => Entries, suppressed?: () => boolean): void {
 	if ((node as { [STATE]?: CheckState })[STATE]) return; // already has `check`
 	const state: CheckState = { children };
 	(node as { [STATE]?: CheckState })[STATE] = state; // plain assignment: far cheaper than defineProperty
 	Object.defineProperty(node, 'check', {
 		get: () => {
 			if (!state.built) {
-				state.built = createValidation(read, children);
+				state.built = createValidation(read, children, suppressed);
 				builtVersion.set(builtVersion.peek() + 1);
 			}
 			return state.built;

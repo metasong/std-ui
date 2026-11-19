@@ -16,7 +16,10 @@ const dirname = fileURLToPath(new URL('.', import.meta.url));
 export default defineConfig({
 	root: dirname,
 	resolve: {
-		alias: { '@std-ui/core': fileURLToPath(new URL('../core/src/index.ts', import.meta.url)) },
+		alias: {
+			'@std-ui/core': fileURLToPath(new URL('../core/src/index.ts', import.meta.url)),
+			'@std-ui/ext': fileURLToPath(new URL('../ext/src/index.ts', import.meta.url)),
+		},
 	},
 	base: './',
 	build: {
