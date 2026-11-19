@@ -1,5 +1,5 @@
 // Body of the bind demo: each section wrapped in `<code-preview>` (section source + helper components as tabs).
-import { t, tag, UIElement } from '../../core/src/index.js';
+import { t, tag, UIElement } from '@std-ui/core';
 import '../shared/code-preview.js';
 import form from './sections/bind/form-section.ts?raw';
 import custom from './sections/bind/custom-section.ts?raw';

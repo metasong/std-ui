@@ -1,5 +1,5 @@
 // Demonstrates: `mapByKey` — keyed list reconciliation when the list store changes order.
-import { tag, t, UIElement, mapByKey, state } from '../../../core/src/index.js';
+import { tag, t, UIElement, mapByKey, state } from '@std-ui/core';
 
 type Chore = { id: string; label: string };
 

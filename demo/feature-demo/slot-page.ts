@@ -1,5 +1,5 @@
 // Body of the slot demo: each section wrapped in `<code-preview>`.
-import { t, tag, UIElement } from '../../core/src/index.js';
+import { t, tag, UIElement } from '@std-ui/core';
 import '../shared/code-preview.js';
 import light from './sections/slot/light-section.ts?raw';
 import shadow from './sections/slot/shadow-section.ts?raw';

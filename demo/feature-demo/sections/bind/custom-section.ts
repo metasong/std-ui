@@ -1,5 +1,5 @@
 // Custom element property + default `level-change` event.
-import { bind, t, state, tag, UIElement } from '../../../../core/src/index.js';
+import { bind, t, state, tag, UIElement } from '@std-ui/core';
 import './knob-control.js';
 
 @tag('demo-bind-custom-section')

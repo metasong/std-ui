@@ -1,7 +1,7 @@
 // Pulls several features together in one realistic component: `state()` with a plain-object
 // value (tree-backed, per-leaf reactivity), list rendering, `computed`, and event handlers.
-import { tag, t, UIElement, state } from '../../../core/src/index.js';
-import { computed } from '../../../core/src/reactive/index.js';
+import { tag, t, UIElement, state } from '@std-ui/core';
+import { computed } from '@std-ui/core';
 
 interface Todo { id: number; text: string; done: boolean; }
 

@@ -1,6 +1,6 @@
 // Demonstrates: the `math` tag — composing MathML from small reusable *fragments* (no `<math>` ancestor in
 // each template string): fractions, roots, superscripts, sums, integrals and matrices, driven by live state.
-import { tag, t, math, state, UIElement } from '../../../core/src/index.js';
+import { tag, t, math, state, UIElement } from '@std-ui/core';
 
 // --- Reusable MathML fragments (each is parsed in the MathML namespace) -----------------------------
 const mi = (x: string) => math`<mi>${x}</mi>`;

@@ -1,7 +1,6 @@
 // Demonstrates: `@query()`/`@queryAll()` (light-DOM selector accessors) and `firstRendered()` +
 // `this.effect()` for imperatively patching a node outside the template's own re-render.
-import { tag, t, UIElement, state } from '../../../core/src/index.js';
-import { query, queryAll } from '../../../core/src/element/ui-element.js';
+import { tag, t, UIElement, state, query, queryAll } from '@std-ui/core';
 
 @tag('demo-query-section')
 export class DemoQuerySection extends UIElement {

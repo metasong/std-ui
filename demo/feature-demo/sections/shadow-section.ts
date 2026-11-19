@@ -1,6 +1,5 @@
 // Demonstrates: `static shadowRootOptions`, encapsulated styles, `@query()` against `renderRoot`.
-import { tag, t, UIElement, state } from '../../../core/src/index.js';
-import { query } from '../../../core/src/element/ui-element.js';
+import { tag, t, UIElement, state, query } from '@std-ui/core';
 
 @tag('demo-shadow-chip')
 export class DemoShadowChip extends UIElement {

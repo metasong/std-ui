@@ -1,6 +1,6 @@
 // Demonstrates: `classMap` / `styleMap` attribute directives, and `unsafeHtml`.
-import { tag, t, UIElement, unsafeHtml, state } from '../../../core/src/index.js';
-import { classMap, styleMap } from '../../../core/src/element/template/directives/index.js';
+import { tag, t, UIElement, unsafeHtml, state } from '@std-ui/core';
+import { classMap, styleMap } from '@std-ui/core';
 
 @tag('demo-directives-section')
 export class DemoDirectivesSection extends UIElement {

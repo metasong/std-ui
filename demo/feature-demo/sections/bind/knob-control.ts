@@ -1,5 +1,5 @@
 // Toy control for the bind demo: exposes `.level` and emits `level-change` on user edits only.
-import { tag } from '../../../../core/src/index.js';
+import { tag } from '@std-ui/core';
 
 @tag('demo-bind-knob')
 export class DemoBindKnob extends HTMLElement {

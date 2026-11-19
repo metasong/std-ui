@@ -1,8 +1,8 @@
 // formBind() = bind() + form UI: it mirrors a state's validator errors into the element's constraint
 // validation, and shows the state's `formUi` (touched / readonly / disabled) on the element.
 // Three targets: native controls, a plain FormElement (merged state) and a FormGroup (routed to inner controls).
-import { t, tag, UIElement, state } from '../../../../../core/src/index.js';
-import { check, formBind, formUi } from '../../../../../ext/src/index.js';
+import { t, tag, UIElement, state } from '@std-ui/core';
+import { check, formBind, formUi } from '@std-ui/ext';
 import './range-control.js';
 import './merged-control.js';
 

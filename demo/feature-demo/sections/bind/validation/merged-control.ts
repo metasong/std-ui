@@ -1,8 +1,8 @@
 // Plain `FormElement` with two bound properties and NO routing: errors of both properties are merged
 // into the host's single validity state (flags unioned, message grouped per property), anchored on
 // `validationAnchor` (an error icon after the inputs, visible once touched and invalid).
-import { t, tag } from '../../../../../core/src/index.js';
-import { FormElement } from '../../../../../ext/src/index.js';
+import { t, tag } from '@std-ui/core';
+import { FormElement } from '@std-ui/ext';
 
 type Key = 'first' | 'last';
 

@@ -7,7 +7,7 @@
 // It renders the links to the other demo pages itself (the current page is marked), a divider, and then the
 // slotted anchors. The anchor for the section in `location.hash` gets `aria-current`. Sticky positioning is
 // built in: put the element directly under `<body>` (not inside an `overflow` container).
-import { css, t, tag, UIElement, state } from '../../core/src/index.js';
+import { css, t, tag, UIElement, state } from '@std-ui/core';
 
 // Relative to any page one level below `demo/` (feature-demo/, integration-demo/, browser-bundle/).
 const pages = [

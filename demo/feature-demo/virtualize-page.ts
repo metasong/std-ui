@@ -1,5 +1,5 @@
 // Body of the virtualize demo: each section wrapped in `<code-preview>`.
-import { t, tag, UIElement } from '../../core/src/index.js';
+import { t, tag, UIElement } from '@std-ui/core';
 import '../shared/code-preview.js';
 import vertical from './sections/virtualize/vertical-section.ts?raw';
 import headers from './sections/virtualize/headers-section.ts?raw';

@@ -1,8 +1,8 @@
 // Demonstrates: event modifiers (`@click.once`, `.prevent`, `.stop`, `.self`, `.stop-immediate`)
 // and single-entry bindings (`class.name`, `style.prop`).
-import { tag, t, css, UIElement, state, withEventOptions } from '../../../core/src/index.js';
+import { tag, t, css, UIElement, state, withEventOptions } from '@std-ui/core';
 // Registers the `class.name` / `style.prop` bindings used below.
-import '../../../ext/src/index.js';
+import '@std-ui/ext';
 
 @tag('demo-bindings-section')
 export class DemoBindingsSection extends UIElement {

@@ -3,8 +3,8 @@
 //   - `flag()` reads the resolved value, `flag.own` writes this node's own flag
 //   - readonly / disabled: set when the node or any ancestor is; touched(): when the node or any descendant is
 //   - mark a whole subtree with `touchAll()`
-import { bind, css, t, tag, UIElement, state } from '../../../../../core/src/index.js';
-import { check, formBind, formUi } from '../../../../../ext/src/index.js';
+import { bind, css, t, tag, UIElement, state } from '@std-ui/core';
+import { check, formBind, formUi } from '@std-ui/ext';
 
 const form = state({
 	account: { email: 'ada@example.com', name: 'Ada' },

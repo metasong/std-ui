@@ -1,5 +1,5 @@
 // Demonstrates: the `svg` tag — embedding SVG *fragments* (no `<svg>` ancestor in the template string).
-import { tag, t, svg, state, UIElement } from '../../../core/src/index.js';
+import { tag, t, svg, state, UIElement } from '@std-ui/core';
 
 const xs = [40, 120, 200];
 

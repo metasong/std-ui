@@ -1,7 +1,7 @@
 // FormGroup with two inner inputs: exposes `.start` / `.end`, emits `start-change` / `end-change`,
 // and routes each bound property's validation errors to its own inner input (`validationErrorTarget`).
-import { t, tag } from '../../../../../core/src/index.js';
-import { FormGroup } from '../../../../../ext/src/index.js';
+import { t, tag } from '@std-ui/core';
+import { FormGroup } from '@std-ui/ext';
 
 @tag('demo-bind-range')
 export class DemoBindRange extends FormGroup {
