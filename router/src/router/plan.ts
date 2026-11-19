@@ -11,6 +11,7 @@ const MAX_REDIRECTS = 10;
  * goes ahead (matches are whatever `to` resolves to) so `errorElement` can render.
  */
 export type Plan = { kind: 'go'; to: RouteLocation; matches: RouteMatch[]; error?: unknown } | { kind: 'block' };
+export type GoPlan = Extract<Plan, { kind: 'go' }>;
 
 /** Marks navigations the router started itself, so `beforeLeave` hooks do not run twice. */
 export const REDIRECT_INFO = { stdUiRedirect: true } as const;

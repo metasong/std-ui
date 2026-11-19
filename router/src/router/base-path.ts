@@ -16,4 +16,9 @@ export class BasePath {
 	href(appPath: string): string {
 		return this.#base + appPath;
 	}
+
+	/** Full URL (path + search + hash) for an app location. */
+	url(loc: { pathname: string; search: string; hash: string }): string {
+		return this.href(loc.pathname) + loc.search + loc.hash;
+	}
 }

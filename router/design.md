@@ -121,7 +121,9 @@ State is signals (`location`, `matches`, `data`, `error`, `status`, computed `pa
 
 | File | Step / role |
 |---|---|
-| `router.ts` | Signals, public API, the two entry points, and wiring Plan → Load → Commit. |
+| `router.ts` | Public facade and the two entry points (browser `navigate` event, `start`/route changes). No logic of its own beyond wiring. |
+| `pipeline.ts` | Plan → Load → Commit steps and the "latest transaction wins" rule. Browser-agnostic. |
+| `state.ts` | The signals; `commit` is their only writer. |
 | `plan.ts` | **Plan**: follows redirects to a final `go` / `block`; `REDIRECT_INFO` marker. |
 | `guards.ts` | One check of a location: redirect attrs, `beforeLeave`, route guards → `Verdict`. |
 | `loader.ts` | **Load**. |
