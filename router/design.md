@@ -2,6 +2,37 @@
 
 Client-side router for std-ui. Standards-first: **Navigation API**, signals, custom elements.
 
+## Mental model
+
+**A navigation is a transaction: Plan → Load → Commit.**
+
+```mermaid
+flowchart LR
+    A["Browser navigate event"] --> P
+    B["start()"] --> P
+    C["Route added/removed"] --> P
+
+    subgraph before["Before the URL commits"]
+        P["PLAN<br/>May it happen?<br/>Where does it end?<br/>(follows redirects)"]
+        L["LOAD<br/>lazy() + load()<br/>for planned routes"]
+        P --> L
+    end
+
+    subgraph after["After"]
+        M["COMMIT<br/>Publish to signals:<br/>location, matches,<br/>data, error, status"]
+    end
+
+    L --> M
+```
+
+- **Plan** (`plan.ts`): redirects, `beforeLeave` hooks, route guards. Result: `go(to, matches)` or `block`. `to` differs from the request when a redirect was followed.
+- **Load** (`loader.ts`): `lazy()` then `load()` per matched route, in parallel.
+- **Commit** (`Router#commit`): the only place that writes the router's signals.
+- **Transaction** (`transaction.ts`): one attempt, one abort signal. A newer navigation, `stop()`, or the browser aborting the event makes it *stale*; a stale transaction never commits.
+- **Entry points**, all running the same steps: (1) the browser `navigate` event (Plan in `precommitHandler`, Load + Commit in `handler`); (2) `start()` and route registration (`#reresolve`, no event).
+
+Everything else is a helper for one step: `RouteTable` (what routes exist), `BasePath`, `LeaveHooks`, the matcher, and the precommit shim (platform gap).
+
 ## Decisions
 
 | Area | Decision | Why |
@@ -17,15 +48,15 @@ Client-side router for std-ui. Standards-first: **Navigation API**, signals, cus
 
 - **No link interception.** The `navigate` event fires for `<a>` clicks, form GETs, `location` changes, back/forward and `navigation.navigate()`. The router calls `event.intercept({ handler })` for same-origin, non-hash, non-download navigations inside `base`.
 - **Scroll and focus** are handled by the browser when the intercept handler's promise settles. No custom scroll restoration.
-- **Cancellation**: `event.signal` aborts when a newer navigation starts. The router ties its own `AbortController` to it and drops stale results by sequence number.
-- **Redirects** are `navigation.navigate(url, { history: 'replace' })` from inside the handler, so the redirected-from URL does not stay in history.
+- **Cancellation**: `event.signal` aborts when a newer navigation starts. Each `Transaction` links its own signal to it, so "stale" is just `signal.aborted`.
+- **Redirects** use `controller.redirect(url, { history: 'replace' })` in `precommitHandler`. Redirects the router starts without an event (`start()`, route changes) use `navigation.navigate(..., { history: 'replace', info })`; the `info` marker (`REDIRECT_INFO`) tells the next plan to skip `beforeLeave` hooks.
 - **Programmatic API** (`router.navigate/back/forward`) is a thin wrapper over `navigation.*`.
 
 ### Guards and `precommitHandler`
 
-Redirect attributes, `beforeLeave` hooks and route guards run in one place: the router's `precommitHandler` (`Router#check`). A block rejects, which cancels the navigation before the URL commits. A redirect uses `controller.redirect()` and re-checks the target (hops capped). The router contains no other path.
+Redirect attributes, `beforeLeave` hooks and route guards run in one place: the router's `precommitHandler`, as the Plan step (`planNavigation`). A block rejects, which cancels the navigation before the URL commits. A redirect is followed inside Plan (hops capped), then applied once with `controller.redirect()`. The router contains no other path.
 
-Native support is limited (checked Nov 2026): Chrome/Edge 146+, Firefox 148+, **no Safari**. `navigation/precommit-shim.ts` (`withPrecommit`) papers over that so router code is written only against the native API:
+Native support is limited (checked Nov 2026): Chrome/Edge 146+, Firefox 148+, **no Safari**. `shim/precommit-shim.ts` (`withPrecommit`) papers over that so router code is written only against the native API:
 
 | Engine | What happens |
 |---|---|
@@ -78,32 +109,29 @@ interface RouteDef {
 Ranking among siblings: `index` first, then per segment static > `:param` > `*`; ties keep declaration order.
 All paths given to the router API (`navigate`, `redirect`, guard results) are **app-relative** (no `base`). `base` is added and stripped at the Navigation API boundary.
 
-## Pipeline (`Router#resolve`)
+## Pipeline in detail
 
-1. Abort the previous navigation, bump sequence, `status = 'loading'`.
-2. Match the pathname into a root-to-leaf chain (empty chain = not found).
-3. `redirect` on any matched route → replace-navigate and stop.
-4. Guards root → leaf (awaited in order). `string` → redirect, `false` → revert and stop.
-5. `lazy()` then `load()` for every matched route in parallel.
-6. If superseded, stop. Otherwise commit `location`, `matches`, `data`, `error`, `status` and `document.title`.
-7. A thrown guard/loader error commits with `status = 'error'` and `error` set so `errorElement` can render.
+1. **Plan** (`planNavigation`, loops over redirects): match the pathname into a root-to-leaf chain (empty chain = not found); `beforeLeave` hooks run first (first hop only, even when the target is a redirect); a matched `redirect` follows its target; route guards run root to leaf (`string` redirects, `false` blocks). Anything that throws (guard, hook, redirect limit) becomes `go` with `error` set, so the navigation still commits and `errorElement` renders. A loop error keeps the requested URL.
+2. **Load**: `lazy()` then `load()` for every planned route in parallel; skipped when Plan already carries an error. A thrown error is kept, not rethrown.
+3. **Commit**, unless stale: publish `location`, `matches`, `data`, `error`, `status` and `document.title`. An error commits with `status = 'error'`. In dev, an empty match warns once per path (`dev/warn.ts`). A navigation that ends without committing (blocked) settles `status` back to the committed state, so `'loading'` never sticks.
 
 State is signals (`location`, `matches`, `data`, `error`, `status`, computed `params`).
 
 ## Module layout (`src/router/`)
 
-| File | Responsibility |
+| File | Step / role |
 |---|---|
-| `router.ts` | Reactive state (signals), Navigation API wiring, publishing a resolved navigation. |
-| `intercept.ts` | `interceptWithGuards`: the `precommitHandler` (check, redirect loop, block) and `handler` split. |
-| `route-table.ts` | Config + runtime-registered routes; notifies on change. |
-| `base-path.ts` | `base` stripping/adding. |
-| `guards.ts` | `checkNavigation`: redirect attrs, `beforeLeave`, route guards → `Verdict`. |
+| `router.ts` | Signals, public API, the two entry points, and wiring Plan → Load → Commit. |
+| `plan.ts` | **Plan**: follows redirects to a final `go` / `block`; `REDIRECT_INFO` marker. |
+| `guards.ts` | One check of a location: redirect attrs, `beforeLeave`, route guards → `Verdict`. |
+| `loader.ts` | **Load**. |
+| `transaction.ts` | One attempt and its abort signal (stale = aborted). |
+| `route-table.ts` | Which routes exist (config + runtime-registered); notifies on change. |
 | `leave-hooks.ts` | `beforeLeave` registry and the `beforeunload` prompt. |
-| `loader.ts` | `lazy()` + `load()` for matched routes. |
+| `base-path.ts` | `base` stripping/adding. |
 | `abort.ts` | AbortError helpers. |
 
-Matching lives in `match/`, the Navigation API view and shim in `navigation/`, test support in `dev/`.
+Matching lives in `match/`, the Navigation API type view in `navigation/`, the `precommitHandler` shim in `shim/`, test support in `dev/`.
 
 ## Elements
 
@@ -138,7 +166,8 @@ jsdom has no Navigation API. `createMemoryNavigation()` implements the subset in
 - [x] `beforeLeave` hooks; `precommitHandler` when supported (revert path otherwise)
 - [x] `beforeunload` guard for tab close / reload (`beforeLeave(hook, { unload })`)
 - [ ] `@routeParam` / `@searchParam` decorators (needs `ext`; avoid the name `query`, taken by DOM query decorators)
-- [ ] Dev warnings (unmatched route, redirect loop), live-region announcer, view transitions
+- [x] Error handling in Plan (guard/hook/redirect-limit errors commit an error state); `status` never sticks on `'loading'`; dev warning for unmatched paths; package build verified (`tsc` + bundles)
+- [ ] Live-region announcer, view transitions
 - [ ] Demo section under `demo/feature-demo/sections/router/`
 - [ ] Real-browser test run (vitest browser mode) to validate guard revert and supersede against a real Navigation API
 - [ ] Optional `URLPattern` backend; context-based router lookup

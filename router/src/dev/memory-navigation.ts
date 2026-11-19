@@ -39,6 +39,7 @@ export function createMemoryNavigation(initialUrl = '/', origin = 'http://router
 		url: string,
 		state: unknown,
 		commit: (href: string, state: unknown, forceReplace: boolean) => void,
+		info?: unknown,
 	): Settled {
 		const href = new URL(url, entries[idx]!.url!).href;
 		pending?.abort();
@@ -52,6 +53,7 @@ export function createMemoryNavigation(initialUrl = '/', origin = 'http://router
 			downloadRequest: null,
 			formData: null,
 			navigationType: type,
+			info,
 			destination: { url: href, getState: () => state },
 			signal: ctrl.signal,
 			intercept(options?: { handler?: Handler; precommitHandler?: PrecommitHandler }) {
@@ -104,17 +106,23 @@ export function createMemoryNavigation(initialUrl = '/', origin = 'http://router
 	};
 
 	const nav = Object.assign(bus, {
-		navigate(url: string, options: { history?: HistoryMode; state?: unknown } = {}) {
+		navigate(url: string, options: { history?: HistoryMode; state?: unknown; info?: unknown } = {}) {
 			const replace = options.history === 'replace';
-			return run(replace ? 'replace' : 'push', url, options.state, (href, state, forceReplace) => {
-				const entry = makeEntry(href, state);
-				if (replace || forceReplace) entries[idx] = entry;
-				else {
-					entries.splice(idx + 1);
-					entries.push(entry);
-					idx++;
-				}
-			});
+			return run(
+				replace ? 'replace' : 'push',
+				url,
+				options.state,
+				(href, state, forceReplace) => {
+					const entry = makeEntry(href, state);
+					if (replace || forceReplace) entries[idx] = entry;
+					else {
+						entries.splice(idx + 1);
+						entries.push(entry);
+						idx++;
+					}
+				},
+				options.info,
+			);
 		},
 		back: () => traverse(idx - 1),
 		forward: () => traverse(idx + 1),

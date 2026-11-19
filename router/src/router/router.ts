@@ -1,5 +1,5 @@
 import { computed, signal, type Computed, type Signal } from '@std-ui/core';
-import { withPrecommit } from '../navigation/precommit-shim.js';
+import { withPrecommit } from '../shim/precommit-shim.js';
 import type { NavigateEventLike, NavigationLike } from '../navigation/types.js';
 import type {
 	BeforeLeaveHook,
@@ -10,13 +10,14 @@ import type {
 	RouteMatch,
 	RouterStatus,
 } from '../types.js';
-import { swallowAbort } from './abort.js';
+import { warnNotFound } from '../dev/warn.js';
+import { abortError, swallowAbort } from './abort.js';
 import { BasePath } from './base-path.js';
-import { checkNavigation } from './guards.js';
-import { interceptWithGuards } from './intercept.js';
 import { LeaveHooks } from './leave-hooks.js';
 import { loadMatches } from './loader.js';
+import { isRedirect, planNavigation, REDIRECT_INFO, type Plan } from './plan.js';
 import { RouteTable } from './route-table.js';
+import { Transaction } from './transaction.js';
 
 export interface RouterOptions {
 	routes?: RouteDef[];
@@ -26,7 +27,13 @@ export interface RouterOptions {
 	navigation?: NavigationLike;
 }
 
-/** Reactive state and navigation wiring; matching, guards, loading and hooks live in sibling modules. */
+type GoPlan = Extract<Plan, { kind: 'go' }>;
+
+/**
+ * Every navigation is a transaction: Plan (may it happen, and where does it end?) → Load (lazy,
+ * load) → Commit (publish to the signals). This class owns the state and the entry points
+ * (browser `navigate` event, `start`, route changes); each entry point just runs those steps.
+ */
 export class Router {
 	readonly location: Signal<RouteLocation>;
 	readonly matches: Signal<RouteMatch[]> = signal<RouteMatch[]>([]);
@@ -42,9 +49,7 @@ export class Router {
 	readonly #leave = new LeaveHooks();
 	#started = false;
 	#stopListening: (() => void) | null = null;
-	#ctrl: AbortController | null = null;
-	#seq = 0;
-	#redirecting = false;
+	#tx: Transaction | null = null;
 	#invalidateQueued = false;
 
 	constructor(options: RouterOptions = {}) {
@@ -56,6 +61,8 @@ export class Router {
 		this.location = signal(this.#readLocation());
 		this.params = computed(() => this.matches().at(-1)?.params ?? {});
 	}
+
+	// ---- public API ----
 
 	get routes(): RouteDef[] {
 		return this.#table.all;
@@ -109,7 +116,7 @@ export class Router {
 		this.#nav.addEventListener('navigate', onNavigate);
 		this.#stopListening = () => this.#nav.removeEventListener('navigate', onNavigate);
 		this.#leave.setActive(true);
-		return this.#resolve(this.#readLocation());
+		return this.#reresolve();
 	}
 
 	stop(): void {
@@ -117,7 +124,127 @@ export class Router {
 		this.#leave.setActive(false);
 		this.#stopListening?.();
 		this.#stopListening = null;
-		this.#ctrl?.abort();
+		this.#tx?.abort();
+	}
+
+	// ---- entry point 1: the browser navigates (link click, back/forward, navigation.navigate) ----
+
+	#onNavigate(e: NavigateEventLike): void {
+		if (!e.canIntercept || e.hashChange || e.downloadRequest !== null || e.formData) return;
+		const url = new URL(e.destination.url);
+		const pathname = this.toAppPath(url.pathname);
+		if (pathname === null) return;
+		const to: RouteLocation = { pathname, search: url.search, hash: url.hash, state: e.destination.getState() };
+
+		let tx!: Transaction;
+		let plan!: GoPlan;
+		e.intercept({
+			// Before the URL commits: a block cancels the navigation, a redirect changes its target.
+			precommitHandler: async (controller) => {
+				tx = this.#begin(e.signal);
+				const planned = await this.#plan(to, !isRedirect(e.info), tx);
+				if (!planned) throw abortError();
+				if (planned.kind === 'block') {
+					this.#settle(tx);
+					throw abortError();
+				}
+				plan = planned;
+				if (plan.to !== to) {
+					controller.redirect(this.href(plan.to.pathname) + plan.to.search + plan.to.hash, {
+						history: 'replace',
+						state: to.state,
+						info: REDIRECT_INFO,
+					});
+				}
+			},
+			// After the URL commits: load and publish.
+			handler: () => this.#load(plan, tx),
+		});
+	}
+
+	// ---- entry point 2: no browser event (start, route registered/removed) ----
+
+	// Route registration is bursty (one per <std-route>); coalesce into a single re-resolve.
+	#invalidate(): void {
+		if (!this.#started || this.#invalidateQueued) return;
+		this.#invalidateQueued = true;
+		queueMicrotask(() => {
+			this.#invalidateQueued = false;
+			if (this.#started) void this.#reresolve();
+		});
+	}
+
+	async #reresolve(): Promise<void> {
+		const tx = this.#begin();
+		const requested = this.#readLocation();
+		const plan = await this.#plan(requested, false, tx);
+		if (!plan) return;
+		if (plan.kind === 'block') return this.#settle(tx);
+		if (plan.to !== requested) {
+			// A redirect with no navigation event to attach it to, so navigate; that event re-plans without leave hooks.
+			void swallowAbort(
+				this.#nav.navigate(this.href(plan.to.pathname) + plan.to.search + plan.to.hash, {
+					history: 'replace',
+					state: plan.to.state,
+					info: REDIRECT_INFO,
+				}).finished,
+			);
+			return;
+		}
+		await this.#load(plan, tx);
+	}
+
+	// ---- the three steps ----
+
+	/** Starting a transaction supersedes the previous one. */
+	#begin(browserSignal?: AbortSignal): Transaction {
+		this.#tx?.abort();
+		return (this.#tx = new Transaction(browserSignal));
+	}
+
+	/** Plan: may this navigation happen, and where does it end? */
+	#plan(to: RouteLocation, leaving: boolean, tx: Transaction): Promise<Plan | null> {
+		return planNavigation({
+			routes: this.routes,
+			leave: this.#leave,
+			from: this.location.peek(),
+			to,
+			leaving,
+			signal: tx.signal,
+			isStale: () => tx.stale,
+		});
+	}
+
+	/** Load, then Commit. A superseded transaction never commits. */
+	async #load(plan: GoPlan, tx: Transaction): Promise<void> {
+		this.status.set('loading');
+		let results: ReadonlyMap<RouteDef, unknown> = new Map();
+		let error = plan.error; // Plan failed: skip loading, commit the error
+		if (error === undefined) {
+			try {
+				results = await loadMatches(plan.matches, plan.to, tx.signal);
+			} catch (err) {
+				error = err;
+			}
+		}
+		if (tx.stale) return;
+		this.#commit(plan, results, error);
+	}
+
+	/** A navigation that ends without committing leaves the status as the committed state says. */
+	#settle(tx: Transaction): void {
+		if (this.#tx === tx) this.status.set(this.error.peek() === undefined ? 'idle' : 'error');
+	}
+
+	#commit(plan: GoPlan, results: ReadonlyMap<RouteDef, unknown>, error: unknown): void {
+		this.location.set(plan.to);
+		this.matches.set(plan.matches);
+		this.data.set(results);
+		this.error.set(error);
+		this.status.set(error === undefined ? 'idle' : 'error');
+		if (plan.matches.length === 0) warnNotFound(plan.to.pathname);
+		const title = [...plan.matches].reverse().find((m) => m.route.title)?.route.title;
+		if (title !== undefined && typeof document !== 'undefined') document.title = title;
 	}
 
 	#readLocation(): RouteLocation {
@@ -129,92 +256,6 @@ export class Router {
 			hash: u.hash,
 			state: entry?.getState(),
 		};
-	}
-
-	// Route registration is bursty (one per <std-route>); coalesce into a single re-resolve.
-	#invalidate(): void {
-		if (!this.#started || this.#invalidateQueued) return;
-		this.#invalidateQueued = true;
-		queueMicrotask(() => {
-			this.#invalidateQueued = false;
-			if (this.#started) void this.#resolve(this.#readLocation());
-		});
-	}
-
-	#check(to: RouteLocation, signal: AbortSignal, leaving: boolean, isStale: () => boolean) {
-		return checkNavigation({
-			routes: this.routes,
-			leave: this.#leave,
-			from: this.location.peek(),
-			to,
-			signal,
-			leaving,
-			isStale,
-		});
-	}
-
-	#onNavigate(e: NavigateEventLike): void {
-		if (!e.canIntercept || e.hashChange || e.downloadRequest !== null || e.formData) return;
-		const url = new URL(e.destination.url);
-		const pathname = this.toAppPath(url.pathname);
-		if (pathname === null) return;
-		const to: RouteLocation = { pathname, search: url.search, hash: url.hash, state: e.destination.getState() };
-
-		// A redirect re-enters here as a new navigation; its leave hooks already ran for the original.
-		const leaving = !this.#redirecting;
-		this.#redirecting = false;
-
-		interceptWithGuards(e, to, leaving, {
-			check: (t, signal, leave, isStale) => this.#check(t, signal, leave, isStale),
-			href: (path) => this.href(path),
-			resolve: (t, approved, signal) => this.#resolve(t, approved, signal),
-		});
-	}
-
-	/** `approved` comes from the precommit phase; without it (initial/re-resolve) the checks run here. */
-	async #resolve(to: RouteLocation, approved?: RouteMatch[], navSignal?: AbortSignal): Promise<void> {
-		this.#ctrl?.abort();
-		const ctrl = (this.#ctrl = new AbortController());
-		navSignal?.addEventListener('abort', () => ctrl.abort());
-		const seq = ++this.#seq;
-		const stale = (): boolean => seq !== this.#seq;
-		this.status.set('loading');
-
-		let matches: RouteMatch[] = [];
-		let results: ReadonlyMap<RouteDef, unknown> = new Map();
-		let error: unknown;
-
-		try {
-			if (approved) matches = approved;
-			else {
-				const verdict = await this.#check(to, ctrl.signal, false, stale);
-				if (!verdict) return;
-				if (verdict.kind === 'redirect') return this.#redirect(verdict.path, to);
-				if (verdict.kind === 'block') {
-					this.status.set('idle');
-					return;
-				}
-				matches = verdict.matches;
-			}
-			results = await loadMatches(matches, to, ctrl.signal);
-			if (stale()) return;
-		} catch (err) {
-			if (stale()) return;
-			error = err;
-		}
-
-		this.location.set(to);
-		this.matches.set(matches);
-		this.data.set(results);
-		this.error.set(error);
-		this.status.set(error === undefined ? 'idle' : 'error');
-		const title = [...matches].reverse().find((m) => m.route.title)?.route.title;
-		if (title !== undefined && typeof document !== 'undefined') document.title = title;
-	}
-
-	#redirect(path: string, from: RouteLocation): void {
-		this.#redirecting = true;
-		void swallowAbort(this.#nav.navigate(this.href(path), { history: 'replace', state: from.state }).finished);
 	}
 }
 

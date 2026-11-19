@@ -9,7 +9,7 @@ export type PrecommitControllerLike = Pick<NavigationPrecommitController, 'redir
 export type NavigateEventLike = Event &
 	Pick<
 		NavigateEvent,
-		'canIntercept' | 'hashChange' | 'downloadRequest' | 'formData' | 'navigationType' | 'signal' | 'intercept'
+		'canIntercept' | 'hashChange' | 'downloadRequest' | 'formData' | 'navigationType' | 'signal' | 'intercept' | 'info'
 	> & {
 		readonly destination: Pick<NavigationDestination, 'url' | 'getState'>;
 	};

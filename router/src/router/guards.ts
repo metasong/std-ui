@@ -27,13 +27,14 @@ export async function checkNavigation(input: CheckInput): Promise<Verdict | null
 	const { routes, leave, from, to, signal, leaving, isStale } = input;
 	const matches = matchRoutes(routes, to.pathname) ?? [];
 
-	for (const m of matches) {
-		if (m.route.redirect !== undefined) return { kind: 'redirect', path: fillParams(m.route.redirect, m.params) };
-	}
+	// Leave hooks first: they guard leaving the current page, whatever the target turns out to be.
 	if (leaving) {
 		const result = await leave.run({ from, to, signal }, isStale);
 		if (result === 'stale') return null;
 		if (result === 'block') return { kind: 'block' };
+	}
+	for (const m of matches) {
+		if (m.route.redirect !== undefined) return { kind: 'redirect', path: fillParams(m.route.redirect, m.params) };
 	}
 	for (const m of matches) {
 		const verdict = await m.route.guard?.(routeContext(to, m, signal));

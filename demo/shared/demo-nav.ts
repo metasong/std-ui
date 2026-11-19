@@ -17,6 +17,7 @@ const pages = [
 	{ href: '../feature-demo/virtualize.html', label: 'virtualize' },
 	{ href: '../feature-demo/slot.html', label: 'slot' },
 	{ href: '../integration-demo/index.html', label: 'integration' },
+	{ href: '../router-demo/index.html', label: 'router' },
 	{ href: '../browser-bundle/index.html', label: 'browser bundle' },
 ] as const;
 

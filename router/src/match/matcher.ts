@@ -29,15 +29,17 @@ function segmentsOf(route: RouteDef): Segment[] {
 }
 
 const RANK = { static: 3, param: 2, splat: 0 } as const;
+// A route that has already ended is an exact fit, so it beats a param or splat that could still absorb more.
+const ENDED = 2.5;
 
-// Static beats param beats splat, segment by segment; ties keep declaration order (stable sort).
+// Static beats ended beats param beats splat, segment by segment; ties keep declaration order (stable sort).
 function compareRoutes(a: RouteDef, b: RouteDef): number {
 	if (a.index !== b.index) return a.index ? -1 : 1;
 	const sa = segmentsOf(a);
 	const sb = segmentsOf(b);
 	for (let i = 0; i < Math.max(sa.length, sb.length); i++) {
-		const ra = sa[i] ? RANK[sa[i]!.kind] : -1;
-		const rb = sb[i] ? RANK[sb[i]!.kind] : -1;
+		const ra = sa[i] ? RANK[sa[i]!.kind] : ENDED;
+		const rb = sb[i] ? RANK[sb[i]!.kind] : ENDED;
 		if (ra !== rb) return rb - ra;
 	}
 	return 0;

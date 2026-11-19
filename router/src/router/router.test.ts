@@ -169,6 +169,66 @@ describe('Router', () => {
 		expect(router.matches()).toHaveLength(0);
 	});
 
+	describe('failures', () => {
+		const tick = () => new Promise((r) => setTimeout(r, 0));
+
+		it('a throwing guard commits an error state instead of failing the navigation', async () => {
+			const bad: RouteDef = { path: 'bad', guard: () => { throw new Error('nope'); } };
+			const { router } = setup([bad, { path: '' }]);
+			await router.start();
+			await router.navigate('/bad');
+			expect(router.status()).toBe('error');
+			expect((router.error() as Error).message).toBe('nope');
+			expect(router.location().pathname).toBe('/bad');
+			expect(router.matches()).toHaveLength(1);
+		});
+
+		it('a throwing beforeLeave hook commits an error state', async () => {
+			const { router } = setup([{ path: '' }, { path: 'a' }]);
+			await router.start();
+			router.beforeLeave(() => { throw new Error('hook'); });
+			await router.navigate('/a');
+			expect(router.status()).toBe('error');
+		});
+
+		it('a redirect loop ends in an error state, not an unhandled rejection', async () => {
+			const { router } = setup([{ path: 'a', redirect: '/b' }, { path: 'b', redirect: '/a' }], '/');
+			await router.start();
+			await router.navigate('/a');
+			expect(router.status()).toBe('error');
+			expect((router.error() as Error).message).toMatch(/Too many redirects/);
+		});
+
+		it('start() on a looping URL resolves with an error state', async () => {
+			const { router } = setup([{ path: 'a', redirect: '/b' }, { path: 'b', redirect: '/a' }], '/a');
+			await router.start();
+			expect(router.status()).toBe('error');
+		});
+
+		it('a navigation superseded by a blocked one does not leave status stuck on loading', async () => {
+			const slow: RouteDef = { path: 'slow', load: () => new Promise<void>((r) => setTimeout(r, 20)) };
+			const blocked: RouteDef = { path: 'blocked', guard: () => false };
+			const { router } = setup([{ path: '' }, slow, blocked]);
+			await router.start();
+			const first = router.navigate('/slow');
+			await tick();
+			await router.navigate('/blocked');
+			await first;
+			await new Promise((r) => setTimeout(r, 40));
+			expect(router.status()).toBe('idle');
+		});
+
+		it('warns once per path when nothing matches', async () => {
+			const warn = vi.spyOn(console, 'warn').mockImplementation(() => {});
+			const { router } = setup([{ path: '' }]);
+			await router.start();
+			await router.navigate('/definitely-missing-route');
+			await router.navigate('/definitely-missing-route?x=1');
+			expect(warn.mock.calls.filter((c) => String(c[0]).includes('definitely-missing-route'))).toHaveLength(1);
+			warn.mockRestore();
+		});
+	});
+
 	describe('beforeunload guard', () => {
 		const fire = (): boolean => {
 			const e = new Event('beforeunload', { cancelable: true });

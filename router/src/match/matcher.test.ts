@@ -23,6 +23,16 @@ describe('matchRoutes', () => {
 		expect(matchRoutes([splat, param, stat], '/x/y')?.[0]?.route).toBe(splat);
 	});
 
+	it('an empty path beats a splat, and an exact path beats a param or splat that could also match', () => {
+		const home = r('/');
+		const users = r('users');
+		const param = r(':id');
+		const splat = r('*');
+		expect(matchRoutes([splat, home], '/')![0]!.route).toBe(home);
+		expect(matchRoutes([splat, param, users], '/users')![0]!.route).toBe(users);
+		expect(matchRoutes([splat, r('a/:b?'), r('a')], '/a')![0]!.route.path).toBe('a');
+	});
+
 	it('nests children, accumulating params', () => {
 		const child = r(':id');
 		const parent = r('users', { children: [child] });
