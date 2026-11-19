@@ -1,5 +1,5 @@
 import { tag, UIElement } from '@std-ui/core';
-import { countAncestors, findRouter } from './dom.js';
+import { countAncestors, findRouterSignal } from './dom.js';
 import type { RouteDef, RouteMatch } from '../types.js';
 
 /** Renders the match at its nesting depth (number of ancestor outlets). */
@@ -8,8 +8,8 @@ export class StdOutlet extends UIElement {
 	#shown: { route: RouteDef; key: string | HTMLTemplateElement; el: Element | null } | null = null;
 
 	protected override connect(): void {
-		const router = findRouter(this);
-		if (!router) {
+		const current = findRouterSignal(this);
+		if (!current) {
 			console.warn('<std-outlet> must be inside <std-router>', this);
 			return;
 		}
@@ -20,9 +20,10 @@ export class StdOutlet extends UIElement {
 
 		this.effect(
 			() => {
-				match = router.matches()[depth];
-				error = router.error();
-				data = router.data();
+				const router = current(); // re-runs when `<std-router>.router` is replaced
+				match = router?.matches()[depth];
+				error = router?.error();
+				data = router?.data() ?? new Map();
 			},
 			() => this.#show(match, error, data.get(match?.route as RouteDef)),
 		);

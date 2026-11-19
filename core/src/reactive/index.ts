@@ -1,4 +1,4 @@
-export { computed, signal, type Computed, type Signal, type SignalOptions } from './signal/index.js';
+export { computed, signal, type Computed, type ReadonlySignal, type Signal, type SignalOptions } from './signal/index.js';
 export { effect, type OnCleanup } from './effect/index.js';
 
 export {

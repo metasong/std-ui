@@ -13,8 +13,8 @@ import { esbuildTs } from '../scripts/esbuild-ts.ts';
 
 const dirname = fileURLToPath(new URL('.', import.meta.url));
 
-// The router demo uses real paths (`/router-demo/users/3`). Serve its page for any extensionless
-// path under it, and pin a <base> so the page's relative URLs keep working on deep routes.
+// The full router demo uses real paths (`/feature-demo/router/users/3`). Serve router.html for any
+// extensionless path under it, and pin a <base> so the page's relative URLs keep working on deep routes.
 // Dev server only; the production build has no such fallback.
 const routerDemoSpa = (): Plugin => ({
 	name: 'router-demo-spa',
@@ -22,15 +22,15 @@ const routerDemoSpa = (): Plugin => ({
 	configureServer(server) {
 		server.middlewares.use((req, _res, next) => {
 			const [path, query = ''] = (req.url ?? '').split('?');
-			if (path!.startsWith('/router-demo/') && !path!.split('/').pop()!.includes('.')) {
-				req.url = '/router-demo/index.html' + (query ? `?${query}` : '');
+			if (path!.startsWith('/feature-demo/router/') && !path!.split('/').pop()!.includes('.')) {
+				req.url = '/feature-demo/router.html' + (query ? `?${query}` : '');
 			}
 			next();
 		});
 	},
 	transformIndexHtml(_html, ctx) {
-		if (!ctx.path.startsWith('/router-demo/')) return;
-		return [{ tag: 'base', attrs: { href: '/router-demo/' }, injectTo: 'head-prepend' }];
+		if (ctx.path !== '/feature-demo/router.html') return;
+		return [{ tag: 'base', attrs: { href: '/feature-demo/' }, injectTo: 'head-prepend' }];
 	},
 });
 
@@ -40,6 +40,7 @@ export default defineConfig({
 		alias: {
 			'@std-ui/core': fileURLToPath(new URL('../core/src/index.ts', import.meta.url)),
 			'@std-ui/ext': fileURLToPath(new URL('../ext/src/index.ts', import.meta.url)),
+			'@std-ui/router/testing': fileURLToPath(new URL('../router/src/dev/index.ts', import.meta.url)),
 			'@std-ui/router': fileURLToPath(new URL('../router/src/index.ts', import.meta.url)),
 		},
 	},
@@ -51,6 +52,7 @@ export default defineConfig({
 				features: `${dirname}/feature-demo/index.html`,
 				bind: `${dirname}/feature-demo/bind.html`,
 				slot: `${dirname}/feature-demo/slot.html`,
+				router: `${dirname}/feature-demo/router.html`,
 				virtualize: `${dirname}/feature-demo/virtualize.html`,
 				integration: `${dirname}/integration-demo/index.html`,
 			},

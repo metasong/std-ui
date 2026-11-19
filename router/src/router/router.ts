@@ -11,6 +11,7 @@ import type {
 	RouterStatus,
 } from '../types.js';
 import { abortError, swallowAbort } from './abort.js';
+import { Announcer, defaultAnnounce, type AnnounceOption } from './announcer.js';
 import { BasePath } from './base-path.js';
 import { LeaveHooks } from './leave-hooks.js';
 import { Pipeline } from './pipeline.js';
@@ -25,6 +26,14 @@ export interface RouterOptions {
 	base?: string;
 	/** Defaults to `window.navigation`; throws if absent. */
 	navigation?: NavigationLike;
+	/**
+	 * Screen-reader announcement after each client-side navigation (not the initial load), via a
+	 * hidden `aria-live` region. `true` (default) uses the route title, else the first `<h1>`, else
+	 * the path; pass a function to customise (return empty to stay silent); `false` disables.
+	 */
+	announce?: AnnounceOption;
+	/** Wrap each commit in `document.startViewTransition` when supported and motion is allowed. Default false. */
+	viewTransition?: boolean;
 }
 
 /**
@@ -45,6 +54,7 @@ export class Router {
 	readonly #table: RouteTable;
 	readonly #leave = new LeaveHooks();
 	readonly #pipeline: Pipeline;
+	readonly #announcer?: Announcer;
 	#started = false;
 	#stopListening: (() => void) | null = null;
 	#invalidateQueued = false;
@@ -56,7 +66,12 @@ export class Router {
 		this.#base = new BasePath(options.base);
 		this.#table = new RouteTable(options.routes ?? [], () => this.#invalidate());
 		const state = new RouterState(this.#readLocation());
-		this.#pipeline = new Pipeline(this.#table, this.#leave, state);
+		const announce = options.announce ?? true;
+		if (announce !== false) this.#announcer = new Announcer(announce === true ? defaultAnnounce : announce);
+		this.#pipeline = new Pipeline(this.#table, this.#leave, state, {
+			viewTransition: options.viewTransition,
+			announcer: this.#announcer,
+		});
 		({ location: this.location, matches: this.matches, status: this.status, error: this.error, data: this.data, params: this.params } = state);
 	}
 
@@ -123,6 +138,7 @@ export class Router {
 		this.#stopListening?.();
 		this.#stopListening = null;
 		this.#pipeline.abort();
+		this.#announcer?.dispose();
 	}
 
 	// ---- entry point 1: the browser navigates (link click, back/forward, navigation.navigate) ----

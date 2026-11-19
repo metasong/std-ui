@@ -11,12 +11,16 @@ export interface SignalOptions<T> {
 	equals?(prev: T, next: T): boolean;
 }
 
-/** A reactive value: call it to read (and track), call `.set`/`.update` to write. */
-export interface Signal<T> {
+/** The read side of a signal: what a consumer may do. Expose a private `Signal` under this type to hand out read-only access. */
+export interface ReadonlySignal<T> {
 	/** Reads the current value and tracks it as a dependency. */
 	(): T;
 	/** Reads the current value without tracking it as a dependency.*/
 	peek(): T;
+}
+
+/** A reactive value: call it to read (and track), call `.set`/`.update` to write. */
+export interface Signal<T> extends ReadonlySignal<T> {
 	set(value: T): void;
 	update(fn: (prev: T) => T): T;
 }

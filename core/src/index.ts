@@ -53,6 +53,7 @@ export {
 	type OnCleanup,
 	type SignalState,
 	signal,
+	type ReadonlySignal,
 	type Signal,
 	type SignalArray,
 	type SignalObject,

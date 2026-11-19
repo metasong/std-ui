@@ -6,7 +6,7 @@
 // templates that read the field re-run when the URL changes.
 
 import { addClassHooks, createClassRegistry, type UIElementHooks } from '@std-ui/core';
-import { findRouter } from './dom.js';
+import { findRouterSignal } from './dom.js';
 
 interface ParamFieldDef {
 	field: PropertyKey;
@@ -20,16 +20,16 @@ const paramHooks: UIElementHooks = {
 	connected(host) {
 		const defs = paramFields.get(host.constructor);
 		if (defs.length === 0) return;
-		const router = findRouter(host);
-		if (!router) {
+		const current = findRouterSignal(host);
+		if (!current) {
 			throw new Error(`@routeParam/@searchParam on <${host.tagName.toLowerCase()}> need an ancestor <std-router>.`);
 		}
 		for (const { field, source, name } of defs) {
 			Object.defineProperty(host, field, {
 				get: (): string | undefined =>
 					source === 'route'
-						? router.params()[name]
-						: (new URLSearchParams(router.location().search).get(name) ?? undefined),
+						? current()?.params()[name]
+						: (new URLSearchParams(current()?.location().search).get(name) ?? undefined),
 				set(): void {
 					throw new TypeError(`@${source === 'route' ? 'routeParam' : 'searchParam'} field "${String(field)}" is read-only.`);
 				},

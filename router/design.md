@@ -170,7 +170,7 @@ jsdom has no Navigation API. `createMemoryNavigation()` implements the subset in
 - [x] `beforeunload` guard for tab close / reload (`beforeLeave(hook, { unload })`)
 - [x] `@routeParam` / `@searchParam` decorators (built on `core` only, no `ext` needed; named to avoid `query`, taken by DOM query decorators)
 - [x] Error handling in Plan (guard/hook/redirect-limit errors commit an error state); `status` never sticks on `'loading'`; dev warning for unmatched paths; package build verified (`tsc` + bundles)
-- [ ] Live-region announcer, view transitions
-- [ ] Demo section under `demo/feature-demo/sections/router/`
+- [x] Live-region announcer (`announce`, `router/announcer.ts`), view transitions (`viewTransition`, `router/view-transition.ts`); both run around Commit in `Pipeline#load`, skip the initial load, and are opt-out / opt-in respectively
+- [x] Demo section under `demo/feature-demo/sections/router/` (`router.html`: announcer, view transitions; in-memory navigation)
 - [ ] Real-browser test run (vitest browser mode) to validate guard revert and supersede against a real Navigation API
 - [ ] Optional `URLPattern` backend; context-based router lookup

@@ -1,3 +1,4 @@
+import type { ReadonlySignal } from '@std-ui/core';
 import type { Router } from '../router/router.js';
 import type { StdRouter } from './std-router.js';
 
@@ -15,9 +16,12 @@ export function findAncestor<T extends Element>(from: Node, tagName: string): T 
 	return null;
 }
 
-/** The `Router` of the nearest `<std-router>` ancestor, or undefined (none, or not yet upgraded). */
-export function findRouter(from: Node): Router | undefined {
-	return findAncestor<StdRouter>(from, 'std-router')?.router;
+/**
+ * Reactive handle on the router of the nearest `<std-router>` ancestor; undefined when there is none
+ * (or it is not upgraded yet). Read it inside effects so a later `router` assignment re-binds.
+ */
+export function findRouterSignal(from: Node): ReadonlySignal<Router | undefined> | undefined {
+	return findAncestor<StdRouter>(from, 'std-router')?.routerSignal;
 }
 
 export function countAncestors(from: Node, tagName: string): number {

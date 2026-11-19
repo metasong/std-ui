@@ -5,6 +5,14 @@ import { planNavigation, type GoPlan, type Plan } from './plan.js';
 import type { RouteTable } from './route-table.js';
 import type { RouterState } from './state.js';
 import { Transaction } from './transaction.js';
+import type { Announcer } from './announcer.js';
+import { withViewTransition } from './view-transition.js';
+
+/** Optional, non-essential effects around Commit. */
+export interface Presentation {
+	viewTransition?: boolean;
+	announcer?: Announcer;
+}
 
 /**
  * Plan → Load → Commit, plus the "current transaction" rule: starting one supersedes the previous.
@@ -12,11 +20,13 @@ import { Transaction } from './transaction.js';
  */
 export class Pipeline {
 	#tx: Transaction | null = null;
+	#committed = false;
 
 	constructor(
 		private readonly table: RouteTable,
 		private readonly leave: LeaveHooks,
 		private readonly state: RouterState,
+		private readonly present: Presentation = {},
 	) {}
 
 	begin(browserSignal?: AbortSignal): Transaction {
@@ -54,7 +64,13 @@ export class Pipeline {
 			}
 		}
 		if (tx.stale) return;
-		this.state.commit(plan, results, error);
+		const commit = (): void => this.state.commit(plan, results, error);
+		const first = !this.#committed;
+		this.#committed = true;
+		if (this.present.viewTransition && !first) await withViewTransition(commit);
+		else commit();
+		// The initial load is not a navigation the user needs told about.
+		if (!first && !tx.stale) this.present.announcer?.announce({ location: plan.to, matches: plan.matches });
 	}
 
 	/** A navigation that ends without committing (blocked). Only the latest transaction may settle. */
