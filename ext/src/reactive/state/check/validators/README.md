@@ -48,16 +48,26 @@ then `valid.own` is true and `errors` is empty. Descendants keep their own `enab
 With `formUi` on the tree, a node whose `formUi.disabled()` is true (own or inherited from an
 ancestor) is treated the same way, like a native disabled control.
 
-## Rules for every array item
+## Rules for many members: `eachValidators` and `fields`
 
-`array.check.itemValidators.set([...])` gives the same validators to every item, existing and
-added later. Each item reports them on its own `check` (so a bound input shows them), and the
-array's `valid` / `errors.all` include them with the item index as the path. Per-item
-`validators` still work and run after the shared ones.
+`container.check.eachValidators.set([...])` gives the same validators to every member of an array
+or of a record-like object (all values one type), existing and added later. Each member reports
+them on its own `check` (so a bound input shows them), and the container's `valid` / `errors.all`
+include them with the index or key as the path. A member's own `validators` still work and run after.
 
 ```ts
-form.tags.check.itemValidators.set([required(), minLength(3)]);
-form.tags.push(''); // invalid right away; form.tags.check.errors.all() → [{ path: [1], ... }]
+form.tags.check.eachValidators.set([required(), minLength(3)]);
+form.tags.push(''); // invalid right away; form.tags.check.errors.all() ? [{ path: [1], ... }]
+```
+
+`object.check.fields({...})` sets validators per member key in one call, also for members added
+later. A new call replaces the previous one; members' own `validators` are kept.
+
+```ts
+form.check.fields({
+	name: [required(), minLength(3)],
+	age: [min(18)],
+});
 ```
 
 Built-ins use the `ValidityState` flag names (as accepted by `ElementInternals.setValidity()`) for

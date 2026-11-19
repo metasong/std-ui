@@ -72,8 +72,22 @@ declare module '../tree-feature.js' {
 		check: Checked<T>;
 	}
 	interface ArrayExtras<U> {
-		/** On arrays: `check.itemValidators` are run by every item (existing and added later), reported at the item's index. */
-		check: { readonly check: { readonly itemValidators: Signal<Validator<U>[]> } };
+		/** On arrays: `check.eachValidators` run on every item (existing and added later), reported at the item's index. */
+		check: { readonly check: { readonly eachValidators: Signal<Validator<U>[]> } };
+	}
+	interface ObjectExtras<T> {
+		check: {
+			readonly check: {
+				/** On objects: run on every member (existing and added later), for record-like objects. */
+				readonly eachValidators: Signal<Validator<T[keyof T]>[]>;
+				/**
+				 * Additional validators per member key, in one call: `form.check.fields({ name: [required()] })`. Applies to
+				 * members added later too and replaces the previous `fields(...)`; each member's own `validators` are kept.
+				 * Each call replaces the previous one. Setting fields({}) clears it.
+				 */
+				fields(spec: { readonly [K in keyof T]?: readonly Validator<T[K]>[] }): void;
+			};
+		};
 	}
 }
 
@@ -93,10 +107,23 @@ export function check<S extends TreeNode>(node: S): WithCheck<S> {
 	return node as unknown as WithCheck<S>;
 }
 
-/** The `check()` extension: lazily gives one node its `check`. */
 const isArrayNode = (n: object): boolean =>
 	typeof (n as { at?: unknown }).at === 'function' && typeof (n as { push?: unknown }).push === 'function';
+const isObjectNode = (n: object): boolean => !isArrayNode(n) && !!(n as { _?: object })._;
 
+/** Rules a node inherits from its parent: the parent's `eachValidators`, then its `fields` entry for this node's key. */
+function inheritedRules(parent: object, node: object): readonly Validator<any>[] {
+	const st = (parent as { [STATE]: CheckState })[STATE];
+	const out: Validator<any>[] = [...(st.eachRules?.() ?? [])];
+	const fields = st.fieldRules?.();
+	if (fields) {
+		(parent as { shallow?: () => unknown }).shallow?.(); // tracked: which members exist
+		for (const [key, child] of childEntries(parent)) if (child === node && fields[key]) out.push(...fields[key]);
+	}
+	return out;
+}
+
+/** The `check()` extension: lazily gives one node its `check`. */
 function attach(node: object, parent?: object): void {
 	const n = node as TreeNode & { shallow?: () => unknown };
 	attachCheck(
@@ -109,9 +136,9 @@ function attach(node: object, parent?: object): void {
 		// Duck-typed link to the form UI feature (when present): disabled nodes are not validated.
 		() => !!(n as { formUi?: { disabled(): boolean } }).formUi?.disabled(),
 		{
-			// Items of an array also run that array's `itemValidators`.
-			inherited: parent && isArrayNode(parent) ? () => (parent as { [STATE]: CheckState })[STATE].itemRules!() : undefined,
-			hasItems: isArrayNode(n),
+			// Members also run their container's `eachValidators` (and, for objects, its `fields`).
+			inherited: parent && (isArrayNode(parent) || isObjectNode(parent)) ? () => inheritedRules(parent, n) : undefined,
+			kind: isArrayNode(n) ? 'array' : isObjectNode(n) ? 'object' : undefined,
 		},
 	);
 }
@@ -122,16 +149,18 @@ const sameErrors = (a: ValidationError[], b: ValidationError[]): boolean =>
 /** What `attachCheck` needs to know about a node's place in the tree. */
 interface AttachExtra<T> {
 	inherited?: () => readonly Validator<T>[];
-	/** True for array nodes: they own an `itemValidators` signal. */
-	hasItems?: boolean;
+	/** Container nodes own an `eachValidators` signal (objects also `fields`). */
+	kind?: 'array' | 'object';
 }
 
 /** Extra inputs of `createValidation` that come from the node's place in the tree. */
 interface ValidationExtra<T> {
-	/** Tracked rules inherited from the parent array's `itemValidators`. */
+	/** Tracked rules inherited from the parent container (`eachValidators`, `fields`). */
 	inherited?: () => readonly Validator<T>[];
-	/** Set on array nodes: exposed as `check.itemValidators`. */
-	itemValidators?: Signal<Validator<any>[]>;
+	/** Set on container nodes: exposed as `check.eachValidators`. */
+	eachValidators?: Signal<Validator<any>[]>;
+	/** Set on object nodes: backs `check.fields(...)`. */
+	fieldRules?: Signal<Record<string, readonly Validator<any>[]>>;
 }
 
 /**
@@ -144,7 +173,7 @@ export function createValidation<T>(
 	suppressed?: () => boolean,
 	extra: ValidationExtra<T> = {},
 ): Validation<T> {
-	const { inherited, itemValidators } = extra;
+	const { inherited, eachValidators, fieldRules } = extra;
 	const validators = signal<Validator<T>[]>([], { equals: () => false });
 	const enabled = signal(true);
 	// The array's item rules (if this node is an item) run before the node's own.
@@ -201,7 +230,15 @@ export function createValidation<T>(
 		return out;
 	});
 	const errors = Object.assign(ownErrors, { all: allErrors });
-	return { validators, enabled, errors, pending, valid, ...(itemValidators ? { itemValidators } : {}) };
+	return {
+		validators,
+		enabled,
+		errors,
+		pending,
+		valid,
+		...(eachValidators ? { eachValidators } : {}),
+		...(fieldRules ? { fields: (spec: Record<string, readonly Validator<any>[]>) => fieldRules.set({ ...spec }) } : {}),
+	};
 }
 
 type Entries = readonly (readonly [string | number, ItemNode<unknown>])[];
@@ -212,8 +249,10 @@ interface CheckState {
 	built?: Validation<any>;
 	children?: () => Entries;
 	make?: () => Validation<any>;
-	/** Array nodes: the rules every item inherits (check.itemValidators). */
-	itemRules?: Signal<Validator<any>[]>;
+	/** Container nodes: the rules every member inherits (`check.eachValidators`). */
+	eachRules?: Signal<Validator<any>[]>;
+	/** Object nodes: rules by member key (`check.fields`). */
+	fieldRules?: Signal<Record<string, readonly Validator<any>[]>>;
 	inherited?: () => readonly unknown[];
 }
 /** Bumped whenever any node builds its `check`, so aggregates that skipped it re-evaluate. */
@@ -263,8 +302,14 @@ function errorsOf(child: ItemNode<unknown>): PathError[] {
 export function attachCheck<T>(node: object, read: () => T, children?: () => Entries, suppressed?: () => boolean, extra: AttachExtra<T> = {}): void {
 	if ((node as { [STATE]?: CheckState })[STATE]) return; // already has `check`
 	const state: CheckState = { children, inherited: extra.inherited };
-	if (extra.hasItems) state.itemRules = signal<Validator<any>[]>([], { equals: () => false });
-	state.make = () => createValidation(read, children, suppressed, { inherited: extra.inherited, itemValidators: state.itemRules });
+	if (extra.kind) state.eachRules = signal<Validator<any>[]>([], { equals: () => false });
+	if (extra.kind === 'object') state.fieldRules = signal<Record<string, readonly Validator<any>[]>>({});
+	state.make = () =>
+		createValidation(read, children, suppressed, {
+			inherited: extra.inherited,
+			eachValidators: state.eachRules,
+			fieldRules: state.fieldRules,
+		});
 	(node as { [STATE]?: CheckState })[STATE] = state; // plain assignment: far cheaper than defineProperty
 	Object.defineProperty(node, 'check', {
 		get: () => {
