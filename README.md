@@ -45,7 +45,7 @@ The core is small on purpose, and almost everything else is an add-on built on t
 
 ## Why std-ui?
 
-- **Tiny.** The full core ships at about **13 kB gzip** (`std-ui-core.iife.min.js`), and the add-ons at about **10 kB**.
+- **Tiny.** The full core ships at about **14 kB gzip** (`std-ui-core.iife.min.js`), and the add-ons at about **10 kB**.
 - **Fine-grained reactivity.** `signal`, `computed` and `effect` update exactly the DOM that changed. There is no diffing and no re-render of whole trees.
 - **Real Web Components.** Extend `UIElement`, and it works anywhere HTML works.
 - **Reactive state trees.** Wrap plain objects and arrays in `state(...)` to get deeply reactive, typed stores.
@@ -175,8 +175,8 @@ Every node in the tree, including members added later, gets `dirty`, `initial` a
 
 | File | Minified | Gzip | Brotli |
 |---|---|---|---|
-| `std-ui-core.iife.min.js` | 36.08 kB | 12.76 kB | 11.56 kB |
-| `std-ui-ext.iife.min.js` | 26.71 kB | 9.57 kB | 8.63 kB |
+| `std-ui-core.iife.min.js` | 39.57 kB | 13.78 kB | 12.51 kB |
+| `std-ui-ext.iife.min.js` | 28.69 kB | 10.29 kB | 9.29 kB |
 
 ## Get started
 
