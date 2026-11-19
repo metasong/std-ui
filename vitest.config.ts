@@ -10,6 +10,6 @@ export default defineConfig({
 	},
 	test: {
 		environment: 'jsdom',
-		include: ['core/**/*.test.ts', 'ext/**/*.test.ts'],
+		include: ['core/**/*.test.ts', 'ext/**/*.test.ts', 'router/**/*.test.ts'],
 	},
 });

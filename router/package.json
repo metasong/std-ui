@@ -1,0 +1,57 @@
+{
+	"name": "@std-ui/router",
+	"version": "0.1.0",
+	"description": "Client-side router for std-ui: History API, signals, <std-router>/<std-route>/<std-outlet>.",
+	"type": "module",
+	"license": "MIT",
+	"sideEffects": [
+		"./dist/esm/element/index.js",
+		"./dist/esm/element/std-router.js",
+		"./dist/esm/element/std-route.js",
+		"./dist/esm/element/std-outlet.js"
+	],
+	"main": "./dist/esm/index.js",
+	"module": "./dist/esm/index.js",
+	"types": "./dist/esm/index.d.ts",
+	"exports": {
+		".": {
+			"types": "./dist/esm/index.d.ts",
+			"import": "./dist/esm/index.js",
+			"default": "./dist/esm/index.js"
+		},
+		"./testing": {
+			"types": "./dist/esm/dev/index.d.ts",
+			"import": "./dist/esm/dev/index.js",
+			"default": "./dist/esm/dev/index.js"
+		},
+		"./browser/*": "./dist/browser/*",
+		"./package.json": "./package.json"
+	},
+	"files": [
+		"dist",
+		"README.md",
+		"design.md"
+	],
+	"engines": {
+		"node": ">=18"
+	},
+	"scripts": {
+		"clean": "node -e \"require('fs').rmSync('dist', { recursive: true, force: true })\"",
+		"build": "npm run clean && tsc -p tsconfig.build.json && npm run build:bundle",
+		"build:bundle": "vite build --config vite.bundle.config.ts",
+		"prepublishOnly": "npm run build",
+		"test": "vitest run --root .. --config vitest.config.ts router",
+		"typecheck": "tsc --noEmit -p ../tsconfig.json"
+	},
+	"peerDependencies": {
+		"@std-ui/core": "^0.1.0"
+	},
+	"devDependencies": {
+		"typescript": "^7.0.2",
+		"vite": "^8.3.8",
+		"vitest": "^5.1.0"
+	},
+	"publishConfig": {
+		"access": "public"
+	}
+}

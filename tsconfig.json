@@ -20,6 +20,6 @@
 		"noImplicitOverride": true,
 		"isolatedModules": true
 	},
-	"include": ["core/src/**/*.ts", "ext/src/**/*.ts", "demo/**/*.ts"],
+	"include": ["core/src/**/*.ts", "ext/src/**/*.ts", "router/src/**/*.ts", "demo/**/*.ts"],
 	"exclude": ["node_modules", "**/dist"]
 }
