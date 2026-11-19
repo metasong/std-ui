@@ -86,15 +86,15 @@ function childNodes(node: object): unknown[] {
 const EXTENSIONS = Symbol('extensions');
 
 /** A feature added to tree nodes from outside (e.g. `check`): called once per node it reaches. */
-export type Extension = (node: object) => void;
+export type Extension = (node: object, parent?: object) => void;
 
-function applyExtension(node: unknown, ext: Extension): void {
+function applyExtension(node: unknown, ext: Extension, parent?: object): void {
 	if (!isTreeNode(node)) return;
 	const list = ((node as { [EXTENSIONS]?: Extension[] })[EXTENSIONS] ??= []);
 	if (list.includes(ext)) return; // already extended (shared or revisited node)
 	list.push(ext); // remembered, so members this node gets later are extended too
-	ext(node);
-	for (const [, child] of childEntries(node)) applyExtension(child, ext);
+	ext(node, parent); // parent: the container this node was reached through (first one, for a shared node)
+	for (const [, child] of childEntries(node)) applyExtension(child, ext, node);
 }
 
 /**
@@ -108,7 +108,7 @@ export function extendTree(root: object, ext: Extension): void {
 /** Called by containers when they build a member later: gives it (and its subtree) the parent's extensions. */
 export function inheritExtensions(parent: object, child: unknown): void {
 	const list = (parent as { [EXTENSIONS]?: Extension[] })[EXTENSIONS];
-	if (list) for (const ext of [...list]) applyExtension(child, ext);
+	if (list) for (const ext of [...list]) applyExtension(child, ext, parent);
 }
 
 function reaches(node: unknown, target: object, seen: Set<unknown>): boolean {

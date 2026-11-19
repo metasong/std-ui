@@ -8,6 +8,7 @@
 // way: it is true when the node or any descendant is touched (`touched.own` is the node's own flag,
 // `touchAll()` marks a whole subtree, e.g. on submit).
 
+import type { WithFeature } from '../tree-feature.js';
 import {
 	childEntries,
 	computed,
@@ -53,21 +54,14 @@ export interface WithFormUiMixin {
 	readonly formUi: FormUi;
 }
 
-type FormUiMembers<M> = { readonly [K in keyof M]: WithFormUi<M[K]> };
+declare module '../tree-feature.js' {
+	interface TreeFeatures<T> {
+		formUi: WithFormUiMixin;
+	}
+}
 
 /** A state tree `S` after `formUi()`: the same tree, with `formUi` on every node. */
-export type WithFormUi<S> =
-	S extends SignalArray<any, infer N>
-		? {
-				at(index: number): WithFormUi<N> | undefined;
-				readonly [index: number]: WithFormUi<N> | undefined;
-			} & S &
-				WithFormUiMixin
-		: S extends SignalObject<infer T, infer M, any>
-			? { readonly _: FormUiMembers<M> } & { readonly [K in keyof T]: WithFormUi<S[K & keyof S]> } & S & WithFormUiMixin
-			: S extends { peek(): unknown }
-				? S & WithFormUiMixin
-				: S;
+export type WithFormUi<S> = WithFeature<S, 'formUi'>;
 
 // Parent links, for the cascade. A node adopted into several trees has several parents, and is
 // effectively readonly / disabled when any of them is. Filled when a node is extended (for its

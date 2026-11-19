@@ -6,6 +6,7 @@
 // The initial value of each node is its value when `changes()` is applied (for a member added
 // later: its value when it is created), so apply it before editing the state.
 
+import type { WithFeature } from '../tree-feature.js';
 import {
 	childEntries,
 	computed,
@@ -39,24 +40,17 @@ export interface Changed<T> {
 	readonly changes: ChangeTracking<T>;
 }
 
-type ChangedMembers<M> = { readonly [K in keyof M]: WithChanges<M[K]> };
+declare module '../tree-feature.js' {
+	interface TreeFeatures<T> {
+		changes: Changed<T>;
+	}
+}
 
 /**
  * A state tree `S` after `changes()`: the same tree, with `changes` on every node (members and
  * items too). Built on `S` itself (not rebuilt), so other features already on it are kept.
  */
-export type WithChanges<S> =
-	S extends SignalArray<infer U, infer N>
-		? {
-				at(index: number): WithChanges<N> | undefined;
-				readonly [index: number]: WithChanges<N> | undefined;
-			} & S &
-				Changed<U[]>
-		: S extends SignalObject<infer T, infer M, any>
-			? { readonly _: ChangedMembers<M> } & { readonly [K in keyof T]: WithChanges<S[K & keyof S]> } & S & Changed<T>
-			: S extends { peek(): infer T }
-				? S & Changed<T>
-				: S;
+export type WithChanges<S> = WithFeature<S, 'changes'>;
 
 /**
  * Adds change tracking to a state tree: `changes(state({ name: '' })).name.changes.dirty()`, or

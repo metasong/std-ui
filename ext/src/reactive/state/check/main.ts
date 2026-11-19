@@ -3,6 +3,7 @@
 // later) and returns the same tree typed with `check` on each node. Nothing is built until a
 // node's `check` is first read: it is a lazy getter, so nodes nobody validates cost nothing.
 
+import type { WithFeature } from '../tree-feature.js';
 import {
 	childEntries,
 	computed,
@@ -66,24 +67,21 @@ export interface Checked<T> {
 	readonly check: Validation<T>;
 }
 
-type CheckedMembers<M> = { readonly [K in keyof M]: WithCheck<M[K]> };
+declare module '../tree-feature.js' {
+	interface TreeFeatures<T> {
+		check: Checked<T>;
+	}
+	interface ArrayExtras<U> {
+		/** On arrays: `check.itemValidators` are run by every item (existing and added later), reported at the item's index. */
+		check: { readonly check: { readonly itemValidators: Signal<Validator<U>[]> } };
+	}
+}
 
 /**
  * A state tree `S` after `check()`: the same tree, with `check` on every node (members and items
  * too). Built on `S` itself (not rebuilt), so other features already on it are kept.
  */
-export type WithCheck<S> =
-	S extends SignalArray<infer U, infer N>
-		? {
-				at(index: number): WithCheck<N> | undefined;
-				readonly [index: number]: WithCheck<N> | undefined;
-			} & S &
-				Checked<U[]>
-		: S extends SignalObject<infer T, infer M, any>
-			? { readonly _: CheckedMembers<M> } & { readonly [K in keyof T]: WithCheck<S[K & keyof S]> } & S & Checked<T>
-			: S extends { peek(): infer T }
-				? S & Checked<T>
-				: S;
+export type WithCheck<S> = WithFeature<S, 'check'>;
 
 /**
  * Adds validation to a state tree: `check(state({ name: '' })).name.check.validators.set([...])`.
@@ -96,7 +94,10 @@ export function check<S extends TreeNode>(node: S): WithCheck<S> {
 }
 
 /** The `check()` extension: lazily gives one node its `check`. */
-function attach(node: object): void {
+const isArrayNode = (n: object): boolean =>
+	typeof (n as { at?: unknown }).at === 'function' && typeof (n as { push?: unknown }).push === 'function';
+
+function attach(node: object, parent?: object): void {
 	const n = node as TreeNode & { shallow?: () => unknown };
 	attachCheck(
 		n,
@@ -107,11 +108,31 @@ function attach(node: object): void {
 		},
 		// Duck-typed link to the form UI feature (when present): disabled nodes are not validated.
 		() => !!(n as { formUi?: { disabled(): boolean } }).formUi?.disabled(),
+		{
+			// Items of an array also run that array's `itemValidators`.
+			inherited: parent && isArrayNode(parent) ? () => (parent as { [STATE]: CheckState })[STATE].itemRules!() : undefined,
+			hasItems: isArrayNode(n),
+		},
 	);
 }
 
 const sameErrors = (a: ValidationError[], b: ValidationError[]): boolean =>
 	a.length === b.length && a.every((e, i) => e.flag === b[i].flag && e.message === b[i].message);
+
+/** What `attachCheck` needs to know about a node's place in the tree. */
+interface AttachExtra<T> {
+	inherited?: () => readonly Validator<T>[];
+	/** True for array nodes: they own an `itemValidators` signal. */
+	hasItems?: boolean;
+}
+
+/** Extra inputs of `createValidation` that come from the node's place in the tree. */
+interface ValidationExtra<T> {
+	/** Tracked rules inherited from the parent array's `itemValidators`. */
+	inherited?: () => readonly Validator<T>[];
+	/** Set on array nodes: exposed as `check.itemValidators`. */
+	itemValidators?: Signal<Validator<any>[]>;
+}
 
 /**
  * Builds the validation members for a node. `read` is the tracked plain value the validators see;
@@ -121,9 +142,13 @@ export function createValidation<T>(
 	read: () => T,
 	children: () => readonly (readonly [string | number, ItemNode<unknown>])[] = () => [],
 	suppressed?: () => boolean,
+	extra: ValidationExtra<T> = {},
 ): Validation<T> {
+	const { inherited, itemValidators } = extra;
 	const validators = signal<Validator<T>[]>([], { equals: () => false });
 	const enabled = signal(true);
+	// The array's item rules (if this node is an item) run before the node's own.
+	const rules = (): readonly Validator<T>[] => [...(inherited?.() ?? []), ...validators()];
 	// Off when switched off, or (default) when the node's form UI says it is disabled.
 	const off = () => !enabled() || !!suppressed?.();
 	const ownErrors = computed<ValidationError[]>(
@@ -131,7 +156,7 @@ export function createValidation<T>(
 			if (off()) return [];
 			const value = read();
 			const out: ValidationError[] = [];
-			for (const validate of validators()) {
+			for (const validate of rules()) {
 				const result = validate(value);
 				if (!result) continue;
 				if (Array.isArray(result)) out.push(...(result as ValidationError[]));
@@ -146,7 +171,7 @@ export function createValidation<T>(
 		const value = read();
 		let any = false;
 		// No early exit: every pending() call also (re)starts that validator's request for `value`.
-		for (const v of validators()) if (v.pending?.(value)) any = true;
+		for (const v of rules()) if (v.pending?.(value)) any = true;
 		return any;
 	});
 	const pending = Object.assign(
@@ -176,7 +201,7 @@ export function createValidation<T>(
 		return out;
 	});
 	const errors = Object.assign(ownErrors, { all: allErrors });
-	return { validators, enabled, errors, pending, valid };
+	return { validators, enabled, errors, pending, valid, ...(itemValidators ? { itemValidators } : {}) };
 }
 
 type Entries = readonly (readonly [string | number, ItemNode<unknown>])[];
@@ -186,6 +211,10 @@ const STATE = Symbol('check-state');
 interface CheckState {
 	built?: Validation<any>;
 	children?: () => Entries;
+	make?: () => Validation<any>;
+	/** Array nodes: the rules every item inherits (check.itemValidators). */
+	itemRules?: Signal<Validator<any>[]>;
+	inherited?: () => readonly unknown[];
 }
 /** Bumped whenever any node builds its `check`, so aggregates that skipped it re-evaluate. */
 const builtVersion = signal(0);
@@ -203,6 +232,9 @@ function view(child: ItemNode<unknown>): { check?: Validation<any>; nested: Entr
 	}
 	builtVersion(); // tracked: a later build must re-run the aggregate
 	if (state.built) return { check: state.built, nested: [] };
+	// An item that inherits array rules must be validated even though nobody read its `check`.
+	// (Built here without bumping `builtVersion`: this reads `inherited()`, so it re-runs on its own.)
+	if (state.make && state.inherited?.().length) return { check: (state.built = state.make()), nested: [] };
 	return { nested: state.children?.() ?? [] };
 }
 function isAllValid(child: ItemNode<unknown>): boolean {
@@ -228,14 +260,16 @@ function errorsOf(child: ItemNode<unknown>): PathError[] {
  * cached. `read` / `children` are the same arguments as for `createValidation`. Parent aggregates
  * look through unbuilt nodes, so reading a parent's `valid` etc. does not build its descendants.
  */
-export function attachCheck<T>(node: object, read: () => T, children?: () => Entries, suppressed?: () => boolean): void {
+export function attachCheck<T>(node: object, read: () => T, children?: () => Entries, suppressed?: () => boolean, extra: AttachExtra<T> = {}): void {
 	if ((node as { [STATE]?: CheckState })[STATE]) return; // already has `check`
-	const state: CheckState = { children };
+	const state: CheckState = { children, inherited: extra.inherited };
+	if (extra.hasItems) state.itemRules = signal<Validator<any>[]>([], { equals: () => false });
+	state.make = () => createValidation(read, children, suppressed, { inherited: extra.inherited, itemValidators: state.itemRules });
 	(node as { [STATE]?: CheckState })[STATE] = state; // plain assignment: far cheaper than defineProperty
 	Object.defineProperty(node, 'check', {
 		get: () => {
 			if (!state.built) {
-				state.built = createValidation(read, children, suppressed);
+				state.built = state.make!();
 				builtVersion.set(builtVersion.peek() + 1);
 			}
 			return state.built;

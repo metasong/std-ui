@@ -48,6 +48,18 @@ then `valid.own` is true and `errors` is empty. Descendants keep their own `enab
 With `formUi` on the tree, a node whose `formUi.disabled()` is true (own or inherited from an
 ancestor) is treated the same way, like a native disabled control.
 
+## Rules for every array item
+
+`array.check.itemValidators.set([...])` gives the same validators to every item, existing and
+added later. Each item reports them on its own `check` (so a bound input shows them), and the
+array's `valid` / `errors.all` include them with the item index as the path. Per-item
+`validators` still work and run after the shared ones.
+
+```ts
+form.tags.check.itemValidators.set([required(), minLength(3)]);
+form.tags.push(''); // invalid right away; form.tags.check.errors.all() → [{ path: [1], ... }]
+```
+
 Built-ins use the `ValidityState` flag names (as accepted by `ElementInternals.setValidity()`) for
 `flag`, and treat empty values as valid so `required` stays the only rule about presence.
 

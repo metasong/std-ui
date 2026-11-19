@@ -6,6 +6,7 @@ import custom from './sections/bind/custom-section.ts?raw';
 import knob from './sections/bind/knob-control.ts?raw';
 import validation from './sections/bind/validation/validation-section.ts?raw';
 import conditional from './sections/bind/validation/conditional-section.ts?raw';
+import array from './sections/bind/validation/array-section.ts?raw';
 import merged from './sections/bind/validation/merged-control.ts?raw';
 import range from './sections/bind/validation/range-control.ts?raw';
 import formUiDemo from './sections/bind/form-ui/form-ui-section.ts?raw';
@@ -19,6 +20,7 @@ const validationFiles = {
 	'range-control.ts (FormGroup)': range,
 };
 const conditionalFiles = { 'conditional-section.ts': conditional };
+const arrayFiles = { 'array-section.ts': array };
 const formUiFiles = { 'form-ui-section.ts': formUiDemo };
 const formFlagsFiles = { 'form-flags-section.ts': formFlagsDemo };
 
@@ -32,6 +34,7 @@ export class DemoBindPage extends UIElement {
 				<demo-bind-validation-section></demo-bind-validation-section>
 			</code-preview>
 			<code-preview .files=${conditionalFiles}><demo-bind-conditional-section></demo-bind-conditional-section></code-preview>
+			<code-preview .files=${arrayFiles}><demo-bind-array-section></demo-bind-array-section></code-preview>
 			<code-preview .files=${formUiFiles}><demo-bind-form-ui-section></demo-bind-form-ui-section></code-preview>
 			<code-preview .files=${formFlagsFiles}>
 				<demo-bind-form-flags-section></demo-bind-form-flags-section>
