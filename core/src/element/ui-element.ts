@@ -170,9 +170,18 @@ export abstract class UIElement extends HTMLElement {
 	 * Fine-grained alternative to `template(state)`: a `signal`/`computed`-tracking effect (see
 	 * `./signal/`), auto-disposed on disconnect. Prefer this when only a small slice of DOM
 	 * needs to react to specific signals, rather than the whole component re-rendering.
+	 *
+	 * @example
+	 * this.effect((onCleanup) => {
+	 *   const id = setInterval(() => this.#now.set(Date.now()), 1000);
+	 *   onCleanup(() => clearInterval(id));
+	 * }, () => this.#label.dataset.ticked = '1'); // afterAction: untracked, runs after each run
 	 */
-	protected readonly effect = (fn: (onCleanup: OnCleanup) => void): void => {
-		this.#effectDisposers.push(createEffect(fn));
+	protected readonly effect = (
+		monitoredAction: (onCleanup: OnCleanup) => void,
+		afterAction: (() => void) | null = null,
+	): void => {
+		this.#effectDisposers.push(createEffect(monitoredAction, afterAction));
 	};
 
 	/** Re-runs `template()` when any signal it reads changes; invokes `firstRendered` / `rendered` after each apply. */
