@@ -169,6 +169,39 @@ describe('Router', () => {
 		expect(router.matches()).toHaveLength(0);
 	});
 
+	describe('beforeunload guard', () => {
+		const fire = (): boolean => {
+			const e = new Event('beforeunload', { cancelable: true });
+			window.dispatchEvent(e);
+			return e.defaultPrevented;
+		};
+
+		it('prompts only while started and an unload check reports unsaved work', async () => {
+			const { router } = setup([{ path: '' }]);
+			let dirty = true;
+			const off = router.beforeLeave(() => true, { unload: () => dirty });
+			expect(fire()).toBe(false); // not started yet
+			await router.start();
+			expect(fire()).toBe(true);
+			dirty = false;
+			expect(fire()).toBe(false);
+			dirty = true;
+			off();
+			expect(fire()).toBe(false); // unregistered
+			router.beforeLeave(() => true, { unload: () => dirty });
+			expect(fire()).toBe(true);
+			router.stop();
+			expect(fire()).toBe(false);
+		});
+
+		it('hooks without an unload check never add a prompt', async () => {
+			const { router } = setup([{ path: '' }]);
+			await router.start();
+			router.beforeLeave(() => false);
+			expect(fire()).toBe(false);
+		});
+	});
+
 	it('throws without a Navigation API', () => {
 		expect(() => createRouter({})).toThrow(/Navigation API/);
 	});

@@ -29,6 +29,15 @@ export interface LeaveContext {
 /** `false` blocks the navigation; anything else lets it proceed. */
 export type BeforeLeaveHook = (ctx: LeaveContext) => boolean | void | Promise<boolean | void>;
 
+export interface BeforeLeaveOptions {
+	/**
+	 * Synchronous "is there unsaved work?" check. While the router is started and any registered
+	 * hook returns true here, closing or reloading the tab shows the browser's leave prompt.
+	 * Separate from the hook because `beforeunload` cannot await or show custom UI.
+	 */
+	unload?: () => boolean;
+}
+
 export interface RouteDef {
 	/** Relative to the parent route. Syntax: `users`, `:id`, `:id?`, `*`. Omit with `index`. */
 	path?: string;

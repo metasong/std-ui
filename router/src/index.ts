@@ -3,6 +3,7 @@ export { matchRoutes, fillParams } from './match/matcher.js';
 export type { NavigationLike, NavigateEventLike, NavigationEntryLike } from './navigation/types.js';
 export type {
 	BeforeLeaveHook,
+	BeforeLeaveOptions,
 	LeaveContext,
 	GuardResult,
 	NavigateOptions,

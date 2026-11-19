@@ -43,6 +43,19 @@ const form = changes(state({ name: '' }));
 router.beforeLeave(() => !form.changes.dirty.peek() || confirm('Discard changes?'));
 ```
 
+#### Tab close / reload
+
+Tab close, reload and cross-origin navigation never reach the Navigation API's intercept, and `beforeunload` is synchronous with no custom UI, so the async hook cannot serve it. Pass a sync predicate instead:
+
+```ts
+router.beforeLeave(
+  () => !form.changes.dirty.peek() || confirm('Discard changes?'),
+  { unload: () => form.changes.dirty.peek() },
+);
+```
+
+While the router is started and any registered hook's `unload()` returns true, the router calls `preventDefault()` (and sets `returnValue = ''`) on `beforeunload`, so the browser shows its generic prompt. The listener is attached only while started and at least one hook has an `unload` check, and removed on unregister or `stop()`.
+
 ## Route model
 
 ```ts
@@ -77,6 +90,21 @@ All paths given to the router API (`navigate`, `redirect`, guard results) are **
 
 State is signals (`location`, `matches`, `data`, `error`, `status`, computed `params`).
 
+## Module layout (`src/router/`)
+
+| File | Responsibility |
+|---|---|
+| `router.ts` | Reactive state (signals), Navigation API wiring, publishing a resolved navigation. |
+| `intercept.ts` | `interceptWithGuards`: the `precommitHandler` (check, redirect loop, block) and `handler` split. |
+| `route-table.ts` | Config + runtime-registered routes; notifies on change. |
+| `base-path.ts` | `base` stripping/adding. |
+| `guards.ts` | `checkNavigation`: redirect attrs, `beforeLeave`, route guards → `Verdict`. |
+| `leave-hooks.ts` | `beforeLeave` registry and the `beforeunload` prompt. |
+| `loader.ts` | `lazy()` + `load()` for matched routes. |
+| `abort.ts` | AbortError helpers. |
+
+Matching lives in `match/`, the Navigation API view and shim in `navigation/`, test support in `dev/`.
+
 ## Elements
 
 ```html
@@ -108,7 +136,7 @@ jsdom has no Navigation API. `createMemoryNavigation()` implements the subset in
 - [x] Router core on Navigation API: signals, guards, loaders, cancellation, revert, `base`
 - [x] `<std-router>`, `<std-route>`, `<std-outlet>`
 - [x] `beforeLeave` hooks; `precommitHandler` when supported (revert path otherwise)
-- [ ] `beforeunload` guard for tab close / reload while hooks are registered
+- [x] `beforeunload` guard for tab close / reload (`beforeLeave(hook, { unload })`)
 - [ ] `@routeParam` / `@searchParam` decorators (needs `ext`; avoid the name `query`, taken by DOM query decorators)
 - [ ] Dev warnings (unmatched route, redirect loop), live-region announcer, view transitions
 - [ ] Demo section under `demo/feature-demo/sections/router/`
