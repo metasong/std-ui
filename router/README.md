@@ -44,6 +44,22 @@ router.params(); // { id: '3' }; also location(), matches(), status(), error(), 
 
 Matching: static > `:param` > `*`; an exact (ended) path beats a param or splat.
 
+## `@routeParam` / `@searchParam`
+
+Any element inside `<std-router>` can bind a path param or query param to a read-only, reactive field:
+
+```ts
+import { routeParam, searchParam } from '@std-ui/router';
+
+@tag('user-page')
+class UserPage extends UIElement {
+  @routeParam('id') readonly userId!: string; // route `:id`; name defaults to the field name
+  @searchParam('tab') readonly tab?: string;  // `?tab=...`; undefined when absent
+}
+```
+
+Declare fields `readonly` so TypeScript rejects writes (a runtime check throws too). Plain string fields only (no `accessor`, needs `useDefineForClassFields`). Connecting throws without an ancestor `<std-router>`; assigning to the field throws.
+
 ## Leaving with unsaved changes
 
 ```ts

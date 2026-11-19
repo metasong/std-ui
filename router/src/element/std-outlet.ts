@@ -1,6 +1,5 @@
 import { tag, UIElement } from '@std-ui/core';
-import { countAncestors, findAncestor } from './dom.js';
-import type { StdRouter } from './std-router.js';
+import { countAncestors, findRouter } from './dom.js';
 import type { RouteDef, RouteMatch } from '../types.js';
 
 /** Renders the match at its nesting depth (number of ancestor outlets). */
@@ -9,12 +8,11 @@ export class StdOutlet extends UIElement {
 	#shown: { route: RouteDef; key: string | HTMLTemplateElement; el: Element | null } | null = null;
 
 	protected override connect(): void {
-		const host = findAncestor<StdRouter>(this, 'std-router');
-		if (!host?.router) {
+		const router = findRouter(this);
+		if (!router) {
 			console.warn('<std-outlet> must be inside <std-router>', this);
 			return;
 		}
-		const router = host.router;
 		const depth = countAncestors(this, 'std-outlet');
 		let match: RouteMatch | undefined;
 		let error: unknown;

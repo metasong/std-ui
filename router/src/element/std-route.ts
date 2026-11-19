@@ -1,6 +1,5 @@
 import { tag, UIElement } from '@std-ui/core';
-import { findAncestor } from './dom.js';
-import type { StdRouter } from './std-router.js';
+import { findAncestor, findRouter } from './dom.js';
 import type { GuardResult, RouteContext, RouteDef } from '../types.js';
 
 /** Declarative route; inert in the DOM. Attributes are read once, when `def` is first built. */
@@ -36,13 +35,13 @@ export class StdRoute extends UIElement {
 
 	protected override connect(): void {
 		this.hidden = true;
-		const host = findAncestor<StdRouter>(this, 'std-router');
-		if (!host?.router) {
+		const router = findRouter(this);
+		if (!router) {
 			console.warn('<std-route> must be inside <std-router>', this);
 			return;
 		}
 		const parent = findAncestor<StdRoute>(this, 'std-route');
-		this.#unregister = host.router.addRoute(this.def, parent?.def);
+		this.#unregister = router.addRoute(this.def, parent?.def);
 	}
 
 	protected override disconnect(): void {

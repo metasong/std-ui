@@ -154,6 +154,7 @@ Matching lives in `match/`, the Navigation API type view in `navigation/`, the `
 - `<std-router>`: owns the `Router` (lazy `router` getter). Properties `routes` and `navigation` must be set before connecting. Starts in a microtask so child `<std-route>`s register first.
 - `<std-route>`: inert (`hidden`). Builds its `RouteDef` lazily (`def`) so a child can reach its parent's def before the parent connects. Attributes are read once. Behaviour via properties: `guard`, `load`. Attributes: `path`, `index`, `element`, `src`, `redirect`, `error-element`, `title`, `meta-*`, child `<template>`. Registers on connect, unregisters on disconnect; the router re-resolves in a microtask.
 - `<std-outlet>`: depth = number of ancestor outlets. Renders `matches()[depth]`, reusing the element while the route and tag are unchanged and updating its `params`, `data`, `error`, `route` properties.
+- `@routeParam(name?)` / `@searchParam(name?)` (`element/param-decorators.ts`): field decorators that register into class metadata. On connect, a hook finds the ancestor `<std-router>` and defines a read-only getter over `router.params()` / `router.location().search`, so reads are reactive. They throw without an ancestor router.
 - Define order matters: `<std-router>` before the others (see `element/index.ts`; listed in `sideEffects`).
 
 ## Testing
@@ -167,7 +168,7 @@ jsdom has no Navigation API. `createMemoryNavigation()` implements the subset in
 - [x] `<std-router>`, `<std-route>`, `<std-outlet>`
 - [x] `beforeLeave` hooks; `precommitHandler` when supported (revert path otherwise)
 - [x] `beforeunload` guard for tab close / reload (`beforeLeave(hook, { unload })`)
-- [ ] `@routeParam` / `@searchParam` decorators (needs `ext`; avoid the name `query`, taken by DOM query decorators)
+- [x] `@routeParam` / `@searchParam` decorators (built on `core` only, no `ext` needed; named to avoid `query`, taken by DOM query decorators)
 - [x] Error handling in Plan (guard/hook/redirect-limit errors commit an error state); `status` never sticks on `'loading'`; dev warning for unmatched paths; package build verified (`tsc` + bundles)
 - [ ] Live-region announcer, view transitions
 - [ ] Demo section under `demo/feature-demo/sections/router/`

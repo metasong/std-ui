@@ -2,3 +2,4 @@
 export { StdRouter } from './std-router.js';
 export { StdOutlet } from './std-outlet.js';
 export { StdRoute } from './std-route.js';
+export { routeParam, searchParam } from './param-decorators.js';

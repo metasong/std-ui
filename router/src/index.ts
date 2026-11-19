@@ -14,3 +14,4 @@ export type {
 	RouterStatus,
 } from './types.js';
 export { StdRouter, StdOutlet, StdRoute } from './element/index.js';
+export { routeParam, searchParam } from './element/param-decorators.js';

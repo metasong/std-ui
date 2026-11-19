@@ -1,3 +1,6 @@
+import type { Router } from '../router/router.js';
+import type { StdRouter } from './std-router.js';
+
 /** Nearest ancestor with `tagName`, crossing shadow-root boundaries. */
 export function findAncestor<T extends Element>(from: Node, tagName: string): T | null {
 	const upper = tagName.toUpperCase();
@@ -10,6 +13,11 @@ export function findAncestor<T extends Element>(from: Node, tagName: string): T 
 		}
 	}
 	return null;
+}
+
+/** The `Router` of the nearest `<std-router>` ancestor, or undefined (none, or not yet upgraded). */
+export function findRouter(from: Node): Router | undefined {
+	return findAncestor<StdRouter>(from, 'std-router')?.router;
 }
 
 export function countAncestors(from: Node, tagName: string): number {

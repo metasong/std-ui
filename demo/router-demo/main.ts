@@ -1,4 +1,5 @@
 import { css, t, tag, state, UIElement } from '@std-ui/core';
+import { routeParam, searchParam } from '@std-ui/router';
 import '@std-ui/router'; // defines <std-router>, <std-route>, <std-outlet>
 import type { Router, StdRoute, StdRouter } from '@std-ui/router';
 import '../shared/demo-nav.js';
@@ -68,8 +69,12 @@ class Users extends UIElement {
 @tag('demo-rt-user')
 class User extends UIElement {
 	data?: { id: string; name: string };
+	@routeParam('id') readonly userId?: string; // `:id` of the route, reactive
+	@searchParam('tab') readonly tab?: string; // `?tab=...`, reactive
 	protected override template() {
-		return t`<p>${this.data?.name ?? 'loading…'}</p>`;
+		return t`<p>${this.data?.name ?? 'loading…'}</p>
+			<p>id=${this.userId} · tab=${this.tab ?? '(none)'}
+				· <a href="./${this.userId}?tab=posts">posts</a> <a href="./${this.userId}?tab=likes">likes</a></p>`;
 	}
 }
 
