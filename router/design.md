@@ -171,6 +171,6 @@ jsdom has no Navigation API. `createMemoryNavigation()` implements the subset in
 - [x] `@routeParam` / `@searchParam` decorators (built on `core` only, no `ext` needed; named to avoid `query`, taken by DOM query decorators)
 - [x] Error handling in Plan (guard/hook/redirect-limit errors commit an error state); `status` never sticks on `'loading'`; dev warning for unmatched paths; package build verified (`tsc` + bundles)
 - [x] Live-region announcer (`announce`, `router/announcer.ts`), view transitions (`viewTransition`, `router/view-transition.ts`); both run around Commit in `Pipeline#load`, skip the initial load, and are opt-out / opt-in respectively
-- [x] Demo section under `demo/pages/router/sections/` (the `/router` page: full router, announcer, view transitions; in-memory navigation). The demo app itself (`demo/app/shell.ts`) is routed by `<std-router>` with real paths
+- [x] Demo section under `demo/pages/router/sections/` (the `/router` page: full router, announcer, view transitions; in-memory navigation). The demo app itself (`demo/app/` (`main.ts`, `pages.ts`)) is routed by `<std-router>` with real paths
 - [ ] Real-browser test run (vitest browser mode) to validate guard revert and supersede against a real Navigation API
 - [ ] Optional `URLPattern` backend; context-based router lookup

@@ -1,5 +1,5 @@
 // Shared by the router sections: three tiny pages as template routes, and an in-memory Navigation API so
-// the demo never touches the address bar (the app itself is routed by the real router, see `demo/app/shell.ts`).
+// the demo never touches the address bar (the app itself is routed by the real router, see `demo/app/` (`main.ts`, `pages.ts`)).
 import type { RouteDef } from '@std-ui/router';
 
 const page = (path: string, title: string, body: string): RouteDef => {

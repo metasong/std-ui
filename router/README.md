@@ -75,7 +75,7 @@ Needs the Navigation API. `precommitHandler` is native in Chrome/Edge 146+ and F
 
 ## Demo
 
-`npm run demo` from the repo root, then open `/router`. The whole demo app is routed by `<std-router>` (`demo/app/shell.ts`, real paths; the dev server falls back to `index.html`, the build also emits `404.html`).
+`npm run demo` from the repo root, then open `/router`. The whole demo app is routed by `<std-router>` (`demo/app/` (`main.ts`, `pages.ts`), real paths; the dev server falls back to `index.html`, the build also emits `404.html`).
 
 ## Tests
 
