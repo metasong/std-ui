@@ -1,4 +1,4 @@
-import { describe, expect, it } from 'vitest';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { createMemoryNavigation } from '../dev/index.js';
 import { createRouter } from './router.js';
 import type { RouteDef } from '../types.js';
@@ -10,6 +10,76 @@ const setup = (routes: RouteDef[], url = '/', base = '') => {
 };
 
 describe('Router', () => {
+	describe.each([false, true])('guards (native precommit: %s)', (native) => {
+		beforeEach(() => {
+			if (native) vi.stubGlobal('NavigationPrecommitController', class {});
+		});
+		afterEach(() => vi.unstubAllGlobals());
+		const tick = () => new Promise((r) => setTimeout(r, 0));
+
+		it('guard string redirects', async () => {
+			const { router, navigation } = setup([{ path: 'admin', guard: () => '/login' }, { path: 'login' }], '/');
+			await router.start();
+			await router.navigate('/admin');
+			await tick();
+			expect(router.location().pathname).toBe('/login');
+			expect(new URL(navigation.currentEntry!.url!).pathname).toBe('/login');
+		});
+
+		it('guard false blocks and leaves the URL on the previous entry', async () => {
+			const { router, navigation } = setup([{ path: '' }, { path: 'secret', guard: () => false }], '/');
+			await router.start();
+			await router.navigate('/secret');
+			await tick();
+			expect(router.location().pathname).toBe('/');
+			expect(new URL(navigation.currentEntry!.url!).pathname).toBe('/');
+		});
+
+		it('beforeLeave false blocks; true allows; unregister stops it', async () => {
+			const { router } = setup([{ path: 'a' }, { path: 'b' }], '/a');
+			await router.start();
+			let allow = false;
+			const calls: string[] = [];
+			const off = router.beforeLeave(({ from, to }) => {
+				calls.push(from.pathname + '>' + to.pathname);
+				return allow;
+			});
+			await router.navigate('/b');
+			await tick();
+			expect(router.location().pathname).toBe('/a');
+			allow = true;
+			await router.navigate('/b');
+			expect(router.location().pathname).toBe('/b');
+			expect(calls).toEqual(['/a>/b', '/a>/b']);
+			off();
+			allow = false;
+			await router.navigate('/a');
+			expect(router.location().pathname).toBe('/a');
+		});
+
+		it('a blocked back() keeps the current entry', async () => {
+			const { router, navigation } = setup([{ path: 'a' }, { path: 'b' }], '/a');
+			await router.start();
+			await router.navigate('/b');
+			router.beforeLeave(() => false);
+			await router.back();
+			await tick();
+			expect(router.location().pathname).toBe('/b');
+			expect(new URL(navigation.currentEntry!.url!).pathname).toBe('/b');
+		});
+
+		it('beforeLeave runs once when a guard redirects', async () => {
+			const { router } = setup([{ path: '' }, { path: 'admin', guard: () => '/login' }, { path: 'login' }], '/');
+			await router.start();
+			let n = 0;
+			router.beforeLeave(() => void n++);
+			await router.navigate('/admin');
+			await tick();
+			expect(n).toBe(1);
+			expect(router.location().pathname).toBe('/login');
+		});
+	});
+
 	it('resolves the current URL on start', async () => {
 		const { router } = setup([{ path: 'a' }], '/a');
 		await router.start();

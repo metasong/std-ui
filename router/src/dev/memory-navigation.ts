@@ -1,10 +1,24 @@
-import type { NavigateEventLike, NavigationEntryLike, NavigationLike, NavigationResultLike } from '../navigation/types.js';
+import type {
+	NavigateEventLike,
+	NavigationEntryLike,
+	NavigationLike,
+	PrecommitControllerLike,
+} from '../navigation/types.js';
 
 type NavType = NavigateEventLike['navigationType'];
+type HistoryMode = 'auto' | 'push' | 'replace';
+// Looser than lib.dom's NavigationResult (entries are not modelled); the final cast to NavigationLike covers it.
+interface Settled {
+	committed: Promise<unknown>;
+	finished: Promise<unknown>;
+}
+type Handler = () => Promise<void> | void;
+type PrecommitHandler = (controller: PrecommitControllerLike) => Promise<void> | void;
 
 /**
  * In-memory stand-in for `window.navigation` (jsdom has none). Mirrors the parts the router relies
- * on: the URL commits before the intercept handler runs, and a newer navigation aborts the older one's signal.
+ * on: without a `precommitHandler` the URL commits before the intercept handler runs; with one it
+ * commits after (and a rejection cancels the navigation); a newer navigation aborts the older one's signal.
  */
 export function createMemoryNavigation(initialUrl = '/', origin = 'http://router.local'): NavigationLike {
 	const bus = new EventTarget();
@@ -18,12 +32,20 @@ export function createMemoryNavigation(initialUrl = '/', origin = 'http://router
 	let idx = 0;
 	let pending: AbortController | null = null;
 
-	function run(type: NavType, url: string, state: unknown, commit: (href: string) => void): NavigationResultLike {
+	const abortError = (): DOMException => new DOMException('Navigation aborted', 'AbortError');
+
+	function run(
+		type: NavType,
+		url: string,
+		state: unknown,
+		commit: (href: string, state: unknown, forceReplace: boolean) => void,
+	): Settled {
 		const href = new URL(url, entries[idx]!.url!).href;
 		pending?.abort();
 		const ctrl = new AbortController();
 		pending = ctrl;
-		let handler: (() => Promise<void> | void) | undefined;
+		let handler: Handler | undefined;
+		let precommit: PrecommitHandler | undefined;
 		const event = Object.assign(new Event('navigate', { cancelable: true }), {
 			canIntercept: true,
 			hashChange: false,
@@ -32,21 +54,48 @@ export function createMemoryNavigation(initialUrl = '/', origin = 'http://router
 			navigationType: type,
 			destination: { url: href, getState: () => state },
 			signal: ctrl.signal,
-			intercept(options?: { handler?: () => Promise<void> | void }) {
+			intercept(options?: { handler?: Handler; precommitHandler?: PrecommitHandler }) {
 				handler = options?.handler;
+				precommit = options?.precommitHandler;
 			},
 		}) as NavigateEventLike;
 		bus.dispatchEvent(event);
-		commit(href);
-		const finished = Promise.resolve()
+
+		let committed: Promise<unknown>;
+		if (precommit) {
+			let finalHref = href;
+			let finalState = state;
+			let forceReplace = false;
+			const controller: PrecommitControllerLike = {
+				redirect(to, options) {
+					finalHref = new URL(to, href).href;
+					if ('state' in (options ?? {})) finalState = options!.state;
+					forceReplace = options?.history === 'replace';
+				},
+			};
+			committed = Promise.resolve()
+				.then(() => precommit!(controller))
+				.then(() => {
+					if (ctrl.signal.aborted) throw abortError();
+					commit(finalHref, finalState, forceReplace);
+				});
+		} else {
+			commit(href, state, false);
+			committed = Promise.resolve();
+		}
+
+		const finished = committed
 			.then(() => handler?.())
 			.then(() => {
-				if (ctrl.signal.aborted) throw new DOMException('Navigation aborted', 'AbortError');
+				if (ctrl.signal.aborted) throw abortError();
 			});
-		return { committed: Promise.resolve(), finished };
+		// A cancelled navigation that nobody awaits must not surface as an unhandled rejection.
+		committed.catch(() => {});
+		finished.catch(() => {});
+		return { committed, finished };
 	}
 
-	const traverse = (to: number): NavigationResultLike => {
+	const traverse = (to: number): Settled => {
 		const entry = entries[to];
 		if (!entry) throw new DOMException('No such entry', 'InvalidStateError');
 		return run('traverse', entry.url!, entry.getState(), () => {
@@ -55,11 +104,11 @@ export function createMemoryNavigation(initialUrl = '/', origin = 'http://router
 	};
 
 	const nav = Object.assign(bus, {
-		navigate(url: string, options: { history?: 'auto' | 'push' | 'replace'; state?: unknown } = {}) {
+		navigate(url: string, options: { history?: HistoryMode; state?: unknown } = {}) {
 			const replace = options.history === 'replace';
-			return run(replace ? 'replace' : 'push', url, options.state, (href) => {
-				const entry = makeEntry(href, options.state);
-				if (replace) entries[idx] = entry;
+			return run(replace ? 'replace' : 'push', url, options.state, (href, state, forceReplace) => {
+				const entry = makeEntry(href, state);
+				if (replace || forceReplace) entries[idx] = entry;
 				else {
 					entries.splice(idx + 1);
 					entries.push(entry);

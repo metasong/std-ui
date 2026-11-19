@@ -1,7 +1,8 @@
 import { computed, signal, type Computed, type Signal } from '@std-ui/core';
 import { fillParams, matchRoutes } from '../match/matcher.js';
-import type { NavigateEventLike, NavigationEntryLike, NavigationLike } from '../navigation/types.js';
-import type { NavigateOptions, RouteContext, RouteDef, RouteLocation, RouteMatch, RouterStatus } from '../types.js';
+import { withPrecommit } from '../navigation/precommit-shim.js';
+import type { NavigateEventLike, NavigationLike } from '../navigation/types.js';
+import type { BeforeLeaveHook, NavigateOptions, RouteContext, RouteDef, RouteLocation, RouteMatch, RouterStatus } from '../types.js';
 
 export interface RouterOptions {
 	routes?: RouteDef[];
@@ -26,17 +27,18 @@ export class Router {
 	readonly #base: string;
 	readonly #config: RouteDef[];
 	readonly #markup: RouteDef[] = [];
+	readonly #leaveHooks = new Set<BeforeLeaveHook>();
 	#started = false;
 	#stopListening: (() => void) | null = null;
 	#ctrl: AbortController | null = null;
 	#seq = 0;
-	#reverting = false;
+	#redirecting = false;
 	#invalidateQueued = false;
 
 	constructor(options: RouterOptions = {}) {
 		const nav = options.navigation ?? (globalThis as { navigation?: NavigationLike }).navigation;
 		if (!nav) throw new Error('@std-ui/router requires the Navigation API (window.navigation).');
-		this.#nav = nav;
+		this.#nav = withPrecommit(nav);
 		this.#base = (options.base ?? '').replace(/\/+$/, '');
 		this.#config = options.routes ?? [];
 		this.location = signal(this.#readLocation());
@@ -57,6 +59,16 @@ export class Router {
 			if (i >= 0) list.splice(i, 1);
 			this.#invalidate();
 		};
+	}
+
+	/**
+	 * Runs before every router-handled navigation; return `false` to block it. Use it to guard
+	 * unsaved work, e.g. `router.beforeLeave(() => !form.changes.dirty() || confirm('Discard changes?'))`.
+	 * Returns an unregister function.
+	 */
+	beforeLeave(hook: BeforeLeaveHook): () => void {
+		this.#leaveHooks.add(hook);
+		return () => this.#leaveHooks.delete(hook);
 	}
 
 	/** App-relative path for a full pathname, or null when outside `base`. */
@@ -95,7 +107,7 @@ export class Router {
 		const onNavigate = (e: Event): void => this.#onNavigate(e as NavigateEventLike);
 		this.#nav.addEventListener('navigate', onNavigate);
 		this.#stopListening = () => this.#nav.removeEventListener('navigate', onNavigate);
-		return this.#resolve(this.#readLocation(), null, null);
+		return this.#resolve(this.#readLocation());
 	}
 
 	stop(): void {
@@ -121,28 +133,79 @@ export class Router {
 		this.#invalidateQueued = true;
 		queueMicrotask(() => {
 			this.#invalidateQueued = false;
-			if (this.#started) void this.#resolve(this.#readLocation(), null, null);
+			if (this.#started) void this.#resolve(this.#readLocation());
 		});
 	}
 
 	#onNavigate(e: NavigateEventLike): void {
-		if (this.#reverting) {
-			this.#reverting = false;
-			return;
-		}
 		if (!e.canIntercept || e.hashChange || e.downloadRequest !== null || e.formData) return;
 		const url = new URL(e.destination.url);
 		const pathname = this.toAppPath(url.pathname);
 		if (pathname === null) return;
 		const to: RouteLocation = { pathname, search: url.search, hash: url.hash, state: e.destination.getState() };
-		const from = this.#nav.currentEntry;
-		e.intercept({ handler: () => this.#resolve(to, e, from) });
+
+		// A redirect re-enters here as a new navigation; its leave hooks already ran for the original.
+		const leaving = !this.#redirecting;
+		this.#redirecting = false;
+
+		// Guards run before the URL commits, so a block simply cancels the navigation.
+		let target = to;
+		let approved: RouteMatch[] | undefined;
+		e.intercept({
+			precommitHandler: async (controller) => {
+				const stale = (): boolean => e.signal.aborted;
+				let verdict = await this.#check(target, e.signal, leaving, stale);
+				for (let hops = 0; verdict?.kind === 'redirect'; hops++) {
+					if (hops >= MAX_REDIRECTS) throw new Error('Too many redirects');
+					const u = new URL(verdict.path, 'http://router.local');
+					target = { pathname: u.pathname, search: u.search, hash: u.hash, state: to.state };
+					controller.redirect(this.href(verdict.path), { history: 'replace', state: to.state });
+					verdict = await this.#check(target, e.signal, false, stale);
+				}
+				if (!verdict || verdict.kind === 'block') throw abortError();
+				approved = verdict.matches;
+			},
+			handler: () => this.#resolve(target, approved, e.signal),
+		});
 	}
 
-	async #resolve(to: RouteLocation, event: NavigateEventLike | null, from: NavigationEntryLike | null): Promise<void> {
+	/** Redirect attributes, `beforeLeave` hooks, then route guards. Null when superseded. */
+	async #check(
+		to: RouteLocation,
+		signal: AbortSignal,
+		leaving: boolean,
+		isStale: () => boolean,
+	): Promise<Verdict | null> {
+		const matches = matchRoutes(this.routes, to.pathname) ?? [];
+		for (const m of matches) {
+			if (m.route.redirect !== undefined) return { kind: 'redirect', path: fillParams(m.route.redirect, m.params) };
+		}
+		if (leaving) {
+			const ctx = { from: this.location.peek(), to, signal };
+			for (const hook of [...this.#leaveHooks]) {
+				const verdict = await hook(ctx);
+				if (isStale()) return null;
+				if (verdict === false) return { kind: 'block' };
+			}
+		}
+		for (const m of matches) {
+			const verdict = await m.route.guard?.(this.#ctx(to, m, signal));
+			if (isStale()) return null;
+			if (typeof verdict === 'string') return { kind: 'redirect', path: verdict };
+			if (verdict === false) return { kind: 'block' };
+		}
+		return { kind: 'ok', matches };
+	}
+
+	#ctx(to: RouteLocation, m: RouteMatch, signal: AbortSignal): RouteContext {
+		return { location: to, params: m.params, search: new URLSearchParams(to.search), signal, route: m.route };
+	}
+
+	/** `approved` comes from the precommit phase; without it (initial/re-resolve) the checks run here. */
+	async #resolve(to: RouteLocation, approved?: RouteMatch[], navSignal?: AbortSignal): Promise<void> {
 		this.#ctrl?.abort();
 		const ctrl = (this.#ctrl = new AbortController());
-		event?.signal.addEventListener('abort', () => ctrl.abort());
+		navSignal?.addEventListener('abort', () => ctrl.abort());
 		const seq = ++this.#seq;
 		const stale = (): boolean => seq !== this.#seq;
 		this.status.set('loading');
@@ -152,34 +215,22 @@ export class Router {
 		let error: unknown;
 
 		try {
-			const ctxOf = (m: RouteMatch): RouteContext => ({
-				location: to,
-				params: m.params,
-				search: new URLSearchParams(to.search),
-				signal: ctrl.signal,
-				route: m.route,
-			});
-
-			matches = matchRoutes(this.routes, to.pathname) ?? [];
-
-			for (const m of matches) {
-				if (m.route.redirect !== undefined) return this.#redirect(fillParams(m.route.redirect, m.params), to);
-			}
-			for (const m of matches) {
-				const verdict = await m.route.guard?.(ctxOf(m));
-				if (stale()) return;
-				if (typeof verdict === 'string') return this.#redirect(verdict, to);
-				if (verdict === false) {
-					this.#revert(event, from);
+			if (approved) matches = approved;
+			else {
+				const verdict = await this.#check(to, ctrl.signal, false, stale);
+				if (!verdict) return;
+				if (verdict.kind === 'redirect') return this.#redirect(verdict.path, to);
+				if (verdict.kind === 'block') {
 					this.status.set('idle');
 					return;
 				}
+				matches = verdict.matches;
 			}
 
 			await Promise.all(
 				matches.map(async (m) => {
 					await m.route.lazy?.();
-					results.set(m.route, await m.route.load?.(ctxOf(m)));
+					results.set(m.route, await m.route.load?.(this.#ctx(to, m, ctrl.signal)));
 				}),
 			);
 			if (stale()) return;
@@ -198,24 +249,21 @@ export class Router {
 	}
 
 	#redirect(path: string, from: RouteLocation): void {
+		this.#redirecting = true;
 		void swallowAbort(this.#nav.navigate(this.href(path), { history: 'replace', state: from.state }).finished);
 	}
 
-	// A blocked guard runs after the browser already committed the URL, so undo that entry.
-	#revert(event: NavigateEventLike | null, from: NavigationEntryLike | null): void {
-		if (!event || !from) return;
-		this.#reverting = true;
-		let result;
-		if (event.navigationType === 'traverse') result = this.#nav.traverseTo(from.key);
-		else if (event.navigationType === 'push') result = this.#nav.back();
-		else if (from.url) result = this.#nav.navigate(from.url, { history: 'replace', state: from.getState() });
-		else this.#reverting = false;
-		if (result) void swallowAbort(result.finished);
-	}
 }
 
-function swallowAbort(p: Promise<unknown>): Promise<void> {
-	return p.then(
+type Verdict =
+	| { kind: 'ok'; matches: RouteMatch[] }
+	| { kind: 'block' }
+	| { kind: 'redirect'; path: string };
+
+const abortError = (): DOMException => new DOMException('Navigation blocked', 'AbortError');
+
+function swallowAbort(p: Promise<unknown> | undefined): Promise<void> {
+	return Promise.resolve(p).then(
 		() => undefined,
 		(err: { name?: string }) => {
 			if (err?.name !== 'AbortError') throw err;

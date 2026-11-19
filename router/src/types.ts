@@ -20,6 +20,15 @@ export interface RouteContext {
 /** `true`/`undefined` allow, `false` blocks, a string redirects (app-relative). */
 export type GuardResult = boolean | string | void;
 
+export interface LeaveContext {
+	from: RouteLocation;
+	to: RouteLocation;
+	signal: AbortSignal;
+}
+
+/** `false` blocks the navigation; anything else lets it proceed. */
+export type BeforeLeaveHook = (ctx: LeaveContext) => boolean | void | Promise<boolean | void>;
+
 export interface RouteDef {
 	/** Relative to the parent route. Syntax: `users`, `:id`, `:id?`, `*`. Omit with `index`. */
 	path?: string;

@@ -21,7 +21,27 @@ Client-side router for std-ui. Standards-first: **Navigation API**, signals, cus
 - **Redirects** are `navigation.navigate(url, { history: 'replace' })` from inside the handler, so the redirected-from URL does not stay in history.
 - **Programmatic API** (`router.navigate/back/forward`) is a thin wrapper over `navigation.*`.
 
-Caveat: the URL commits before the intercept handler runs. A blocked guard therefore *reverts* the already-committed entry (`traverseTo(prevKey)` for traverse, `back()` for push, `navigate(prevUrl, replace)` for replace). A flag makes the router skip the revert's own `navigate` event. Moving guards to `precommitHandler` (no revert needed) is a possible later improvement once its support is acceptable.
+### Guards and `precommitHandler`
+
+Redirect attributes, `beforeLeave` hooks and route guards run in one place: the router's `precommitHandler` (`Router#check`). A block rejects, which cancels the navigation before the URL commits. A redirect uses `controller.redirect()` and re-checks the target (hops capped). The router contains no other path.
+
+Native support is limited (checked Nov 2026): Chrome/Edge 146+, Firefox 148+, **no Safari**. `navigation/precommit-shim.ts` (`withPrecommit`) papers over that so router code is written only against the native API:
+
+| Engine | What happens |
+|---|---|
+| Native `NavigationPrecommitController` | `withPrecommit` returns `navigation` untouched. |
+| Otherwise | The shim wraps `navigation`. `precommitHandler` runs as the first step of `handler` (after commit); a rejection reverts the entry (`traverseTo(prevKey)` / `back()` / `navigate(prevUrl, replace)`) and rethrows; `redirect()` re-navigates with `history: 'replace'` and runs the original `handler` for the target. Navigations the shim starts are hidden from the router's listener. Events are presented as cancelable so the router needs no special case. |
+
+Still inside the Navigation API, not a History fallback. Delete the shim when Safari ships `precommitHandler`. Tests run both modes by stubbing the `NavigationPrecommitController` global.
+
+### `beforeLeave(hook)`
+
+`router.beforeLeave(({ from, to, signal }) => boolean | void | Promise<...>)` returns an unregister function. `false` blocks. Hooks run before route guards, only for router-handled navigations (not the initial resolve or re-resolves after route registration), and once per user navigation even if a guard redirects. The router has no dependency on `@std-ui/ext`; a dirty-form guard is one line against ext's change tracking:
+
+```ts
+const form = changes(state({ name: '' }));
+router.beforeLeave(() => !form.changes.dirty.peek() || confirm('Discard changes?'));
+```
 
 ## Route model
 
@@ -87,7 +107,8 @@ jsdom has no Navigation API. `createMemoryNavigation()` implements the subset in
 - [x] Matcher, nested/index/redirect, ranking
 - [x] Router core on Navigation API: signals, guards, loaders, cancellation, revert, `base`
 - [x] `<std-router>`, `<std-route>`, `<std-outlet>`
-- [ ] `beforeLeave` hooks (dirty-form guard via `ext` change tracking); `precommitHandler`
+- [x] `beforeLeave` hooks; `precommitHandler` when supported (revert path otherwise)
+- [ ] `beforeunload` guard for tab close / reload while hooks are registered
 - [ ] `@routeParam` / `@searchParam` decorators (needs `ext`; avoid the name `query`, taken by DOM query decorators)
 - [ ] Dev warnings (unmatched route, redirect loop), live-region announcer, view transitions
 - [ ] Demo section under `demo/feature-demo/sections/router/`
