@@ -11,10 +11,10 @@ describe('manualValidator', () => {
 		const s = check(state({ email: 'a@b.c' }));
 		const v = manualValidator<string>();
 		s.email.check.validators.set([v]);
-		expect(s.email.check.valid()).toBe(true);
+		expect(s.email.check.valid.own()).toBe(true);
 		v.set('taken');
 		expect(s.email.check.errors()).toEqual([err('taken')]);
-		expect(s.check.allErrors()).toEqual([{ ...err('taken'), path: ['email'] }]);
+		expect(s.check.errors.all()).toEqual([{ ...err('taken'), path: ['email'] }]);
 		v.clear();
 		expect(s.email.check.errors()).toEqual([]);
 	});
@@ -48,11 +48,11 @@ describe('manualValidator', () => {
 		const v = manualValidator<string>();
 		s.n.check.validators.set([v]);
 		v.set('bad');
-		expect(s.n.check.valid()).toBe(false);
+		expect(s.n.check.valid.own()).toBe(false);
 		s.n.set('y');
-		expect(s.n.check.valid()).toBe(true);
+		expect(s.n.check.valid.own()).toBe(true);
 		s.n.set('x');
-		expect(s.n.check.valid()).toBe(true);
+		expect(s.n.check.valid.own()).toBe(true);
 	});
 
 	it('several manual validators are independent', () => {

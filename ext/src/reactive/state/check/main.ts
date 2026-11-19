@@ -26,7 +26,7 @@ export type Validator<T> = ((
 ) => ValidationError | readonly ValidationError[] | null | undefined | void) & {
 	/**
 	 * Optional, for async validators: tracked; true while the result for `value` is not known yet.
-	 * Pending validators make the node's `valid` / `allValid` false.
+	 * Pending validators make the node's `valid` / `valid.own` false.
 	 */
 	readonly pending?: (value: T) => boolean;
 };
@@ -35,26 +35,24 @@ export type Validator<T> = ((
 export interface Validation<T> {
 	/** Validators for this node's own value; replace them with `validators.set([...])`. */
 	readonly validators: Signal<Validator<T>[]>;
-	/** Tracked errors from this node's own validators only (`[]` when valid). */
-	readonly errors: Computed<ValidationError[]>;
-	/** Tracked; true while any of this node's own validators is still waiting for a result (async). */
-	readonly pending: Computed<boolean>;
-	/** Tracked; true while this node or any descendant is pending. */
-	readonly anyPending: Computed<boolean>;
 	/**
-	 * Tracked; true when this node's own validators report no errors and none is pending
-	 * (descendants ignored).
+	 * Tracked errors from this node's own validators only (`[]` when valid). `errors.all` lists the
+	 * errors of this node and all descendants, each with its path below this node (post-order: each
+	 * child's subtree, deepest first, then this node's own errors).
 	 */
-	readonly valid: Computed<boolean>;
+	readonly errors: Computed<ValidationError[]> & { readonly all: Computed<PathError[]> };
+	/**
+	 * Tracked; true while this node or any descendant is pending. `pending.own` is true while any of
+	 * this node's own validators is still waiting for a result (async).
+	 */
+	readonly pending: Computed<boolean> & { readonly own: Computed<boolean> };
 	/**
 	 * Tracked; true when this node and every descendant has no errors and nothing is pending. Without
-	 * async validators it equals `allErrors().length === 0`, but cheaper (stops at the first error, builds no list) and only
-	 * notifies when the boolean flips, not on every error change.
+	 * async validators it equals `errors.all().length === 0`, but cheaper (stops at the first error, builds no list) and only
+	 * notifies when the boolean flips, not on every error change. `valid.own` is the same for this
+	 * node's own validators only (descendants ignored).
 	 */
-	readonly allValid: Computed<boolean>;
-	/** Tracked; errors of this node and all descendants, each with its path below this node.
-	 * Post-order: each child's subtree (deepest first), then this node's own errors. */
-	readonly allErrors: Computed<PathError[]>;
+	readonly valid: Computed<boolean> & { readonly own: Computed<boolean> };
 }
 
 /** Mixin added to every node by `check()`: its validation members under `check`. */
@@ -116,7 +114,7 @@ export function createValidation<T>(
 	children: () => readonly (readonly [string | number, ItemNode<unknown>])[] = () => [],
 ): Validation<T> {
 	const validators = signal<Validator<T>[]>([], { equals: () => false });
-	const errors = computed<ValidationError[]>(
+	const ownErrors = computed<ValidationError[]>(
 		() => {
 			const value = read();
 			const out: ValidationError[] = [];
@@ -130,34 +128,41 @@ export function createValidation<T>(
 		},
 		{ equals: sameErrors },
 	);
-	const pending = computed(() => {
+	const pendingOwn = computed(() => {
 		const value = read();
 		let any = false;
 		// No early exit: every pending() call also (re)starts that validator's request for `value`.
 		for (const v of validators()) if (v.pending?.(value)) any = true;
 		return any;
 	});
-	const anyPending = computed(() => {
-		if (pending()) return true;
-		for (const [, child] of children()) if (childPending(child)) return true;
-		return false;
-	});
-	const valid = computed(() => errors().length === 0 && !pending());
-	const allValid = computed(() => {
-		if (errors().length || pending()) return false;
-		for (const [, child] of children()) if (!isAllValid(child)) return false;
-		return true;
-	});
+	const pending = Object.assign(
+		computed(() => {
+			if (pendingOwn()) return true;
+			for (const [, child] of children()) if (childPending(child)) return true;
+			return false;
+		}),
+		{ own: pendingOwn },
+	);
+	const validOwn = computed(() => ownErrors().length === 0 && !pendingOwn());
+	const valid = Object.assign(
+		computed(() => {
+			if (!validOwn()) return false;
+			for (const [, child] of children()) if (!isAllValid(child)) return false;
+			return true;
+		}),
+		{ own: validOwn },
+	);
 	const allErrors = computed<PathError[]>(() => {
 		// Post-order: each child's subtree (deepest first), then this node's own errors.
 		const out: PathError[] = [];
 		for (const [key, child] of children()) {
 			for (const e of errorsOf(child)) out.push({ ...e, path: [key, ...e.path] });
 		}
-		for (const e of errors()) out.push({ ...e, path: [] });
+		for (const e of ownErrors()) out.push({ ...e, path: [] });
 		return out;
 	});
-	return { validators, errors, pending, anyPending, valid, allValid, allErrors };
+	const errors = Object.assign(ownErrors, { all: allErrors });
+	return { validators, errors, pending, valid };
 }
 
 type Entries = readonly (readonly [string | number, ItemNode<unknown>])[];
@@ -188,17 +193,17 @@ function view(child: ItemNode<unknown>): { check?: Validation<any>; nested: Entr
 }
 function isAllValid(child: ItemNode<unknown>): boolean {
 	const v = view(child);
-	if (v.check) return v.check.allValid();
+	if (v.check) return v.check.valid();
 	return v.nested.every(([, c]) => isAllValid(c));
 }
 function childPending(child: ItemNode<unknown>): boolean {
 	const v = view(child);
-	if (v.check) return !!v.check.anyPending?.();
+	if (v.check) return !!v.check.pending?.();
 	return v.nested.some(([, c]) => childPending(c));
 }
 function errorsOf(child: ItemNode<unknown>): PathError[] {
 	const v = view(child);
-	if (v.check) return v.check.allErrors();
+	if (v.check) return v.check.errors.all();
 	const out: PathError[] = [];
 	for (const [key, c] of v.nested) for (const e of errorsOf(c)) out.push({ ...e, path: [key, ...e.path] });
 	return out;
@@ -207,7 +212,7 @@ function errorsOf(child: ItemNode<unknown>): PathError[] {
 /**
  * Defines `node.check` as a lazy getter: the validation members are built on the first read and
  * cached. `read` / `children` are the same arguments as for `createValidation`. Parent aggregates
- * look through unbuilt nodes, so reading a parent's `allValid` etc. does not build its descendants.
+ * look through unbuilt nodes, so reading a parent's `valid` etc. does not build its descendants.
  */
 export function attachCheck<T>(node: object, read: () => T, children?: () => Entries): void {
 	if ((node as { [STATE]?: CheckState })[STATE]) return; // already has `check`

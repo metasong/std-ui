@@ -8,9 +8,9 @@ The wiring lives in `createValidation` in [`../main.ts`](../main.ts).
 ```
 validators (signal) ─┐
 node value (read()) ─┼─► errors (computed) ─┬─► valid ─────────┐
-signals read by      │                      └─► allErrors      ├─► allValid (+ children)
+signals read by      │                      └─► errors          ├─► valid (+ children)
 each validator ──────┘
-validators + value + pending() reads ─► pending (computed) ─► anyPending (+ children)
+validators + value + pending() reads ─► pending.own ─► pending (+ children)
 ```
 
 - `errors` is one computed. Inside it, `read()` (the node's plain value) and `validators()` are
@@ -19,8 +19,8 @@ validators + value + pending() reads ─► pending (computed) ─► anyPending
 - `validators` is a signal created with `equals: () => false`, so `validators.set([...])` always
   re-runs `errors`, even with an equal-looking list.
 - `errors` uses `sameErrors` (flag + message, in order) as its `equals`, so a re-run that produces
-  the same errors does not notify `valid` / `allErrors` / effects.
-- `valid` = no errors **and** not pending. `allValid` adds the same rule for every descendant and
+  the same errors does not notify `valid` / `errors` / effects.
+- `valid` = no errors **and** not pending. `valid` adds the same rule for every descendant and
   stops at the first failure.
 
 ## Decision: validators stay tracked
@@ -92,7 +92,7 @@ could look "not pending" while still unvalidated.
 form `validator.pending()` has no value to compare, so it uses the `wanted` signal: the last key
 requested. `wanted` cannot be written from inside the computed either, so `ensure` sets it in a
 `queueMicrotask`. This is why the direct form is `false` before the first read and lags a value
-change by one microtask; `node.check.pending` (which passes the value) does not lag.
+change by one microtask; `node.check.pending.own` (which passes the value) does not lag.
 
 ## Laziness
 

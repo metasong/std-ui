@@ -35,7 +35,7 @@ export class DemoIntegrationDirectory extends UIElement {
 
 	#add(): void {
 		draft.formUi.touchAll();
-		if (!draft.check.allValid()) {
+		if (!draft.check.valid()) {
 			this.querySelector<HTMLFormElement>('form')?.reportValidity();
 			return;
 		}

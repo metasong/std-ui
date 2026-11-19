@@ -14,7 +14,7 @@ interface ValidationError { flag: ValidityFlag; message: string }
 by `ElementInternals.setValidity()`).
 
 Add validators to a node with `node.check.validators.set([...])`. They run reactively: whatever
-signals a validator reads are tracked, and `errors` / `valid` / `allValid` / `allErrors` update when
+signals a validator reads are tracked, and `errors` / `errors.all` / `valid` / `valid.own` update when
 the value or those signals change.
 
 How validators are tracked (and why async checks are not): [`design.md`](./design.md).

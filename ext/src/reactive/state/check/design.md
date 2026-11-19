@@ -26,13 +26,13 @@ validates costs nothing beyond a small record. Every container passes:
 
 ## Aggregates look through unbuilt nodes
 
-`allValid`, `allErrors` and `anyPending` must include descendants that have validators, but must not
+`valid`, `errors` and `pending` must include descendants that have validators, but must not
 force every descendant to build its `check`. A parent therefore does not read `child.check` directly;
 it calls `view(child)` (in `main.ts`), which returns one of:
 
 | Child state | What the parent does |
 | --- | --- |
-| `check` built | Uses the child's own `allValid()` / `allErrors()` / `anyPending()` (its subtree included) |
+| `check` built | Uses the child's own `valid()` / `errors.all()` / `pending()` (its subtree included) |
 | `check` not built | The child cannot have validators, so it adds nothing itself. The parent descends into the child's own children, because a deeper node may have built its `check` |
 | Not a tree node (custom `ItemNode`) | Falls back to `child.check` if present |
 
@@ -44,7 +44,7 @@ Consequences:
 - Async validators are only reachable through a built node, so their `pending` is always seen.
 - Reading a parent's aggregate does not build its descendants. It still walks the unbuilt part of the
   subtree on each recompute (O(nodes)), but allocates nothing.
-- Path prefixes for `allErrors` are added at each level, whether a level is built or not, so `path`
+- Path prefixes for `errors` are added at each level, whether a level is built or not, so `path`
   is the same as with a fully built tree.
 
 ## Reacting to a late build

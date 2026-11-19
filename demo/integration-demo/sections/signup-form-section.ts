@@ -68,7 +68,7 @@ export class DemoIntegrationSignup extends UIElement {
 	}
 
 	protected override template() {
-		const errors = model.check.allErrors();
+		const errors = model.check.errors.all();
 		return t`
 			<section class="demo-bind-block" id="signup">
 				<h2>Sign-up form: binding + validation + form elements</h2>
@@ -99,7 +99,7 @@ export class DemoIntegrationSignup extends UIElement {
 					</p>
 				</form>
 
-				<p class="demo-bind-mirror">Model valid: <code>${String(model.check.allValid())}</code></p>
+				<p class="demo-bind-mirror">Model valid: <code>${String(model.check.valid())}</code></p>
 				<pre class="demo-bind-mirror">${errors.length ? errors.map(e => `${e.path.join('.')}: ${e.message}`).join('\n') : 'No errors'}</pre>
 				<pre class="demo-bind-mirror">${this.submitted() || 'Nothing submitted yet.'}</pre>
 			</section>

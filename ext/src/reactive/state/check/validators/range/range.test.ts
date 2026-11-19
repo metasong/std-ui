@@ -20,6 +20,6 @@ describe('range validators', () => {
 		s.age.set(121);
 		expect(s.age.check.errors().map((e) => e.flag)).toEqual(['rangeOverflow']);
 		s.age.set(30);
-		expect(s.age.check.valid()).toBe(true);
+		expect(s.age.check.valid.own()).toBe(true);
 	});
 });

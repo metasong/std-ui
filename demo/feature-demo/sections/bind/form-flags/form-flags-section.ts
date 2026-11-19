@@ -1,8 +1,8 @@
 // formBind(): the flags and aria attributes it puts on a bound element, all driven by state.
 //   - touched   `formUi.touched`   → [data-touched] / :state(touched)   (focusout, or submit → touchAll)
 //   - dirty     `changes.dirty`    → [data-dirty]   / :state(dirty)
-//   - pending   `check.pending`    → [data-pending] / :state(pending), aria-busy   (async validator)
-//   - invalid   `check.errors`     → aria-invalid, and the text of the element named by aria-errormessage
+//   - pending   `check.pending.own` → [data-pending] / :state(pending), aria-busy   (async validator)
+//   - invalid   `check.errors`       → aria-invalid, and the text of the element named by aria-errormessage
 //   - required  a `required()` validator (its `flag` is 'valueMissing') → aria-required
 // The table reads the attributes straight off the inputs, so it shows what is really on the element.
 import { css, signal, state, t, tag, UIElement } from '../../../../../core/src/index.js';

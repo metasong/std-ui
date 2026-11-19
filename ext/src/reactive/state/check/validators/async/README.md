@@ -14,13 +14,13 @@ const unique = asyncValidator<string>(
 form.email.check.validators.set([required(), email(), unique]);
 
 unique.pending();            // this validator: true while its check is outstanding
-form.email.check.pending();  // the node: true when any of its validators is pending
-form.email.check.valid();    // false while pending
+form.email.check.pending.own();  // the node: true when any of its validators is pending
+form.email.check.valid.own();    // false while pending
 ```
 
 `unique.pending()` is tracked, so it works in effects and templates. It reports on the value the node
 last asked the validator to check: it is `false` until the node has read the validator once, and it
-follows a value change one microtask later. `node.check.pending` updates immediately and is the one
+follows a value change one microtask later. `node.check.pending.own` updates immediately and is the one
 to use for gating submit.
 
 The check returns an error, an array of errors, or nothing, like any validator. Its `flag` is one of
@@ -57,9 +57,9 @@ While the result for the node's current value is unknown:
 
 | Member | Value |
 | --- | --- |
-| `check.pending` | `true` when any of the node's own validators is pending |
-| `check.anyPending` | `true` when the node or any descendant is pending |
-| `check.valid` / `check.allValid` | `false` (a form is not submittable mid-request) |
+| `check.pending.own` | `true` when any of the node's own validators is pending |
+| `check.pending` | `true` when the node or any descendant is pending |
+| `check.valid` / `check.valid` | `false` (a form is not submittable mid-request) |
 | `check.errors` | the async validator reports nothing yet |
 
 Any validator can take part by exposing `pending(value)`; `asyncValidator` does.

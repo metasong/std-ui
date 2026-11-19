@@ -159,9 +159,9 @@ return the plain value; errors live on the node, not on the value.
 | --- | --- |
 | `node.check.validators` | `Signal<Validator<T>[]>`; `node.check.validators.set([...])`. A validator takes the node's raw value and returns an error, an array of errors, or nothing. |
 | `node.check.errors()` | Tracked `{ flag, message }[]` from this node's **own** validators (`[]` when valid). |
-| `node.check.valid()` | Tracked boolean: this node's **own** validators report no errors. |
-| `node.check.allValid()` | Tracked boolean: this node and every descendant has no errors. Same as `allErrors().length === 0`, but cheaper and only notifies when the boolean flips. |
-| `node.check.allErrors()` | Tracked `{ flag, message, path }[]` for the node and all descendants, leaf first (each subtree in key/index order, then the node's own errors). `path` is relative to this node (`[]` = itself). |
+| `node.check.valid.own()` | Tracked boolean: this node's **own** validators report no errors. |
+| `node.check.valid()` | Tracked boolean: this node and every descendant has no errors. Same as `errors.all().length === 0`, but cheaper and only notifies when the boolean flips. |
+| `node.check.errors.all()` | Tracked `{ flag, message, path }[]` for the node and all descendants, leaf first (each subtree in key/index order, then the node's own errors). `path` is relative to this node (`[]` = itself). |
 
 ```ts
 const required: Validator<string> = (v) => (v ? undefined : { flag: 'valueMissing', message: 'Required' });
@@ -171,8 +171,8 @@ form.user.name.check.validators.set([required]);
 form.check.validators.set([(v) => (v.tags.length ? undefined : { flag: 'valueMissing', message: 'No tags' })]);
 
 form.user.name();   // '' (plain value)
-form.user.check.allValid();  // false (descendant `name` has an error)
-form.check.allErrors();   // [{ flag: 'valueMissing', message: 'Required', path: ['user', 'name'] }]
+form.user.check.valid();  // false (descendant `name` has an error)
+form.check.errors.all();   // [{ flag: 'valueMissing', message: 'Required', path: ['user', 'name'] }]
 ```
 
 A `Validator` takes only the node's value. To configure one (limits, message), write a factory that
@@ -187,7 +187,7 @@ form.age.check.validators.set([range(2, 8, 'value must be between 2 and 8')]);
 
 form.age.check.errors(); // [{ flag: 'customError', message: 'value must be between 2 and 8' }]
 form.age.set(5);
-form.age.check.valid();  // true
+form.age.check.valid.own();  // true
 ```
 
 Branch validators see the raw subtree value, so cross-field checks work while a child is invalid.

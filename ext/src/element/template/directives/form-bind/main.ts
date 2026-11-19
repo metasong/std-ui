@@ -5,7 +5,7 @@
 //   - touched: focusout / invalid → `formUi.touched`; shown as `:state(touched)` / `[data-touched]`
 //   - dirty: `changes.dirty` → `:state(dirty)` / `[data-dirty]`
 //   - required: a validator with `flag: 'valueMissing'` (`required()`) on `check.validators` → `aria-required`
-//   - pending: `check.pending` (async validators) → `:state(pending)` / `[data-pending]` and `aria-busy`
+//   - pending: `check.pending.own` (async validators) → `:state(pending)` / `[data-pending]` and `aria-busy`
 //   - effective readonly / disabled → the element (property, attribute and aria)
 
 import { bind, createBind, effect, type BindPlugin, type BindPluginContext } from '@std-ui/core';
@@ -52,7 +52,7 @@ const requiredOf = (source: unknown): (() => boolean) | undefined => {
 const dirtyOf = (source: unknown): (() => boolean) | undefined =>
 	(source as { changes?: { dirty?: () => boolean } } | null)?.changes?.dirty;
 const pendingOf = (source: unknown): (() => boolean) | undefined =>
-	(source as { check?: { pending?: () => boolean } } | null)?.check?.pending;
+	(source as { check?: { pending?: { own?: () => boolean } } } | null)?.check?.pending?.own;
 
 /**
  * `aria-invalid`, and the message text in the element `aria-errormessage` points to (the author

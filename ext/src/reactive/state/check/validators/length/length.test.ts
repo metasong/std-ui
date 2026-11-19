@@ -28,6 +28,6 @@ describe('length validators', () => {
 		s.pw.set('abcdef');
 		expect(s.pw.check.errors().map((e) => e.flag)).toEqual(['tooLong']);
 		s.pw.set('abcd');
-		expect(s.pw.check.valid()).toBe(true);
+		expect(s.pw.check.valid.own()).toBe(true);
 	});
 });

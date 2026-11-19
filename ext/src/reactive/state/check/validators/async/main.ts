@@ -9,7 +9,7 @@ export interface AsyncValidator<T> extends Validator<T> {
 	/**
 	 * Tracked; true while the check for the value is unknown. Without an argument it reports on the
 	 * value the node last asked this validator to check (so it is `false` until the node has read
-	 * it once, and follows a value change one microtask later). `node.check.pending` is the
+	 * it once, and follows a value change one microtask later). `node.check.pending.own` is the
 	 * authoritative, immediately-updating aggregate.
 	 */
 	readonly pending: (value?: T) => boolean;
@@ -32,7 +32,7 @@ export interface AsyncValidatorOptions<D = unknown> {
 /**
  * Creates a validator from an async check, e.g. a server round trip. Add it to `check.validators`
  * like any other. While the result for the current value is unknown the node reports `pending`
- * (and `valid` / `allValid` are false); the validator itself reports no errors until then.
+ * (and `valid` / `valid.own` are false); the validator itself reports no errors until then.
  *
  * - The check runs once per value (and `deps` result); a newer one aborts the previous through `abortSignal`.
  * - Results for a value that is no longer current are ignored.

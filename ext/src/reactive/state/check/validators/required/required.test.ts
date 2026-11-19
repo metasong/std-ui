@@ -17,6 +17,6 @@ describe('required', () => {
 		s.name.check.validators.set([required<string>('Name needed')]);
 		expect(s.name.check.errors()).toEqual([{ flag: 'valueMissing', message: 'Name needed' }]);
 		s.name.set('x');
-		expect(s.name.check.valid()).toBe(true);
+		expect(s.name.check.valid.own()).toBe(true);
 	});
 });

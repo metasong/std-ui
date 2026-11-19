@@ -116,7 +116,7 @@ For lists that reorder or splice in the middle, pair `@state()` with keyed rende
 | `list.update(fn)` | `set(fn(peek()))`, returns new snapshot. |
 | `list.length` | `Computed` of current length (tracks structural changes only). |
 | `list.at(i)` | Item node at `i`; `undefined` if out of range. Only notifies when the node at `i` changes. Negative `i` counts from the end and is tracked separately from the positive index it currently resolves to (`-1` follows the last slot as length changes). |
-| `list.check.validators` / `errors()` / `valid()` / `allErrors()` | Validation, see [`../README.md`](../README.md#validation). Validators receive the raw values array; `allErrors()` paths use item indices. |
+| `list.check.validators` / `errors()` / `errors.all()` / `valid()` | Validation, see [`../README.md`](../README.md#validation). Validators receive the raw values array; `errors.all()` paths use item indices. |
 | `list.changes.dirty()` / `reset(next?)` | Change tracking against the initial values, see [`../README.md`](../README.md#change-tracking-dirty-and-reset). |
 | `push` / `pop` / `shift` / `unshift` / `splice` / `remove` / `clear` | Array-like mutations, in place on the node array; notify `shallow()` / `deep()` / `length` / `at`, not `list()`. |
 

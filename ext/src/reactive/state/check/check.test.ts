@@ -16,18 +16,18 @@ describe('validators', () => {
 		expect(s.name.check.errors()).toEqual([]);
 	});
 
-	it('aggregates allValid() over descendants but valid()/errors() stay own-only', () => {
+	it('aggregates valid() over descendants but valid.own()/errors() stay own-only', () => {
 		const s = check(state({ user: { name: '' }, tags: ['a', ''] }));
 		s.user.name.check.validators.set([required]);
 		s.tags[1]!.check.validators.set([required as Validator<any>]);
 		expect(s.user.check.errors()).toEqual([]);
-		expect(s.user.check.valid()).toBe(true);
-		expect(s.user.check.allValid()).toBe(false);
-		expect(s.tags.check.allValid()).toBe(false);
-		expect(s.check.allValid()).toBe(false);
+		expect(s.user.check.valid.own()).toBe(true);
+		expect(s.user.check.valid()).toBe(false);
+		expect(s.tags.check.valid()).toBe(false);
+		expect(s.check.valid()).toBe(false);
 		s.user.name.set('n');
 		s.tags[1]!.set('b');
-		expect(s.check.allValid()).toBe(true);
+		expect(s.check.valid()).toBe(true);
 	});
 
 	it('branch validators see the raw subtree and are reactive', async () => {
@@ -42,17 +42,17 @@ describe('validators', () => {
 		expect(seen).toEqual([0, 1, 0]);
 	});
 
-	it('allErrors() lists every descendant error with its path', () => {
+	it('errors() lists every descendant error with its path', () => {
 		const s = check(state({ user: { name: '' }, tags: ['a', ''] }));
 		s.user.name.check.validators.set([required]);
 		s.tags[1]!.check.validators.set([required as Validator<any>]);
 		s.check.validators.set([() => ({ flag: 'customError', message: 'r' })]);
-		expect(s.check.allErrors().map((e) => [e.flag, e.path])).toEqual([
+		expect(s.check.errors.all().map((e) => [e.flag, e.path])).toEqual([
     ['valueMissing', ['user', 'name']],
     ['valueMissing', ['tags', 1]],
 			['customError', []],
 		]);
-		expect(s.user.check.allErrors()[0].path).toEqual(['name']);
+		expect(s.user.check.errors.all()[0].path).toEqual(['name']);
 	});
 
 	it('`_` reaches members whose names collide with the API', () => {
@@ -72,13 +72,13 @@ describe('validators', () => {
 		form.age.check.validators.set([range(2, 8, 'value must be between 2 and 8')]);
 		expect(form.age.check.errors()).toEqual([{ flag: 'customError', message: 'value must be between 2 and 8' }]);
 		form.age.set(5);
-		expect(form.age.check.valid()).toBe(true);
+		expect(form.age.check.valid.own()).toBe(true);
 	});
 
 	it('array validators', () => {
 		const s = check(state({ list: [1] }));
 		s.list.check.validators.set([(v) => (v.length ? undefined : { flag: 'valueMissing', message: 'empty' })]);
-		expect(s.list.check.valid()).toBe(true);
+		expect(s.list.check.valid.own()).toBe(true);
 		s.list.clear();
 		expect(s.list.check.errors()[0].flag).toBe('valueMissing');
 	});
@@ -172,15 +172,15 @@ describe('lazy check', () => {
 		const s = state({ a: { b: { c: '' } }, list: [''] }).with(check).with(changes);
 		let valid = 0;
 		let errs = 0;
-		effect(() => void (valid = s.check.allValid() ? 1 : 2));
-		effect(() => void (errs = s.check.allErrors().length));
+		effect(() => void (valid = s.check.valid() ? 1 : 2));
+		effect(() => void (errs = s.check.errors.all().length));
 		await flushEffects();
 		expect([valid, errs]).toEqual([1, 0]);
 
 		s.a.b.c.check.validators.set([required]);
 		await flushEffects();
 		expect([valid, errs]).toEqual([2, 1]);
-		expect(s.check.allErrors()[0]!.path).toEqual(['a', 'b', 'c']);
+		expect(s.check.errors.all()[0]!.path).toEqual(['a', 'b', 'c']);
 
 		s.a.b.c.set('x');
 		await flushEffects();
@@ -193,11 +193,11 @@ describe('lazy check', () => {
 
 	it('does not build descendants when a parent aggregate is read', () => {
 		const s = state({ a: { b: '' } }).with(check).with(changes);
-		expect(s.check.allValid()).toBe(true);
+		expect(s.check.valid()).toBe(true);
 		const own = Object.getOwnPropertyDescriptor(s.a.b, 'check')!;
 		expect(typeof own.get).toBe('function');
-		expect(s.check.allErrors()).toEqual([]);
-		expect(s.check.anyPending()).toBe(false);
+		expect(s.check.errors.all()).toEqual([]);
+		expect(s.check.pending()).toBe(false);
 	});
 });
 
@@ -205,11 +205,11 @@ describe('check on a depth: "value" tree', () => {
 	it('validity aggregates equal the node ones (a leaf has no children)', () => {
 		const s = state({ n: 1 }, { depth: 'value' }).with(check).with(changes);
 		s.check.validators.set([(v) => (v.n > 1 ? { flag: 'rangeOverflow', message: 'too big' } : null)]);
-		expect(s.check.allValid()).toBe(s.check.valid());
+		expect(s.check.valid()).toBe(s.check.valid.own());
 		s.set({ n: 2 });
+		expect(s.check.valid.own()).toBe(false);
 		expect(s.check.valid()).toBe(false);
-		expect(s.check.allValid()).toBe(false);
-		expect(s.check.allErrors().map((e) => e.message)).toEqual(s.check.errors().map((e) => e.message));
-		expect(s.check.allErrors().every((e) => e.path.length === 0)).toBe(true);
+		expect(s.check.errors.all().map((e) => e.message)).toEqual(s.check.errors().map((e) => e.message));
+		expect(s.check.errors.all().every((e) => e.path.length === 0)).toBe(true);
 	});
 });
