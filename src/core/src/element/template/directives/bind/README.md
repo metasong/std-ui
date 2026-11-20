@@ -25,17 +25,17 @@ class SearchField extends UIElement {
 
 Design notes: [`design.md`](./design.md).
 
-## `@state()` / `@attribute()`
+## `state()` / `@attribute()` fields
 
-Decorator fields **are** writable stores — pass the field itself to `bind()`, not a read (`this.query()`). Display and logic still use `()` / `.set()` everywhere else.
+Fields are writable stores — pass the field itself to `bind()`, not a read (`this.email()`). Display and logic still use `()` / `.set()` everywhere else. There is no `@state()` decorator; declare plain fields with `state(...)`.
 
 ```ts
 import { t, bind, state, tag, UIElement } from '@std-ui/core';
 
 @tag('signup-field')
 class SignupField extends UIElement {
-	@state() email = '';
-	@state() agreed = false;
+	email = state('');
+	agreed = state(false);
 
 	protected override template() {
 		return t`
@@ -50,14 +50,14 @@ class SignupField extends UIElement {
 }
 ```
 
-`@attribute()` fields work the same (`bind(this.age)` on an `@attribute()` number field). Browser demo:
+`@attribute()` fields work the same (`@attribute() age = state(3)`, then `bind(this.age)`). Browser demo:
 [`demo/pages/bind/sections/form-section.ts`](../../../../../demo/pages/bind/sections/form-section.ts).
 
 ## API
 
 ### `bind(signal[, options])`
 
-Binds a `signal()`, `state()` node, or `@state()` / `@attribute()` field directly — the model
+Binds a `signal()`, `state()` node, or `state()` / `@attribute()` field directly — the model
 is that store, not a separate signal variable. Any callable with `.set()` works. The read happens
 during render, so model changes re-render the template.
 
