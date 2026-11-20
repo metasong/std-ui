@@ -8,6 +8,7 @@ needs.
 import { t, classMap } from '@std-ui/core';
 
 t`<div class="${classMap({ active: isActive, hidden: !visible })}"></div>`;
+t`<div class="${classMap(['btn', isActive ? 'active' : ''])}"></div>`;
 ```
 
 Design notes: [`design.md`](./design.md).
@@ -16,7 +17,10 @@ Design notes: [`design.md`](./design.md).
 
 ### `classMap(classes)`
 
-- Keys with a **truthy** value are added; **falsy** keys are removed (or left alone if never present).
+- Accepts a `Record<string, unknown>` **or** a `string[]`.
+- Object: keys with a **truthy** value are added; **falsy** keys are removed (or left alone if never present).
+- Array: each entry is split on whitespace and added (`'a b'` → `a`, `b`); empty and non-string entries
+  are ignored. Entries that disappear from the array on a later render are removed.
 - Classes already on the element from static markup, imperative `classList` changes, or a static
   prefix in the same attribute are not clobbered — only keys this directive manages are diffed.
 - May be the only interpolation on `class`, or mixed with static tokens

@@ -28,13 +28,13 @@ Same overall pattern as [`../style-map/design.md`](../style-map/design.md).
 1. **Constructor** — `partInfo.type === PartType.ATTRIBUTE` and `name === 'class'`, else throw.
 2. **`#previous`** — `Set<string>` of class names this instance last applied (one directive instance
    per binding position, reused across re-renders).
-3. **`update()`** — build `next` from truthy object keys; if `part.staticText` is set, union
+3. **`update()`** — build `next` from truthy object keys, or from whitespace-split non-empty string entries when given an array; if `part.staticText` is set, union
    whitespace-separated tokens from the static portion of the attribute; remove `previous \ next`,
    add every name in `next`; store `next` in `#previous`; return `noChange`.
 
 ```mermaid
 flowchart LR
-  A["update(part, classes)"] --> B["truthy keys → next Set"]
+  A["update(part, classes)"] --> B["truthy keys / array tokens → next Set"]
   B --> C["union staticText tokens"]
   C --> D["remove #previous \\ next"]
   D --> E["classList.add all in next"]
