@@ -182,31 +182,37 @@ class DemoStatusPanel extends UIElement {
     `;
   }
 }
-
-@tag('demo-tabs')
-class DemoTabs extends UIElement {
-  @state() tab: Tab = 'home';
-  @state() size: 's' | 'm' | 'l' = 'm';
-
-  protected override template() {
-    return t`
-      <nav>
-        <button type="button" ?aria-current=${this.tab() === 'home'} @click=${() => this.tab.set('home')}>Home</button>
-        <button type="button" ?aria-current=${this.tab() === 'settings'} @click=${() => this.tab.set('settings')}>Settings</button>
-      </nav>
-      <main>
-        ${this.tab() === 'home'
-          ? t`<section><h2>Home</h2></section>`
-          : t`<section><h2>Settings</h2></section>`}
-      </main>
-      <span>${this.size() === 's' ? 'Small' : this.size() === 'm' ? 'Medium' : 'Large'}</span>
-    `;
-  }
-}
 ```
 
 When each case is a different inner `` t`...` `` literal, changing `tab()` / `loadState()` (via
 `.set` on the field store) swaps the mounted subtree (same rules as `if` / `else` above).
+
+A `switch` **statement** cannot appear inside `${...}` (it is a statement, not an expression), but
+you can use it in a helper method or before the `return`, then interpolate the result:
+
+```ts
+@tag('demo-tab-body')
+class DemoTabBody extends UIElement {
+  @state() tab: Tab = 'home';
+
+  private renderBody() {
+    switch (this.tab()) {
+      case 'home':
+        return t`<section><h2>Home</h2></section>`;
+      case 'settings':
+        return t`<section><h2>Settings</h2></section>`;
+      default:
+        return null;
+    }
+  }
+
+  protected override template() {
+    return t`<main>${this.renderBody()}</main>`;
+  }
+}
+```
+
+A lookup table (`Record<Tab, () => TemplateResult>`) works the same way: `${views[this.tab()]()}`.
 
 ## What we add instead of structure directives
 
