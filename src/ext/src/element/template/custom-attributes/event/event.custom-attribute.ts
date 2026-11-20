@@ -56,10 +56,10 @@ export class ModifierEventPart extends EventPart {
 /** Replaces the built-in `@` wildcard binding with one that understands modifiers. */
 export const eventModifiersExtension: CustomAttribute = {
 	sigil: '@', name: WILDCARD, single: true,
-	validate(b) {
-		if (b.arg !== undefined) throw new Error(`std-ui html: "${b.sigil}${b.name}:${b.arg}" - ":arg" is not supported on ${b.sigil}${b.name}.`);
+	validate(attrInfo) {
+		if (attrInfo.arg !== undefined) throw new Error(`std-ui html: "${attrInfo.sigil}${attrInfo.name}:${attrInfo.arg}" - ":arg" is not supported on ${attrInfo.sigil}${attrInfo.name}.`);
 	},
-	createPart: (el, b, host) => new ModifierEventPart(el, b.name, b.modifiers, host),
+	createPart: (el, attrInfo, host) => new ModifierEventPart(el, attrInfo.name, attrInfo.modifiers, host),
 };
 
 registerCustomAttribute(eventModifiersExtension);
