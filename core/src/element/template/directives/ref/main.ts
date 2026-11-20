@@ -1,12 +1,10 @@
 import { Directive, directive, noChange, type ElementPartInfo, type PartInfo } from '../directive.js';
 import { PartType } from '../../parts/part.js';
+import { signal, type Signal } from '../../../../reactive/signal/index.js';
 
-/** Holder for a rendered element, filled in by `ref()`. The `Ref`. */
-export interface Ref<T extends Element = Element> {
-	/** The element once rendered; `undefined` before the first render and after teardown. */
-	value?: T;
-}
-
+/** A signal holding the rendered element, filled in by `ref()`: `undefined` before the first render and after
+ *  teardown. Read it by calling it (tracked in effects/templates), or `.peek()` for an untracked read. */
+export type Ref<T extends Element = Element> = Signal<T | undefined>;
 /** Called with the element when it renders, and with `undefined` when the binding is torn down
  *  or switched to another ref. */
 export type RefCallback<T extends Element = Element> = (el: T | undefined) => void;
@@ -15,7 +13,7 @@ export type RefOrCallback<T extends Element = Element> = Ref<T> | RefCallback<T>
 
 /** Creates an empty `Ref` to pass to `ref()`, e.g. `const input = createRef<HTMLInputElement>()`. */
 export function createRef<T extends Element = Element>(): Ref<T> {
-	return {};
+	return signal<T | undefined>(undefined);
 }
 
 /**
@@ -23,7 +21,7 @@ export function createRef<T extends Element = Element>(): Ref<T> {
  *. Bound on the element itself, no attribute name:
  *
  *   const input = createRef<HTMLInputElement>();
- *   t`<input ${ref(input)}>`;          // input.value is the element after render
+ *   t`<input ${ref(input)}>`;          // input() is the element after render
  *   t`<input ${ref(el => el?.focus())}>`; // callback form
  *
  * The ref is cleared (or the callback called with `undefined`) when the binding is torn down
@@ -67,8 +65,10 @@ class RefDirective extends Directive {
 	#set(el: Element | undefined): void {
 		const ref = this.#ref;
 		if (!ref) return;
-		if (typeof ref === 'function') ref.call(this.#host, el);
-		else if (el || ref.value === this.#element) ref.value = el;
+		// A `Ref` is a signal, which is also a function: tell it from a callback by its `set`.
+		if ('set' in ref) {
+			if (el || ref.peek() === this.#element) ref.set(el);
+		} else ref.call(this.#host, el);
 	}
 }
 

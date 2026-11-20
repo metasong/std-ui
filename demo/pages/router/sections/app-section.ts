@@ -1,9 +1,9 @@
-import { css, t, tag, state, UIElement } from '@std-ui/core';
+import { createRef, css, ref, t, tag, state, UIElement } from '@std-ui/core';
 import { createRouter, routeParam, searchParam } from '@std-ui/router';
 import '@std-ui/router'; // defines <std-router>, <std-route>, <std-outlet>
 import { createMemoryNavigation } from '@std-ui/router/testing';
 import { navigateWithTransitionName } from './pages.js';
-import type { RouteDef, Router, StdRouter } from '@std-ui/router';
+import type { RouteDef, Router, StdOutlet, StdRouter } from '@std-ui/router';
 
 // `router` is reactive, so templates re-render when <std-router> gets its .router assigned after connecting.
 const routerOf = (el: Element): Router => (el.closest('std-router') as StdRouter).router;
@@ -64,14 +64,16 @@ export class DemoRouterFullSection extends UIElement {
 	// In-memory history: the address bar belongs to the app's own router, so this one never touches it.
 	private readonly router = createRouter({ routes: routes(), navigation: createMemoryNavigation('/'), viewTransition: true });
 
+	private readonly outlet = createRef<StdOutlet>();
+
 	/** Links inside the demo go to the in-memory router, not the browser's. */
 	private readonly onLinkClick = (e: MouseEvent): void => {
 		const a = (e.target as Element).closest('a');
-		if (!a || a.closest('std-router') !== e.currentTarget) return;
+		if (!a) return;
 		e.preventDefault();
 		e.stopPropagation();
 		// The outlet is named only while this router navigates, so other sections' transitions do not animate it.
-		void navigateWithTransitionName(a.closest('std-router')!.querySelector('std-outlet'), 'rt-page', () => routerOf(a).navigate(a.getAttribute('href')!));
+		void navigateWithTransitionName(this.outlet.peek() ?? null, 'rt-page', () => this.router.navigate(a.getAttribute('href')!));
 	};
 
 	protected override connect(): void {
@@ -115,7 +117,7 @@ export class DemoRouterFullSection extends UIElement {
 					<demo-rt-status></demo-rt-status>
 					<p class="rt-status">announced to screen readers: <output id="rt-announced">(navigate to see)</output></p>
 
-					<std-outlet></std-outlet>
+					<std-outlet ${ref(this.outlet)}></std-outlet>
 				</std-router>
 			</section>
 		`;
