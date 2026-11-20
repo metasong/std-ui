@@ -26,6 +26,8 @@ export class TemplateRenderer extends ChildRenderer<TemplateResult> {
 	}
 	override dispose(): void {
 		this.disconnect();
+		for (const p of this.#parts) p.dispose?.();
+		this.#parts = [];
 		for (const n of this.#nodes) n.remove();
 	}
 }

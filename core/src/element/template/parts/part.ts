@@ -55,6 +55,8 @@ export interface Part {
 	/** Optional: called when the part's content is torn down, so any bound directive's
 	 *  `disconnected()` runs. */
 	disconnect?(): void;
+	/** Optional: removes any DOM the part added dynamically after instantiation (e.g. list items). */
+	dispose?(): void;
 }
 
 /** Feeds `values` to `parts` in document order, giving each part exactly the slice it declared via
