@@ -9,13 +9,19 @@ type StartViewTransition = (update: () => void | Promise<void>) => ViewTransitio
 /** Lets effects (the outlet's render) flush: they run in a microtask after a signal write. */
 const flushEffects = (): Promise<void> => new Promise((r) => queueMicrotask(() => queueMicrotask(r)));
 
-export function canViewTransition(): boolean {
-	return (
+/**
+ * Lazy self-replacing check: browser support is detected on the first call only, then this function
+ * swaps itself for a cheaper one. Reduced motion stays a live check since the user can change it at runtime.
+ */
+export let canViewTransition = (): boolean => {
+	const supported =
 		typeof document !== 'undefined' &&
-		typeof (document as { startViewTransition?: unknown }).startViewTransition === 'function' &&
-		!globalThis.matchMedia?.('(prefers-reduced-motion: reduce)').matches
-	);
-}
+		typeof (document as { startViewTransition?: unknown }).startViewTransition === 'function';
+	canViewTransition = supported
+		? () => !globalThis.matchMedia?.('(prefers-reduced-motion: reduce)').matches
+		: () => false;
+	return canViewTransition();
+};
 
 /**
  * Runs `update` (the commit) inside a View Transition when supported, otherwise plainly.

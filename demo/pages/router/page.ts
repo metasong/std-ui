@@ -4,11 +4,16 @@ import '../../shared/code-preview.js';
 import announcer from './sections/announcer-section.ts?raw';
 import full from './sections/app-section.ts?raw';
 import pages from './sections/pages.ts?raw';
+import viewTransitionCss from './sections/view-transition-section.css.ts?raw';
 import viewTransition from './sections/view-transition-section.ts?raw';
 
 const fullFiles = { 'app-section.ts': full, 'pages.ts': pages };
 const announcerFiles = { 'announcer-section.ts': announcer, 'pages.ts': pages };
-const viewTransitionFiles = { 'view-transition-section.ts': viewTransition, 'pages.ts': pages };
+const viewTransitionFiles = {
+	'view-transition-section.ts': viewTransition,
+	'view-transition-section.css.ts': viewTransitionCss,
+	'pages.ts': pages,
+};
 
 @tag('demo-router-page')
 export class DemoRouterPage extends UIElement {

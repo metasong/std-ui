@@ -15,8 +15,10 @@ export class StdRouter extends UIElement {
 	routes?: RouteDef[];
 	/** Override `window.navigation`; set before the element connects. */
 	navigation?: NavigationLike;
-	/** Custom announcement text; set before connecting. Attribute `announce="off"` disables it. */
-	announce?: AnnounceFn;
+	/** Attribute `announce`: `"off"` disables the live-region announcer. Read once, when the router is built. */
+	@attribute() announce: 'on' | 'off' = 'on';
+	/** Custom announcement text; set before connecting. The default announcer is used if not set. Takes precedence over `announce`. */
+	announceFn?: AnnounceFn;
 	/**
 	 * The current router. Descendants read this (not `router`) so that assigning `router` after they
 	 * connected, e.g. from a template binding, re-binds them instead of leaving them on a stale router.
@@ -33,7 +35,7 @@ export class StdRouter extends UIElement {
 				routes: this.routes,
 				base: this.base,
 				navigation: this.navigation,
-				announce: this.announce ?? this.getAttribute('announce') !== 'off',
+				announce: this.announceFn ?? this.announce !== 'off',
 				viewTransition: this.viewTransition,
 			});
 			this.#current.set(router);
