@@ -4,6 +4,14 @@ interface ViewTransitionLike {
 	updateCallbackDone: Promise<void>;
 }
 
+/** Hooks around a view transition; they run only when a transition actually starts (supported, motion allowed). */
+export interface ViewTransitionHooks {
+	/** Just before the transition starts, e.g. to set a `view-transition-name`. */
+	onStart?: () => void;
+	/** After the animation has ended, e.g. to remove that name again. */
+	onFinish?: () => void;
+}
+
 type StartViewTransition = (update: () => void | Promise<void>) => ViewTransitionLike;
 
 /** Lets effects (the outlet's render) flush: they run in a microtask after a signal write. */
@@ -28,11 +36,12 @@ export let canViewTransition = (): boolean => {
  * Resolves once the DOM has updated, not when the animation ends, so navigation scroll/focus
  * handling is not delayed by it. Style with `::view-transition-*` pseudo-elements.
  */
-export async function withViewTransition(update: () => void): Promise<void> {
+export async function withViewTransition(update: () => void, hooks: ViewTransitionHooks = {}): Promise<void> {
 	if (!canViewTransition()) {
 		update();
 		return;
 	}
+	hooks.onStart?.();
 	const start = (document as unknown as { startViewTransition: StartViewTransition }).startViewTransition.bind(document);
 	const t = start(async () => {
 		update();
@@ -42,6 +51,7 @@ export async function withViewTransition(update: () => void): Promise<void> {
 	// aborts the older, rejecting its `ready`/`finished` promises. Nobody awaits those, so swallow them or they
 	// surface as `Uncaught (in promise) InvalidStateError`. A skipped transition still runs the callback.
 	t.ready.catch(() => {});
-	t.finished.catch(() => {});
+	// `onFinish` runs when the animation ends (or is skipped/aborted), not when the DOM update is done.
+	t.finished.catch(() => {}).finally(() => hooks.onFinish?.());
 	await t.updateCallbackDone.catch(() => {});
 }

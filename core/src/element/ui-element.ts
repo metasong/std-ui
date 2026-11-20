@@ -171,6 +171,13 @@ export abstract class UIElement extends HTMLElement {
 	 *   const id = setInterval(() => this.#now.set(Date.now()), 1000);
 	 *   onCleanup(() => clearInterval(id));
 	 * }, () => this.#label.dataset.ticked = '1'); // afterAction: untracked, runs after each run
+	 *
+	 * @param monitoredAction - The tracked effect body, run immediately and re-run whenever a signal it
+	 * reads changes. Receives `onCleanup` to register cleanup functions that run before the next
+	 * re-run and on disconnect. The body is dependency-tracked, but the registered cleanup functions
+	 * run untracked, so signals read inside them do not become dependencies.
+	 * @param afterAction - Optional callback run right after `monitoredAction` on every run. Untracked,
+	 * so signals it reads won't trigger re-runs. Defaults to `null`.
 	 */
 	protected readonly effect = (
 		monitoredAction: (onCleanup: OnCleanup) => void,

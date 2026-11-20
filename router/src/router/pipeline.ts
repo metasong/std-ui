@@ -6,11 +6,11 @@ import type { RouteTable } from './route-table.js';
 import type { RouterState } from './state.js';
 import { Transaction } from './transaction.js';
 import type { Announcer } from './announcer.js';
-import { withViewTransition } from './view-transition.js';
+import { withViewTransition, type ViewTransitionHooks } from './view-transition.js';
 
 /** Optional, non-essential effects around Commit. */
 export interface Presentation {
-	viewTransition?: boolean;
+	viewTransition?: boolean | ViewTransitionHooks;
 	announcer?: Announcer;
 }
 
@@ -21,6 +21,7 @@ export interface Presentation {
 export class Pipeline {
 	#tx: Transaction | null = null;
 	#committed = false;
+	readonly #vtHooks = new Set<ViewTransitionHooks>();
 
 	constructor(
 		private readonly table: RouteTable,
@@ -36,6 +37,22 @@ export class Pipeline {
 
 	abort(): void {
 		this.#tx?.abort();
+	}
+
+	/** Registers hooks for view transitions (e.g. an outlet scoping its `view-transition-name`); returns an unregister function. */
+	addViewTransitionHooks(hooks: ViewTransitionHooks): () => void {
+		this.#vtHooks.add(hooks);
+		return () => void this.#vtHooks.delete(hooks);
+	}
+
+	/** The `viewTransition` option's hooks plus every registered one, as a single set of hooks. */
+	#hooks(): ViewTransitionHooks {
+		const option = this.present.viewTransition;
+		const all = [...(typeof option === 'object' ? [option] : []), ...this.#vtHooks];
+		return {
+			onStart: () => all.forEach((h) => h.onStart?.()),
+			onFinish: () => all.forEach((h) => h.onFinish?.()),
+		};
 	}
 
 	/** Plan: may this navigation happen, and where does it end? */
@@ -67,7 +84,7 @@ export class Pipeline {
 		const commit = (): void => this.state.commit(plan, results, error);
 		const first = !this.#committed;
 		this.#committed = true;
-		if (this.present.viewTransition && !first) await withViewTransition(commit);
+		if (this.present.viewTransition && !first) await withViewTransition(commit, this.#hooks());
 		else commit();
 		// The initial load is not a navigation the user needs told about.
 		if (!first && !tx.stale) this.present.announcer?.announce({ location: plan.to, matches: plan.matches });

@@ -3,7 +3,7 @@ import { css, state, t, tag, UIElement } from '@std-ui/core';
 import '@std-ui/router';
 import { createRouter } from '@std-ui/router';
 import { createMemoryNavigation } from '@std-ui/router/testing';
-import { demoRoutes, navigateWithTransitionName } from './pages.js';
+import { demoRoutes } from './pages.js';
 import transitionStyles from './view-transition-section.css.js';
 
 // One CSS block per name below, selected by `<html data-rt-effect>`.
@@ -42,8 +42,7 @@ export class DemoRouterViewTransitionSection extends UIElement {
 		const next = choices[Math.floor(Math.random() * choices.length)]!;
 		document.documentElement.dataset.rtEffect = next; // data-rt-effect = 'next' on <html> selects the animation style
 		this.chosen.set(next);
-		// Named only for this navigation: a transition elsewhere on the page must not animate this outlet.
-		void navigateWithTransitionName(this.querySelector('.demo-rt-outlet'), 'demo-rt', () => this.router.navigate(path));
+		void this.router.navigate(path);
 	}
 
 	protected override template() {
@@ -54,7 +53,7 @@ export class DemoRouterViewTransitionSection extends UIElement {
 				<p class="desc">
 					With <code>viewTransition: true</code> (or the <code>view-transition</code> attribute) the commit runs inside
 					<code>document.startViewTransition</code>, so the outlet content animates between pages. Style it with
-					<code>::view-transition-old/new(name)</code>; here the outlet gets <code>view-transition-name: demo-rt</code> while this section navigates (the name is document-wide, so it is not left on permanently).
+					<code>::view-transition-old/new(name)</code>; here <code>&lt;std-outlet view-transition-name="demo-rt"&gt;</code> gives the outlet that name only while this router's transition runs (the name is document-wide, so it is not left on permanently).
 					Each click picks a random effect by setting <code>data-rt-effect</code> on <code>&lt;html&gt;</code> before navigating.
 					Unsupported browsers and <code>prefers-reduced-motion</code> get a plain swap.
 				</p>
@@ -65,7 +64,7 @@ export class DemoRouterViewTransitionSection extends UIElement {
 						<button @click=${() => this.go('/contact')}>Contact</button>
 						<small>effect: <output>${this.chosen()}</output></small>
 					</p>
-					<std-outlet class="demo-rt-outlet"></std-outlet>
+					<std-outlet class="demo-rt-outlet" view-transition-name="demo-rt"></std-outlet>
 				</std-router>
 			</section>
 		`;

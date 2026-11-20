@@ -19,6 +19,7 @@ import { isRedirect, REDIRECT_INFO, type GoPlan } from './plan.js';
 import { RouteTable } from './route-table.js';
 import { RouterState } from './state.js';
 import type { Transaction } from './transaction.js';
+import type { ViewTransitionHooks } from './view-transition.js';
 
 export interface RouterOptions {
 	routes?: RouteDef[];
@@ -32,8 +33,11 @@ export interface RouterOptions {
 	 * the path; pass a function to customise (return empty to stay silent); `false` disables.
 	 */
 	announce?: AnnounceOption;
-	/** Wrap each commit in `document.startViewTransition` when supported and motion is allowed. Default false. */
-	viewTransition?: boolean;
+	/**
+	 * Wrap each commit in `document.startViewTransition` when supported and motion is allowed. Default false.
+	 * Pass `{ onStart, onFinish }` to scope a `view-transition-name` to the transition's lifetime.
+	 */
+	viewTransition?: boolean | ViewTransitionHooks;
 }
 
 /**
@@ -119,6 +123,14 @@ export class Router {
 
 	forward(): Promise<void> {
 		return swallowAbort(this.#nav.forward().finished);
+	}
+
+	/**
+	 * Adds hooks that run around each view transition (needs `viewTransition` enabled), in addition to those
+	 * in the option. Returns a function that removes them. Used by `<std-outlet view-transition-name>`.
+	 */
+	addViewTransitionHooks(hooks: ViewTransitionHooks): () => void {
+		return this.#pipeline.addViewTransitionHooks(hooks);
 	}
 
 	/** Begins listening and resolves the current URL. Idempotent. */

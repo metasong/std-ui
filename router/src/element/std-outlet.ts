@@ -1,10 +1,16 @@
-import { tag, UIElement } from '@std-ui/core';
+import { attribute, tag, UIElement } from '@std-ui/core';
 import { countAncestors, findSignalBackedRouter } from './dom.js';
 import type { RouteDef, RouteMatch } from '../types.js';
 
 /** Renders the match at its nesting depth (number of ancestor outlets within the same `<std-router>`). */
 @tag('std-outlet')
 export class StdOutlet extends UIElement {
+	/**
+	 * Attribute `view-transition-name`: the name to use (needs `view-transition` on the router). The attribute
+	 * stays, but the name is applied as a style only while the router's view transition runs. Note: this sets and then removes the inline
+	 * `style.view-transition-name`, so don't set that property yourself on this element.
+	 */
+	@attribute() viewTransitionName = '';
 	#shown: { route: RouteDef; key: string | HTMLTemplateElement; el: Element | null } | null = null;
 
 	protected override connect(): void {
@@ -17,6 +23,15 @@ export class StdOutlet extends UIElement {
 		let match: RouteMatch | undefined;
 		let error: unknown;
 		let data: ReadonlyMap<RouteDef, unknown>;
+
+		this.effect((onCleanup) => {
+			const removeHooks = current().addViewTransitionHooks({
+				onStart: () => this.viewTransitionName && this.style.setProperty('view-transition-name', this.viewTransitionName),
+				onFinish: () => this.style.removeProperty('view-transition-name'),
+			});
+
+			onCleanup(removeHooks);
+		});
 
 		this.effect(
 			() => {

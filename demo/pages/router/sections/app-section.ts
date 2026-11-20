@@ -2,7 +2,6 @@ import { createRef, css, ref, t, tag, state, UIElement } from '@std-ui/core';
 import { createRouter, routeParam, searchParam } from '@std-ui/router';
 import '@std-ui/router'; // defines <std-router>, <std-route>, <std-outlet>
 import { createMemoryNavigation } from '@std-ui/router/testing';
-import { navigateWithTransitionName } from './pages.js';
 import type { RouteDef, Router, StdOutlet, StdRouter } from '@std-ui/router';
 
 // `router` is reactive, so templates re-render when <std-router> gets its .router assigned after connecting.
@@ -72,8 +71,7 @@ export class DemoRouterFullSection extends UIElement {
 		if (!a) return;
 		e.preventDefault();
 		e.stopPropagation();
-		// The outlet is named only while this router navigates, so other sections' transitions do not animate it.
-		void navigateWithTransitionName(this.outlet.peek() ?? null, 'rt-page', () => this.router.navigate(a.getAttribute('href')!));
+		void this.router.navigate(a.getAttribute('href')!);
 	};
 
 	protected override connect(): void {
@@ -117,7 +115,7 @@ export class DemoRouterFullSection extends UIElement {
 					<demo-rt-status></demo-rt-status>
 					<p class="rt-status">announced to screen readers: <output id="rt-announced">(navigate to see)</output></p>
 
-					<std-outlet ${ref(this.outlet)}></std-outlet>
+					<std-outlet ${ref(this.outlet)} view-transition-name="rt-page"></std-outlet>
 				</std-router>
 			</section>
 		`;
