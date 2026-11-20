@@ -5,8 +5,8 @@
 	"type": "module",
 	"license": "MIT",
 	"sideEffects": [
-		"./dist/esm/element/template/custom-attributes/event.custom-attribute.js",
-		"./dist/esm/element/template/custom-attributes/class-style.custom-attribute.js"
+		"./dist/esm/element/template/custom-attributes/event/event.custom-attribute.js",
+		"./dist/esm/element/template/custom-attributes/class-style/class-style.custom-attribute.js"
 	],
 	"main": "./dist/esm/index.js",
 	"module": "./dist/esm/index.js",

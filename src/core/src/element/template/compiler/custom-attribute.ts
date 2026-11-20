@@ -3,7 +3,7 @@
 // The compiler parses every attribute name into the generic shape `sigil? name (:arg)? (.modifier[:value])*`
 // and never decides what the pieces *mean*. An extension owns one `(sigil, name)` pair and gives the
 // parts their meaning: it validates the binding at compile time and builds the `Part` at instantiate
-// time. `class.active` / `style.color` are extensions (see `std-ui-ext custom-attributes/class-style.custom-attribute.ts`); a package
+// time. `class.active` / `style.color` are extensions (see `std-ui-ext custom-attributes/class-style/class-style.custom-attribute.ts`); a package
 // like `@std-ui/ext` can register more with `registerCustomAttribute()`.
 //
 // Extensions must be registered before the templates that use them are first compiled (templates are
