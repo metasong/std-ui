@@ -4,6 +4,7 @@ import '../../shared/code-preview.js';
 import form from './sections/form-section.ts?raw';
 import custom from './sections/custom-section.ts?raw';
 import knob from './sections/knob-control.ts?raw';
+import signalKnob from './sections/signal-knob-control.ts?raw';
 import validation from './sections/validation/validation-section.ts?raw';
 import conditional from './sections/validation/conditional-section.ts?raw';
 import parentKept from './sections/validation/parent-kept-validation-rule-section.ts?raw';
@@ -13,7 +14,7 @@ import formUiDemo from './sections/form-ui/form-ui-section.ts?raw';
 import formFlagsDemo from './sections/form-flags/form-flags-section.ts?raw';
 
 const formFiles = { 'form-section.ts': form };
-const customFiles = { 'custom-section.ts': custom, 'knob-control.ts': knob };
+const customFiles = { 'custom-section.ts': custom, 'knob-control.ts': knob, 'signal-knob-control.ts': signalKnob };
 const validationFiles = {
 	'validation-section.ts': validation,
 	'merged-control.ts (FormElement)': merged,

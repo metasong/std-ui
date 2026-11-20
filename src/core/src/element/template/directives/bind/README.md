@@ -194,6 +194,20 @@ set document(v: Doc) {
 
 Override the event when your component uses a different name: `bind(doc, { event: 'doc-updated' })`.
 
+### Signal-valued element properties
+
+If the element's property is itself a signal (callable with `.set()`, e.g. a `state()` field), the default `read` calls it (a tracking read) and the default `write` calls `.set(value)` instead of replacing the property:
+
+```ts
+class Knob extends UIElement {
+	level = state(0); // element.level is a signal
+}
+
+t`<demo-bind-signal-knob .level=${bind(this.level)}></demo-bind-signal-knob>`;
+```
+
+Custom `read` / `write` options override this. Demo: [`signal-knob-control.ts`](../../../../../demo/pages/bind/sections/signal-knob-control.ts).
+
 ## Compared to manual two-way
 
 | | Manual | `bind()` |

@@ -23,12 +23,23 @@ export function describeTarget(element: Element, property: string): string {
 	return `<${element.localName}>.${property}`;
 }
 
+type SignalLike = { (): unknown; set(value: unknown): void };
+
+/** A property holding a signal (callable with `.set`): read by calling it, written via `.set()`. */
+function isSignalProperty(value: unknown): value is SignalLike {
+	return typeof value === 'function' && typeof (value as { set?: unknown }).set === 'function';
+}
+
 export function readProperty(element: Element, property: string): unknown {
-	return (element as unknown as Record<string, unknown>)[property];
+	const value = (element as unknown as Record<string, unknown>)[property];
+	return isSignalProperty(value) ? value() : value;
 }
 
 export function writeProperty(element: Element, property: string, model: unknown): void {
-	(element as unknown as Record<string, unknown>)[property] = model;
+	const target = element as unknown as Record<string, unknown>;
+	const current = target[property];
+	if (isSignalProperty(current)) current.set(model);
+	else target[property] = model;
 }
 
 function kebab(property: string): string {
