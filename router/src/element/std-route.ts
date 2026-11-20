@@ -1,5 +1,5 @@
 import { tag, UIElement } from '@std-ui/core';
-import { findAncestor, findRouterSignal } from './dom.js';
+import { findAncestor, findSignalBackedRouter } from './dom.js';
 import type { Router } from '../router/router.js';
 import type { GuardResult, RouteContext, RouteDef } from '../types.js';
 
@@ -36,7 +36,7 @@ export class StdRoute extends UIElement {
 
 	protected override connect(): void {
 		this.hidden = true;
-		const current = findRouterSignal(this);
+		const current = findSignalBackedRouter(this);
 		if (!current) {
 			console.warn('<std-route> must be inside <std-router>', this);
 			return;
@@ -49,9 +49,9 @@ export class StdRoute extends UIElement {
 			registeredWith = router;
 			this.#unregister = router?.addRoute(this.def, parent?.def);
 		};
-		register(current.peek()); // synchronous, so routes exist before the router starts
 		let next: Router | undefined;
-		// Moves the route to a replacement router.
+		// The first run is synchronous (so routes exist before the router starts); re-runs move the
+		// route to a replacement router.
 		this.effect(
 			() => {
 				next = current();

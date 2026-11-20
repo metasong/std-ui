@@ -1,4 +1,4 @@
-import { attribute, signal, tag, UIElement, type ReadonlySignal } from '@std-ui/core';
+import { attribute, signal, tag, UIElement } from '@std-ui/core';
 import { Router, createRouter } from '../router/router.js';
 import type { AnnounceFn } from '../router/announcer.js';
 import type { NavigationLike } from '../navigation/types.js';
@@ -19,17 +19,15 @@ export class StdRouter extends UIElement {
 	@attribute() announce: 'on' | 'off' = 'on';
 	/** Custom announcement text; set before connecting. The default announcer is used if not set. Takes precedence over `announce`. */
 	announceFn?: AnnounceFn;
-	/**
-	 * The current router. Descendants read this (not `router`) so that assigning `router` after they
-	 * connected, e.g. from a template binding, re-binds them instead of leaving them on a stale router.
-	 */
 	readonly #current = signal<Router | undefined>(undefined); // the only writer is the `router` accessors
-	readonly routerSignal: ReadonlySignal<Router | undefined> = this.#current;
 	#started = false;
 
-	/** The router; a default one is built from `routes`/`navigation`/attributes on first read. */
+	/**
+	 * The router; a default one is built from `routes`/`navigation`/attributes on first read.
+	 * Reactive: reading it inside an effect re-runs when `router` is assigned later.
+	 */
 	get router(): Router {
-		let router = this.#current.peek();
+		let router = this.#current();
 		if (!router) {
 			router = createRouter({
 				routes: this.routes,

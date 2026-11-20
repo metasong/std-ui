@@ -5,11 +5,8 @@ import { createMemoryNavigation } from '@std-ui/router/testing';
 import { navigateWithTransitionName } from './pages.js';
 import type { RouteDef, Router, StdRouter } from '@std-ui/router';
 
-// Reads the router signal, so templates re-render when <std-router> gets its .router assigned after connecting.
-const routerOf = (el: Element): Router => {
-	const host = el.closest('std-router') as StdRouter;
-	return host.routerSignal() ?? host.router;
-};
+// `router` is reactive, so templates re-render when <std-router> gets its .router assigned after connecting.
+const routerOf = (el: Element): Router => (el.closest('std-router') as StdRouter).router;
 const flag = (key: string): boolean => localStorage.getItem(key) === '1';
 
 // ---- page elements (plain custom elements; the outlet sets `params`, `data`, `error`) ----
