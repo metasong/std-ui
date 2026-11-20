@@ -29,10 +29,10 @@ export default defineConfig({
 	root: dirname,
 	resolve: {
 		alias: {
-			'@std-ui/core': fileURLToPath(new URL('../core/src/index.ts', import.meta.url)),
-			'@std-ui/ext': fileURLToPath(new URL('../ext/src/index.ts', import.meta.url)),
-			'@std-ui/router/testing': fileURLToPath(new URL('../router/src/dev/index.ts', import.meta.url)),
-			'@std-ui/router': fileURLToPath(new URL('../router/src/index.ts', import.meta.url)),
+			'@std-ui/core': fileURLToPath(new URL('../src/core/src/index.ts', import.meta.url)),
+			'@std-ui/ext': fileURLToPath(new URL('../src/ext/src/index.ts', import.meta.url)),
+			'@std-ui/router/testing': fileURLToPath(new URL('../src/router/src/dev/index.ts', import.meta.url)),
+			'@std-ui/router': fileURLToPath(new URL('../src/router/src/index.ts', import.meta.url)),
 		},
 	},
 	base: '/', // absolute: deep links like /bind/ must still find /assets/...

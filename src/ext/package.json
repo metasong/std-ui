@@ -43,7 +43,7 @@
 		"build:bundle": "vite build --config vite.bundle.config.ts",
 		"prepublishOnly": "npm run build",
 		"test": "vitest run --root .. --config vitest.config.ts ext",
-		"typecheck": "tsc --noEmit -p ../tsconfig.json"
+		"typecheck": "tsc --noEmit -p ../../tsconfig.json"
 	},
 	"peerDependencies": {
 		"@std-ui/core": "^0.1.0"

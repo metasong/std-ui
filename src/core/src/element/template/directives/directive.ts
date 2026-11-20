@@ -128,7 +128,8 @@ export type DirectivePart = AttributePartInfo | ChildPartInfo | ElementPartInfo;
 export abstract class Directive {
 	constructor(_partInfo: PartInfo) {}
 
-	/** The one output hook: mutate the DOM via `DirectivePart` and return `noChange`, or return a raw value /
+	/** Tracked in template render effects.
+	 * The one output hook: mutate the DOM via `DirectivePart` and return `noChange`, or return a raw value /
 	 *  renderer for the DirectivePart to commit. Declare whatever typed parameters you need after `DirectivePart`. */
 	abstract update(DirectivePart: DirectivePart, ...args: readonly unknown[]): DirectiveReturn;
 

@@ -34,9 +34,19 @@ class ClassMapDirective extends Directive {
 	 * the same whitespace-separated way a real `class` attribute would and unioned with this call's
 	 * own truthy keys before diffing, so neither contribution clobbers the other.
 	 */
-	override update(part: AttributePartInfo, classes: Readonly<Record<string, unknown>>): typeof noChange {
-		// 1. Build the target set: truthy keys from this call's object, then union static `class` tokens.
-		const next = new Set(Object.keys(classes).filter(key => Boolean(classes[key])));
+	override update(part: AttributePartInfo, classes: Readonly<Record<string, unknown>> | readonly string[]): typeof noChange {
+		// 1. Build the target set: truthy keys from an object (or non-empty strings from an array,
+		//    each split on whitespace), then union static `class` tokens.
+		const next = new Set<string>();
+		if (Array.isArray(classes)) {
+			for (const entry of classes as readonly string[]) {
+				if (typeof entry !== 'string') continue;
+				for (const token of entry.split(/\s+/)) if (token) next.add(token);
+			}
+		} else {
+			const record = classes as Readonly<Record<string, unknown>>;
+			for (const key of Object.keys(record)) if (record[key]) next.add(key);
+		}
 		if (part.staticText) {
 			for (const token of part.staticText.split(/\s+/)) {
 				if (token) next.add(token);

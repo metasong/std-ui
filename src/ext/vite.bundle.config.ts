@@ -1,5 +1,5 @@
 import { defineConfig } from 'vite';
-import { esbuildTs } from '../scripts/esbuild-ts.ts';
+import { esbuildTs } from '../../../scripts/esbuild-ts.ts';
 import { resolve } from 'node:path';
 
 // `@std-ui/core` is a peer: kept external (import map for ESM, `StdUI` global for IIFE).

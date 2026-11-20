@@ -3,9 +3,9 @@
 	"private": true,
 	"type": "module",
 	"workspaces": [
-		"core",
-		"ext",
-		"router"
+		"src/core",
+		"src/ext",
+		"src/router"
 	],
 	"scripts": {
 		"build": "npm run build -w @std-ui/core && npm run build -w @std-ui/ext && npm run build -w @std-ui/router",

@@ -1,5 +1,5 @@
 import { defineConfig } from 'vite';
-import { esbuildTs } from '../scripts/esbuild-ts.ts';
+import { esbuildTs } from '../../../scripts/esbuild-ts.ts';
 import { resolve } from 'node:path';
 
 export default defineConfig({

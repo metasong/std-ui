@@ -1,11 +1,14 @@
 {
-	"name": "@std-ui/core",
+	"name": "@std-ui/router",
 	"version": "0.1.0",
-	"description": "Minimal UI on web standards: reactive signals, tagged HTML templates, and Custom Elements - no virtual DOM, no framework runtime.",
+	"description": "Client-side router for std-ui: History API, signals, <std-router>/<std-route>/<std-outlet>.",
 	"type": "module",
 	"license": "MIT",
 	"sideEffects": [
-		"./dist/esm/element/template/custom-attributes/**/*.custom-attribute.js"
+		"./dist/esm/element/index.js",
+		"./dist/esm/element/std-router.js",
+		"./dist/esm/element/std-route.js",
+		"./dist/esm/element/std-outlet.js"
 	],
 	"main": "./dist/esm/index.js",
 	"module": "./dist/esm/index.js",
@@ -16,27 +19,18 @@
 			"import": "./dist/esm/index.js",
 			"default": "./dist/esm/index.js"
 		},
-		"./signal": {
-			"types": "./dist/esm/signal/index.d.ts",
-			"import": "./dist/esm/signal/index.js",
-			"default": "./dist/esm/signal/index.js"
-		},
-		"./template": {
-			"types": "./dist/esm/template/index.d.ts",
-			"import": "./dist/esm/template/index.js",
-			"default": "./dist/esm/template/index.js"
-		},
-		"./decorators": {
-			"types": "./dist/esm/decorators/index.d.ts",
-			"import": "./dist/esm/decorators/index.js",
-			"default": "./dist/esm/decorators/index.js"
+		"./testing": {
+			"types": "./dist/esm/dev/index.d.ts",
+			"import": "./dist/esm/dev/index.js",
+			"default": "./dist/esm/dev/index.js"
 		},
 		"./browser/*": "./dist/browser/*",
 		"./package.json": "./package.json"
 	},
 	"files": [
 		"dist",
-		"README.md"
+		"README.md",
+		"design.md"
 	],
 	"engines": {
 		"node": ">=18"
@@ -46,8 +40,11 @@
 		"build": "npm run clean && tsc -p tsconfig.build.json && npm run build:bundle",
 		"build:bundle": "vite build --config vite.bundle.config.ts",
 		"prepublishOnly": "npm run build",
-		"test": "vitest run --root .. --config vitest.config.ts core/",
-		"typecheck": "tsc --noEmit -p ../tsconfig.json"
+		"test": "vitest run --root .. --config vitest.config.ts router",
+		"typecheck": "tsc --noEmit -p ../../tsconfig.json"
+	},
+	"peerDependencies": {
+		"@std-ui/core": "^0.1.0"
 	},
 	"devDependencies": {
 		"typescript": "^7.0.2",
