@@ -17,7 +17,8 @@ t`<button @click.prevent.stop=${onClick}>Go</button>`;
 
 - Unknown or valued modifiers are ignored with a one-time `console.warn`.
 - A handler's own `options` (from `withEventOptions`) override modifier-derived options.
-- `:arg` throws.
+- `:arg` is passed to extensions; with no matching extension it is ignored with a one-time warning.
+- Modifiers beyond the built-ins are interpreted by [extensions](./extensions/README.md).
 
 Implemented in [`event.custom-attribute.ts`](./event.custom-attribute.ts) via the `resolveOptions`
 and `shouldHandle` hooks; see the core

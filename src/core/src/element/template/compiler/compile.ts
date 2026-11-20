@@ -52,8 +52,9 @@ export type TemplateType = 'html' | 'svg' | 'math';
 // --- Binding syntax -----------------------------------------------------------------------------
 
 /** `[sigil]name[:arg](.modifier[:value])*`, the full attribute name as handed over by the engine.
- *  Static args/values are `[\w-]+` (no `.`, which would start the next modifier). See `compile-attributes.md`. */
-const BINDING_NAME_RE = /^([^\w\s"'<>\/=:-]?)([\w-]+)(?::([\w-]+))?((?:\.[\w-]+(?::[\w-]+)?)*)$/;
+ *  Static args/values are `[\w-]+` (no `.`, which would start the next modifier); modifier names may
+ *  also contain `+`, e.g. `@keyup.ctrl+enter`. See `compile-attributes.md`. */
+const BINDING_NAME_RE = /^([^\w\s"'<>\/=:-]?)([\w-]+)(?::([\w-]+))?((?:\.[\w+-]+(?::[\w-]+)?)*)$/;
 
 interface OpenBinding {
 	rawName: string;

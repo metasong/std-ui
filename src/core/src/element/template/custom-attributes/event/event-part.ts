@@ -62,9 +62,34 @@ export class EventPart implements Part, EventListenerObject {
 		this.el.removeEventListener(this.name, this, this.#active);
 		this.#attached = false;
 	}
+
 	handleEvent(event: Event): void {
 		if (this.#active?.once) this.#attached = false; // the browser removed us
 		if (!this.shouldHandle(event)) return;
+
+		// A new invocation supersedes the previous one, like an effect cleanup.
+		this.#cleanup?.();
+		const result = this.handler(event);
+		this.#cleanup = typeof result === 'function' ? result : undefined;
+	}
+
+	/** Dispose returned by the latest `handler` call. */
+	#cleanup: (() => void) | undefined;
+
+	/** Teardown (`unmount`, nested disconnect): runs the pending dispose; the listener stays attached. */
+	disconnect(): void {
+		this.#cleanup?.();
+		this.#cleanup = undefined;
+	}
+
+	dispose(): void {
+		this.#detach();
+		this.disconnect();
+	}
+
+	/** Runs the listener. May return a dispose function (e.g. to clear a timer); it runs when the
+	 *  next event arrives or the part is disposed. */
+	handler = (event: Event): void | (() => void) => {
 		const l = this.#listener;
 		if (typeof l === 'function') l.call(this.host ?? this.el, event);
 		else l?.handleEvent(event);
