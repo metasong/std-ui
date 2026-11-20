@@ -18,18 +18,13 @@ import { ownMetadata } from '../class-registry.js';
 import type { AttributeOptions } from '../attribute/attribute.decorator.js';
 import { attributeDefs, createAttributeDef, defineObservedAttributes } from '../attribute/metadata.js';
 import { addClassHooks } from '../../ui-element-hooks.js';
-import { reflectHooks } from '../attribute/wire-reflect.js';
+import { attributeHooks } from '../attribute/wire-reflect.js';
 
-/** Keys of `I` whose value is a store (readable, writable, peekable) - the fields that can mirror an attribute. */
-type StoreKeys<I> = {
-	[K in keyof I]: I[K] extends { (): unknown; peek(): unknown; set(value: never): void } ? K : never;
-}[keyof I] & string;
-
-/** `attributes` option: field name -> `AttributeOptions`, restricted to the class's store fields. */
-export type AttributesMap<I> = { [K in StoreKeys<I>]?: AttributeOptions };
+/** `attributes` option: field name -> `AttributeOptions`. Fields may be `state()` stores or plain fields (`reflect` needs a store). */
+export type AttributesMap<I> = { [K in keyof I & string]?: AttributeOptions };
 
 export interface DefineElementOptions<I> {
-	/** Store fields mirrored to/from HTML attributes - same options as `@attribute()`. */
+	/** Fields mirrored to/from HTML attributes - same options as `@attribute()`. */
 	attributes?: AttributesMap<I>;
 }
 
@@ -43,7 +38,7 @@ export function defineElement<C extends CustomElementConstructor>(
 	for (const [key, attributeOptions] of Object.entries(options.attributes ?? {})) {
 		const def = createAttributeDef(key, (attributeOptions ?? {}) as AttributeOptions);
 		attributeDefs.register(meta, def);
-		if (def.reflect) addClassHooks(meta, reflectHooks);
+		addClassHooks(meta, attributeHooks);
 	}
 	defineObservedAttributes(ctor);
 	customElements.define(name, ctor);

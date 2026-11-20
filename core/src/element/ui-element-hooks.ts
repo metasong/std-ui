@@ -23,6 +23,8 @@ export interface UIElementHooks {
 	firstRendered?(el: UIElement): Cleanup;
 	/** After every `template()` is applied. */
 	rendered?(el: UIElement): void;
+	/** An attribute listed in `observedAttributes` was set, changed or removed (native `attributeChangedCallback`). */
+	attributeChanged?(el: UIElement, name: string, oldValue: string | null, newValue: string | null): void;
 }
 
 const classHookRegistry = createClassRegistry<UIElementHooks>('uiElementHooks');

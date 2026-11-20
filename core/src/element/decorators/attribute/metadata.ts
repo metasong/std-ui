@@ -1,6 +1,6 @@
 // `@attribute()` / `defineElement({ attributes })` registration bookkeeping: one `AttributeDef` per
 // attribute-backed field, kept per class in a shared `ClassRegistry` (`../class-registry.ts`; `defineElement` writes to
-// the class's own metadata object). Plain store fields never register here.
+// the class's own metadata object). Fields that are not decorated never register here.
 
 import { type AttributeConverter, type AttributeType, inferAttributeType, resolveConverter, toAttributeName } from './converter.js';
 import { createClassRegistry } from '../class-registry.js';
@@ -25,14 +25,25 @@ export interface AttributeDef {
 /** Every attribute-backed field of a class: `.get(ctor)`, `.register(meta, def)`. */
 export const attributeDefs = createClassRegistry<AttributeDef>('attributeDefs');
 
+/** A `state()` store: callable, with `peek()` and `set()`. Any other field value is treated as a plain value. */
+export type SignalLikeForAttribute = { (): unknown; peek(): unknown; set(value: never): void };
+
+export function isSignalLikeForAttribute(value: unknown): value is SignalLikeForAttribute {
+	return (
+		typeof value === 'function' &&
+		typeof (value as { peek?: unknown }).peek === 'function' &&
+		typeof (value as { set?: unknown }).set === 'function'
+	);
+}
+
 /**
- * Resolves a still-placeholder converter from `host`'s store value (`this[def.key].peek()`) - a
+ * Resolves a still-placeholder converter from `host`'s field value (the store's `peek()`, or the plain value) - a
  * no-op once resolved. The def is shared by every instance, so the first one to call this resolves it for all.
  */
 export function resolveInferredConverter(host: object, def: AttributeDef): void {
 	if (!def.infer) return;
-	const store = (host as Record<PropertyKey, { peek?(): unknown } | undefined>)[def.key];
-	def.converter = resolveConverter(inferAttributeType(store?.peek?.()), undefined) as AttributeConverter;
+	const field = (host as Record<PropertyKey, unknown>)[def.key];
+	def.converter = resolveConverter(inferAttributeType(isSignalLikeForAttribute(field) ? field.peek() : field), undefined) as AttributeConverter;
 	def.infer = false;
 }
 

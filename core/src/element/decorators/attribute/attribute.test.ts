@@ -1,4 +1,4 @@
-import { describe, expect, it } from 'vitest';
+import { describe, expect, it, vi } from 'vitest';
 import { attribute, tag, UIElement } from '../../ui-element.js';
 import { state } from '../../../reactive/index.js';
 
@@ -291,5 +291,46 @@ describe('@attribute()', () => {
 		await flush();
 		expect(el.getAttribute('label')).toBe('updated');
 		el.remove();
+	});
+});
+
+describe('@attribute() on a plain (non-store) field', () => {
+	it('assigns the parsed attribute to the field, inferring the type from its initial value', () => {
+		@tag('attr-plain-assign')
+		class Foo extends UIElement {
+			@attribute() base = '';
+			@attribute() enabled = false;
+			@attribute() count = 0;
+		}
+
+		const el = document.createElement('attr-plain-assign') as Foo;
+		el.setAttribute('base', '/app');
+		el.setAttribute('enabled', '');
+		el.setAttribute('count', '4');
+		document.body.appendChild(el);
+		expect(el.base).toBe('/app');
+		expect(el.enabled).toBe(true);
+		expect(el.count).toBe(4);
+		el.remove();
+	});
+
+	it('warns once in dev and skips reflect: true, but still parses attribute -> property', async () => {
+		const warn = vi.spyOn(console, 'warn').mockImplementation(() => {});
+		@tag('attr-plain-reflect')
+		class Foo extends UIElement {
+			@attribute({ reflect: true }) label = 'hi';
+		}
+
+		const a = document.createElement('attr-plain-reflect') as Foo;
+		const b = document.createElement('attr-plain-reflect') as Foo;
+		a.setAttribute('label', 'x');
+		document.body.append(a, b);
+		expect(a.label).toBe('x');
+		expect(b.hasAttribute('label')).toBe(false); // not reflected: a plain field cannot be observed
+		expect(warn).toHaveBeenCalledTimes(1);
+		expect(String(warn.mock.calls[0]![0])).toContain('state() store');
+		a.remove();
+		b.remove();
+		warn.mockRestore();
 	});
 });

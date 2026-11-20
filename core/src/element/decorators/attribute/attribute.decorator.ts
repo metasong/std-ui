@@ -15,7 +15,7 @@
 import { type AttributeConverter, type AttributeType } from './converter.js';
 import { attributeDefs, createAttributeDef } from './metadata.js';
 import { addClassHooks } from '../../ui-element-hooks.js';
-import { reflectHooks } from './wire-reflect.js';
+import { attributeHooks } from './wire-reflect.js';
 
 export interface AttributeOptions<V = unknown> {
 	/**
@@ -87,7 +87,7 @@ export type AttributeStore = { (): unknown; peek(): unknown; set(value: never): 
  * Applying it to a field that is not a store is a compile error. Plain field only (no `accessor`).
  */
 export function attribute(options: AttributeOptions = {}) {
-	return function attributeDecorator<S extends AttributeStore>(_value: undefined, context: ClassFieldDecoratorContext<object, S>): void {
+	return function attributeDecorator(_value: undefined, context: ClassFieldDecoratorContext<object, unknown>): void {
 		if (context.kind !== 'field') {
 			throw new Error("@attribute() can only decorate a plain class field, e.g. `@attribute() foo = state(0);` (no 'accessor').");
 		}
@@ -96,6 +96,6 @@ export function attribute(options: AttributeOptions = {}) {
 		// `resolveInferredConverter()` in `./metadata.ts`.
 		const def = createAttributeDef(context.name, options);
 		attributeDefs.register(context.metadata as object, def);
-		if (def.reflect) addClassHooks(context.metadata as object, reflectHooks);
+		addClassHooks(context.metadata as object, attributeHooks);
 	};
 }

@@ -6,8 +6,9 @@
 import { effect as createEffect } from '../../../reactive/index.js';
 import { readValue, type ItemNode } from '../../../reactive/state/index.js';
 import type { UIElementHooks } from '../../ui-element-hooks.js';
-import { serializeAttribute } from './converter.js';
-import { attributeDefs, resolveInferredConverter } from './metadata.js';
+import { parseAttribute, serializeAttribute } from './converter.js';
+import { warnReflectNeedsStore } from '../../../dev/warn-attribute.js';
+import { attributeDefs, isSignalLikeForAttribute, resolveInferredConverter } from './metadata.js';
 
 /**
  * For each `@attribute({ reflect: true })` field recorded on `host`'s constructor, creates an
@@ -17,6 +18,10 @@ import { attributeDefs, resolveInferredConverter } from './metadata.js';
 export function wireReflectedAttributes(host: HTMLElement, registerEffectDisposer: (dispose: () => void) => void): void {
 	for (const def of attributeDefs.get(host.constructor)) {
 		if (!def.reflect) continue;
+		if (!isSignalLikeForAttribute((host as unknown as Record<PropertyKey, unknown>)[def.key])) {
+			warnReflectNeedsStore(host, def.key); // a plain field cannot be observed; attribute -> property still works
+			continue;
+		}
 		resolveInferredConverter(host, def);
 		let prev: unknown; // previous property value; `undefined` on the first run
 		registerEffectDisposer(createEffect(() => {
@@ -31,8 +36,23 @@ export function wireReflectedAttributes(host: HTMLElement, registerEffectDispose
 	}
 }
 
-/** Attached to a class by `@attribute` / `defineElement({ attributes })`. */
-export const reflectHooks: UIElementHooks = {
+/** Attribute → property: parses a changed attribute into its field (store `.set()`, or plain assignment). */
+function applyAttribute(host: HTMLElement, name: string, oldValue: string | null, newValue: string | null): void {
+	const def = attributeDefs.get(host.constructor).find(def => def.attribute === name);
+	if (!def) return;
+
+	resolveInferredConverter(host, def);
+	const parsed = parseAttribute(newValue, oldValue, def.converter);
+	if (parsed === undefined) return; // a converter's `fromAttribute` returning `undefined` means "leave untouched"
+	const record = host as unknown as Record<PropertyKey, unknown>;
+	const field = record[def.key];
+	if (isSignalLikeForAttribute(field)) field.set(parsed as never);
+	else record[def.key] = parsed; // plain field: assigned directly
+}
+
+/** Attached to a class by `@attribute` / `defineElement({ attributes })`: both attribute directions. */
+export const attributeHooks: UIElementHooks = {
+	attributeChanged: applyAttribute,
 	connected(el) {
 		const disposers: Array<() => void> = [];
 		wireReflectedAttributes(el, dispose => void disposers.push(dispose));

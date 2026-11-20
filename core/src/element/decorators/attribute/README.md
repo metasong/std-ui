@@ -1,6 +1,6 @@
 # `@attribute()` — attribute-synced, store-backed component fields
 
-Field decorator for `UIElement` (see `../../ui-element.ts`) subclasses: it marks a `state()` store field so it is also
+Field decorator for `UIElement` (see `../../ui-element.ts`) subclasses: it marks a field - a `state()` store or a plain field - so it is also
 kept in sync with an HTML attribute via the platform's custom-element mechanism
 (`observedAttributes` / `attributeChangedCallback`) — not `MutationObserver` or polling.
 
@@ -29,13 +29,18 @@ class UserBadge extends UIElement {
 	readonly label = state('Guest');
 }
 defineElement('user-badge', UserBadge, {
-	attributes: { count: { type: Number, reflect: true }, label: {} }, // keys limited to the class's store fields
+	attributes: { count: { type: Number, reflect: true }, label: {} }, // keys: any field of the class
 });
 ```
 
-`@attribute()` only accepts a **store** field (a compile error otherwise); it registers the
-attribute and never touches the field. When neither `type` nor `converter` is given, the converter is
-inferred from the store's value the first time it is needed.
+`@attribute()` works on a **`state()` store** or on a **plain field**; it registers the attribute and never touches the
+field itself. A store is updated with `.set(parsed)`, a plain field is assigned (`this.field = parsed`). When neither
+`type` nor `converter` is given, the converter is inferred from the field's value (the store's value, or the plain value)
+the first time it is needed.
+
+**`reflect: true` needs a store.** Reflecting means observing writes to the property, which only a `state()` store
+allows. On a plain field `reflect` has no effect: a dev-only `console.warn` (once per element and field, see
+`../../../dev/warn-attribute.ts`) says so, and attribute -> property still works.
 
 ```html
 <user-badge count="3" label="Ada"></user-badge>
@@ -49,12 +54,12 @@ el.setAttribute('count', '9'); // attributeChangedCallback → store
 
 ## Requirements
 
-- **Plain store field only** - a plain class field (no `accessor`) holding a `state()`; anything else is a compile error.
+- **A plain class field** (no `accessor`), holding either a `state()` store or a plain value. `reflect: true` additionally requires a store.
 - **`@tag()` or `defineElement()`** — either sets `observedAttributes` before
   `customElements.define()`. `@tag()` reads `@attribute()` registrations from `context.metadata`;
   `defineElement()` registers its `attributes` map and reads it (and any decorator registrations) the same way - see [`../tag/README.md`](../tag/README.md).
 
-Leave the field a plain [`state()`](../state/README.md) (no decorator) for fields that should never touch an attribute.
+Leave the field undecorated for fields that should never touch an attribute.
 
 ## `AttributeOptions`
 

@@ -8,11 +8,6 @@
 // markup. So parents can freely compose child tags without any manual connect ordering/registration
 // anywhere.
 
-import {
-	attributeDefs,
-	parseAttribute,
-	resolveInferredConverter,
-} from './decorators/index.js';
 import { ElementStyles } from './element-styles.js';
 import { getClassHooks, type UIElementHooks } from './ui-element-hooks.js';
 import {
@@ -196,7 +191,7 @@ export abstract class UIElement extends HTMLElement {
 					this.#runCleanupHooks('firstRendered');
 				}
 				this.rendered?.();
-				for (const h of this.#allHooks()) h.rendered?.(this);
+				this.#runHooks('rendered');
 			},
 		));
 	}
@@ -231,6 +226,16 @@ export abstract class UIElement extends HTMLElement {
 		return [...getClassHooks(this.constructor), ...this.#instanceHooks];
 	}
 
+	/** Runs a fire-and-forget hook phase (no cleanup) on every registered extension. */
+	#runHooks(phase: 'rendered'): void;
+	#runHooks(phase: 'attributeChanged', name: string, oldValue: string | null, newValue: string | null): void;
+	#runHooks(phase: 'rendered' | 'attributeChanged', ...args: [string, string | null, string | null] | []): void {
+		for (const hooks of this.#allHooks()) {
+			if (phase === 'rendered') hooks.rendered?.(this);
+			else hooks.attributeChanged?.(this, ...(args as [string, string | null, string | null]));
+		}
+	}
+
 	/** Runs a cleanup-returning hook phase on every registered extension; returned cleanups run on disconnect. */
 	#runCleanupHooks(phase: 'beforeConnect' | 'connected' | 'firstRendered'): void {
 		for (const hooks of this.#allHooks()) {
@@ -261,12 +266,6 @@ export abstract class UIElement extends HTMLElement {
 	 * value change.
 	 */
 	private attributeChangedCallback(name: string, oldValue: string | null, newValue: string | null): void {
-		const def = attributeDefs.get(this.constructor).find(def => def.attribute === name);
-		if (!def) return;
-
-		resolveInferredConverter(this, def);
-		const parsed = parseAttribute(newValue, oldValue, def.converter);
-		if (parsed === undefined) return; // a converter's `fromAttribute` returning `undefined` means "leave untouched"
-		(this as unknown as Record<PropertyKey, { set(value: unknown): void }>)[def.key].set(parsed);
+		this.#runHooks('attributeChanged', name, oldValue, newValue);
 	}
 }

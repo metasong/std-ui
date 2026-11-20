@@ -1,4 +1,4 @@
-import { signal, tag, UIElement, type ReadonlySignal } from '@std-ui/core';
+import { attribute, signal, tag, UIElement, type ReadonlySignal } from '@std-ui/core';
 import { Router, createRouter } from '../router/router.js';
 import type { AnnounceFn } from '../router/announcer.js';
 import type { NavigationLike } from '../navigation/types.js';
@@ -7,6 +7,10 @@ import type { RouteDef } from '../types.js';
 /** Hosts a `Router`. Descendant `<std-route>` / `<std-outlet>` find it by DOM ancestry. */
 @tag('std-router')
 export class StdRouter extends UIElement {
+	/** Attribute `base`: URL prefix the app is served under. Read once, when the router is built. */
+	@attribute() base = '';
+	/** Boolean attribute `view-transition`: commit navigations inside a View Transition. Read once, when the router is built. */
+	@attribute() viewTransition = false;
 	/** Config-table routes; set before the element connects. */
 	routes?: RouteDef[];
 	/** Override `window.navigation`; set before the element connects. */
@@ -27,10 +31,10 @@ export class StdRouter extends UIElement {
 		if (!router) {
 			router = createRouter({
 				routes: this.routes,
-				base: this.getAttribute('base') ?? '',
+				base: this.base,
 				navigation: this.navigation,
 				announce: this.announce ?? this.getAttribute('announce') !== 'off',
-				viewTransition: this.hasAttribute('view-transition'),
+				viewTransition: this.viewTransition,
 			});
 			this.#current.set(router);
 		}

@@ -82,13 +82,15 @@ describe('defineElement() - the decorator-free path', () => {
 		host.remove();
 	});
 
-	it('rejects a non-store field in the attributes map at compile time', () => {
+	it('accepts a plain field in the attributes map (attribute -> property only)', () => {
 		class Foo extends UIElement {
-			readonly count = state(0);
 			plain = 3;
 		}
-		// @ts-expect-error - `plain` is not a store, so it can't mirror an attribute
-		void (() => defineElement('define-el-bad', Foo, { attributes: { plain: {} } }));
+		defineElement('define-el-plain', Foo, { attributes: { plain: { type: Number } } });
+
+		const el = document.createElement('define-el-plain') as Foo;
+		el.setAttribute('plain', '8');
+		expect(el.plain).toBe(8);
 	});
 
 	it('shares attribute defs with subclasses', () => {
