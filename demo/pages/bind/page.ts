@@ -5,6 +5,8 @@ import form from './sections/form-section.ts?raw';
 import custom from './sections/custom-section.ts?raw';
 import knob from './sections/knob-control.ts?raw';
 import signalKnob from './sections/signal-knob-control.ts?raw';
+import customEvent from './sections/custom-event-section.ts?raw';
+import swatch from './sections/swatch-control.ts?raw';
 import validation from './sections/validation/validation-section.ts?raw';
 import conditional from './sections/validation/conditional-section.ts?raw';
 import parentKept from './sections/validation/parent-kept-validation-rule-section.ts?raw';
@@ -15,6 +17,7 @@ import formFlagsDemo from './sections/form-flags/form-flags-section.ts?raw';
 
 const formFiles = { 'form-section.ts': form };
 const customFiles = { 'custom-section.ts': custom, 'knob-control.ts': knob, 'signal-knob-control.ts': signalKnob };
+const customEventFiles = { 'custom-event-section.ts': customEvent, 'swatch-control.ts': swatch };
 const validationFiles = {
 	'validation-section.ts': validation,
 	'merged-control.ts (FormElement)': merged,
@@ -31,6 +34,7 @@ export class DemoBindPage extends UIElement {
 		return t`
 			<code-preview .files=${formFiles}><demo-bind-form-section></demo-bind-form-section></code-preview>
 			<code-preview .files=${customFiles}><demo-bind-custom-section></demo-bind-custom-section></code-preview>
+			<code-preview .files=${customEventFiles}><demo-bind-custom-event-section></demo-bind-custom-event-section></code-preview>
 			<code-preview .files=${validationFiles}>
 				<demo-bind-validation-section></demo-bind-validation-section>
 			</code-preview>
