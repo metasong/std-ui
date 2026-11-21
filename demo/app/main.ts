@@ -1,5 +1,5 @@
 // The demo app: one `<std-router>`, one `<std-route>` per demo, loaded on demand.
-import { t, tag, UIElement } from '@std-ui/core';
+import { css, t, tag, UIElement } from '@std-ui/core';
 import '@std-ui/router'; // defines <std-router>, <std-route>, <std-outlet>
 import type { StdRoute, StdRouter } from '@std-ui/router';
 import './demo-heading.js';
@@ -9,6 +9,17 @@ import { PAGES } from './pages.js';
 
 @tag('demo-app')
 export class DemoApp extends UIElement {
+	/** Wide, so each code block can show the rendered demo beside it. */
+	static override styles = css`
+		.demo-main {
+			box-sizing: border-box;
+			width: 90%;
+			max-width: none;
+			margin: 0 auto;
+			padding: 1.5rem 1.25rem 3rem;
+		}
+	`;
+
 	protected override firstUpdated(): void { // the <std-router> exists only once the template is rendered
 		// Not `.load=` bindings in the template: such elements connect before their attributes are set, so the route would have no path.
 		for (const p of PAGES) (this.querySelector(`std-route[path="${p.path}"]`) as StdRoute).load = p.load;

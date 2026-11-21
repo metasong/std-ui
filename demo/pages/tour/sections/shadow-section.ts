@@ -1,5 +1,5 @@
 // Demonstrates: `static shadowRootOptions`, encapsulated styles, `@query()` against `renderRoot`.
-import { tag, t, UIElement, state, query } from '@std-ui/core';
+import { css, tag, t, UIElement, state, query } from '@std-ui/core';
 
 @tag('demo-shadow-chip')
 export class DemoShadowChip extends UIElement {
@@ -48,6 +48,15 @@ export class DemoShadowChip extends UIElement {
 
 @tag('demo-shadow-section')
 export class DemoShadowSection extends UIElement {
+	static override styles = css`
+		p {
+			display: flex;
+			flex-wrap: wrap;
+			gap: 0.75rem;
+			align-items: center;
+		}
+	`;
+
 	protected override template() {
 		return t`
 			<h2>Shadow DOM</h2>

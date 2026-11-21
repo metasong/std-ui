@@ -1,11 +1,14 @@
 // Fixed-height vertical list (~10k rows) + scrollToIndex.
 import { tag, t, UIElement, state } from '@std-ui/core';
 import { virtualize, VirtualizeController } from '@std-ui/ext';
+import { virtualizeListStyles } from '../../../shared/virtualize-list-styles.js';
 
 type Row = { i: number };
 
 @tag('demo-virtualize-vertical')
 export class DemoVirtualizeVertical extends UIElement {
+	static override styles = virtualizeListStyles;
+
 	readonly #items: Row[] = Array.from({ length: 10_000 }, (_, i) => ({ i }));
 	readonly #list = new VirtualizeController();
 

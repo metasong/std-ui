@@ -15,7 +15,7 @@ export class CodePreview extends UIElement {
 
 	static override styles = css`
 		:host {
-			display: block; margin-block: 0 1.25rem; overflow: hidden; container-type: inline-size;
+			display: block; margin-block: 0 1.25rem; overflow: hidden; container-type: inline-size; scroll-margin-top: 4rem;
 			background: var(--md-sys-color-surface-container-lowest, #fff); box-shadow: var(--md-elevation-1);
 			border: 1px solid var(--md-sys-color-outline-variant, #cac4d0); border-radius: var(--md-shape-corner-medium, 12px);
 		}

@@ -5,6 +5,7 @@
 //   - `state` + `UIElement`/`t` → the list itself and re-rendering
 import { bind, t, tag, UIElement, state } from '@std-ui/core';
 import { check, formBind, formUi, virtualize } from '@std-ui/ext';
+import { virtualizeListStyles } from '../../../shared/virtualize-list-styles.js';
 
 type Person = { id: number; name: string; age: number };
 
@@ -23,6 +24,8 @@ draft.age.check.validators.set([
 
 @tag('demo-integration-directory')
 export class DemoIntegrationDirectory extends UIElement {
+	static override styles = virtualizeListStyles;
+
 	readonly people = state<Person[]>(seed());
 	readonly search = state('');
 	#nextId = 5_000;

@@ -1,6 +1,6 @@
 // Pulls several features together in one realistic component: `state()` with a plain-object
 // value (tree-backed, per-leaf reactivity), list rendering, `computed`, and event handlers.
-import { tag, t, UIElement, state } from '@std-ui/core';
+import { css, tag, t, UIElement, state } from '@std-ui/core';
 import { computed } from '@std-ui/core';
 
 interface Todo { id: number; text: string; done: boolean; }
@@ -9,6 +9,46 @@ let nextId = 1;
 
 @tag('demo-todo-section')
 export class DemoTodoSection extends UIElement {
+	static override styles = css`
+		.demo-todo-list {
+			list-style: none;
+			margin: 0;
+			padding: 0;
+		}
+
+		.demo-todo-item {
+			display: flex;
+			align-items: center;
+			gap: 0.75rem;
+			padding: 0.5rem 0;
+			border-bottom: 1px solid var(--md-sys-color-outline-variant);
+		}
+
+		.demo-todo-item:last-child {
+			border-bottom: none;
+		}
+
+		.demo-todo-item span.done {
+			text-decoration: line-through;
+			color: var(--md-sys-color-on-surface-variant);
+		}
+
+		.demo-todo-item button.tonal {
+			padding: 0.35rem 0.65rem;
+			min-width: 2.25rem;
+		}
+
+		.demo-todo-form {
+			display: flex;
+			gap: 0.75rem;
+			margin-top: 1rem;
+		}
+
+		.demo-todo-form .demo-outlined-field {
+			flex: 1;
+		}
+	`;
+
 	readonly todos = state<Todo[]>([
 		{ id: nextId++, text: 'Read the std-ui docs', done: true },
 		{ id: nextId++, text: 'Build a demo app', done: false },

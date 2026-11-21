@@ -1,11 +1,14 @@
 // Horizontal scroll.
 import { tag, t, UIElement,  } from '@std-ui/core';
 import { virtualize, VirtualizeController } from '@std-ui/ext';
+import { virtualizeListStyles } from '../../../shared/virtualize-list-styles.js';
 
 type Card = { i: number };
 
 @tag('demo-virtualize-horizontal')
 export class DemoVirtualizeHorizontal extends UIElement {
+	static override styles = virtualizeListStyles;
+
 	readonly #items: Card[] = Array.from({ length: 2_000 }, (_, i) => ({ i }));
 	readonly #list = new VirtualizeController();
 

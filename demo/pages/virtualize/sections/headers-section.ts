@@ -1,6 +1,7 @@
 // Variable row heights + sticky section headers (`isHeader`).
 import { tag, t, UIElement,  } from '@std-ui/core';
 import { virtualize, VirtualizeController } from '@std-ui/ext';
+import { virtualizeListStyles } from '../../../shared/virtualize-list-styles.js';
 
 type Entry = { i: number; section: number };
 
@@ -17,6 +18,8 @@ function rowSize(e: Entry): number {
 
 @tag('demo-virtualize-headers')
 export class DemoVirtualizeHeaders extends UIElement {
+	static override styles = virtualizeListStyles;
+
 	readonly #items: Entry[] = Array.from({ length: 800 }, (_, i) => ({
 		i,
 		section: Math.floor(i / 100),

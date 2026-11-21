@@ -2,7 +2,7 @@
 
 One routed app (`app/`) with one folder per page under [`pages/`](./pages/): `tour`, `bind`, `slot`, `virtualize`, `router` (one feature per page, nothing mixed) and `integration` (several features working together, e.g. the people directory: `bind()` + validation + `virtualize()`). Each page folder has `index.ts` (imports its sections), `page.ts` (the `<code-preview>` layout) and `sections/`.
 
-Shared styles (`material-theme.css`, `demo-components.css`, `virtualize-list.css`) live in [`styles/`](./styles/); `index.html` is the single entry: `app/` (`main.ts`, `pages.ts`) routes `/tour`, `/bind`, `/virtualize`, `/slot`, `/router` and `/integration` with `<std-router>`, loading each page on demand.
+Shared styles (`material-theme.css`, `demo-components.css`) live in [`styles/`](./styles/); `index.html` is the single entry: `app/` (`main.ts`, `pages.ts`) routes `/tour`, `/bind`, `/virtualize`, `/slot`, `/router` and `/integration` with `<std-router>`, loading each page on demand.
 
 A small Vite app that mounts one custom element per feature area (`demo-*-section` tags in
 [`feature-page.ts`](./pages/tour/page.ts)). Each section’s source lives under [`pages/tour/sections/`](./pages/tour/sections/).

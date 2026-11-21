@@ -1,4 +1,5 @@
-/* Demo shell + shared Material-styled controls for light-DOM `demo-*` sections. */
+/* Global demo base + shared Material-styled controls for light-DOM `demo-*` sections.
+   Component-specific rules live in each component's `static styles`. */
 
 * {
 	box-sizing: border-box;
@@ -19,40 +20,6 @@ body {
 	font-size: 16px;
 	line-height: 1.5;
 	-webkit-font-smoothing: antialiased;
-}
-
-.demo-app-bar {
-	background: var(--md-sys-color-surface-container);
-	box-shadow: var(--md-elevation-1);
-	padding: 1.25rem 1.5rem 1rem;
-}
-
-.demo-app-bar h1 {
-	margin: 0 0 0.25rem;
-	font-size: 1.75rem;
-	font-weight: 400;
-	letter-spacing: 0;
-	color: var(--md-sys-color-on-surface);
-}
-
-.demo-app-bar .lead {
-	margin: 0;
-	max-width: 52rem;
-	font-size: 0.95rem;
-	color: var(--md-sys-color-on-surface-variant);
-}
-
-/* Wide, so each code block can show the rendered demo beside it. */
-.demo-main {
-	box-sizing: border-box;
-	width: 90%;
-	max-width: none;
-	margin: 0 auto;
-	padding: 1.5rem 1.25rem 3rem;
-}
-
-code-preview {
-	scroll-margin-top: 4rem;
 }
 
 html {
@@ -186,79 +153,5 @@ button.filled,
 	color: var(--md-sys-color-on-primary-container);
 }
 
-.demo-todo-list {
-	list-style: none;
-	margin: 0;
-	padding: 0;
-}
-
-.demo-todo-item {
-	display: flex;
-	align-items: center;
-	gap: 0.75rem;
-	padding: 0.5rem 0;
-	border-bottom: 1px solid var(--md-sys-color-outline-variant);
-}
-
-.demo-todo-item:last-child {
-	border-bottom: none;
-}
-
-.demo-todo-item span.done {
-	text-decoration: line-through;
-	color: var(--md-sys-color-on-surface-variant);
-}
-
-.demo-todo-item button.tonal {
-	padding: 0.35rem 0.65rem;
-	min-width: 2.25rem;
-}
-
-.demo-todo-form {
-	display: flex;
-	gap: 0.75rem;
-	margin-top: 1rem;
-}
-
-.demo-todo-form .demo-outlined-field {
-	flex: 1;
-}
-
-.demo-chore-list {
-	list-style: none;
-	margin: 0;
-	padding: 0;
-}
-
-.demo-chore-item {
-	padding: 0.5rem 0;
-	border-bottom: 1px solid var(--md-sys-color-outline-variant);
-}
-
-.demo-chore-item:last-child {
-	border-bottom: none;
-}
-
-.demo-chore-item label {
-	display: flex;
-	align-items: center;
-	gap: 0.75rem;
-	cursor: pointer;
-}
-
-demo-shadow-section p {
-	display: flex;
-	flex-wrap: wrap;
-	gap: 0.75rem;
-	align-items: center;
-}
-
 /* bind validation demo: show errors only after the control was touched */
 :state(touched):invalid, [data-touched]:invalid, [data-touched]:invalid input { outline: 2px solid #b3261e; }
-
-
-
-/* merged-control error icon: always laid out (it is the validation anchor), only visible when touched + invalid */
-demo-bind-merged { position: relative; display: inline-block; }
-demo-bind-merged .error-icon { position: absolute; left: 100%; top: 50%; translate: 0 -50%; display: inline-flex; align-items: center; justify-content: center; width: 18px; height: 18px; margin-left: 8px; border-radius: 50%; background: #b3261e; color: #fff; font: 700 12px/1 sans-serif; vertical-align: middle; opacity: 0; pointer-events: none; outline: none; }
-demo-bind-merged:state(touched):invalid .error-icon, demo-bind-merged[data-touched]:invalid .error-icon { opacity: 1; }

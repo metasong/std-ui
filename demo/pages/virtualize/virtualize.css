@@ -1,4 +1,4 @@
-/* Styles specific to the `virtualize` feature demo page (list basics live in `../../styles/virtualize-list.css`). */
+/* Styles specific to the `virtualize` feature demo page (list basics live in `../../shared/virtualize-list-styles.ts`). */
 
 :is(
 	demo-virtualize-vertical,

@@ -1,11 +1,14 @@
 // Multi-lane grid (4 columns).
 import { tag, t, UIElement } from '@std-ui/core';
 import { virtualize } from '@std-ui/ext';
+import { virtualizeListStyles } from '../../../shared/virtualize-list-styles.js';
 
 type Cell = { i: number };
 
 @tag('demo-virtualize-grid')
 export class DemoVirtualizeGrid extends UIElement {
+	static override styles = virtualizeListStyles;
+
 	readonly #items: Cell[] = Array.from({ length: 4_000 }, (_, i) => ({ i }));
 
 	protected override template() {

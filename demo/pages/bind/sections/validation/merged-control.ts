@@ -1,13 +1,26 @@
 // Plain `FormElement` with two bound properties and NO routing: errors of both properties are merged
 // into the host's single validity state (flags unioned, message grouped per property), anchored on
 // `validationAnchor` (an error icon after the inputs, visible once touched and invalid).
-import { t, tag } from '@std-ui/core';
+import { css, t, tag } from '@std-ui/core';
 import { FormElement } from '@std-ui/ext';
 
 type Key = 'first' | 'last';
 
 @tag('demo-bind-merged')
 export class DemoBindMerged extends FormElement {
+	/** The error icon is always laid out (it is the validation anchor), only visible when touched + invalid. */
+	static override styles = css`
+		:host { position: relative; display: inline-block; }
+		.error-icon {
+			position: absolute; left: 100%; top: 50%; translate: 0 -50%;
+			display: inline-flex; align-items: center; justify-content: center;
+			width: 18px; height: 18px; margin-left: 8px; border-radius: 50%;
+			background: #b3261e; color: #fff; font: 700 12px/1 sans-serif;
+			vertical-align: middle; opacity: 0; pointer-events: none; outline: none;
+		}
+		:host(:state(touched):invalid) .error-icon, :host([data-touched]:invalid) .error-icon { opacity: 1; }
+	`;
+
 	#values: Record<Key, string> = { first: '', last: '' };
 
 	get first(): string { return this.#values.first; }

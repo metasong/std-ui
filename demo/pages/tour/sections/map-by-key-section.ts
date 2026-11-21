@@ -1,10 +1,34 @@
 // Demonstrates: `mapByKey` — keyed list reconciliation when the list store changes order.
-import { tag, t, UIElement, mapByKey, state } from '@std-ui/core';
+import { css, tag, t, UIElement, mapByKey, state } from '@std-ui/core';
 
 type Chore = { id: string; label: string };
 
 @tag('demo-map-by-key-section')
 export class DemoMapByKeySection extends UIElement {
+	static override styles = css`
+		.demo-chore-list {
+			list-style: none;
+			margin: 0;
+			padding: 0;
+		}
+
+		.demo-chore-item {
+			padding: 0.5rem 0;
+			border-bottom: 1px solid var(--md-sys-color-outline-variant);
+		}
+
+		.demo-chore-item:last-child {
+			border-bottom: none;
+		}
+
+		.demo-chore-item label {
+			display: flex;
+			align-items: center;
+			gap: 0.75rem;
+			cursor: pointer;
+		}
+	`;
+
 	readonly chores = state<Chore[]>([
 		{ id: 'wash', label: 'Wash dishes' },
 		{ id: 'mail', label: 'Check mail' },
