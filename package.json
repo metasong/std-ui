@@ -9,6 +9,8 @@
 	],
 	"scripts": {
 		"build": "npm run build -w @std-ui/core && npm run build -w @std-ui/ext && npm run build -w @std-ui/router",
+		"size": "npm run build && node scripts/size-report.mjs && node scripts/size-map.mjs",
+		"size:update": "node scripts/size-report.mjs && node scripts/size-map.mjs",
 		"demo": "vite --config demo/vite.config.ts",
 		"test": "vitest run",
 		"typecheck": "tsc --noEmit -p tsconfig.json"

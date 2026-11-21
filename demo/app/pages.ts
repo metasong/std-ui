@@ -52,6 +52,11 @@ export const PAGES: readonly Page[] = [
 		heading: 'integration', lead: 'Several features working together.',
 		sections: [['signup', 'Sign-up form'], ['directory', 'People directory']],
 	},
+	{
+		path: '/size-map', label: 'size', element: 'demo-size-map-page', load: () => import('../pages/size-map/index.js'),
+		heading: 'size map', lead: 'Where the bytes live: browser bundle totals and an ESM treemap (gzip per module).',
+		sections: [['bundles', 'Bundles'], ['treemap', 'Treemap']],
+	},
 ];
 
 export const pageOf = (pathname: string): Page | undefined => PAGES.find((p) => pathname === p.path || pathname.startsWith(p.path + '/'));

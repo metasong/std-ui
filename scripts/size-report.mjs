@@ -1,5 +1,6 @@
 // Usage: node scripts/size-report.mjs   (after building std-ui and std-ui-ext)
 // Writes the size tables between the SIZE markers in release.md.
+// Also run `node scripts/size-map.mjs` to refresh the demo size-map page data.
 import fs from 'node:fs';
 import path from 'node:path';
 import zlib from 'node:zlib';
@@ -10,6 +11,7 @@ const walk = d =>
 		e.isDirectory() ? walk(path.join(d, e.name)) : [path.join(d, e.name)],
 	);
 
+let readmeRows = '';
 let out = '### Browser bundles (`<pkg>/dist/browser`; `std-ui-ext` keeps `std-ui` external)\n\n| File | Minified | Gzip | Brotli |\n|---|---|---|---|\n';
 for (const f of [
 	'src/core/dist/browser/std-ui-core.min.js',
@@ -18,7 +20,9 @@ for (const f of [
 	'src/ext/dist/browser/std-ui-ext.iife.min.js',
 ]) {
 	const b = fs.readFileSync(f);
-	out += `| \`${path.basename(f)}\` | ${kb(b.length)} | ${kb(zlib.gzipSync(b, { level: 9 }).length)} | ${kb(zlib.brotliCompressSync(b).length)} |\n`;
+	const row = `| \`${path.basename(f)}\` | ${kb(b.length)} | ${kb(zlib.gzipSync(b, { level: 9 }).length)} | ${kb(zlib.brotliCompressSync(b).length)} |\n`;
+	out += row;
+	if (f.includes('.iife.')) readmeRows += row; // the README only lists the drop-in <script> builds
 }
 
 out += '\n### npm packages (compiled `.js`, unminified; excludes maps and `.d.ts`)\n\n| Package | Files | Raw | Gzip |\n|---|---|---|---|\n';
@@ -40,4 +44,16 @@ doc = doc.includes(start)
 	? doc.replace(new RegExp(`${start}[\\s\\S]*?${end}`), () => block)
 	: `${doc.trimEnd()}\n\n${block}\n`;
 fs.writeFileSync(file, doc);
+
+// README.md: the same numbers for the IIFE bundles, between its own markers.
+const readme = 'README.md';
+const rStart = '<!-- SIZE:README:START -->';
+const rEnd = '<!-- SIZE:README:END -->';
+const rBlock = `${rStart}\n| File | Minified | Gzip | Brotli |\n|---|---|---|---|\n${readmeRows}${rEnd}`;
+const readmeDoc = fs.readFileSync(readme, 'utf8');
+if (readmeDoc.includes(rStart)) {
+	fs.writeFileSync(readme, readmeDoc.replace(new RegExp(`${rStart}[\\s\\S]*?${rEnd}`), () => rBlock));
+} else {
+	console.warn(`README.md has no ${rStart} marker; its bundle table was not updated.`);
+}
 console.log(out);

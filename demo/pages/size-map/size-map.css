@@ -1,0 +1,25 @@
+/* Size map page (light DOM sections). */
+
+demo-size-map-summary {
+	display: block;
+	margin-bottom: 2rem;
+}
+
+demo-size-map-summary h2 {
+	margin: 0 0 0.5rem;
+	font-size: 1.25rem;
+	font-weight: 500;
+	letter-spacing: 0.01em;
+	color: var(--md-sys-color-on-surface);
+}
+
+demo-size-map-summary p.desc {
+	margin: 0 0 1rem;
+	font-size: 0.875rem;
+	line-height: 1.45;
+	color: var(--md-sys-color-on-surface-variant);
+}
+
+demo-treemap-map {
+	margin-bottom: 0.5rem;
+}

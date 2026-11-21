@@ -39,6 +39,7 @@ export class DemoApp extends UIElement {
 				<std-route path="/feat" element="demo-feat-page" title="feat - std-ui"></std-route>
 				<std-route path="/router" element="demo-router-page" title="router - std-ui"></std-route>
 				<std-route path="/integration" element="demo-integration-page" title="integration - std-ui"></std-route>
+				<std-route path="/size-map" element="demo-size-map-page" title="size map - std-ui"></std-route>
 				<std-route path="*" element="demo-not-found" title="Not found - std-ui"></std-route>
 			</std-router>
 		`;
