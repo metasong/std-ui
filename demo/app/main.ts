@@ -9,7 +9,7 @@ import { PAGES } from './pages.js';
 
 @tag('demo-app')
 export class DemoApp extends UIElement {
-	protected override firstRendered(): void { // the <std-router> exists only once the template is rendered
+	protected override firstUpdated(): void { // the <std-router> exists only once the template is rendered
 		// Not `.load=` bindings in the template: such elements connect before their attributes are set, so the route would have no path.
 		for (const p of PAGES) (this.querySelector(`std-route[path="${p.path}"]`) as StdRoute).load = p.load;
 		// A deep link with a `#section` renders after its page loads, so the browser has nothing to scroll to yet.

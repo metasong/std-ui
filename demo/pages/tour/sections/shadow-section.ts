@@ -41,7 +41,7 @@ export class DemoShadowChip extends UIElement {
 		`;
 	}
 
-	protected override rendered(): void {
+	protected override updated(): void {
 		if (this.on() && this.toggle) this.toggle.focus();
 	}
 }

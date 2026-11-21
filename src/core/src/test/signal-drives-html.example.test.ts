@@ -49,7 +49,7 @@ describe('doc: signals drive html render', () => {
 		renderSpy.mockRestore();
 	});
 
-	it('Pattern B — UIElement\'s template() reads signals directly, drives html render, @click, and firstRendered', async () => {
+	it('Pattern B — UIElement\'s template() reads signals directly, drives html render, @click, and firstUpdated', async () => {
 		type DemoState = { counter: { value: number; max: number } };
 		const shared = state<DemoState>({
 			counter: { value: 0, max: 10 },
@@ -69,7 +69,7 @@ describe('doc: signals drive html render', () => {
 				`;
 			}
 
-			protected override firstRendered(): void {
+			protected override firstUpdated(): void {
 				this.querySelector('span')!.setAttribute('aria-live', 'polite');
 			}
 		}
@@ -104,7 +104,7 @@ describe('doc: signals drive html render', () => {
 		expect(span.textContent).toBe('10');
 	});
 
-	it('Pattern C — firstRendered registers effect() to patch a static .badge node', async () => {
+	it('Pattern C — firstUpdated registers effect() to patch a static .badge node', async () => {
 		type ShellState = { title: string; unreadCount: number };
 		const shared = state<ShellState>({
 			title: 'Inbox',
@@ -120,7 +120,7 @@ describe('doc: signals drive html render', () => {
 				`;
 			}
 
-			protected override firstRendered(): void {
+			protected override firstUpdated(): void {
 				const badge = this.querySelector('.badge') as HTMLElement;
 
 				this.effect(() => {

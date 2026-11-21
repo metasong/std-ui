@@ -58,7 +58,7 @@ class EncapsulatedChip extends UIElement {
 
 All three query decorators always search **`this.renderRoot`**, so the same `@query('button')`
 field works in either mode without branching. Code that uses **`this.querySelector`** directly (for
-example imperative patches in `firstRendered()`) must query **`this.renderRoot`** when the component
+example imperative patches in `firstUpdated()`) must query **`this.renderRoot`** when the component
 uses a shadow root — otherwise it will not see nodes created by `template()`.
 
 Override **`createRenderRoot()`** on `UIElement` when you need custom `attachShadow` options beyond

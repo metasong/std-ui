@@ -13,8 +13,8 @@ knows what each piece of UI depends on. See also [`why-no-request-update.md`](./
 | `connectedCallback` | `connect()` | Runs on first connect only (`#connected` guard). |
 | `disconnectedCallback` | `disconnect()` | Runs on every disconnect. |
 | `render()` | `template()` | |
-| `firstUpdated()` | `firstRendered()` | After the first `template()` is applied. |
-| `updated(changed)` | `rendered()` or `this.effect()` | `rendered()` has no `changedProperties`. |
+| `firstUpdated()` | `firstUpdated()` | After the first `template()` is applied. |
+| `updated(changed)` | `updated()` or `this.effect()` | `updated()` has no `changedProperties`. |
 | `willUpdate(changed)` | `computed()` | |
 | `shouldUpdate(changed)` | none | See below. |
 | `requestUpdate()` | write a signal | Not public. |
@@ -66,8 +66,8 @@ class DemoSearch extends UIElement {
 Caveats:
 
 - An effect is not guaranteed to run after the DOM is flushed. When you need the updated DOM, use
-  `rendered()` (every render), or `await this.updateComplete` inside the effect.
-- `rendered()` fires on every render and cannot tell what changed. Use an effect for per-signal work.
+  `updated()` (every render), or `await this.updateComplete` inside the effect.
+- `updated()` fires on every render and cannot tell what changed. Use an effect for per-signal work.
 
 ## `shouldUpdate`: read fewer signals
 

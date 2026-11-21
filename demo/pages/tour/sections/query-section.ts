@@ -1,4 +1,4 @@
-// Demonstrates: `@query()`/`@queryAll()` (light-DOM selector accessors) and `firstRendered()` +
+// Demonstrates: `@query()`/`@queryAll()` (light-DOM selector accessors) and `firstUpdated()` +
 // `this.effect()` for imperatively patching a node outside the template's own re-render.
 import { tag, t, UIElement, state, query, queryAll } from '@std-ui/core';
 
@@ -12,7 +12,7 @@ export class DemoQuerySection extends UIElement {
 	protected override template() {
 		return t`
 			<h2>Queries</h2>
-			<p class="desc"><code>@query()</code> / <code>@queryAll()</code> resolve <code>this.querySelector(All)</code> on demand; <code>firstRendered()</code> + <code>this.effect()</code> patch a node (the <code>.badge</code> span) directly.</p>
+			<p class="desc"><code>@query()</code> / <code>@queryAll()</code> resolve <code>this.querySelector(All)</code> on demand; <code>firstUpdated()</code> + <code>this.effect()</code> patch a node (the <code>.badge</code> span) directly.</p>
 			<input class="demo-outlined-field" type="text" placeholder="add an item, press Enter" @keydown=${(e: KeyboardEvent) => this.#onKeydown(e)} />
 			<span class="demo-badge badge"></span>
 			<ul>
@@ -25,7 +25,7 @@ export class DemoQuerySection extends UIElement {
 		`;
 	}
 
-	protected override firstRendered(): void {
+	protected override firstUpdated(): void {
 		const badge = this.querySelector('.badge') as HTMLElement;
 		this.effect(() => {
 			const n = this.items().length;

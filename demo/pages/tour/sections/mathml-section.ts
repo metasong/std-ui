@@ -117,7 +117,7 @@ export class DemoMathmlSection extends UIElement {
 		`;
 	}
 
-	protected override firstRendered(): void {
+	protected override firstUpdated(): void {
 		requestAnimationFrame(() => this.report.set(this.describe()));
 	}
 

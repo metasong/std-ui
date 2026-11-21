@@ -20,9 +20,9 @@ export interface UIElementHooks {
 	/** Every connect, after the one-time `connect()` and before the render effect is wired. */
 	connected?(el: UIElement): Cleanup;
 	/** Once, after the first `template()` is applied. */
-	firstRendered?(el: UIElement): Cleanup;
+	firstUpdated?(el: UIElement): Cleanup;
 	/** After every `template()` is applied. */
-	rendered?(el: UIElement): void;
+	updated?(el: UIElement): void;
 	/** An attribute listed in `observedAttributes` was set, changed or removed (native `attributeChangedCallback`). */
 	attributeChanged?(el: UIElement, name: string, oldValue: string | null, newValue: string | null): void;
 }

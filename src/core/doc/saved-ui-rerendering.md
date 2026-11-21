@@ -97,7 +97,7 @@ Signal write
   → render: strings unchanged → updateParts only
 ```
 
-`firstRendered` / `rendered` still run after each pass; only the **DOM work** is minimized.
+`firstUpdated` / `updated` still run after each pass; only the **DOM work** is minimized.
 
 This is **not** virtual DOM diffing. There is no tree of VNodes — only a fixed list of binding
 sites (`Part`s) created the first time that `strings` was rendered into that container.

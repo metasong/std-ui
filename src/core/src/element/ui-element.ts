@@ -41,7 +41,7 @@ export { addClassHooks, type Cleanup, type UIElementHooks } from './ui-element-h
 
 export abstract class UIElement extends HTMLElement {
 	#connected = false;
-	#firstRenderDone = false;
+	#firstUpdateDone = false;
 	#effectDisposers: Array<() => void> = [];
 	#instanceHooks: UIElementHooks[] = [];
 	#renderRoot: Element | DocumentFragment | null = null;
@@ -153,10 +153,10 @@ export abstract class UIElement extends HTMLElement {
 	protected template?(): TemplateResult | void;
 
 	/** lifecycle hook: Called once, right after the first `template()` has been applied to the DOM. */
-	protected firstRendered?(): void;
+	protected firstUpdated?(): void;
 
 	/** lifecycle hook: Called after every `template()` (including the first) has been applied to the DOM. */
-	protected rendered?(): void;
+	protected updated?(): void;
 
 	/** lifecycle hook: Tear down what `connect()` set up (listeners, timers). Runs on every disconnect. */
 	protected disconnect?(): void;
@@ -186,19 +186,19 @@ export abstract class UIElement extends HTMLElement {
 		this.#effectDisposers.push(createEffect(monitoredAction, afterAction));
 	};
 
-	/** Re-runs `template()` when any signal it reads changes; invokes `firstRendered` / `rendered` after each apply. */
-	#wireTemplateRenderEffect(): void {
+	/** Re-runs `template()` when any signal it reads changes; invokes `firstUpdated` / `updated` after each apply. */
+	#wireTemplateUpdateEffect(): void {
 		this.#effectDisposers.push(createEffect(
 			this.#requestUpdate.bind(this),
 			() => {
 				this.#elementStyles.reinsertIfRemoved(this.#renderRoot!);
-				if (!this.#firstRenderDone) {
-					this.#firstRenderDone = true;
-					this.firstRendered?.();
-					this.#runCleanupHooks('firstRendered');
+				if (!this.#firstUpdateDone) {
+					this.#firstUpdateDone = true;
+					this.firstUpdated?.();
+					this.#runCleanupHooks('firstUpdated');
 				}
-				this.rendered?.();
-				this.#runHooks('rendered');
+				this.updated?.();
+				this.#runHooks('updated');
 			},
 		));
 	}
@@ -212,7 +212,7 @@ export abstract class UIElement extends HTMLElement {
 		if (result) render(result, this.renderRoot, { host: this });
 	}
 
-	// Browser lifecycle entry points — `private` so TS subclasses cannot override; extend `connect` / `disconnect` / `template` / `firstRendered` / `rendered` instead.
+	// Browser lifecycle entry points — `private` so TS subclasses cannot override; extend `connect` / `disconnect` / `template` / `firstUpdated` / `updated` instead.
 	/** Connected to the document (static HTML, parent markup, re-insert after remove). */
 	private connectedCallback(): void {
 		this.#runCleanupHooks('beforeConnect');
@@ -225,7 +225,7 @@ export abstract class UIElement extends HTMLElement {
 		}
 
 		this.#runCleanupHooks('connected');
-		this.#wireTemplateRenderEffect();
+		this.#wireTemplateUpdateEffect();
 	}
 
 	/** Class-level hooks (inherited) followed by this instance's own; a fresh array, safe against mid-iteration changes. */
@@ -234,17 +234,17 @@ export abstract class UIElement extends HTMLElement {
 	}
 
 	/** Runs a fire-and-forget hook phase (no cleanup) on every registered extension. */
-	#runHooks(phase: 'rendered'): void;
+	#runHooks(phase: 'updated'): void;
 	#runHooks(phase: 'attributeChanged', name: string, oldValue: string | null, newValue: string | null): void;
-	#runHooks(phase: 'rendered' | 'attributeChanged', ...args: [string, string | null, string | null] | []): void {
+	#runHooks(phase: 'updated' | 'attributeChanged', ...args: [string, string | null, string | null] | []): void {
 		for (const hooks of this.#allHooks()) {
-			if (phase === 'rendered') hooks.rendered?.(this);
+			if (phase === 'updated') hooks.updated?.(this);
 			else hooks.attributeChanged?.(this, ...(args as [string, string | null, string | null]));
 		}
 	}
 
 	/** Runs a cleanup-returning hook phase on every registered extension; returned cleanups run on disconnect. */
-	#runCleanupHooks(phase: 'beforeConnect' | 'connected' | 'firstRendered'): void {
+	#runCleanupHooks(phase: 'beforeConnect' | 'connected' | 'firstUpdated'): void {
 		for (const hooks of this.#allHooks()) {
 			const cleanup = hooks[phase]?.(this);
 			if (cleanup) this.#effectDisposers.push(cleanup);
@@ -257,7 +257,7 @@ export abstract class UIElement extends HTMLElement {
 		// Runs bound directives' `disconnected()`; DOM is kept, directives are re-created on reconnect.
 		if (this.#renderRoot) disconnectRendered(this.#renderRoot);
 		this.#connected = false;
-		this.#firstRenderDone = false;
+		this.#firstUpdateDone = false;
 		this.#effectDisposers.forEach(dispose => dispose());
 		this.#effectDisposers = [];
 	}

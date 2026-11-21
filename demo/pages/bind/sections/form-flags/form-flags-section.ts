@@ -96,7 +96,7 @@ export class DemoBindFormFlagsSection extends UIElement {
 
 	#observer?: MutationObserver;
 
-	protected override firstRendered(): void {
+	protected override firstUpdated(): void {
 		const bump = () => attributesChanged.set(attributesChanged.peek() + 1);
 		this.#observer = new MutationObserver(bump);
 		for (const { id } of FIELDS) {

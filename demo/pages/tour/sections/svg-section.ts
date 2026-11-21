@@ -36,7 +36,7 @@ export class DemoSvgSection extends UIElement {
 		`;
 	}
 
-	protected override firstRendered(): void {
+	protected override firstUpdated(): void {
 		// Layout sizes are only available once the browser has laid out the rendered SVG.
 		requestAnimationFrame(() => this.report.set(this.describe()));
 	}
