@@ -27,6 +27,17 @@ export interface UIElementHooks {
 	attributeChanged?(el: UIElement, name: string, oldValue: string | null, newValue: string | null): void;
 }
 
+/** Hook names as references, so phase strings are written once (each value is a key of `UIElementHooks`). */
+export const HookPhase = {
+	beforeConnect: 'beforeConnect',
+	connected: 'connected',
+	firstUpdated: 'firstUpdated',
+	updated: 'updated',
+	attributeChanged: 'attributeChanged',
+} as const satisfies { [K in keyof UIElementHooks]-?: K };
+
+export type HookPhase = (typeof HookPhase)[keyof typeof HookPhase];
+
 const classHookRegistry = createClassRegistry<UIElementHooks>('uiElementHooks');
 
 /**

@@ -9,7 +9,7 @@
 // anywhere.
 
 import { ElementStyles } from './element-styles.js';
-import { getClassHooks, type UIElementHooks } from './ui-element-hooks.js';
+import { getClassHooks, HookPhase, type UIElementHooks } from './ui-element-hooks.js';
 import {
 	effect as createEffect,
 	type OnCleanup,
@@ -195,10 +195,10 @@ export abstract class UIElement extends HTMLElement {
 				if (!this.#firstUpdateDone) {
 					this.#firstUpdateDone = true;
 					this.firstUpdated?.();
-					this.#runCleanupHooks('firstUpdated');
+					this.#runCleanupHooks(HookPhase.firstUpdated);
 				}
 				this.updated?.();
-				this.#runHooks('updated');
+				this.#runHooks(HookPhase.updated);
 			},
 		));
 	}
@@ -215,7 +215,7 @@ export abstract class UIElement extends HTMLElement {
 	// Browser lifecycle entry points — `private` so TS subclasses cannot override; extend `connect` / `disconnect` / `template` / `firstUpdated` / `updated` instead.
 	/** Connected to the document (static HTML, parent markup, re-insert after remove). */
 	private connectedCallback(): void {
-		this.#runCleanupHooks('beforeConnect');
+		this.#runCleanupHooks(HookPhase.beforeConnect);
 
 		// Runs after the hooks above so descendants appended here (in `connect()`) can consume synchronously.
 		if (!this.#connected) {
@@ -224,7 +224,7 @@ export abstract class UIElement extends HTMLElement {
 			this.connect?.();
 		}
 
-		this.#runCleanupHooks('connected');
+		this.#runCleanupHooks(HookPhase.connected);
 		this.#wireTemplateUpdateEffect();
 	}
 
@@ -234,17 +234,17 @@ export abstract class UIElement extends HTMLElement {
 	}
 
 	/** Runs a fire-and-forget hook phase (no cleanup) on every registered extension. */
-	#runHooks(phase: 'updated'): void;
-	#runHooks(phase: 'attributeChanged', name: string, oldValue: string | null, newValue: string | null): void;
-	#runHooks(phase: 'updated' | 'attributeChanged', ...args: [string, string | null, string | null] | []): void {
+	#runHooks(phase: typeof HookPhase.updated): void;
+	#runHooks(phase: typeof HookPhase.attributeChanged, name: string, oldValue: string | null, newValue: string | null): void;
+	#runHooks(phase: typeof HookPhase.updated | typeof HookPhase.attributeChanged, ...args: [string, string | null, string | null] | []): void {
 		for (const hooks of this.#allHooks()) {
-			if (phase === 'updated') hooks.updated?.(this);
+			if (phase === HookPhase.updated) hooks.updated?.(this);
 			else hooks.attributeChanged?.(this, ...(args as [string, string | null, string | null]));
 		}
 	}
 
 	/** Runs a cleanup-returning hook phase on every registered extension; returned cleanups run on disconnect. */
-	#runCleanupHooks(phase: 'beforeConnect' | 'connected' | 'firstUpdated'): void {
+	#runCleanupHooks(phase: typeof HookPhase.beforeConnect | typeof HookPhase.connected | typeof HookPhase.firstUpdated): void {
 		for (const hooks of this.#allHooks()) {
 			const cleanup = hooks[phase]?.(this);
 			if (cleanup) this.#effectDisposers.push(cleanup);
@@ -273,6 +273,6 @@ export abstract class UIElement extends HTMLElement {
 	 * value change.
 	 */
 	private attributeChangedCallback(name: string, oldValue: string | null, newValue: string | null): void {
-		this.#runHooks('attributeChanged', name, oldValue, newValue);
+		this.#runHooks(HookPhase.attributeChanged, name, oldValue, newValue);
 	}
 }
