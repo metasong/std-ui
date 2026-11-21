@@ -64,6 +64,16 @@ describe('layoutTree', () => {
 		expect(groupOf('a')).not.toBe(groupOf('b'));
 	});
 
+	it('draws the root as a folder level (header + padding) only when asked', () => {
+		const bare = layoutTree(tree, 1000, 600)[0]!;
+		const framed = layoutTree(tree, 1000, 600, true);
+		expect(bare.header).toBe(0);
+		expect(framed[0]!.header).toBeGreaterThan(0);
+		const a = framed.find((b) => b.node.name === 'a')!;
+		expect(a.y).toBeGreaterThanOrEqual(framed[0]!.header);
+		expect(a.x).toBeGreaterThan(0);
+	});
+
 	it('skips zero-size nodes', () => {
 		const out = layoutTree(dir('r', [leaf('x', 10), leaf('zero', 0)]), 100, 100);
 		expect(out.some((b) => b.node.name === 'zero')).toBe(false);

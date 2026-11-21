@@ -50,8 +50,11 @@ const squarify = (areas: readonly number[], rect: Rect): Rect[] => {
 const PAD = 3;
 const HEADER = 20;
 
-/** Lays the tree out in a `width` x `height` virtual space; returns boxes parent-first (paint order). */
-export const layoutTree = (root: SizeNode, width: number, height: number): LayoutBox[] => {
+/**
+ * Lays the tree out in a `width` x `height` virtual space; returns boxes parent-first (paint order).
+ * With `rootHeader`, the root is drawn as a folder level too (header bar + padding) instead of a bare frame.
+ */
+export const layoutTree = (root: SizeNode, width: number, height: number, rootHeader = false): LayoutBox[] => {
 	const boxes: LayoutBox[] = [];
 	const visit = (node: SizeNode, rect: Rect, depth: number, group: number): void => {
 		const kids = node.children?.filter((c) => c.size > 0);
@@ -59,9 +62,10 @@ export const layoutTree = (root: SizeNode, width: number, height: number): Layou
 			boxes.push({ ...rect, node, depth, leaf: true, group, header: 0 });
 			return;
 		}
-		const header = depth > 0 && rect.h > HEADER * 2.2 && rect.w > 56 ? HEADER : 0;
+		const isBareRoot = depth === 0 && !rootHeader; // the root is an invisible frame unless it gets a header like any folder
+		const header = !isBareRoot && rect.h > HEADER * 2.2 && rect.w > 56 ? HEADER : 0;
 		boxes.push({ ...rect, node, depth, leaf: false, group, header });
-		const pad = depth === 0 ? 0 : PAD;
+		const pad = isBareRoot ? 0 : PAD;
 		const inner: Rect = { x: rect.x + pad, y: rect.y + pad + header, w: rect.w - pad * 2, h: rect.h - pad * 2 - header };
 		if (inner.w <= 1 || inner.h <= 1) return;
 		const sorted = [...kids].sort((a, b) => b.size - a.size);

@@ -1,5 +1,5 @@
 import { css, t, tag, UIElement } from '@std-ui/core';
-import { formatKb, SIZE_DATA } from '../data.js';
+import { SIZE_DATA } from '../data.js';
 import '../treemap-map.js';
 
 @tag('demo-size-map-treemap')
@@ -22,14 +22,6 @@ export class DemoSizeMapTreemap extends UIElement {
 			padding: 0.1rem 0.35rem; border-radius: 4px;
 		}
 		.panels { display: grid; gap: 1.25rem; }
-		.panel h3 {
-			margin: 0 0 0.5rem; font-size: 0.95rem; font-weight: 500;
-			color: var(--md-sys-color-on-surface, #1d1b20);
-		}
-		.panel p.meta {
-			margin: 0 0 0.5rem; font-size: 0.8125rem;
-			color: var(--md-sys-color-on-surface-variant, #49454f);
-		}
 	`;
 
 	protected override template() {
@@ -42,12 +34,11 @@ export class DemoSizeMapTreemap extends UIElement {
 			<div class="panels">
 				${SIZE_DATA.packages.map((tree) => t`
 					<div class="panel">
-						<h3>@${tree.name}</h3>
-						<p class="meta">${formatKb(tree.size)} gzip total · ${formatKb(tree.raw ?? tree.size, 1)} raw</p>
 						<demo-treemap-map
 							.tree=${tree}
 							.aspect=${2.1}
 							.showLeafKb=${true}
+							.showRoot=${true}
 						></demo-treemap-map>
 					</div>
 				`)}

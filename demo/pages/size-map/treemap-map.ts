@@ -61,19 +61,21 @@ export class DemoTreemapMap extends UIElement {
 	readonly showLeafKb = state(true);
 	/** Folder/group totals in header bars and legend. Off when the groups are just labels (e.g. core / ext bundles). */
 	readonly showFolderKb = state(true);
+	/** Draw the root as a folder level (named header bar with its total) rather than an invisible frame. */
+	readonly showRoot = state(false);
 
 	/** Layout only depends on the tree and aspect, not on hover, so hovering does not recompute it. */
 	readonly #width = computed(() => Math.round(this.aspect() * H));
 	readonly #boxes = computed(() => {
 		const tree = this.tree();
-		return tree ? layoutTree(tree, this.#width(), H).filter((b) => b.depth === 0 || (b.w > 2 && b.h > 2)) : [];
+		return tree ? layoutTree(tree, this.#width(), H, this.showRoot()).filter((b) => b.depth === 0 || (b.w > 2 && b.h > 2)) : [];
 	});
 
 	private readonly selected = signal<SizeNode | null>(null);
 
 	/** Keyboard: arrows walk the blocks in paint order (a folder, then its contents), Home/End jump, Esc clears. */
 	#onKey = (e: KeyboardEvent): void => {
-		const boxes = this.#boxes().slice(1); // skip the invisible root
+		const boxes = this.#boxes().slice(this.showRoot() ? 0 : 1); // a bare root is an invisible frame, not a stop
 		if (!boxes.length) return;
 		const cur = boxes.findIndex((b) => b.node === this.selected.peek());
 		let next: number;
@@ -122,9 +124,10 @@ export class DemoTreemapMap extends UIElement {
 			`;
 		}
 		const light = 94 - Math.min(b.depth, 6) * 5;
+		const bare = b.depth === 0 && !this.showRoot();
 		return t`
 			<div class="block" title="${tip}"
-				style=${styleMap({ ...pos, background: b.depth === 0 ? 'transparent' : `hsl(${hue} 45% ${light}%)`, borderColor: b.depth === 0 ? 'transparent' : '' })}
+				style=${styleMap({ ...pos, background: bare ? 'transparent' : b.depth === 0 ? 'hsl(225 16% 90%)' : `hsl(${hue} 45% ${light}%)`, borderColor: bare ? 'transparent' : '' })}
 				@pointerenter=${enter} @pointerleave=${leave} @click=${enter}>
 				${b.header
 					? t`<div class="head" style=${styleMap({ height: `${(b.header / b.h) * 100}%`, fontSize: `${Math.min(15, b.header * 0.62) * u}cqw` })}>
@@ -148,7 +151,7 @@ export class DemoTreemapMap extends UIElement {
 				style=${styleMap({ aspectRatio: `${W} / ${H}` })}
 				@keydown=${this.#onKey}>
 				${boxes.map((b) => this.#box(b, W))}
-				${selBox && selBox.depth > 0 ? t`<div class="ring" style=${styleMap(this.#pos(selBox, W))}></div>` : ''}
+				${selBox && (selBox.depth > 0 || this.showRoot()) ? t`<div class="ring" style=${styleMap(this.#pos(selBox, W))}></div>` : ''}
 			</div>
 			<ul class="legend">
 				${groups.map((g, i) => t`<li><i style=${styleMap({ background: `hsl(${groupHue(i)} 58% 50%)` })}></i>${g.name}${this.showFolderKb() ? ` ${formatKb(g.size)}` : ''}</li>`)}
