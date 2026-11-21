@@ -5,6 +5,7 @@
 	"type": "module",
 	"license": "MIT",
 	"sideEffects": [
+		"./dist/esm/index.js",
 		"./dist/esm/element/index.js",
 		"./dist/esm/element/std-router.js",
 		"./dist/esm/element/std-route.js",

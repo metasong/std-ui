@@ -5,6 +5,7 @@
 	"type": "module",
 	"license": "MIT",
 	"sideEffects": [
+		"./dist/esm/**/index.js",
 		"./dist/esm/element/template/custom-attributes/**/*.js"
 	],
 	"main": "./dist/esm/index.js",

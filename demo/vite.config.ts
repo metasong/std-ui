@@ -25,6 +25,21 @@ const spaFallback404 = (): Plugin => ({
 	},
 });
 
+// The aliases below point at the library *sources*, but each package.json `sideEffects` list only names its
+// published `dist/esm/**` files. Those patterns never match `src/**`, so a production build treats the libraries as
+// side-effect-free and drops `import '@std-ui/router'` (and the `@tag(...)` registrations in it): the page is blank
+// because `<std-router>` is never defined. Flag the library sources as having side effects.
+const keepLibrarySideEffects = (): Plugin => ({
+	name: 'keep-library-side-effects',
+	apply: 'build',
+	transform(code, id) {
+		if (/[\\/]src[\\/](core|ext|router)[\\/]src[\\/]/.test(id) && !id.endsWith('.test.ts')) {
+			return { code, map: null, moduleSideEffects: true };
+		}
+		return null;
+	},
+});
+
 export default defineConfig({
 	root: dirname,
 	resolve: {
@@ -36,7 +51,7 @@ export default defineConfig({
 		},
 	},
 	base: '/', // absolute: deep links like /bind/ must still find /assets/...
-	plugins: [esbuildTs(), spaFallback404()],
+	plugins: [esbuildTs(), keepLibrarySideEffects(), spaFallback404()],
 	server: {
 		open: true,
 		port: 5174,
