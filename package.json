@@ -13,6 +13,7 @@
 		"size:update": "node scripts/size-report.mjs && node scripts/size-map.mjs",
 		"demo": "vite --config demo/vite.config.ts",
 		"demo:build": "vite build --config demo/vite.config.ts",
+		"demo:publish": "node scripts/publish-demo.mjs",
 		"demo:preview": "vite preview --config demo/vite.config.ts",
 		"test": "vitest run",
 		"typecheck": "tsc --noEmit -p tsconfig.json"
