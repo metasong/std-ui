@@ -41,6 +41,8 @@ export { addClassHooks, type Cleanup, type UIElementHooks } from './ui-element-h
 
 export abstract class UIElement extends HTMLElement {
 	#connected = false;
+	/** True once `beforeConnect`/`connected` hooks of the current connection have run (late `addHooks()` catch up). */
+	#hooksSettled = false;
 	#firstUpdateDone = false;
 	#effectDisposers: Array<() => void> = [];
 	#instanceHooks: UIElementHooks[] = [];
@@ -82,10 +84,17 @@ export abstract class UIElement extends HTMLElement {
 
 	/**
 	 * Registers lifecycle hooks for this element instance only (class-level ones come from
-	 * `addClassHooks()`). Call before connect to receive every phase. Returns an unregister function.
+	 * `addClassHooks()`). Hooks added after connect catch up on `beforeConnect`/`connected` (and `firstUpdated` if it already ran). Returns an unregister function.
 	 */
 	addHooks(hooks: UIElementHooks): () => void {
 		this.#instanceHooks.push(hooks);
+		// Added while already connected: catch up on the phases that already ran (their cleanups run on disconnect).
+		if (this.#hooksSettled) {
+			for (const phase of [HookPhase.beforeConnect, HookPhase.connected, ...(this.#firstUpdateDone ? [HookPhase.firstUpdated] as const : [])]) {
+				const cleanup = hooks[phase]?.(this);
+				if (cleanup) this.#effectDisposers.push(cleanup);
+			}
+		}
 		return () => {
 			const i = this.#instanceHooks.indexOf(hooks);
 			if (i >= 0) this.#instanceHooks.splice(i, 1);
@@ -225,6 +234,7 @@ export abstract class UIElement extends HTMLElement {
 		}
 
 		this.#runCleanupHooks(HookPhase.connected);
+		this.#hooksSettled = true;
 		this.#wireTemplateUpdateEffect();
 	}
 
@@ -257,6 +267,7 @@ export abstract class UIElement extends HTMLElement {
 		// Runs bound directives' `disconnected()`; DOM is kept, directives are re-created on reconnect.
 		if (this.#renderRoot) disconnectRendered(this.#renderRoot);
 		this.#connected = false;
+		this.#hooksSettled = false;
 		this.#firstUpdateDone = false;
 		this.#effectDisposers.forEach(dispose => dispose());
 		this.#effectDisposers = [];

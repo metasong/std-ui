@@ -10,6 +10,7 @@ export {
 	type DefineElementOptions,
 } from './element/ui-element.js';
 export { addClassHooks, type UIElementHooks, type Cleanup } from './element/ui-element-hooks.js';
+export { UIFeat } from './element/feat/index.js';
 export { createClassRegistry, ownMetadata, metadataSymbol, type ClassRegistry } from './element/decorators/index.js';
 export { query, queryAll, queryAsync, queryAssigned, queryAssignedNodes } from './element/decorators/index.js';
 export {

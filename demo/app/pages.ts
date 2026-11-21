@@ -38,6 +38,11 @@ export const PAGES: readonly Page[] = [
 		sections: [],
 	},
 	{
+		path: '/feat', label: 'feat', element: 'demo-feat-page', load: () => import('../pages/feat/index.js'),
+		heading: 'feat', lead: 'Reusable UIFeat objects composed into elements, by field initializer or decorator.',
+		sections: [['clock', 'Feature objects'], ['decorator', 'Decorator']],
+	},
+	{
 		path: '/router', label: 'router', element: 'demo-router-page', load: () => import('../pages/router/index.js'),
 		heading: 'router', lead: 'Navigation API router: markup routes, guards, loaders, announcer and view transitions. This app is itself routed by it.',
 		sections: [['full-router', 'Full router'], ['announcer', 'Announcer'], ['view-transition', 'View transitions']],

@@ -36,6 +36,7 @@ export class DemoApp extends UIElement {
 				<std-route path="/bind" element="demo-bind-page" title="bind - std-ui"></std-route>
 				<std-route path="/virtualize" element="demo-virtualize-page" title="virtualize - std-ui"></std-route>
 				<std-route path="/slot" element="demo-slot-page" title="slot - std-ui"></std-route>
+				<std-route path="/feat" element="demo-feat-page" title="feat - std-ui"></std-route>
 				<std-route path="/router" element="demo-router-page" title="router - std-ui"></std-route>
 				<std-route path="/integration" element="demo-integration-page" title="integration - std-ui"></std-route>
 				<std-route path="*" element="demo-not-found" title="Not found - std-ui"></std-route>
