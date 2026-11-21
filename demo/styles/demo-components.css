@@ -42,10 +42,21 @@ body {
 	color: var(--md-sys-color-on-surface-variant);
 }
 
+/* Wide, so each code block can show the rendered demo beside it. */
 .demo-main {
-	max-width: 52rem;
+	box-sizing: border-box;
+	width: 90%;
+	max-width: none;
 	margin: 0 auto;
 	padding: 1.5rem 1.25rem 3rem;
+}
+
+code-preview {
+	scroll-margin-top: 4rem;
+}
+
+html {
+	scroll-behavior: smooth;
 }
 
 code-preview > * > h2 {
