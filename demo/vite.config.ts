@@ -50,7 +50,7 @@ export default defineConfig({
 			'@std-ui/router': fileURLToPath(new URL('../src/router/src/index.ts', import.meta.url)),
 		},
 	},
-	base: '/', // absolute: deep links like /bind/ must still find /assets/...
+	base: process.env.DEMO_BASE ?? '/', // absolute: deep links like /bind/ must still find /assets/...
 	plugins: [esbuildTs(), keepLibrarySideEffects(), spaFallback404()],
 	server: {
 		open: true,

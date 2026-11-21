@@ -54,7 +54,7 @@ export class Router {
 	readonly params: Computed<Record<string, string>>;
 
 	readonly #nav: NavigationLike;
-	readonly #base: BasePath;
+	#base: BasePath;
 	readonly #table: RouteTable;
 	readonly #leave = new LeaveHooks();
 	readonly #pipeline: Pipeline;
@@ -97,6 +97,18 @@ export class Router {
 	 */
 	beforeLeave(hook: BeforeLeaveHook, options?: BeforeLeaveOptions): () => void {
 		return this.#leave.add(hook, options);
+	}
+
+	/** Path prefix the app is mounted under. Setting it re-resolves the current URL when the router is running. */
+	get base(): string {
+		return this.#base.prefix;
+	}
+
+	set base(value: string) {
+		const next = new BasePath(value);
+		if (next.prefix === this.#base.prefix) return;
+		this.#base = next;
+		this.#invalidate();
 	}
 
 	/** App-relative path for a full pathname, or null when outside `base`. */

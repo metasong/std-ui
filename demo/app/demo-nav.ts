@@ -2,8 +2,10 @@ import { css, t, tag, UIElement } from '@std-ui/core';
 import { PAGES, pageOf } from './pages.js';
 import { routerOf } from './router-of.js';
 
+const BASE = import.meta.env.BASE_URL.replace(/\/$/, '');
 
 /** Sticky top bar: the demo pages, then the current page's section anchors. */
+
 @tag('demo-nav')
 export class DemoNav extends UIElement {
 	static override shadowRootOptions = { mode: 'open' } as const;
@@ -33,7 +35,7 @@ export class DemoNav extends UIElement {
 		const current = pageOf(pathname);
 		return t`
 			<nav aria-label="Demos and sections">
-				${PAGES.map((p) => t`<a href="${p.path}" aria-current="${p === current ? 'page' : null}">${p.label}</a>`)}
+				${PAGES.map((p) => t`<a href="${BASE + p.path}" aria-current="${p === current ? 'page' : null}">${p.label}</a>`)}
 				${current && current.sections.length
 					? t`<span class="sep"></span><span class="label">On this page</span>
 						${current.sections.map(([id, label]) => t`<a href="#${id}" aria-current="${hash === '#' + id ? 'location' : null}">${label}</a>`)}`

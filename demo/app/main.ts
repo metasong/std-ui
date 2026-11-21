@@ -35,7 +35,7 @@ export class DemoApp extends UIElement {
 
 	protected override template() {
 		return t`
-			<std-router announce="off" view-transition>
+			<std-router announce="off" view-transition base="${import.meta.env.BASE_URL.replace(/\/$/, '')}">
 				<demo-heading></demo-heading>
 				<demo-nav></demo-nav>
 				<main class="demo-main">

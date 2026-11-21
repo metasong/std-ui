@@ -46,6 +46,19 @@ describe('@routeParam / @searchParam', () => {
 	});
 });
 
+describe('<std-router> base', () => {
+	it('applies a base set after connect (as a template binding does)', async () => {
+		const el = document.createElement('std-router') as StdRouter;
+		el.navigation = createMemoryNavigation('/app/users/7');
+		el.innerHTML = `<std-route path="/users/:id" element="rt-user-page"></std-route><std-outlet></std-outlet>`;
+		document.body.appendChild(el);
+		el.base.set('/app'); // after connect, before the deferred start
+		await tick();
+		expect(el.router.base).toBe('/app');
+		expect((el.querySelector('std-outlet > rt-user-page') as UserPage | null)?.params).toEqual({ id: '7' });
+	});
+});
+
 describe('<std-router> markup', () => {
 	it('renders the matched route element with params', async () => {
 		const el = mount(

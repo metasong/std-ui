@@ -1,4 +1,4 @@
-import { attribute, signal, tag, UIElement } from '@std-ui/core';
+import { attribute, signal, state, tag, UIElement } from '@std-ui/core';
 import { Router, createRouter } from '../router/router.js';
 import type { AnnounceFn } from '../router/announcer.js';
 import type { NavigationLike } from '../navigation/types.js';
@@ -8,7 +8,7 @@ import type { RouteDef } from '../types.js';
 @tag('std-router')
 export class StdRouter extends UIElement {
 	/** Attribute `base`: URL prefix the app is served under. Read once, when the router is built. */
-	@attribute() base = '';
+	@attribute() base = state('');
 	/** Boolean attribute `view-transition`: commit navigations inside a View Transition. Read once, when the router is built. */
 	@attribute() viewTransition = false;
 	/** Config-table routes; set before the element connects. */
@@ -21,6 +21,7 @@ export class StdRouter extends UIElement {
 	announceFn?: AnnounceFn;
 	readonly #current = signal<Router | undefined>(undefined); // the only writer is the `router` accessors
 	#started = false;
+	#defaultRouter?: Router; // the router built from attributes; `base` changes are forwarded to it only
 
 	/**
 	 * The router; a default one is built from `routes`/`navigation`/attributes on first read.
@@ -31,11 +32,12 @@ export class StdRouter extends UIElement {
 		if (!router) {
 			router = createRouter({
 				routes: this.routes,
-				base: this.base,
+				base: this.base.peek(),
 				navigation: this.navigation,
 				announce: this.announceFn ?? this.announce !== 'off',
 				viewTransition: this.viewTransition,
 			});
+			this.#defaultRouter = router;
 			this.#current.set(router);
 		}
 		return router;
@@ -51,6 +53,11 @@ export class StdRouter extends UIElement {
 	}
 
 	protected override connect(): void {
+		// A template binding sets `base` after connect, so forward later values to the router instead of reading once.
+		this.effect(() => {
+			const base = this.base();
+			if (this.#defaultRouter) this.#defaultRouter.base = base;
+		});
 		void this.router; // exist before descendants connect, so <std-route>s can register synchronously
 		// Deferred so descendant <std-route>s (connected after this element, in the same pass) register first.
 		queueMicrotask(() => {

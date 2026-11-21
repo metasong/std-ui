@@ -6,6 +6,11 @@ export class BasePath {
 		this.#base = base.replace(/\/+$/, '');
 	}
 
+	/** The normalised prefix (no trailing slash); empty when unmounted. */
+	get prefix(): string {
+		return this.#base;
+	}
+
 	/** App-relative path for a full pathname, or null when outside `base`. */
 	toApp(pathname: string): string | null {
 		if (!this.#base) return pathname;
