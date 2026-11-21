@@ -26,7 +26,7 @@ export class DemoSizeMapTreemap extends UIElement {
 
 	protected override template() {
 		return t`
-			<h2 id="treemap">ESM size map (gzip)</h2>
+			<h2>ESM size map (gzip)</h2>
 			<p class="desc">
 				Nested blocks mirror <code>dist/esm</code> folders down to each <code>.js</code> file. Parent boxes
 				contain children; area is gzip bytes (level 9), like a bundle analyzer treemap.

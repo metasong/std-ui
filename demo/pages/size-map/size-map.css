@@ -5,6 +5,12 @@ demo-size-map-summary {
 	margin-bottom: 2rem;
 }
 
+/* In-page anchors (nav "On this page"): leave room for the sticky nav. */
+#bundles,
+#treemap {
+	scroll-margin-top: 4rem;
+}
+
 demo-size-map-summary h2 {
 	margin: 0 0 0.5rem;
 	font-size: 1.25rem;

@@ -4,7 +4,7 @@ export class DemoSizeMapPage extends UIElement {
 	protected override template() {
 		return t`
 			<demo-size-map-summary></demo-size-map-summary>
-			<demo-size-map-treemap></demo-size-map-treemap>
+			<demo-size-map-treemap id="treemap"></demo-size-map-treemap>
 		`;
 	}
 }
