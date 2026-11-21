@@ -6,6 +6,9 @@ import './demo-heading.js';
 import './demo-nav.js';
 import './demo-not-found.js';
 import { PAGES } from './pages.js';
+import { initTheme } from './theme.js';
+
+initTheme();
 
 @tag('demo-app')
 export class DemoApp extends UIElement {
@@ -42,7 +45,7 @@ export class DemoApp extends UIElement {
 					<std-outlet></std-outlet>
 				</main>
 
-				<std-route path="/" redirect="/tour"></std-route>
+				<std-route path="/" element="demo-home-page" title="std-ui"></std-route>
 				<std-route path="/tour" element="demo-feature-page" title="tour - std-ui"></std-route>
 				<std-route path="/bind" element="demo-bind-page" title="bind - std-ui"></std-route>
 				<std-route path="/virtualize" element="demo-virtualize-page" title="virtualize - std-ui"></std-route>
@@ -56,3 +59,5 @@ export class DemoApp extends UIElement {
 		`;
 	}
 }
+
+

@@ -14,6 +14,11 @@ export interface Page {
 
 export const PAGES: readonly Page[] = [
 	{
+		path: '/', label: 'home', element: 'demo-home-page', load: () => import('../pages/home/index.js'),
+		heading: 'std-ui', lead: 'Signals. Tagged templates. Custom Elements. Less framework, more web.',
+		sections: [['purpose', 'Overview'], ['goals', 'Why std-ui'], ['key-feature', 'A taste']],
+	},
+	{
 		path: '/tour', label: 'tour', element: 'demo-feature-page', load: () => import('../pages/tour/index.js'),
 		heading: 'std-ui', lead: 'Minimal UI on web standards - a tour of every feature, each in its own custom element.',
 		sections: [
@@ -59,4 +64,7 @@ export const PAGES: readonly Page[] = [
 	},
 ];
 
-export const pageOf = (pathname: string): Page | undefined => PAGES.find((p) => pathname === p.path || pathname.startsWith(p.path + '/'));
+export const pageOf = (pathname: string): Page | undefined => PAGES.find((p) => pathname === p.path || (p.path !== '/' && pathname.startsWith(p.path + '/')));
+
+
+

@@ -46,3 +46,42 @@
 	--std-shape-corner-small: 8px;
 	--std-shape-corner-full: 9999px;
 }
+
+/* Dark scheme: toggled by `data-theme="dark"` on <html> (see app/theme.ts). */
+:root[data-theme='dark'] {
+	color-scheme: dark;
+
+	--std-sys-color-primary: #d0bcff;
+	--std-sys-color-on-primary: #381e72;
+	--std-sys-color-primary-container: #4f378b;
+	--std-sys-color-on-primary-container: #eaddff;
+
+	--std-sys-color-secondary: #ccc2dc;
+	--std-sys-color-on-secondary: #332d41;
+	--std-sys-color-secondary-container: #4a4458;
+	--std-sys-color-on-secondary-container: #e8def8;
+
+	--std-sys-color-tertiary: #efb8c8;
+	--std-sys-color-tertiary-container: #633b48;
+	--std-sys-color-on-tertiary-container: #ffd8e4;
+
+	--std-sys-color-error: #f2b8b5;
+	--std-sys-color-on-error: #601410;
+	--std-sys-color-error-container: #8c1d18;
+	--std-sys-color-on-error-container: #f9dedc;
+
+	--std-sys-color-surface: #141218;
+	--std-sys-color-on-surface: #e6e0e9;
+	--std-sys-color-on-surface-variant: #cac4d0;
+	--std-sys-color-surface-container-lowest: #0f0d13;
+	--std-sys-color-surface-container-low: #1d1b20;
+	--std-sys-color-surface-container: #211f26;
+	--std-sys-color-surface-container-high: #2b2930;
+	--std-sys-color-surface-container-highest: #36343b;
+
+	--std-sys-color-outline: #938f99;
+	--std-sys-color-outline-variant: #49454f;
+
+	--std-sys-color-inverse-surface: #e6e0e9;
+	--std-sys-color-inverse-on-surface: #322f35;
+}
