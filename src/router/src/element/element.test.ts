@@ -1,6 +1,7 @@
 import { afterEach, describe, expect, it } from 'vitest';
 import { createMemoryNavigation } from '../dev/index.js';
 import './index.js';
+import { routeParam, searchParam } from './param-decorators.js';
 import type { StdRouter } from './std-router.js';
 import { tag, UIElement } from '@std-ui/core';
 
@@ -25,6 +26,24 @@ function mount(html: string, url: string): StdRouter {
 
 afterEach(() => {
 	document.body.innerHTML = '';
+});
+
+describe('@routeParam / @searchParam', () => {
+	it('are readable inside connect()', async () => {
+		let seen: { id: string | undefined; tab: string | undefined } | undefined;
+		@tag('rt-param-page')
+		class ParamPage extends UIElement {
+			@routeParam('id') readonly userId?: string;
+			@searchParam('tab') readonly tab?: string;
+			protected override connect(): void {
+				seen = { id: this.userId, tab: this.tab };
+			}
+		}
+		void ParamPage;
+		mount(`<std-route path="/users/:id" element="rt-param-page"></std-route><std-outlet></std-outlet>`, '/users/7?tab=a');
+		await tick();
+		expect(seen).toEqual({ id: '7', tab: 'a' });
+	});
 });
 
 describe('<std-router> markup', () => {

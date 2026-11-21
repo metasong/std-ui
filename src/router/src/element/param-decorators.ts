@@ -17,7 +17,8 @@ interface ParamFieldDef {
 const paramFields = createClassRegistry<ParamFieldDef>('routerParamFieldDefs');
 
 const paramHooks: UIElementHooks = {
-	connected(host) {
+	// `beforeConnect` (not `connected`) so the fields are readable inside `connect()` too.
+	beforeConnect(host) {
 		const defs = paramFields.get(host.constructor);
 		if (defs.length === 0) return;
 		const current = findSignalBackedRouter(host);
