@@ -152,8 +152,8 @@ Matching lives in `match/`, the Navigation API type view in `navigation/`, the `
 ```
 
 - `<std-router>`: owns the `Router` (lazy `router` getter). Properties `routes` and `navigation` must be set before connecting. Starts in a microtask so child `<std-route>`s register first.
-- `<std-route>`: inert (`hidden`). Builds its `RouteDef` lazily (`def`) so a child can reach its parent's def before the parent connects. Attributes are read once. Behaviour via properties: `guard`, `load`. Attributes: `path`, `index`, `element`, `src`, `redirect`, `error-element`, `title`, `meta-*`, child `<template>`. Registers on connect, unregisters on disconnect; the router re-resolves in a microtask.
-- `<std-outlet>`: depth = number of ancestor outlets. Renders `matches()[depth]`, reusing the element while the route and tag are unchanged and updating its `params`, `data`, `error`, `route` properties.
+- `<std-route>`: inert (`hidden`). Builds its `RouteDef` lazily (`def`) so a child can reach its parent's def before the parent connects. Attributes are read once. Behaviour via properties: `guard`, `load`. Attributes: `path`, `index`, `element`, `src`, `redirect`, `error-element`, `keep-alive`, `title`, `meta-*`, child `<template>`. Registers on connect, unregisters on disconnect; the router re-resolves in a microtask.
+- `<std-outlet>`: depth = number of ancestor outlets. Renders `matches()[depth]`, reusing the element while the route and tag are unchanged. For `keepAlive` routes it also caches the detached element per outlet and re-attaches it when the route matches again (`disconnect()`/`connect()` run on leave/return; the instance and its state survive). It updates its `params`, `data`, `error`, `route` properties.
 - `@routeParam(name?)` / `@searchParam(name?)` (`element/param-decorators.ts`): field decorators that register into class metadata. On connect, a hook finds the ancestor `<std-router>` and defines a read-only getter over `router.params()` / `router.location().search`, so reads are reactive. They throw without an ancestor router.
 - Define order matters: `<std-router>` before the others (see `element/index.ts`; listed in `sideEffects`).
 

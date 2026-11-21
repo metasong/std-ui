@@ -30,6 +30,12 @@ user.load = async ({ params, signal }) => fetchUser(params.id, signal); // -> ou
 
 Outlets set `params`, `data`, `error` and `route` on the element they render. Use `error-element` on a route for its failure page.
 
+Add `keep-alive` (or `keepAlive: true` in a config route) to keep a route's element instance when you navigate away, e.g. a list page with filter state. The element is detached (`disconnect()` runs) and re-attached on return with fresh `params`/`data`; `connect()` runs again, so guard one-time setup. The cache is per outlet and unbounded; `error-element` and `<template>` routes are not kept.
+
+```html
+<std-route path="/" element="app-home" keep-alive></std-route>
+```
+
 ## Config / code
 
 ```ts

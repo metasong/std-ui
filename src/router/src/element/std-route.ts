@@ -24,6 +24,7 @@ export class StdRoute extends UIElement {
 			element: attr('element'),
 			redirect: attr('redirect'),
 			errorElement: attr('error-element'),
+			keepAlive: this.hasAttribute('keep-alive'),
 			title: attr('title'),
 			meta,
 			template: this.querySelector(':scope > template') ?? undefined,

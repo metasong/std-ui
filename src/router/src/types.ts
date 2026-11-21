@@ -55,6 +55,12 @@ export interface RouteDef {
 	redirect?: string;
 	/** Tag rendered instead of `element` when navigation fails. */
 	errorElement?: string;
+	/**
+	 * Keep the rendered `element` instance when navigating away (detached from the DOM, so `disconnect()` runs) and
+	 * re-attach it, with refreshed `params`/`data`, when the route matches again in the same outlet. Not applied to
+	 * `errorElement` or `template` routes.
+	 */
+	keepAlive?: boolean;
 	title?: string;
 	meta?: Record<string, unknown>;
 	children?: RouteDef[];

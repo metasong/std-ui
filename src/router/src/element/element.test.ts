@@ -46,6 +46,29 @@ describe('@routeParam / @searchParam', () => {
 	});
 });
 
+describe('keep-alive', () => {
+	it('reuses the element of a keep-alive route, and recreates others', async () => {
+		const el = mount(
+			`<std-route path="/" element="rt-host" keep-alive></std-route>
+			 <std-route path="/u/:id" element="rt-user-page"></std-route>
+			 <std-outlet></std-outlet>`,
+			'/',
+		);
+		await tick();
+		const home = el.querySelector('rt-host')!;
+		await el.router.navigate('/u/1');
+		await tick();
+		expect(el.querySelector('rt-host')).toBeNull();
+		const user1 = el.querySelector('rt-user-page');
+		await el.router.navigate('/');
+		await tick();
+		expect(el.querySelector('rt-host')).toBe(home);
+		await el.router.navigate('/u/1');
+		await tick();
+		expect(el.querySelector('rt-user-page')).not.toBe(user1);
+	});
+});
+
 describe('<std-router> base', () => {
 	it('applies a base set after connect (as a template binding does)', async () => {
 		const el = document.createElement('std-router') as StdRouter;

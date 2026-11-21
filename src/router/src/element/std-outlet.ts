@@ -48,9 +48,13 @@ export class StdOutlet extends UIElement {
 		this.#clear();
 	}
 
+	/** Elements of `keepAlive` routes that are currently not shown. */
+	#kept = new Map<RouteDef, Element>();
+
 	#clear(): void {
 		this.replaceChildren();
 		this.#shown = null;
+		this.#kept.clear();
 	}
 
 	#show(match: RouteMatch | undefined, error: unknown, data: unknown): void {
@@ -61,7 +65,11 @@ export class StdOutlet extends UIElement {
 		if (!key) return this.#clear();
 
 		if (this.#shown?.route !== route || this.#shown.key !== key) {
-			const el = tagName ? document.createElement(tagName) : null;
+			const prev = this.#shown;
+			if (prev?.el && prev.route.keepAlive && prev.key === prev.route.element) this.#kept.set(prev.route, prev.el);
+			const reused = route.keepAlive && tagName === route.element ? this.#kept.get(route) : undefined;
+			this.#kept.delete(route);
+			const el = reused ?? (tagName ? document.createElement(tagName) : null);
 			if (el) this.replaceChildren(el);
 			else this.replaceChildren((key as HTMLTemplateElement).content.cloneNode(true));
 			this.#shown = { route, key, el };
