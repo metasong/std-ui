@@ -1,0 +1,1 @@
+var e=Symbol(`contextKey`);function t(t){return{[e]:!0,description:t}}export{t};
