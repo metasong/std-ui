@@ -12,12 +12,12 @@ export class DemoTreemapMap extends UIElement {
 		:host { display: block; }
 		.map {
 			position: relative; width: 100%; container-type: inline-size; overflow: hidden;
-			border-radius: var(--md-shape-corner-medium, 12px);
-			border: 1px solid var(--md-sys-color-outline-variant, #cac4d0);
-			background: var(--md-sys-color-surface-container-low, #f7f2fa);
-			font-family: var(--md-ref-typeface-plain, Roboto, sans-serif);
+			border-radius: var(--std-shape-corner-medium, 12px);
+			border: 1px solid var(--std-sys-color-outline-variant, #cac4d0);
+			background: var(--std-sys-color-surface-container-low, #f7f2fa);
+			font-family: var(--std-ref-typeface-plain, Roboto, sans-serif);
 		}
-		.map:focus-visible { outline: 2px solid var(--md-sys-color-primary, #6750a4); outline-offset: 2px; }
+		.map:focus-visible { outline: 2px solid var(--std-sys-color-primary, #6750a4); outline-offset: 2px; }
 		.block {
 			position: absolute; box-sizing: border-box; overflow: hidden; cursor: pointer;
 			border: 1px solid rgb(255 255 255 / 0.75);
@@ -40,17 +40,17 @@ export class DemoTreemapMap extends UIElement {
 		.leaf-label {
 			position: absolute; inset: 0; padding: 0.35em 0.5em; overflow: hidden; line-height: 1.15;
 			color: #fff; text-shadow: 0 1px 2px rgb(0 0 0 / 0.35); pointer-events: none;
-			font-family: var(--md-ref-typeface-mono, 'Roboto Mono', monospace);
+			font-family: var(--std-ref-typeface-mono, 'Roboto Mono', monospace);
 		}
 		.leaf-label b { display: block; font-weight: 600; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 		.leaf-label span { display: block; opacity: 0.85; font-size: 0.8em; }
 		.legend { display: flex; flex-wrap: wrap; gap: 0.35rem 1rem; margin: 0.6rem 0 0; padding: 0; list-style: none; font-size: 0.8125rem; }
-		.legend li { display: inline-flex; align-items: center; gap: 0.4rem; color: var(--md-sys-color-on-surface-variant, #49454f); }
+		.legend li { display: inline-flex; align-items: center; gap: 0.4rem; color: var(--std-sys-color-on-surface-variant, #49454f); }
 		.legend i { width: 0.8rem; height: 0.8rem; border-radius: 3px; }
 		.detail {
 			margin-top: 0.5rem; min-height: 2.6rem; padding: 0.5rem 0.85rem; box-sizing: border-box;
-			border-radius: var(--md-shape-corner-medium, 12px); background: var(--md-sys-color-surface-container, #f3edf7);
-			font-size: 0.8125rem; line-height: 1.4; color: var(--md-sys-color-on-surface, #1d1b20);
+			border-radius: var(--std-shape-corner-medium, 12px); background: var(--std-sys-color-surface-container, #f3edf7);
+			font-size: 0.8125rem; line-height: 1.4; color: var(--std-sys-color-on-surface, #1d1b20);
 		}
 		.detail code { font-family: 'Roboto Mono', ui-monospace, monospace; font-size: 0.95em; }
 	`;

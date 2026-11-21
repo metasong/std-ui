@@ -14,8 +14,8 @@ export class DemoShadowCard extends UIElement {
 		return t`
 			<style>
 				:host { display: block; margin-block: 1rem; }
-				article { border: 2px solid var(--md-sys-color-tertiary, #7d5260); border-radius: 12px; padding: 1rem; }
-				::slotted([slot='title']) { color: var(--md-sys-color-tertiary, #7d5260); margin: 0 0 0.5rem; }
+				article { border: 2px solid var(--std-sys-color-tertiary, #7d5260); border-radius: 12px; padding: 1rem; }
+				::slotted([slot='title']) { color: var(--std-sys-color-tertiary, #7d5260); margin: 0 0 0.5rem; }
 				button { font: inherit; }
 			</style>
 			<article>

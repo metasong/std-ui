@@ -4,9 +4,9 @@ import { css } from '@std-ui/core';
 export const virtualizeListStyles = css`
 	.demo-v-scroller {
 		overflow: auto;
-		border: 1px solid var(--md-sys-color-outline-variant);
-		border-radius: var(--md-shape-corner-small);
-		background: var(--md-sys-color-surface);
+		border: 1px solid var(--std-sys-color-outline-variant);
+		border-radius: var(--std-shape-corner-small);
+		background: var(--std-sys-color-surface);
 	}
 
 	.demo-v-scroller-y {
@@ -18,12 +18,12 @@ export const virtualizeListStyles = css`
 		align-items: center;
 		gap: 0.75rem;
 		padding: 0 12px;
-		border-bottom: 1px solid var(--md-sys-color-outline-variant);
+		border-bottom: 1px solid var(--std-sys-color-outline-variant);
 		font-size: 0.875rem;
 		font-variant-numeric: tabular-nums;
 	}
 
 	.demo-v-row-even {
-		background: var(--md-sys-color-surface-container-low);
+		background: var(--std-sys-color-surface-container-low);
 	}
 `;

@@ -7,8 +7,8 @@ import { routerOf } from './router-of.js';
 export class DemoHeading extends UIElement {
 	static override styles = css`
 		.demo-app-bar {
-			background: var(--md-sys-color-surface-container);
-			box-shadow: var(--md-elevation-1);
+			background: var(--std-sys-color-surface-container);
+			box-shadow: var(--std-elevation-1);
 			padding: 1.25rem 1.5rem 1rem;
 		}
 
@@ -17,14 +17,14 @@ export class DemoHeading extends UIElement {
 			font-size: 1.75rem;
 			font-weight: 400;
 			letter-spacing: 0;
-			color: var(--md-sys-color-on-surface);
+			color: var(--std-sys-color-on-surface);
 		}
 
 		.demo-app-bar .lead {
 			margin: 0;
 			max-width: 52rem;
 			font-size: 0.95rem;
-			color: var(--md-sys-color-on-surface-variant);
+			color: var(--std-sys-color-on-surface-variant);
 		}
 	`;
 

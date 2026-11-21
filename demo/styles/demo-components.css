@@ -1,4 +1,4 @@
-/* Global demo base + shared Material-styled controls for light-DOM `demo-*` sections.
+/* Global demo base + shared Std-styled controls for light-DOM `demo-*` sections.
    Component-specific rules live in each component's `static styles`. */
 
 * {
@@ -14,9 +14,9 @@ html,
 body {
 	margin: 0;
 	min-height: 100%;
-	background: var(--md-sys-color-surface);
-	color: var(--md-sys-color-on-surface);
-	font-family: var(--md-ref-typeface-plain);
+	background: var(--std-sys-color-surface);
+	color: var(--std-sys-color-on-surface);
+	font-family: var(--std-ref-typeface-plain);
 	font-size: 16px;
 	line-height: 1.5;
 	-webkit-font-smoothing: antialiased;
@@ -31,21 +31,21 @@ code-preview > * > h2 {
 	font-size: 1.25rem;
 	font-weight: 500;
 	letter-spacing: 0.01em;
-	color: var(--md-sys-color-on-surface);
+	color: var(--std-sys-color-on-surface);
 }
 
 code-preview > * > p.desc {
 	margin: 0 0 1rem;
 	font-size: 0.875rem;
 	line-height: 1.45;
-	color: var(--md-sys-color-on-surface-variant);
+	color: var(--std-sys-color-on-surface-variant);
 }
 
 code-preview > * code {
 	font-family: 'Roboto Mono', ui-monospace, monospace;
 	font-size: 0.85em;
-	background: var(--md-sys-color-surface-container-high);
-	color: var(--md-sys-color-on-surface);
+	background: var(--std-sys-color-surface-container-high);
+	color: var(--std-sys-color-on-surface);
 	padding: 0.1rem 0.35rem;
 	border-radius: 4px;
 }
@@ -67,16 +67,16 @@ button,
 	letter-spacing: 0.02em;
 	padding: 0.625rem 1.5rem;
 	border: none;
-	border-radius: var(--md-shape-corner-full);
-	background: var(--md-sys-color-primary);
-	color: var(--md-sys-color-on-primary);
+	border-radius: var(--std-shape-corner-full);
+	background: var(--std-sys-color-primary);
+	color: var(--std-sys-color-on-primary);
 	cursor: pointer;
 	transition: background 150ms ease, box-shadow 150ms ease;
 }
 
 button:hover:not(:disabled),
 .demo-filled-button:hover:not(:disabled) {
-	box-shadow: var(--md-elevation-1);
+	box-shadow: var(--std-elevation-1);
 	filter: brightness(1.05);
 }
 
@@ -90,45 +90,45 @@ button:disabled,
 /* Tonal / secondary actions: add class on secondary buttons in templates. */
 button.tonal,
 .demo-tonal-button {
-	background: var(--md-sys-color-secondary-container);
-	color: var(--md-sys-color-on-secondary-container);
+	background: var(--std-sys-color-secondary-container);
+	color: var(--std-sys-color-on-secondary-container);
 }
 
 button.text,
 .demo-text-button {
 	background: transparent;
-	color: var(--md-sys-color-primary);
+	color: var(--std-sys-color-primary);
 	padding: 0.625rem 0.75rem;
 }
 
 button.text:hover:not(:disabled),
 .demo-text-button:hover:not(:disabled) {
-	background: color-mix(in srgb, var(--md-sys-color-primary) 8%, transparent);
+	background: color-mix(in srgb, var(--std-sys-color-primary) 8%, transparent);
 	box-shadow: none;
 	filter: none;
 }
 
 button.filled,
 .demo-filled-button.primary {
-	background: var(--md-sys-color-primary);
-	color: var(--md-sys-color-on-primary);
+	background: var(--std-sys-color-primary);
+	color: var(--std-sys-color-on-primary);
 }
 
 .demo-outlined-field {
 	font: inherit;
 	font-size: 1rem;
 	padding: 0.75rem 1rem;
-	border: 1px solid var(--md-sys-color-outline);
+	border: 1px solid var(--std-sys-color-outline);
 	border-radius: 4px;
-	background: var(--md-sys-color-surface-container-lowest);
-	color: var(--md-sys-color-on-surface);
+	background: var(--std-sys-color-surface-container-lowest);
+	color: var(--std-sys-color-on-surface);
 	min-width: 0;
 }
 
 .demo-outlined-field:focus {
-	outline: 2px solid var(--md-sys-color-primary);
+	outline: 2px solid var(--std-sys-color-primary);
 	outline-offset: 1px;
-	border-color: var(--md-sys-color-primary);
+	border-color: var(--std-sys-color-primary);
 }
 
 .demo-badge {
@@ -137,20 +137,20 @@ button.filled,
 	padding: 0.2rem 0.65rem;
 	font-size: 0.75rem;
 	font-weight: 500;
-	border-radius: var(--md-shape-corner-full);
-	background: var(--md-sys-color-tertiary-container);
-	color: var(--md-sys-color-on-tertiary-container);
+	border-radius: var(--std-shape-corner-full);
+	background: var(--std-sys-color-tertiary-container);
+	color: var(--std-sys-color-on-tertiary-container);
 }
 
 .demo-box {
-	border: 1px solid var(--md-sys-color-outline-variant);
-	border-radius: var(--md-shape-corner-small);
+	border: 1px solid var(--std-sys-color-outline-variant);
+	border-radius: var(--std-shape-corner-small);
 }
 
 .demo-box.active {
-	border: 2px solid var(--md-sys-color-primary);
-	background: var(--md-sys-color-primary-container);
-	color: var(--md-sys-color-on-primary-container);
+	border: 2px solid var(--std-sys-color-primary);
+	background: var(--std-sys-color-primary-container);
+	color: var(--std-sys-color-on-primary-container);
 }
 
 /* bind validation demo: show errors only after the control was touched */

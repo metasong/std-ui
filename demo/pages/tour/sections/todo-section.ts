@@ -21,7 +21,7 @@ export class DemoTodoSection extends UIElement {
 			align-items: center;
 			gap: 0.75rem;
 			padding: 0.5rem 0;
-			border-bottom: 1px solid var(--md-sys-color-outline-variant);
+			border-bottom: 1px solid var(--std-sys-color-outline-variant);
 		}
 
 		.demo-todo-item:last-child {
@@ -30,7 +30,7 @@ export class DemoTodoSection extends UIElement {
 
 		.demo-todo-item span.done {
 			text-decoration: line-through;
-			color: var(--md-sys-color-on-surface-variant);
+			color: var(--std-sys-color-on-surface-variant);
 		}
 
 		.demo-todo-item button.tonal {

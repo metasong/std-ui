@@ -13,21 +13,21 @@ export class DemoNav extends UIElement {
 	static override styles = css`
 		:host {
 			position: sticky; top: 0; z-index: 10; display: block;
-			background: var(--md-sys-color-surface-container, #f3edf7);
-			border-bottom: 1px solid var(--md-sys-color-outline-variant, #cac4d0);
+			background: var(--std-sys-color-surface-container, #f3edf7);
+			border-bottom: 1px solid var(--std-sys-color-outline-variant, #cac4d0);
 		}
 		nav { display: flex; align-items: center; gap: 0.25rem; padding: 0.5rem 1.5rem; overflow-x: auto; white-space: nowrap; scrollbar-width: none; }
 		a {
 			flex: none; padding: 0.35rem 0.75rem; border-radius: 999px; font: 500 0.875rem/1.2 Roboto, sans-serif;
-			color: var(--md-sys-color-on-surface-variant, #49454f); text-decoration: none;
+			color: var(--std-sys-color-on-surface-variant, #49454f); text-decoration: none;
 		}
 		a:hover {
-			background: color-mix(in srgb, var(--md-sys-color-primary, #6750a4) 10%, transparent);
-			color: var(--md-sys-color-primary, #6750a4);
+			background: color-mix(in srgb, var(--std-sys-color-primary, #6750a4) 10%, transparent);
+			color: var(--std-sys-color-primary, #6750a4);
 		}
-		a[aria-current] { background: var(--md-sys-color-secondary-container, #e8def8); color: var(--md-sys-color-on-secondary-container, #1d192b); }
-		.sep { flex: none; width: 1px; height: 1.25rem; margin: 0 0.5rem; background: var(--md-sys-color-outline-variant, #cac4d0); }
-		.label { flex: none; padding: 0 0.5rem; font: 400 0.75rem/1 Roboto, sans-serif; letter-spacing: 0.04em; text-transform: uppercase; color: var(--md-sys-color-outline, #79747e); }
+		a[aria-current] { background: var(--std-sys-color-secondary-container, #e8def8); color: var(--std-sys-color-on-secondary-container, #1d192b); }
+		.sep { flex: none; width: 1px; height: 1.25rem; margin: 0 0.5rem; background: var(--std-sys-color-outline-variant, #cac4d0); }
+		.label { flex: none; padding: 0 0.5rem; font: 400 0.75rem/1 Roboto, sans-serif; letter-spacing: 0.04em; text-transform: uppercase; color: var(--std-sys-color-outline, #79747e); }
 	`;
 
 	protected override template() {

@@ -20,14 +20,14 @@ export class DemoShadowChip extends UIElement {
 					padding: 0.625rem 1.5rem;
 					border-radius: 9999px;
 					border: none;
-					background: var(--md-sys-color-primary, #6750a4);
-					color: var(--md-sys-color-on-primary, #fff);
+					background: var(--std-sys-color-primary, #6750a4);
+					color: var(--std-sys-color-on-primary, #fff);
 					cursor: pointer;
 					box-shadow: 0 1px 2px rgb(0 0 0 / 0.3), 0 1px 3px 1px rgb(0 0 0 / 0.15);
 				}
 				button[data-off] {
-					background: var(--md-sys-color-surface-container-highest, #e6e0e9);
-					color: var(--md-sys-color-on-surface-variant, #49454f);
+					background: var(--std-sys-color-surface-container-highest, #e6e0e9);
+					color: var(--std-sys-color-on-surface-variant, #49454f);
 					box-shadow: none;
 				}
 			</style>
@@ -66,7 +66,7 @@ export class DemoShadowSection extends UIElement {
 				<code>renderRoot</code>, not the light DOM host.
 			</p>
 			<p>
-				The chip uses shadow-only Material-styled rules. Global <code>button</code> styles from
+				The chip uses shadow-only Std-styled rules. Global <code>button</code> styles from
 				<code>demo-components.css</code> do not reach it — compare with the page button beside it.
 			</p>
 			<p>

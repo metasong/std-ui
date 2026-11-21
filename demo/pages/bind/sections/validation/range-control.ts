@@ -44,11 +44,11 @@ export class DemoBindRange extends FormGroup {
 		return t`
 			<input data-field="start" placeholder="start" .value=${this.#start}
 				@input=${(e: Event) => this.#edit('start', e)} @invalid=${() => this.#showMessage('start')} />
-			<small data-message="start" style="color: var(--md-sys-color-error, #b3261e)"></small>
+			<small data-message="start" style="color: var(--std-sys-color-error, #b3261e)"></small>
 			–
 			<input data-field="end" placeholder="end" .value=${this.#end}
 				@input=${(e: Event) => this.#edit('end', e)} @invalid=${() => this.#showMessage('end')} />
-			<small data-message="end" style="color: var(--md-sys-color-error, #b3261e)"></small>
+			<small data-message="end" style="color: var(--std-sys-color-error, #b3261e)"></small>
 		`;
 	}
 }

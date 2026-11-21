@@ -56,7 +56,7 @@ export class DemoBindFormUiSection extends UIElement {
 
 		.demo-bind-flags-table :is(th, td) {
 			padding: 0.4rem 0.65rem;
-			border-bottom: 1px solid var(--md-sys-color-outline-variant);
+			border-bottom: 1px solid var(--std-sys-color-outline-variant);
 			text-align: center;
 			vertical-align: middle;
 		}
@@ -64,15 +64,15 @@ export class DemoBindFormUiSection extends UIElement {
 		.demo-bind-flags-table thead th {
 			font-weight: 500;
 			font-size: 0.8125rem;
-			color: var(--md-sys-color-on-surface-variant);
+			color: var(--std-sys-color-on-surface-variant);
 			border-bottom-width: 2px;
 		}
 
 		.demo-bind-flags-table tbody th[scope='row'] {
 			text-align: left;
 			font-weight: 500;
-			color: var(--md-sys-color-on-surface);
-			background: var(--md-sys-color-surface-container-lowest);
+			color: var(--std-sys-color-on-surface);
+			background: var(--std-sys-color-surface-container-lowest);
 		}
 
 		.demo-bind-flags-table tr.depth-0 th[scope='row'] {
@@ -81,14 +81,14 @@ export class DemoBindFormUiSection extends UIElement {
 
 		.demo-bind-flags-table tr.depth-1 th[scope='row'] {
 			padding-left: 1.35rem;
-			border-top: 1px solid var(--md-sys-color-outline-variant);
+			border-top: 1px solid var(--std-sys-color-outline-variant);
 		}
 
 		.demo-bind-flags-table tr.depth-2 th[scope='row'] {
 			padding-left: 2.5rem;
 			font-weight: 400;
 			font-size: 0.8125rem;
-			color: var(--md-sys-color-on-surface-variant);
+			color: var(--std-sys-color-on-surface-variant);
 		}
 
 		/* Interleaved column bands: own flags · effective · touched */
@@ -96,12 +96,12 @@ export class DemoBindFormUiSection extends UIElement {
 		.demo-bind-flags-table :is(th, td):nth-child(3),
 		.demo-bind-flags-table :is(th, td):nth-child(6),
 		.demo-bind-flags-table :is(th, td):nth-child(7) {
-			background: color-mix(in srgb, var(--md-sys-color-secondary-container) 42%, transparent);
+			background: color-mix(in srgb, var(--std-sys-color-secondary-container) 42%, transparent);
 		}
 
 		.demo-bind-flags-table :is(th, td):nth-child(4),
 		.demo-bind-flags-table :is(th, td):nth-child(5) {
-			background: color-mix(in srgb, var(--md-sys-color-tertiary-container) 38%, transparent);
+			background: color-mix(in srgb, var(--std-sys-color-tertiary-container) 38%, transparent);
 		}
 
 		.demo-bind-flags-table td input[type='checkbox'] {
@@ -111,8 +111,8 @@ export class DemoBindFormUiSection extends UIElement {
 
 		input:read-only,
 		textarea:read-only {
-			background-color: var(--md-sys-color-surface-container-high);
-			color: var(--md-sys-color-on-surface-variant);
+			background-color: var(--std-sys-color-surface-container-high);
+			color: var(--std-sys-color-on-surface-variant);
 		}
 
 		input:disabled,

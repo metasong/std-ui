@@ -58,13 +58,13 @@ export class DemoBindFormFlagsSection extends UIElement {
 
 		/* an async check is running */
 		input[data-pending] {
-			outline: 2px dashed var(--md-sys-color-primary);
+			outline: 2px dashed var(--std-sys-color-primary);
 			cursor: progress;
 		}
 
 		/* edited since the initial value */
 		input[data-dirty] {
-			border-left: 4px solid var(--md-sys-color-tertiary);
+			border-left: 4px solid var(--std-sys-color-tertiary);
 		}
 
 		.demo-flags-scroll {
@@ -79,7 +79,7 @@ export class DemoBindFormFlagsSection extends UIElement {
 
 		.demo-flags-table :is(th, td) {
 			padding: 0.35rem 0.65rem;
-			border-bottom: 1px solid var(--md-sys-color-outline-variant);
+			border-bottom: 1px solid var(--std-sys-color-outline-variant);
 			text-align: center;
 		}
 
@@ -90,7 +90,7 @@ export class DemoBindFormFlagsSection extends UIElement {
 
 		.demo-flags-table td.on code {
 			font-weight: 700;
-			color: var(--md-sys-color-primary);
+			color: var(--std-sys-color-primary);
 		}
 	`;
 

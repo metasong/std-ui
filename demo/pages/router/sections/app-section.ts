@@ -14,10 +14,10 @@ const flag = (key: string): boolean => localStorage.getItem(key) === '1';
 // and the route elements rendered into the outlet.
 const appStyles = css`
 	.rt-links { display: flex; flex-wrap: wrap; gap: 0.5rem; margin-block: 1rem; }
-	.rt-links a { padding: 0.35rem 0.75rem; border-radius: 999px; text-decoration: none; color: var(--md-sys-color-primary, #6750a4); border: 1px solid var(--md-sys-color-outline-variant, #cac4d0); }
-	.rt-links a[aria-current='page'] { background: var(--md-sys-color-secondary-container, #e8def8); }
-	.rt-panel { border: 1px solid var(--md-sys-color-outline-variant, #cac4d0); border-radius: 12px; padding: 1rem; margin-block: 1rem; }
-	.rt-status { font: 400 0.8rem/1.4 'Roboto Mono', monospace; color: var(--md-sys-color-on-surface-variant, #49454f); }
+	.rt-links a { padding: 0.35rem 0.75rem; border-radius: 999px; text-decoration: none; color: var(--std-sys-color-primary, #6750a4); border: 1px solid var(--std-sys-color-outline-variant, #cac4d0); }
+	.rt-links a[aria-current='page'] { background: var(--std-sys-color-secondary-container, #e8def8); }
+	.rt-panel { border: 1px solid var(--std-sys-color-outline-variant, #cac4d0); border-radius: 12px; padding: 1rem; margin-block: 1rem; }
+	.rt-status { font: 400 0.8rem/1.4 'Roboto Mono', monospace; color: var(--std-sys-color-on-surface-variant, #49454f); }
 `;
 
 // View-transition pseudo-elements hang off `:root`, outside any element scope, so they live on `document`.

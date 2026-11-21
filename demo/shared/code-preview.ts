@@ -16,35 +16,35 @@ export class CodePreview extends UIElement {
 	static override styles = css`
 		:host {
 			display: block; margin-block: 0 1.25rem; overflow: hidden; container-type: inline-size; scroll-margin-top: 4rem;
-			background: var(--md-sys-color-surface-container-lowest, #fff); box-shadow: var(--md-elevation-1);
-			border: 1px solid var(--md-sys-color-outline-variant, #cac4d0); border-radius: var(--md-shape-corner-medium, 12px);
+			background: var(--std-sys-color-surface-container-lowest, #fff); box-shadow: var(--std-elevation-1);
+			border: 1px solid var(--std-sys-color-outline-variant, #cac4d0); border-radius: var(--std-shape-corner-medium, 12px);
 		}
-		.bar { display: flex; align-items: center; border-bottom: 1px solid var(--md-sys-color-outline-variant, #cac4d0); }
+		.bar { display: flex; align-items: center; border-bottom: 1px solid var(--std-sys-color-outline-variant, #cac4d0); }
 		.tabs { display: flex; flex: 1; min-width: 0; gap: 2px; overflow-x: auto; }
 		.icon-btn {
 			position: relative; display: inline-flex; flex: none; align-items: center; justify-content: center; width: 2rem; height: 2rem;
 			margin-inline: 0.25rem; padding: 0; border: 0; border-radius: 50%; background: none; cursor: pointer;
-			color: var(--md-sys-color-on-surface-variant, #49454f);
+			color: var(--std-sys-color-on-surface-variant, #49454f);
 		}
-		.icon-btn:hover { background: var(--md-sys-color-surface-container, #f3edf7); }
+		.icon-btn:hover { background: var(--std-sys-color-surface-container, #f3edf7); }
 		.icon-btn input { position: absolute; opacity: 0; pointer-events: none; }
-		.icon-btn:has(input:checked) { color: var(--md-sys-color-primary, #6750a4); background: var(--md-sys-color-secondary-container, #e8def8); }
-		.icon-btn:has(input:focus-visible) { outline: 2px solid var(--md-sys-color-primary, #6750a4); outline-offset: 2px; }
+		.icon-btn:has(input:checked) { color: var(--std-sys-color-primary, #6750a4); background: var(--std-sys-color-secondary-container, #e8def8); }
+		.icon-btn:has(input:focus-visible) { outline: 2px solid var(--std-sys-color-primary, #6750a4); outline-offset: 2px; }
 		.icon-btn svg { width: 1.25rem; height: 1.25rem; fill: currentColor; }
 		pre.wrap { white-space: pre-wrap; overflow-wrap: anywhere; }
 		.tab {
-			font: 500 0.8125rem/1 var(--md-ref-typeface-plain, Roboto, sans-serif);
+			font: 500 0.8125rem/1 var(--std-ref-typeface-plain, Roboto, sans-serif);
 			position: relative; padding: 0.6rem 0.9rem; cursor: pointer; white-space: nowrap;
-			color: var(--md-sys-color-on-surface-variant, #49454f); border-bottom: 2px solid transparent;
+			color: var(--std-sys-color-on-surface-variant, #49454f); border-bottom: 2px solid transparent;
 		}
 		/* Native radio group does the selection and arrow-key navigation; the input itself is hidden. */
 		.tab input { position: absolute; opacity: 0; pointer-events: none; }
-		.tab:has(input:checked) { color: var(--md-sys-color-primary, #6750a4); border-bottom-color: currentColor; }
-		.tab:has(input:focus-visible) { outline: 2px solid var(--md-sys-color-primary, #6750a4); outline-offset: -2px; }
+		.tab:has(input:checked) { color: var(--std-sys-color-primary, #6750a4); border-bottom-color: currentColor; }
+		.tab:has(input:focus-visible) { outline: 2px solid var(--std-sys-color-primary, #6750a4); outline-offset: -2px; }
 		pre {
 			margin: 0; padding: 0.75rem 1rem; height: 18rem; min-height: 5rem; overflow: auto; resize: vertical; tab-size: 4;
-			font: 400 0.8125rem/1.5 var(--md-ref-typeface-mono, 'Roboto Mono', monospace);
-			background: var(--md-sys-color-surface-container, #f3edf7);
+			font: 400 0.8125rem/1.5 var(--std-ref-typeface-mono, 'Roboto Mono', monospace);
+			background: var(--std-sys-color-surface-container, #f3edf7);
 		}
 		.comment { color: #6b6b76; font-style: italic; }
 		.string { color: #0b6e4f; }
@@ -52,14 +52,14 @@ export class CodePreview extends UIElement {
 		.number { color: #b3261e; }
 		.decorator { color: #9c4a00; }
 		::slotted(*) { display: block; }
-		.demo { padding: 1.25rem 1.5rem; border-top: 1px solid var(--md-sys-color-outline-variant, #cac4d0); min-width: 0; }
+		.demo { padding: 1.25rem 1.5rem; border-top: 1px solid var(--std-sys-color-outline-variant, #cac4d0); min-width: 0; }
 		/* Wide enough: code on the left, the rendered demo on the right. */
 		@container (min-width: 56rem) {
 			.layout { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); }
 			/* The code column stretches to the row; its panel grows past the default height when the demo is taller. */
 			.code { display: flex; flex-direction: column; min-height: 0; }
 			pre { flex: 1 1 auto; height: 0; min-height: 18rem; resize: vertical; }
-			.demo { border-top: 0; border-left: 1px solid var(--md-sys-color-outline-variant, #cac4d0); }
+			.demo { border-top: 0; border-left: 1px solid var(--std-sys-color-outline-variant, #cac4d0); }
 		}
 	`;
 

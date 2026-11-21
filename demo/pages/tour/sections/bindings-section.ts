@@ -12,8 +12,8 @@ export class DemoBindingsSection extends UIElement {
 			align-items: center;
 			gap: 0.5rem;
 			padding: 0.5rem 0.75rem;
-			border: 1px dashed var(--md-sys-color-outline);
-			border-radius: var(--md-shape-corner-small, 8px);
+			border: 1px dashed var(--std-sys-color-outline);
+			border-radius: var(--std-shape-corner-small, 8px);
 		}
 
 		.demo-log {
@@ -22,7 +22,7 @@ export class DemoBindingsSection extends UIElement {
 			padding: 0.5rem 0.75rem;
 			font-family: 'Roboto Mono', ui-monospace, monospace;
 			font-size: 0.8rem;
-			background: var(--md-sys-color-surface-container-high);
+			background: var(--std-sys-color-surface-container-high);
 			border-radius: 4px;
 			white-space: pre-wrap;
 		}

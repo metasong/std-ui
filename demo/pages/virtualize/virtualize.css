@@ -7,10 +7,10 @@
 	demo-virtualize-horizontal
 ) {
 	display: block;
-	background: var(--md-sys-color-surface-container-lowest);
-	border: 1px solid var(--md-sys-color-outline-variant);
-	border-radius: var(--md-shape-corner-medium);
-	box-shadow: var(--md-elevation-1);
+	background: var(--std-sys-color-surface-container-lowest);
+	border: 1px solid var(--std-sys-color-outline-variant);
+	border-radius: var(--std-shape-corner-medium);
+	box-shadow: var(--std-elevation-1);
 	margin: 0 0 1.25rem;
 	padding: 1.25rem 1.5rem;
 }
@@ -25,7 +25,7 @@
 	margin: 0 0 1rem;
 	font-size: 0.875rem;
 	line-height: 1.45;
-	color: var(--md-sys-color-on-surface-variant);
+	color: var(--std-sys-color-on-surface-variant);
 }
 
 .demo-v-scroller-x {
@@ -54,9 +54,9 @@
 	display: flex;
 	align-items: center;
 	justify-content: center;
-	border-radius: var(--md-shape-corner-small);
-	background: var(--md-sys-color-secondary-container);
-	color: var(--md-sys-color-on-secondary-container);
+	border-radius: var(--std-shape-corner-small);
+	background: var(--std-sys-color-secondary-container);
+	color: var(--std-sys-color-on-secondary-container);
 	font-size: 0.8rem;
 	font-weight: 500;
 }
@@ -69,10 +69,10 @@
 	font-size: 0.8rem;
 	letter-spacing: 0.04em;
 	text-transform: uppercase;
-	background: var(--md-sys-color-surface-container-highest);
-	color: var(--md-sys-color-on-surface);
-	border-bottom: 1px solid var(--md-sys-color-outline-variant);
-	box-shadow: var(--md-elevation-1);
+	background: var(--std-sys-color-surface-container-highest);
+	color: var(--std-sys-color-on-surface);
+	border-bottom: 1px solid var(--std-sys-color-outline-variant);
+	box-shadow: var(--std-elevation-1);
 }
 
 .demo-v-tile {
@@ -80,9 +80,9 @@
 	display: flex;
 	align-items: center;
 	justify-content: center;
-	border-radius: var(--md-shape-corner-small);
-	background: var(--md-sys-color-tertiary-container);
-	color: var(--md-sys-color-on-tertiary-container);
+	border-radius: var(--std-shape-corner-small);
+	background: var(--std-sys-color-tertiary-container);
+	color: var(--std-sys-color-on-tertiary-container);
 	font-size: 0.75rem;
 	font-weight: 500;
 }
@@ -90,6 +90,6 @@
 .demo-v-meta {
 	margin: 0 0 0.75rem;
 	font-size: 0.8rem;
-	color: var(--md-sys-color-on-surface-variant);
+	color: var(--std-sys-color-on-surface-variant);
 	font-variant-numeric: tabular-nums;
 }

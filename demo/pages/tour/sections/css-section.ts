@@ -13,8 +13,8 @@ const chipStyles = css`
 		padding: 0.625rem 1.5rem;
 		border-radius: 9999px;
 		border: none;
-		background: var(--md-sys-color-tertiary, #7d5260);
-		color: var(--md-sys-color-on-tertiary, #fff);
+		background: var(--std-sys-color-tertiary, #7d5260);
+		color: var(--std-sys-color-on-tertiary, #fff);
 		cursor: pointer;
 	}
 `;
@@ -42,9 +42,9 @@ const badgeStyles = css`
 		padding: 0.2rem 0.65rem;
 		font-size: 0.75rem;
 		font-weight: 500;
-		border-radius: var(--md-shape-corner-full, 9999px);
-		background: var(--md-sys-color-tertiary-container, #ffd8e4);
-		color: var(--md-sys-color-on-tertiary-container, #31101d);
+		border-radius: var(--std-shape-corner-full, 9999px);
+		background: var(--std-sys-color-tertiary-container, #ffd8e4);
+		color: var(--std-sys-color-on-tertiary-container, #31101d);
 	}
 `;
 

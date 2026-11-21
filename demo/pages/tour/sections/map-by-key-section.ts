@@ -14,7 +14,7 @@ export class DemoMapByKeySection extends UIElement {
 
 		.demo-chore-item {
 			padding: 0.5rem 0;
-			border-bottom: 1px solid var(--md-sys-color-outline-variant);
+			border-bottom: 1px solid var(--std-sys-color-outline-variant);
 		}
 
 		.demo-chore-item:last-child {

@@ -6,12 +6,12 @@ import { tag, t, UIElement, attribute, state, css } from '@std-ui/core';
 export class DemoAttributeSection extends UIElement {
 	static override styles = css`
 		:host([theme='dark']) {
-			background: var(--md-sys-color-inverse-surface);
-			border-color: var(--md-sys-color-outline);
-			color: var(--md-sys-color-inverse-on-surface);
+			background: var(--std-sys-color-inverse-surface);
+			border-color: var(--std-sys-color-outline);
+			color: var(--std-sys-color-inverse-on-surface);
 		}
 		:host([theme='dark']) :is(h2, p) {
-			color: var(--md-sys-color-inverse-on-surface);
+			color: var(--std-sys-color-inverse-on-surface);
 		}
 		:host([theme='dark']) p.desc {
 			opacity: 0.88;

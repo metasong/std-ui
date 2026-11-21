@@ -24,8 +24,8 @@ export class DemoIntegrationSignup extends UIElement {
 	static override styles = css`
 		input:read-only:not([type='checkbox']):not([type='radio']),
 		textarea:read-only {
-			background-color: var(--md-sys-color-surface-container-high);
-			color: var(--md-sys-color-on-surface-variant);
+			background-color: var(--std-sys-color-surface-container-high);
+			color: var(--std-sys-color-on-surface-variant);
 		}
 
 		input:disabled:not([type='checkbox']):not([type='radio']),
