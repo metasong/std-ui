@@ -19,7 +19,7 @@ export class DemoSizeMapSummary extends UIElement {
 				<code>bundle-sizes.json</code> — <code>npm run build</code> then <code>node scripts/size-map.mjs</code>.
 				Updated ${stamp}.
 			</p>
-			<demo-treemap-map .tree=${this.#bundleTree} .aspect=${2.6} .showLeafKb=${true} .showFolderKb=${false} .unit=${'brotli'}></demo-treemap-map>
+			<demo-treemap-map .tree=${this.#bundleTree} .aspect=${2.6} .showLeafKb=${true} .showFolderKb=${false} .unit=${'brotli'} .keepGroupOrder=${true}></demo-treemap-map>
 		`;
 	}
 }

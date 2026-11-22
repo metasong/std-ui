@@ -52,9 +52,10 @@ const HEADER = 20;
 
 /**
  * Lays the tree out in a `width` x `height` virtual space; returns boxes parent-first (paint order).
+ * With `keepGroupOrder`, the root's children keep their given order instead of being sorted by size.
  * With `rootHeader`, the root is drawn as a folder level too (header bar + padding) instead of a bare frame.
  */
-export const layoutTree = (root: SizeNode, width: number, height: number, rootHeader = false): LayoutBox[] => {
+export const layoutTree = (root: SizeNode, width: number, height: number, rootHeader = false, keepGroupOrder = false): LayoutBox[] => {
 	const boxes: LayoutBox[] = [];
 	const visit = (node: SizeNode, rect: Rect, depth: number, group: number): void => {
 		const kids = node.children?.filter((c) => c.size > 0);
@@ -68,7 +69,8 @@ export const layoutTree = (root: SizeNode, width: number, height: number, rootHe
 		const pad = isBareRoot ? 0 : PAD;
 		const inner: Rect = { x: rect.x + pad, y: rect.y + pad + header, w: rect.w - pad * 2, h: rect.h - pad * 2 - header };
 		if (inner.w <= 1 || inner.h <= 1) return;
-		const sorted = [...kids].sort((a, b) => b.size - a.size);
+		// Siblings are laid out largest first, except the top-level groups when `keepGroupOrder` (declared order wins).
+		const sorted = depth === 0 && keepGroupOrder ? [...kids] : [...kids].sort((a, b) => b.size - a.size);
 		const total = sorted.reduce((s, c) => s + c.size, 0);
 		const rects = squarify(sorted.map((c) => (c.size / total) * inner.w * inner.h), inner);
 		sorted.forEach((c, i) => visit(c, rects[i]!, depth + 1, depth === 0 ? i : group));

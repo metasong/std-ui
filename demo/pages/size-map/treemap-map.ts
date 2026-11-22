@@ -64,6 +64,8 @@ export class DemoTreemapMap extends UIElement {
 	readonly showFolderKb = stateTree(true);
 	/** Compression the node sizes are measured in (shown in tooltips / selection). */
 	readonly unit = stateTree('gzip');
+	/** Keep the top-level groups in the order given (e.g. core, then ext) instead of sorting by size. */
+	readonly keepGroupOrder = stateTree(false);
 	/** Draw the root as a folder level (named header bar with its total) rather than an invisible frame. */
 	readonly showRoot = stateTree(false);
 
@@ -71,7 +73,7 @@ export class DemoTreemapMap extends UIElement {
 	readonly #width = computed(() => Math.round(this.aspect() * H));
 	readonly #boxes = computed(() => {
 		const tree = this.tree();
-		return tree ? layoutTree(tree, this.#width(), H, this.showRoot()).filter((b) => b.depth === 0 || (b.w > 2 && b.h > 2)) : [];
+		return tree ? layoutTree(tree, this.#width(), H, this.showRoot(), this.keepGroupOrder()).filter((b) => b.depth === 0 || (b.w > 2 && b.h > 2)) : [];
 	});
 
 	private readonly selected = state<SizeNode | null>(null);
