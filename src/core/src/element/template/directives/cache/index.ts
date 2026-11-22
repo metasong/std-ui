@@ -1,10 +1,9 @@
+import { assertChildPart } from '../assert-child-part.js';
 import { Directive, directive, type DirectivePart, type PartInfo } from '../directive.js';
 import { getTemplate, instantiate } from '../../factory/index.js';
 import { isTemplateResult, type TemplateResult } from '../../tag-funcs/html/index.js';
 import { ChildRenderer, renderWith } from '../../parts/renderers/index.js';
-import { PartType, updateParts, type Part } from '../../parts/part.js';
-import { DEV } from '../../../../dev/flag.js';
-
+import { updateParts, type Part } from '../../parts/part.js';
 interface Entry {
 	parts: Part[];
 	/** Holds the entry's nodes while it is not the active one. */
@@ -86,9 +85,7 @@ class CacheRenderer extends ChildRenderer<unknown> {
 class CacheDirective extends Directive {
 	constructor(partInfo: PartInfo) {
 		super(partInfo);
-		if (partInfo.type !== PartType.CHILD) {
-			throw new Error(DEV ? 'std-ui cache(): must be bound to a child position, not an attribute.' : 'cache(): child position only');
-		}
+		assertChildPart(partInfo, 'cache');
 	}
 
 	override update(_part: DirectivePart, value: unknown) {

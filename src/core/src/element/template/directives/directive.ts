@@ -27,7 +27,6 @@ export type DirectiveReturn = unknown;
 
 // `PartType` lives in `parts/DirectivePart.ts` (shared with The factory); re-exported for directive authors.
 import { PartType } from '../parts/part.js';
-
 /** Metadata + live DOM access for a plain `name=${...}` attribute binding. Passed to a
  *  `Directive`'s constructor (as `PartInfo`, for one-time validation) and to `update()` (as
  *  `DirectivePart`, for imperative DOM access) - see `Directive` below. These are distinct

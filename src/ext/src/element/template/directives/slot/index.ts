@@ -1,5 +1,5 @@
 import {
-	ChildRenderer, DEV, Directive, directive, getSlotContent, PartType, renderWith, snapshotLightChildren, TemplateRenderer,
+	assertChildPart, ChildRenderer, DEV, Directive, directive, getSlotContent, renderWith, snapshotLightChildren, TemplateRenderer,
 	type DirectivePart, type DirectiveResult, type PartInfo, type TemplateResult,
 } from '@std-ui/core';
 import { assertSlotDirectiveInLightDom } from './dev/warn-slot.js';
@@ -58,9 +58,7 @@ class SlotRenderer extends ChildRenderer<SlotValue> {
 class SlotDirective extends Directive {
 	constructor(partInfo: PartInfo) {
 		super(partInfo);
-		if (partInfo.type !== PartType.CHILD) {
-			throw new Error(DEV ? 'std-ui slot(): must be bound to a child position, not an attribute.' : 'slot(): child position only');
-		}
+		assertChildPart(partInfo, 'slot');
 	}
 
 	override update(_part: DirectivePart, name: string = '', fallback?: TemplateResult) {

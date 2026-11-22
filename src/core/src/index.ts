@@ -58,3 +58,4 @@ export { ChildRenderer, TemplateRenderer, renderWith } from './element/template/
 export { AttributePart, ChildPart, EventPart, withEventOptions } from './element/template/parts/index.js';
 export { DEV } from './dev/flag.js';
 export { once } from './dev/once.js';
+export { assertChildPart } from './element/template/directives/assert-child-part.js';

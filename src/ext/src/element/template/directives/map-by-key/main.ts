@@ -1,12 +1,10 @@
-import { Directive, directive, PartType, renderWith, DEV, type DirectivePart, type DirectiveResult, type PartInfo } from '@std-ui/core';
+import { Directive, directive, assertChildPart, renderWith, DEV, type DirectivePart, type DirectiveResult, type PartInfo } from '@std-ui/core';
 import { MapByKeyRenderer } from './map-by-key-renderer.js';
 
 class MapByKeyDirective extends Directive {
 	constructor(partInfo: PartInfo) {
 		super(partInfo);
-		if (partInfo.type !== PartType.CHILD) {
-			throw new Error(DEV ? 'std-ui mapByKey(): must be bound to a child position.' : 'mapByKey(): child position only');
-		}
+		assertChildPart(partInfo, 'mapByKey');
 	}
 
 	override update(

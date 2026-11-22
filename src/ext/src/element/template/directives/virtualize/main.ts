@@ -1,4 +1,4 @@
-import { Directive, directive, PartType, type DirectivePart, type PartInfo } from '@std-ui/core';
+import { Directive, assertChildPart, directive, type DirectivePart, type PartInfo } from '@std-ui/core';
 import { renderWith } from '@std-ui/core';
 import { VirtualizeRenderer } from './renderer/index.js';
 import type { VirtualizeOptions } from './options.js';
@@ -6,9 +6,7 @@ import type { VirtualizeOptions } from './options.js';
 class VirtualizeDirective extends Directive {
 	constructor(partInfo: PartInfo) {
 		super(partInfo);
-		if (partInfo.type !== PartType.CHILD) {
-			throw new Error('std-ui virtualize(): must be bound to a child position.');
-		}
+		assertChildPart(partInfo, 'virtualize');
 	}
 
 	override update(_part: DirectivePart, items: ArrayLike<unknown>, options: VirtualizeOptions<any>) {
