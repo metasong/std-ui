@@ -32,7 +32,6 @@
 			"default": "./dist/esm/decorators/index.js"
 		},
 		"./browser/*": "./dist/browser/*",
-		"./release/*": "./dist/release/*",
 		"./package.json": "./package.json"
 	},
 	"files": [

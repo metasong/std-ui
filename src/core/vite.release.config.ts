@@ -16,8 +16,8 @@ const releaseFlag = {
 export default defineConfig({
 	plugins: [releaseFlag, esbuildTs()],
 	build: {
-		outDir: 'dist/release',
-		emptyOutDir: true,
+		outDir: 'dist/browser',
+		emptyOutDir: false, // shares dist/browser with the normal bundles (build:bundle runs first and cleans it)
 		minify: 'oxc',
 		sourcemap: true,
 		lib: {
