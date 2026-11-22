@@ -195,50 +195,16 @@ Plain signals mixed into a tree have no validation and count as valid.
 
 ## Change tracking: `dirty` and `reset()`
 
-Provided by `@std-ui/ext` (`import { changes } from '@std-ui/ext'`), applied with `state(...).with(changes)`.
-On every node under `node.changes`, next to `node.check`. Not part of the data: `deep()` never
-contains them.
-
-| Member | Role |
-| --- | --- |
-| `node.changes.dirty()` | Tracked boolean: the node's current value differs (deeply) from the value it was created with. On a leaf, an explicit `equals` option replaces the deep comparison (e.g. `Object.is` or an id compare for large 'value' data); containers always compare deeply. Editing back to the original makes it clean again. |
-| `node.changes.initial()` | Tracked plain value `reset()` restores: the creation value, or the last `next` passed to `reset(next)`. |
-| `node.changes.reset(next?)` | Writes the initial value back: edited values restored, members added since removed, deleted members re-created, a cleared object restored. Validators stay. With `next`, `next` first becomes the new initial value (pushed down to every child), so `reset(node.peek())` marks the current value as saved and a later `reset()` returns to it. Not an undo: it never steps back to the state before your last edit. |
-
-```ts
-const form = state({ user: { name: 'a' }, tags: ['x'] });
-form.user.name.set('b');
-form.changes.dirty();       // true
-form.user.name.changes.reset();
-form.changes.dirty();       // false
-```
-
-The initial value starts as the value at creation; change it with `reset(next)`.
+Provided by `@std-ui/ext`: `state(...).with(changes)` adds `node.changes` (`dirty()`, `initial()`,
+`reset(next?)`) to every node, next to `node.check`. Not part of the data: `deep()` never contains it.
+Details: [`changes`](../../../../ext/src/reactive/state/changes/README.md).
 
 ## Form UI: `touched`, `readonly`, `disabled`
 
-Provided by `@std-ui/ext` (`import { formUi } from '@std-ui/ext'`), applied with `state(...).with(formUi)`.
-On every node under `node.formUi`. The state only holds the flags; [`formBind()`](../../../../ext/src/element/template/directives/form-bind/main.ts)
-shows them on the bound element.
-
-| Member | Role |
-| --- | --- |
-| `node.formUi.readonly()` / `disabled()` | Tracked: true when the node **or any ancestor** is set (a node shared by several trees: any parent). |
-| `node.formUi.touched()` | Tracked: true when the node **or any descendant** is touched (the other direction). |
-| `node.formUi.readonly.own` / `disabled.own` / `touched.own` | Writable `Signal<boolean>`: this node's own flag, e.g. `formUi.disabled.own.set(true)`. |
-| `node.formUi.touch()` / `untouch()` | Set / clear this node's own `touched` (a touched descendant still makes `touched()` true). |
-| `node.formUi.touchAll()` / `untouchAll()` | Same for the node and every descendant (e.g. on submit / reset). |
-
-```ts
-const form = state({ name: '', age: 5 }).with(check).with(formUi);
-t`<input .value=${formBind(form.name)} />`;
-form.formUi.disabled.own.set(true); // every bound input becomes disabled
-form.formUi.touchAll();             // every bound input shows its errors
-```
-
-Parent links for the cascade are learned when `formUi` is applied and re-scanned when a node with no
-known parent is read, so members added later are found; links to removed members are dropped at the
-next re-scan.
+Provided by `@std-ui/ext`: `state(...).with(formUi)` adds `node.formUi` (`touched`, `readonly`,
+`disabled` flags plus `touch()` / `touchAll()`) to every node. The state only holds the flags;
+`formBind()` shows them on the bound element. Details:
+[`formUi`](../../../../ext/src/reactive/state/form-ui/README.md).
 
 ## Notes / gotchas
 
