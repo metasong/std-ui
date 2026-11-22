@@ -2,7 +2,7 @@
 
 import type { TemplateResult } from './tag-funcs/html/index.js';
 import { type Part, updateParts } from './parts/index.js';
-import { getTemplate, instantiate } from './compiler/index.js';
+import { getTemplate, instantiate } from './factory/index.js';
 
 interface RenderedInstance {
 	strings: TemplateStringsArray;

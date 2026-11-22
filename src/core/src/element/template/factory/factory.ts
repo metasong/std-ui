@@ -1,7 +1,7 @@
-// --- std-ui's template syntax, plugged into the generic engine. ------------------------------------
+// --- std-ui's template syntax, plugged into the generic Builder. ------------------------------------
 //
-// `engine.ts` knows only templates, tags, attributes and lifecycle hooks. Everything specific to
-// std-ui lives here, grouped by concern and wired in through `EngineHooks`:
+// `builder.ts` knows only templates, tags, attributes and lifecycle hooks. Everything specific to
+// std-ui lives here, grouped by concern and wired in through `BuilderHooks`:
 //
 //   - binding syntax   : `.prop`, `?bool`, `@event.modifier`, plain `attr` (+ single-interpolation rules),
 //                        and bare element slots `<div ${x}>`
@@ -19,7 +19,7 @@ import '../custom-attributes/attribute/index.js';
 import '../custom-attributes/property/index.js';
 import '../custom-attributes/boolean/index.js';
 import '../custom-attributes/event/index.js';
-import { createEngine, type EngineHooks, type SlotDescriptor, type Template as EngineTemplate } from './engine.js';
+import { createBuilder, type BuilderHooks, type SlotDescriptor, type Template as BuilderTemplate } from './builder.js';
 // Parts import `instantiate` for nested templates; they are only touched lazily inside hooks, so
 // the module cycle is harmless.
 import { ElementPart, ChildPart, PartType, type Modifier, type Part } from '../parts/index.js';
@@ -44,17 +44,17 @@ export interface PartDescriptor extends SlotDescriptor {
 	valueCount: number;
 }
 
-export type Template = EngineTemplate<PartDescriptor>;
+export type Template = BuilderTemplate<PartDescriptor>;
 
-/** `'svg'`/`'math'` wrap the compiled markup in a temporary `<svg>`/`<math>` during parsing so elements
+/** `'svg'`/`'math'` wrap the built markup in a temporary `<svg>`/`<math>` during parsing so elements
  *  land in the SVG/MathML namespace. See `html.ts`'s `svg()` and `math()`. */
 export type TemplateType = 'html' | 'svg' | 'math';
 
 // --- Binding syntax -----------------------------------------------------------------------------
 
-/** `[sigil]name[:arg](.modifier[:value])*`, the full attribute name as handed over by the engine.
+/** `[sigil]name[:arg](.modifier[:value])*`, the full attribute name as handed over by the Builder.
  *  Static args/values are `[\w-]+` (no `.`, which would start the next modifier); modifier names may
- *  also contain `+`, e.g. `@keyup.ctrl+enter`. See `compile-attributes.md`. */
+ *  also contain `+`, e.g. `@keyup.ctrl+enter`. See `attributes.md`. */
 const BINDING_NAME_RE = /^([^\w\s"'<>\/=:-]?)([\w-]+)(?::([\w-]+))?((?:\.[\w+-]+(?::[\w-]+)?)*)$/;
 
 interface OpenBinding {
@@ -148,7 +148,7 @@ const foreignSupport = {
 
 // --- Wiring -------------------------------------------------------------------------------------
 
-const hooks: EngineHooks<PartDescriptor, Part, TemplateType, OpenBinding> = {
+const hooks: BuilderHooks<PartDescriptor, Part, TemplateType, OpenBinding> = {
 	onTextSlot: () => ({ kind: PartType.CHILD, name: '', valueCount: 1 }),
 	onTagSlot: () => ({ kind: PartType.ELEMENT, name: '', valueCount: 1 }),
 	onAttributeOpen: ({ rawName, markup }) => parseBinding(rawName, markup),
@@ -156,14 +156,14 @@ const hooks: EngineHooks<PartDescriptor, Part, TemplateType, OpenBinding> = {
 
 	wrapMarkup: foreignSupport.wrapMarkup,
 	unwrapContent: foreignSupport.unwrapContent,
-	onCompiled(template) {
+	onBuilt(template) {
 		if (DEV) warnOnUndefinedElements(template.element.content);
 	},
 
 	createPart,
 };
 
-const engine = createEngine(hooks, { defaultType: 'html' });
+const Builder = createBuilder(hooks, { defaultType: 'html' });
 
-export const getTemplate = engine.getTemplate;
-export const instantiate = engine.instantiate;
+export const getTemplate = Builder.getTemplate;
+export const instantiate = Builder.instantiate;

@@ -2,7 +2,7 @@
 
 ## Problem
 
-Templates are compiled by assigning markup to a `<template>` element's `innerHTML`. The HTML parser
+Templates are built by assigning markup to a `<template>` element's `innerHTML`. The HTML parser
 decides an element's namespace **at creation time, from context**:
 
 - Inside an `<svg>` start tag, the parser switches to *foreign content* mode, and every descendant is
@@ -23,9 +23,9 @@ So these two cases behave differently:
 
 ### Why the fragment is broken
 
-What the engine does with a template, step by step:
+What the Builder does with a template, step by step:
 
-1. `t` returns the literal `strings` plus `values`. The compiler joins `strings` with marker text for each
+1. `t` returns the literal `strings` plus `values`. The factory joins `strings` with marker text for each
    `${}` hole, giving a markup string such as `<circle r="__marker__"/>`.
 2. It assigns that string to `template.innerHTML`. A `<template>` parses its contents with the HTML
    fragment parsing algorithm. The context element is `<template>`, which is an HTML element, so the
@@ -69,7 +69,7 @@ export function svg(strings: TemplateStringsArray, ...values: unknown[]): Templa
 }
 ```
 
-The compiler (`compiler/compile.ts`) then gives the parser the missing context through two hooks:
+The factory (`factory/factory.ts`) then gives the parser the missing context through two hooks:
 
 1. `wrapMarkup(markup, 'svg')` returns `<svg>${markup}</svg>` before parsing, so the fragment is parsed in
    SVG mode.
@@ -81,16 +81,16 @@ For `'html'` templates, both hooks do nothing, so there is no cost on the normal
 The `svg` fragment is meant to be interpolated into a real `<svg>`. Inserted into a `<div>`, it has the
 correct element type but is not drawn, because SVG shapes only render inside an `<svg>` viewport.
 
-### Why it fits the engine
+### Why it fits the Builder
 
-SVG handling lives entirely in `EngineHooks` (see `compiler/engine.ts`). The engine itself knows
+SVG handling lives entirely in `BuilderHooks` (see `factory/builder.ts`). The Builder itself knows
 nothing about SVG, which keeps the core generic. Removing `svg` support means deleting the tag
 function, `TemplateType`, the two hooks, and their tests.
 
 ### Caching
 
-The compiled-template cache is keyed by `strings` identity **and** template type. The same `strings`
-compiled as `'html'` and as `'svg'` produce different templates, because the parsed DOM differs.
+The built-template cache is keyed by `strings` identity **and** template type. The same `strings`
+built as `'html'` and as `'svg'` produce different templates, because the parsed DOM differs.
 
 ## Usage
 
@@ -111,7 +111,7 @@ const icon = t`<svg viewBox="0 0 10 10"><path d="M0 0L10 10" /></svg>`;
 |---|---|
 | **Remove `svg`; always write whole `<svg>` in one `t`** | Simplest, but you cannot split shapes into reusable templates or loops. |
 | **Each fragment carries its own `<svg>` wrapper** (`` t`<svg><circle/></svg>` ``) | Works, but creates a nested `<svg>` per piece. Each nested `<svg>` is a separate viewport, so `x`, `y`, `viewBox` and sizing behave differently. |
-| **Detect SVG tag names and use `createElementNS`** | The compiler would need a list of SVG tags, and it conflicts with parsing from a string. |
+| **Detect SVG tag names and use `createElementNS`** | The factory would need a list of SVG tags, and it conflicts with parsing from a string. |
 | **Wrap-and-unwrap behind an `svg` tag (chosen)** | Small, isolated, correct namespace, no nested viewports. |
 
 ## Limitations
@@ -124,7 +124,7 @@ const icon = t`<svg viewBox="0 0 10 10"><path d="M0 0L10 10" /></svg>`;
 
 ## Verification
 
-- Unit tests in `compiler/compile.test.ts`:
+- Unit tests in `factory/factory.test.ts`:
   - plain `t` fragments become `HTMLUnknownElement` in the XHTML namespace, also after being moved into
     a real `<svg>`;
   - `svg` fragments become SVG-namespace elements with no leftover wrapper;

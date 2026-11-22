@@ -1,5 +1,5 @@
 import type { TemplateResult } from '../../tag-funcs/html/index.js';
-import { getTemplate, instantiate } from '../../compiler/index.js';
+import { getTemplate, instantiate } from '../../factory/index.js';
 import { type Part, updateParts } from '../part.js';
 import { ChildRenderer } from './child-renderer.js';
 

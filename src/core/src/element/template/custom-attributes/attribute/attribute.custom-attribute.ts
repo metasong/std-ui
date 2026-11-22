@@ -1,4 +1,4 @@
-import { WILDCARD, registerCustomAttribute, type CustomAttribute } from '../../compiler/custom-attribute.js';
+import { WILDCARD, registerCustomAttribute, type CustomAttribute } from '../../factory/custom-attribute.js';
 import { AttributePart } from './attribute-part.js';
 import { DEV } from '../../../../dev/flag.js';
 

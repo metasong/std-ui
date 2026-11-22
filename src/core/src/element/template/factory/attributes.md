@@ -1,12 +1,12 @@
-# How attribute compilation works
+# How attribute building works
 
-This doc focuses on **plain attributes** (no `?`/`.`/`@` prefix): values that end up as strings via `setAttribute`. The scanning lives in the generic `engine.ts`; the attribute *syntax* (sigils, one-interpolation rules) lives in `compile.ts` and is plugged in through hooks (see [design.md](./design.md)). `AttributePart` and `updateParts` in `parts/` apply the compiled result at runtime.
+This doc focuses on **plain attributes** (no `?`/`.`/`@` prefix): values that end up as strings via `setAttribute`. The scanning lives in the generic `builder.ts`; the attribute *syntax* (sigils, one-interpolation rules) lives in `factory.ts` and is plugged in through hooks (see [design.md](./design.md)). `AttributePart` and `updateParts` in `parts/` apply the built result at runtime.
 
 If you only read one diagram, use [the state machine](#scanner-two-states) and [the end-to-end pipeline](#end-to-end-pipeline).
 
 ---
 
-## Tagged template → what the compiler sees
+## Tagged template → what The factory sees
 
 When you write:
 
@@ -14,7 +14,7 @@ When you write:
 t`<div class="${a} ${b}" id="x">${label}</div>`;
 ```
 
-the engine gives `t()` two parallel arrays:
+the Builder gives `t()` two parallel arrays:
 
 | | |
 |---|---|
@@ -36,7 +36,7 @@ flowchart LR
   end
 ```
 
-The compiler **never** looks at `values` while compiling. It only walks `strings` and figures out **how many** consecutive `values` each “part” will need (`valueCount`) and, for attributes, the **static pieces** (`literals`) between them.
+The factory **never** looks at `values` while building. It only walks `strings` and figures out **how many** consecutive `values` each “part” will need (`valueCount`) and, for attributes, the **static pieces** (`literals`) between them.
 
 ---
 
@@ -44,7 +44,7 @@ The compiler **never** looks at `values` while compiling. It only walks `strings
 
 ```mermaid
 flowchart TB
-  subgraph compile["compile(strings) — once per call site"]
+  subgraph build["build(strings) — once per call site"]
     A["Scan strings, choose binding per gap"] --> B["Build synthetic markup with marker placeholders"]
     B --> C["Parse with template element innerHTML"]
     C --> D["Walk DOM: node index per part, strip placeholders"]
@@ -53,10 +53,10 @@ flowchart TB
     E["instantiate: clone + create Part objects"] --> F["updateParts(parts, values)"]
     F --> G["AttributePart: literals plus value slice, then setAttribute"]
   end
-  compile --> E
+  build --> E
 ```
 
-- **Compile** produces a cached `Template` (parsed DOM shape + `PartDescriptor[]`).
+- **build** produces a cached `Template` (parsed DOM shape + `PartDescriptor[]`).
 - **Instantiate** clones that fragment and binds `Part` instances to real nodes.
 - **updateParts** slices `values` according to each part’s `valueCount` (attributes with multiple `${...}` consume more than one value).
 
@@ -83,13 +83,13 @@ Rough meanings:
 | **TEXT** | Outside an open quoted attribute value | Either a **child** binding, or the **first** piece of an attribute value (right after `name="`). |
 | **ATTR_VALUE** | Inside `name="…` until the matching `"` or `'` | **Another segment of the same attribute** (more static text and/or another `${...}`), until the closing quote. |
 
-The engine uses `stepText` / `stepAttrValue` for transitions; see `engine.ts`. It calls the `onAttributeOpen` hook at the `TEXT -> ATTR_VALUE` transition and `onAttributeClose` at `ATTR_VALUE -> TEXT`.
+The Builder uses `stepText` / `stepAttrValue` for transitions; see `builder.ts`. It calls the `onAttributeOpen` hook at the `TEXT -> ATTR_VALUE` transition and `onAttributeClose` at `ATTR_VALUE -> TEXT`.
 
 ---
 
 ## Placeholder markup the HTML parser can eat
 
-Dynamic attribute **values** are not left as real text in the template fragment. The compiler inserts a single fake attribute value **`std-ui-part`** (the engine's `MARKER`, shared with the child-slot comment) on the element so that, after parsing, the walk can find “this element + attribute name = one AttributePart”. The real string is **rebuilt at runtime** from `literals` + the matching slice of `values`.
+Dynamic attribute **values** are not left as real text in the template fragment. The factory inserts a single fake attribute value **`std-ui-part`** (the Builder's `MARKER`, shared with the child-slot comment) on the element so that, after parsing, the walk can find “this element + attribute name = one AttributePart”. The real string is **rebuilt at runtime** from `literals` + the matching slice of `values`.
 
 ```mermaid
 flowchart LR
@@ -99,7 +99,7 @@ flowchart LR
   end
 ```
 
-So compilation answers: **which element**, **which attribute name**, **which literal segments**, **how many values**.
+So building answers: **which element**, **which attribute name**, **which literal segments**, **how many values**.
 
 ---
 
@@ -136,7 +136,7 @@ Template:
 t`<div class="static-${x}"></div>`;
 ```
 
-The characters `static-` appear in `strings` **before** the first gap. The scanner stores them in `literals[0]` for composition, but they must **not** stay in the synthetic markup string, or you would get **duplication** when the real value is applied. So when opening the attribute, the compiler **rewinds** the last few characters of the accumulated markup (the length of that prefix) before continuing. That “rewind” is the subtle bit: one copy in `literals`, one placeholder in the parse tree, no double `static-` in the fragment.
+The characters `static-` appear in `strings` **before** the first gap. The scanner stores them in `literals[0]` for composition, but they must **not** stay in the synthetic markup string, or you would get **duplication** when the real value is applied. So when opening the attribute, The factory **rewinds** the last few characters of the accumulated markup (the length of that prefix) before continuing. That “rewind” is the subtle bit: one copy in `literals`, one placeholder in the parse tree, no double `static-` in the fragment.
 
 ```mermaid
 flowchart LR
@@ -155,7 +155,7 @@ flowchart LR
 
 ## Plain vs sigiled attributes
 
-| Style | Example | Compile-time rule |
+| Style | Example | Build-time rule |
 |--------|----------|-------------------|
 | Plain | `class="${a} ${b}"` | Allowed: string composition, multiple `${...}`, static mix. |
 | Boolean | `?hidden=${v}` | Exactly **one** interpolation, **no** extra static text in the value. |
@@ -163,20 +163,20 @@ flowchart LR
 | Event | `@click=${fn}` | Same (plus optional `.modifier`s on the **name**, see [grammar](#binding-name-grammar)). |
 | Class / style | `class.active=${on}`, `style.color=${c}` | Same. |
 
-Sigiled kinds bind a **single JS value** (boolean, property, listener), not a composed string, so the compiler rejects multiple interpolations or static glue inside the quoted value.
+Sigiled kinds bind a **single JS value** (boolean, property, listener), not a composed string, so The factory rejects multiple interpolations or static glue inside the quoted value.
 
 ### Unquoted values
 
-Any attribute kind may drop the quotes when it has a single interpolation: `class=${x}`, `.value=${v}`, `?hidden=${v}`, `@click=${fn}`. The engine detects `name=` at the end of the markup (inside a tag), calls `onAttributeOpen` with an empty quote/prefix, and immediately closes the attribute with `literals = ['', '']` and `valueCount = 1`, so no ATTR_VALUE state is entered. A quoted placeholder (`"std-ui-part"`) is emitted so the HTML parser sees a valid attribute. Static text or several interpolations require quotes: `class="a ${b}"`; `class=a-${x}` treats `a-` as a literal and is rejected.
+Any attribute kind may drop the quotes when it has a single interpolation: `class=${x}`, `.value=${v}`, `?hidden=${v}`, `@click=${fn}`. The Builder detects `name=` at the end of the markup (inside a tag), calls `onAttributeOpen` with an empty quote/prefix, and immediately closes the attribute with `literals = ['', '']` and `valueCount = 1`, so no ATTR_VALUE state is entered. A quoted placeholder (`"std-ui-part"`) is emitted so the HTML parser sees a valid attribute. Static text or several interpolations require quotes: `class="a ${b}"`; `class=a-${x}` treats `a-` as a literal and is rejected.
 
-Division of labour: the engine hands the hooks the attribute's raw name (sigil and modifiers included, e.g. `@click.once`). `onAttributeOpen` in `compile.ts` parses it into kind/name/options, and `onAttributeClose` receives `literals` and `valueCount` and throws for sigiled kinds that break the rule above. The engine itself has no notion of sigils.
+Division of labour: the Builder hands the hooks the attribute's raw name (sigil and modifiers included, e.g. `@click.once`). `onAttributeOpen` in `factory.ts` parses it into kind/name/options, and `onAttributeClose` receives `literals` and `valueCount` and throws for sigiled kinds that break the rule above. The Builder itself has no notion of sigils.
 
 ---
 
 ## Binding name grammar
 
-The attribute *name* (everything before `=`) follows one grammar for every kind. The engine hands
-it over raw; `parseBinding` in `compile.ts` parses it.
+The attribute *name* (everything before `=`) follows one grammar for every kind. The Builder hands
+it over raw; `parseBinding` in `factory.ts` parses it.
 
 ```
 binding   := sigil? name ( ":" arg )? modifier* ( "=" value )?   // name:arg is reserved
@@ -199,34 +199,34 @@ Only a *leading* `.` is a sigil; every later `.` starts a modifier. Examples:
 Rules:
 
 - The parser is generic: it produces `{ sigil, name, arg?, modifiers }` and never decides what the
-  pieces *mean*. A **custom attribute** (`compiler/custom-attribute.ts`) owns one `(sigil, name)` pair: it
-  validates the binding at compile time and builds the `Part`. Register with
-  `registerCustomAttribute()` before the template is first compiled (templates are cached).
+  pieces *mean*. A **custom attribute** (`factory/custom-attribute.ts`) owns one `(sigil, name)` pair: it
+  validates the binding at build time and builds the `Part`. Register with
+  `registerCustomAttribute()` before the template is first built (templates are cached).
   The native kinds are Custom attributes too (`custom-attributes/*/*.custom-attribute.ts`): plain attribute, `.prop`, `?bool` and
   `@event`, each registered for its sigil with the wildcard name `*`. An exact `(sigil, name)`
   extension wins when its `matches()` accepts the binding, otherwise the sigil's wildcard applies. A new
   sigil (e.g. `#name:arg.mod:value="a ${x}"`) is just another registration; mixed text and several
-  interpolations are allowed by default; `single: true` requires exactly one interpolation. An unregistered sigil throws at compile time.
+  interpolations are allowed by default; `single: true` requires exactly one interpolation. An unregistered sigil throws at build time.
 - `class` and `style` entries are Custom attributes that live in `@std-ui/ext` (`element/template/custom-attributes/class-style/class-style.custom-attribute.ts`;
   importing the package registers them, core does not): they accept **exactly one** modifier as the entry (`class.active`, `style.color`,
   `style.--gap`); more than one, or a `:value` on it, throws. With no modifier, `class=${x}` is
   the plain attribute. Entry bindings are single-value (one interpolation, no static text). Use
   kebab-case for style properties; `!important` and the like belong in the bound value.
 - `name:arg` is part of the grammar but **reserved**: it is carried as `arg` on the descriptor and
-  only a custom attribute may accept it; anywhere else it throws at compile time.
+  only a custom attribute may accept it; anywhere else it throws at build time.
 - The descriptor always carries the parsed `modifiers: { name, value? }[]`. Each kind then
   interprets the ones it knows: `EventPart` (`parts/event-part.ts`) receives the raw `modifiers`
   and turns `capture`/`once`/`passive` into `addEventListener` options and
   `prevent`/`stop`/`stop-immediate`/`self` into handler filters. Each part warns about modifiers it doesn't support (`warnIgnoredModifiers` in
   `parts/part.ts`): DEV only, once per distinct message, logged when the part is first created
-  rather than at compile time. Unsupported modifiers have no other effect.
-- Static values only, for now. Modifier values are compile-time strings (`.debounce:300` would be
+  rather than at build time. Unsupported modifiers have no other effect.
+- Static values only, for now. Modifier values are Build-time strings (`.debounce:300` would be
   `{ name: 'debounce', value: '300' }`; no kind consumes it yet).
 
 ### Not supported yet: dynamic args (`:${value}`)
 
 `@input.debounce:${ms}=${h}` needs an interpolation *inside the attribute name*, which the HTML
-parser cannot carry. It would need a third scanner state in `engine.ts` that swaps in-name gaps for
+parser cannot carry. It would need a third scanner state in `builder.ts` that swaps in-name gaps for
 unique placeholder names, raises `valueCount` for the part, and has `EventPart` diff its options
 each update. Names are also lowercased by the HTML parser for markup, but we parse from the raw
 `strings`, so case is preserved in `name` and modifier names.
@@ -260,9 +260,9 @@ flowchart LR
 
 | File | Role |
 |------|------|
-| `engine.ts` | Generic: scan `strings`, build synthetic markup, node indexing, `getTemplate`, `instantiate`, hooks |
-| `compile.ts` | std-ui syntax: sigils, descriptor kinds, `createPart`, SVG, dev warnings |
-| `design.md` | Engine/hook architecture |
+| `builder.ts` | Generic: scan `strings`, build synthetic markup, node indexing, `getTemplate`, `instantiate`, hooks |
+| `factory.ts` | std-ui syntax: sigils, descriptor kinds, `createPart`, SVG, dev warnings |
+| `design.md` | Builder/hook architecture |
 | `parts/attribute-part.ts` | `AttributePart` |
 | `parts/part.ts` | `updateParts` |
 | `render.ts` | Root `render()` calling `updateParts` |
@@ -273,4 +273,4 @@ flowchart LR
 
 - Overview for users: [html.md](../tag-funcs/html/html.md) (binding table, limitations).
 - Architecture: [design.md](./design.md).
-- Implementation comments at the top of `engine.ts` and its `ScanState` / `stepText` / `stepAttrValue` helpers.
+- Implementation comments at the top of `builder.ts` and its `ScanState` / `stepText` / `stepAttrValue` helpers.

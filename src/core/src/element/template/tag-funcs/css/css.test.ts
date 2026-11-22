@@ -71,7 +71,7 @@ describe('hostSelectorsToScope', () => {
 
 	it('rewrites every occurrence, leaving other text untouched', () => {
 		const input = ':host { color: red; } :host(.on) { color: blue; } button {}';
-		expect(hostSelectorsToScope(input)).toBe(':scope { color: red; } :scope(.on) { color: blue; } button {}');
+		expect(hostSelectorsToScope(input)).toBe(':scope { color: red; } :scope:is(.on) { color: blue; } button {}');
 	});
 
 	it('does not touch unrelated selectors containing "host" as a substring', () => {

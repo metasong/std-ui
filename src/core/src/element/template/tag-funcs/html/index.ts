@@ -10,14 +10,14 @@
 //  1. `t` just captures `strings`/`values` - no DOM work happens yet. Tagged template calls
 //     reuse the *same* `strings` array object across repeated calls at the same call site (this is
 //     guaranteed by the JS spec), so it doubles as a cache key.
-//  2. The first time `getTemplate()` needs a given `strings` (+ `'html'` vs `'svg'` type), we compile
+//  2. The first time `getTemplate()` needs a given `strings` (+ `'html'` vs `'svg'` type), we build
 //     once: scan/join the strings with marker text, parse via a `<template>`, then walk elements and
 //     child-marker comments to record where each dynamic part landed (`nodeIndex` among those
-//     nodes only). The compiled `Template` is cached in a `WeakMap` keyed by `strings` (per type).
+//     nodes only). The built `Template` is cached in a `WeakMap` keyed by `strings` (per type).
 //  3. When `render()` first binds a container to a template (or the container's `strings` identity
-//     changes), we clone that compiled template once (`cloneNode`), resolve indices on the clone,
+//     changes), we clone that built template once (`cloneNode`), resolve indices on the clone,
 //     and create a `Part` (child/attribute/property/event/boolean-attribute) per dynamic position.
-//  4. Later `render()` calls into the same container with the *same* `strings` reference skip compile,
+//  4. Later `render()` calls into the same container with the *same* `strings` reference skip build,
 //     clone, and part creation entirely - `render.ts` just calls `.update()` on the existing `Part`s.
 //     Unchanged values are skipped when each part can tell nothing changed (e.g. `Object.is` on
 //     `.`/ `?` bindings, string equality on composed attributes, renderer reuse in child positions).
@@ -32,14 +32,14 @@
 // for the one case plain `t` can't handle: a namespace-less fragment (no `<svg>` wrapper of its
 // own) meant to be interpolated as a child of an existing `<svg>` element.
 //
-// This module ties the pieces (compilation, parts, rendering) together; see sibling modules for
-// each concern: `../../compiler/`, `../../parts/`, `../../render.ts`, `../../directives/directive.ts`.
+// This module ties the pieces (building, parts, rendering) together; see sibling modules for
+// each concern: `../../factory/`, `../../parts/`, `../../render.ts`, `../../directives/directive.ts`.
 
 /** The result of calling `t`/`svg` - inert until passed to `render()`. */
 export interface TemplateResult {
 	readonly strings: TemplateStringsArray;
 	readonly values: readonly unknown[];
-	/** `'svg'` for results from `svg\`...\``; tells `compile.ts` to parse the markup inside a
+	/** `'svg'` for results from `svg\`...\``; tells `factory.ts` to parse the markup inside a
 	 *  temporary `<svg>` wrapper so its elements land in the SVG namespace. Absent (`undefined`)
 	 *  for plain `t` results. */
 	readonly type?: 'svg' | 'math';

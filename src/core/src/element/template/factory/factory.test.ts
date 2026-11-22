@@ -1,12 +1,12 @@
 import { describe, expect, it, vi } from 'vitest';
-import { getTemplate, instantiate } from './compile.js';
+import { getTemplate, instantiate } from './factory.js';
 import { t, svg, math } from '../tag-funcs/html/index.js';
 import { updateParts, BooleanAttributePart, PropertyPart, EventPart } from '../parts/index.js';
 import { render } from '../render.js';
 import { registerCustomAttribute } from './custom-attribute.js';
 
 describe('getTemplate/instantiate', () => {
-	it('compiles a child binding to a comment-anchored ChildPart', () => {
+	it('builds a child binding to a comment-anchored ChildPart', () => {
 		const { strings } = t`<p>Hello, ${'Ada'}!</p>`;
 		const template = getTemplate(strings);
 		expect(template.parts).toHaveLength(1);
@@ -19,7 +19,7 @@ describe('getTemplate/instantiate', () => {
 		expect(p.childNodes[1].nodeType).toBe(Node.COMMENT_NODE);
 	});
 
-	it('compiles a plain attribute binding', () => {
+	it('builds a plain attribute binding', () => {
 		const { strings } = t`<div id="${'x'}"></div>`;
 		const template = getTemplate(strings);
 		expect(template.parts).toHaveLength(1);
@@ -49,7 +49,7 @@ describe('getTemplate/instantiate', () => {
 		});
 	});
 
-	it('applies `.once` and `.prevent`/`.stop` modifiers when the part is created', () => {
+	it('leaves event modifiers to `@std-ui/ext`: core ignores `.once`/`.prevent`/`.stop`', () => {
 		const handler = vi.fn();
 		const { strings, values } = t`<form @submit.prevent.stop.once="${handler}"></form>`;
 		const { fragment, parts } = instantiate(getTemplate(strings));
@@ -59,8 +59,8 @@ describe('getTemplate/instantiate', () => {
 		const first = new Event('submit', { cancelable: true });
 		form.dispatchEvent(first);
 		form.dispatchEvent(new Event('submit', { cancelable: true }));
-		expect(first.defaultPrevented).toBe(true);
-		expect(handler).toHaveBeenCalledTimes(1);
+		expect(first.defaultPrevented).toBe(false);
+		expect(handler).toHaveBeenCalledTimes(2);
 	});
 
 	it('ignores unknown modifiers on an event binding', () => {
@@ -182,7 +182,7 @@ describe('getTemplate/instantiate', () => {
 		expect(() => getTemplate(t`<input ?disabled="x${true}"/>`.strings)).toThrow();
 	});
 
-	it('caches the compiled template per `strings` identity', () => {
+	it('caches the built template per `strings` identity', () => {
 		const { strings } = t`<p>${'x'}</p>`;
 		expect(getTemplate(strings)).toBe(getTemplate(strings));
 	});
@@ -281,7 +281,7 @@ describe('getTemplate/instantiate', () => {
 		expect(container.querySelectorAll('svg svg')).toHaveLength(3);
 	});
 
-	it('instantiate() clones fresh, independent fragments/parts from the same compiled template', () => {
+	it('instantiate() clones fresh, independent fragments/parts from the same built template', () => {
 		const { strings } = t`<p>${'x'}</p>`;
 		const template = getTemplate(strings);
 		const first = instantiate(template);

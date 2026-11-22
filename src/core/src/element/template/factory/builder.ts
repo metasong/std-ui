@@ -1,14 +1,14 @@
 import { DEV } from '../../../dev/flag.js';
-// --- Generic template engine -----------------------------------------------------------------------
+// --- Generic template Builder -----------------------------------------------------------------------
 //
 // Knows only generic concepts: a tagged template (`strings` + interpolations), the markup between
 // them, *tags* / *attributes* (an interpolation sits either in text position or in an attribute's
 // value), a parsed `<template>` element, and cloning it. It knows nothing about sigils (`.`/`?`/`@`),
-// event modifiers, parts, SVG, or dev warnings - every such decision is delegated to `EngineHooks`.
+// event modifiers, parts, SVG, or dev warnings - every such decision is delegated to `BuilderHooks`.
 //
 // Lifecycle (hooks in [brackets]):
 //
-//   compile(strings, type)
+//   build(strings, type)
 //     for each interpolation:
 //        text position      -> [onTextSlot]                      -> descriptor
 //        tag position       -> [onTagSlot]                       -> descriptor (`<div ${x}>`, no name)
@@ -16,22 +16,22 @@ import { DEV } from '../../../dev/flag.js';
 //                              ... extra interpolations just extend the same attribute ...
 //                              [onAttributeClose]  (at closing quote) -> descriptor
 //     [wrapMarkup] -> HTML parse -> [unwrapContent]
-//     engine assigns each descriptor its `nodeIndex` and strips attribute placeholders
-//     [onCompiled]
+//     Builder assigns each descriptor its `nodeIndex` and strips attribute placeholders
+//     [onBuilt]
 //
 //   instantiate(template)
 //     clone content -> resolve descriptor.nodeIndex to real nodes -> [createPart] per descriptor
 //     [onInstantiated]
 
-/** What the engine itself needs from a descriptor; hooks may add anything else they like. */
+/** What the Builder itself needs from a descriptor; hooks may add anything else they like. */
 export interface SlotDescriptor {
-	/** Position of the slot's node among all element/comment nodes in document order. Set by the engine. */
+	/** Position of the slot's node among all element/comment nodes in document order. Set by the Builder. */
 	nodeIndex: number;
 	/** Number of consecutive interpolation values this slot consumes, in source order. */
 	valueCount: number;
 }
 
-/** Descriptor as returned by hooks: the engine fills in `nodeIndex`. */
+/** Descriptor as returned by hooks: the Builder fills in `nodeIndex`. */
 export type DescriptorInit<D extends SlotDescriptor> = Omit<D, 'nodeIndex'> & { nodeIndex?: number };
 
 export interface TextSlotContext {
@@ -60,7 +60,7 @@ export interface AttributeCloseContext {
 	readonly valueCount: number;
 }
 
-export interface EngineHooks<D extends SlotDescriptor, Part, Type extends string = string, Open = unknown> {
+export interface BuilderHooks<D extends SlotDescriptor, Part, Type extends string = string, Open = unknown> {
 	/** An interpolation in text position (between tags). */
 	onTextSlot(ctx: TextSlotContext): DescriptorInit<D>;
 
@@ -77,8 +77,8 @@ export interface EngineHooks<D extends SlotDescriptor, Part, Type extends string
 	wrapMarkup?(markup: string, type: Type): string;
 	/** Undo `wrapMarkup` on the parsed content, so node indices match the unwrapped markup. */
 	unwrapContent?(content: DocumentFragment, type: Type): void;
-	/** Template fully compiled and indexed (dev checks, extra analysis...). */
-	onCompiled?(template: Template<D>, type: Type): void;
+	/** Template fully built and indexed (dev checks, extra analysis...). */
+	onBuilt?(template: Template<D>, type: Type): void;
 
 	/** Create the runtime part for one descriptor, bound to its resolved node in a fresh clone. */
 	createPart(descriptor: D, node: Node, host?: unknown): Part;
@@ -86,7 +86,7 @@ export interface EngineHooks<D extends SlotDescriptor, Part, Type extends string
 	onInstantiated?(fragment: DocumentFragment, parts: Part[]): void;
 }
 
-/** A compiled template, cached per `strings` identity and type. */
+/** A built template, cached per `strings` identity and type. */
 export interface Template<D extends SlotDescriptor = SlotDescriptor> {
 	/** Parsed markup with markers in place of interpolations; cloned on each instantiation. */
 	element: HTMLTemplateElement;
@@ -94,13 +94,13 @@ export interface Template<D extends SlotDescriptor = SlotDescriptor> {
 	parts: D[];
 }
 
-export interface Engine<D extends SlotDescriptor, Part, Type extends string> {
-	/** Cached compile, keyed by the `strings` identity and `type`. */
+export interface Builder<D extends SlotDescriptor, Part, Type extends string> {
+	/** Cached build, keyed by the `strings` identity and `type`. */
 	getTemplate(strings: TemplateStringsArray, type?: Type): Template<D>;
 	instantiate(template: Template<D>, host?: unknown): { fragment: DocumentFragment; parts: Part[] };
 }
 
-export interface EngineOptions<Type extends string> {
+export interface BuilderOptions<Type extends string> {
 	/** Marker used for both text-slot comments and attribute placeholders. Default `'std-ui-part'`. */
 	marker?: string;
 	defaultType: Type;
@@ -179,10 +179,10 @@ type ScanState<Open> =
 	| { readonly kind: typeof ScanKind.TEXT }
 	| { readonly kind: typeof ScanKind.ATTR_VALUE; readonly attr: OpenAttr<Open> };
 
-export function createEngine<D extends SlotDescriptor, Part, Type extends string, Open = unknown>(
-	hooks: EngineHooks<D, Part, Type, Open>,
-	options: EngineOptions<Type>,
-): Engine<D, Part, Type> {
+export function createBuilder<D extends SlotDescriptor, Part, Type extends string, Open = unknown>(
+	hooks: BuilderHooks<D, Part, Type, Open>,
+	options: BuilderOptions<Type>,
+): Builder<D, Part, Type> {
 	const MARKER = options.marker ?? 'std-ui-part';
 	const MARKER_COMMENT = `<!--${MARKER}-->`;
 	/** Tag-level slots have no attribute of their own, so a placeholder attribute (valued `MARKER`) is
@@ -352,8 +352,8 @@ export function createEngine<D extends SlotDescriptor, Part, Type extends string
 		// An attribute with several interpolations is still one descriptor and one placeholder:
 		// `literals` always has `valueCount + 1` entries, joined at runtime as `'e' + y + 'f' + z + 'g'`.
 		// The tag slot has no attribute of its own, so it is marked with a placeholder attribute
-		// (`std-ui-part-tag-N`, N counts tag slots) that lets the engine find its element.
-		// The engine only requires `nodeIndex` and `valueCount`. `nodeIndex` is filled in later by
+		// (`std-ui-part-tag-N`, N counts tag slots) that lets the Builder find its element.
+		// The Builder only requires `nodeIndex` and `valueCount`. `nodeIndex` is filled in later by
 		// `resolveIndices`: the index of the placeholder's node among all elements/comments in the
 		// parsed markup (text nodes are not counted). Here 0 for the attribute and tag slot (both
 		// live on `<p>`) and 1 for the `<!--std-ui-part-->` comment.
@@ -385,7 +385,7 @@ export function createEngine<D extends SlotDescriptor, Part, Type extends string
 		}
 	}
 
-	function compile(strings: TemplateStringsArray, type: Type): Template<D> {
+	function build(strings: TemplateStringsArray, type: Type): Template<D> {
 		// Running example: t`<p class="a ${x}" title="e${y}f${z}g" ${d}>Hi ${w}!</p>`
 
 		// Step 1: join the strings, replacing each interpolation with a marker (see `buildMarkup`).
@@ -419,7 +419,7 @@ export function createEngine<D extends SlotDescriptor, Part, Type extends string
 		//     { kind: CHILD,     name: '',                                 valueCount: 1, nodeIndex: 1 },
 		//   ]
 		const template: Template<D> = { element, parts: descriptors };
-		hooks.onCompiled?.(template, type);
+		hooks.onBuilt?.(template, type);
 		return template;
 	}
 
@@ -428,7 +428,7 @@ export function createEngine<D extends SlotDescriptor, Part, Type extends string
 		 * @param strings The tagged template's `strings` array. The same call site always passes the
 		 *   same array object, so it is the cache key (a `WeakMap`, entries go away with it).
 		 * @param type How to parse the markup (e.g. `'html'` or `'svg'`), defaults to `options.defaultType`.
-		 *   The same `strings` can be compiled once per type, so the cache is `strings` -> `type` -> template.
+		 *   The same `strings` can be built once per type, so the cache is `strings` -> `type` -> template.
 		 */
 		getTemplate(strings, type = options.defaultType) {
 			let byType = cache.get(strings);
@@ -436,7 +436,7 @@ export function createEngine<D extends SlotDescriptor, Part, Type extends string
 				byType = {};
 				cache.set(strings, byType);
 			}
-			return (byType[type] ??= compile(strings, type));
+			return (byType[type] ??= build(strings, type));
 		},
 
 		instantiate(template, host) {

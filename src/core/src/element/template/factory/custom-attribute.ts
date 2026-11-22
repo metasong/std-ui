@@ -1,12 +1,12 @@
-// --- Custom attributes: plug new custom attribute into the compiler. -----------------------------
+// --- Custom attributes: plug new custom attribute into The factory. -----------------------------
 //
-// The compiler parses every attribute name into the generic shape `sigil? name (:arg)? (.modifier[:value])*`
+// The factory parses every attribute name into the generic shape `sigil? name (:arg)? (.modifier[:value])*`
 // and never decides what the pieces *mean*. An extension owns one `(sigil, name)` pair and gives the
-// parts their meaning: it validates the binding at compile time and builds the `Part` at instantiate
+// parts their meaning: it validates the binding at build time and builds the `Part` at instantiate
 // time. `class.active` / `style.color` are extensions (see `std-ui-ext custom-attributes/class-style/class-style.custom-attribute.ts`); a package
 // like `@std-ui/ext` can register more with `registerCustomAttribute()`.
 //
-// Extensions must be registered before the templates that use them are first compiled (templates are
+// Extensions must be registered before the templates that use them are first built (templates are
 // cached by their `strings`), typically via a side-effect import.
 
 import type { Modifier, Part } from '../parts/index.js';
@@ -40,7 +40,7 @@ export interface CustomAttribute {
 	/** `false` (default): the value may mix static text and several interpolations, e.g.
 	 *  `#name="abc ${a} ${b}"`. Set `true` to require exactly one interpolation with no static text. */
 	readonly single?: boolean;
-	/** Compile-time validation; throw to reject the binding. */
+	/** Build-time validation; throw to reject the binding. */
 	validate?(attributeInfo: AttributeInfo): void;
 	/** Builds the part for one instance of the template. `value` describes the attribute value; with
 	 *  `single` it is always `['', '']` / `1`. */

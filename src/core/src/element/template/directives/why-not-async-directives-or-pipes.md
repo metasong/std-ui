@@ -15,7 +15,7 @@ That keeps template bindings **synchronous**, matches the rest of the signal mod
 |--------|--------------------------------------|----------------------------------------|
 | Subscription lifetime | Tied to each render or each binding instance; easy to leak or double-subscribe | One bridge per source; explicit `dispose()` / `onCleanup` |
 | Reactive reads | Template layer must know Promise vs Observable vs “latest value” | `computed()` and `template()` only see **current** signal values |
-| Signal-dependent sources | Another special case in the compiler or directive protocol | `toSignalFrom(() => …)` re-runs the factory when deps change |
+| Signal-dependent sources | Another special case in The factory or directive protocol | `toSignalFrom(() => …)` re-runs the factory when deps change |
 | Errors | Often swallowed or turned into empty UI unless the pipe has branches | Reads **throw** the error (Angular parity); branch in `template()` with try/catch in a `computed` wrapper, or guard before read |
 | Directive surface | Would require async/`ElementPart` plumbing we deliberately trim | Already documented as out of scope in [`../tag-funcs/html/html.md`](../tag-funcs/html/html.md#directives) |
 

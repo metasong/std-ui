@@ -12,7 +12,7 @@ Implementation of the built-in `class` attribute directive. Usage: [`README.md`]
 | [`../index.ts`](../index.ts) | Public re-export with other directives. |
 | [`../directives.test.ts`](../directives.test.ts) | End-to-end tests through `t()` / `render()`. |
 
-`main.ts` does not import `../../parts/` or `../../compile.ts`; dispatch is generic — see
+`main.ts` does not import `../../parts/` or `../../factory.ts`; dispatch is generic — see
 [`../directive.ts`](../directive.ts).
 
 ## Why it mutates the DOM and returns `noChange`

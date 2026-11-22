@@ -1,6 +1,6 @@
 // --- Parts: bind one dynamic position to a live DOM location. -------------------------------------
 //
-// Each `Part` owns one dynamic position produced by `compile.ts`/`instantiate()` and knows how to
+// Each `Part` owns one dynamic position produced by `factory.ts`/`instantiate()` and knows how to
 // patch just that position when `update()` is called with a new value, no-op'ing on `Object.is`-equal
 // values. See `html.ts` for the overall design.
 
@@ -8,7 +8,7 @@ import { DEV } from '../../../dev/flag.js';
 
 /**
  * The template positions a directive can be bound to: the discriminator of `PartInfo.type`, set by each
- * `Part` that accepts directives and shared with the compiler for slot descriptors. Directives check
+ * `Part` that accepts directives and shared with The factory for slot descriptors. Directives check
  * `partInfo.type` and throw if used somewhere they don't support, e.g. `classMap` requiring `ATTRIBUTE` + `name === 'class'`, or `html` requiring `CHILD`.
  */
 export const PartType = {

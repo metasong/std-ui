@@ -52,10 +52,10 @@ are moved around the host and must stay reachable even while a slot is disposed.
 - `dispose()` removes the projected nodes from the DOM (they stay in `grouped`, so recreating the slot re-inserts them)
   and removes the fallback and its anchor.
 
-## Why not a compiler-level `<slot>` element
+## Why not a factory-level `<slot>` element
 
-Compiling `<slot name="x">` in `compile.ts`/`engine.ts` would give nicer syntax but conflicts with native `<slot>` in
-shadow-DOM components using the same template engine. A directive keeps the two cases explicit and needs no compiler
+Building `<slot name="x">` in `factory.ts`/`builder.ts` would give nicer syntax but conflicts with native `<slot>` in
+shadow-DOM components using the same template engine. A directive keeps the two cases explicit and needs no compiler-level support
 change.
 
 ## Known limits

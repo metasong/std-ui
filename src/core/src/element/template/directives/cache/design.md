@@ -58,7 +58,7 @@ What is cached is the *instantiated* template (its DOM and parts), not the `Temp
 1. **Key** — `result.strings`. The `TemplateStringsArray` is the same object for every evaluation of a given `t`
    literal, so identity comparison tells whether two results come from the same template. Different literals,
    even with identical text, get different entries.
-2. **Miss** — `getTemplate(strings, type)` (itself cached by the compiler) is instantiated with `instantiate()`.
+2. **Miss** — `getTemplate(strings, type)` (itself cached by The factory) is instantiated with `instantiate()`.
    The fragment is inserted before `anchor`, and `{ parts, stash }` is stored in `#entries`.
 3. **Active** — only the entry in `#active` has nodes in the live DOM. Every render calls
    `updateParts(parts, result.values)` on it; unchanged values are skipped by the parts, so re-rendering the

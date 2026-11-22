@@ -1,6 +1,6 @@
 # `html.ts` usage
 
-A tiny, app-agnostic subset of the template engine's
+A tiny, app-agnostic subset of the template Builder's
 design: tagged-template HTML with fine-grained, in-place DOM updates. No vdom diffing, no
 re-parsing or re-rendering the whole subtree on every update - only the values that actually
 changed touch the DOM.
@@ -53,7 +53,7 @@ attributes) are ignored the same way.
 
 ### `class.` and `style.` entries (`@std-ui/ext`)
 
-These two bindings come from `@std-ui/ext`: `import '@std-ui/ext'` registers them (before the templates that use them are first compiled).
+These two bindings come from `@std-ui/ext`: `import '@std-ui/ext'` registers them (before the templates that use them are first built).
 
 `class.name=${bool}` toggles a single class and `style.prop=${value}` sets a single style
 property, without touching the rest of `class`/`style`.
@@ -67,11 +67,11 @@ t`<button class="btn" class.active=${isActive} class.disabled=${!enabled}
 // -> <button class="btn active" style="color: red; --gap: 4px;">
 ``` Use kebab-case for style properties;
 custom properties work (`style.--gap=${v}`). Like `?`/`.`/`@` bindings, each takes exactly one
-interpolation with no static text. The entry is the binding's single modifier; `name:arg` is reserved and throws at compile time. Prefer these over [`classMap`/`styleMap`](./directives/README.md)
+interpolation with no static text. The entry is the binding's single modifier; `name:arg` is reserved and throws at build time. Prefer these over [`classMap`/`styleMap`](./directives/README.md)
 when you only toggle a few known names; use the directives for dynamic key sets.
 
 The full binding-name grammar (`[sigil]name[:arg](.modifier[:value])*`) is in
-[`compiler/compile-attributes.md`](./compiler/compile-attributes.md#binding-name-grammar).
+[`factory/attributes.md`](./factory/attributes.md#binding-name-grammar).
 
 A plain attribute's value may mix static text with any number of interpolations - they're joined
 into one string and re-applied via `setAttribute` whenever any piece changes:
@@ -84,7 +84,7 @@ t`<div class="static-${dynamic}">`; // static text + one interpolation
 `?`/`.`/`@`-prefixed bindings don't support this - they bind to a real JS value (a boolean, a
 property, a listener), not a string, so each must be exactly one interpolation with no static text
 (e.g. `?hidden=${v}`, not `?hidden="${a}${b}"` or `?hidden="x${v}"`); mixing either throws at
-compile time.
+build time.
 
 Child content accepts:
 
@@ -116,7 +116,7 @@ t`
 Neither `AttributePart` nor `ChildPart` (in `parts/`) has built-in knowledge of any specific
 directive. Instead both recognize one generic protocol, defined in `directives/directive.ts` and modeled on
 Custom directives (trimmed to the
-two binding kinds this engine actually produces - a bare attribute binding, or a child-content
+two binding kinds this Builder actually produces - a bare attribute binding, or a child-content
 position; no async/`ElementPart`/boolean-attribute/property/event directives):
 
 ```ts
@@ -240,7 +240,7 @@ and let `ChildPart` do the work, don't duplicate it.
 ## Embedding templates
 
 Build reusable markup as functions (or variables) that return `t` results, then interpolate them
-as child content in a parent template. The nested part keeps its own compiled template and updates
+as child content in a parent template. The nested part keeps its own built template and updates
 in place when you re-render with the same inner call site:
 
 ```ts
@@ -333,19 +333,19 @@ class HelloBanner extends UIElement {
 
 ## How it works
 
-For a **deeper, illustrated walkthrough** of how plain attributes are compiled (state machine,
+For a **deeper, illustrated walkthrough** of how plain attributes are built (state machine,
 placeholders, `literals` / `valueCount`, and the “rewind” trick for `class="prefix-${x}"`), see
-[compile-attributes.md](./compiler/compile-attributes.md).
+[attributes.md](./factory/attributes.md).
 
 1. `t` just captures `strings`/`values` — no DOM work happens yet. Tagged template calls reuse
    the *same* `strings` array object across repeated calls at the same call site (guaranteed by the
    JS spec), so it doubles as a cache key.
-2. The first time a given `strings` array is rendered, it's compiled once: the strings are joined
+2. The first time a given `strings` array is rendered, it's built once: the strings are joined
    with marker text, parsed via a `<template>`, then the parsed tree is walked to record where each
    dynamic part landed (as a node index in document order, since `TreeWalker` visits nodes in the
-   same left-to-right order they were written in the markup). The compiled template is cached
+   same left-to-right order they were written in the markup). The built template is cached
    forever in a `WeakMap` keyed by `strings`.
-3. Each render into a given container clones the compiled template's content once (native
+3. Each render into a given container clones the built template's content once (native
    `cloneNode`), re-walks the clone with the same traversal to resolve the recorded indices back to
    real nodes, and creates a `Part` (child/attribute/property/event/boolean-attribute) per dynamic
    position.

@@ -1,6 +1,6 @@
-# Template compiler design
+# Template factory design
 
-The compiler turns a tagged template's `strings` into a cached, parsed `<template>` plus a list of
+The factory turns a tagged template's `strings` into a cached, parsed `<template>` plus a list of
 descriptors saying where each dynamic value landed. `instantiate()` later clones that template and
 turns the descriptors into live parts.
 
@@ -8,28 +8,28 @@ It has two layers:
 
 | Layer | File | Knows about |
 |---|---|---|
-| Generic engine | `engine.ts` | templates, text vs. attribute positions, markers, parsing, node indexing, cloning, lifecycle hooks |
-| std-ui syntax | `compile.ts` | `.prop` / `?bool` / `@event.mod` / plain `attr`, `Part` classes, SVG, dev warnings |
+| Generic Builder | `builder.ts` | templates, text vs. attribute positions, markers, parsing, node indexing, cloning, lifecycle hooks |
+| std-ui syntax | `factory.ts` | `.prop` / `?bool` / `@event.mod` / plain `attr`, `Part` classes, SVG, dev warnings |
 
-`index.ts` is the public entry; it re-exports `getTemplate`, `instantiate` and the engine types.
+`index.ts` is the public entry; it re-exports `getTemplate`, `instantiate` and the Builder types.
 
 ## Goals
 
-- The engine has no std-ui knowledge. It never mentions sigils, parts, events or SVG.
-- Every std-ui-specific decision sits behind a hook, and the hooks are grouped by concern in `compile.ts`.
+- The Builder has no std-ui knowledge. It never mentions sigils, parts, events or SVG.
+- Every std-ui-specific decision sits behind a hook, and the hooks are grouped by concern in `factory.ts`.
 - The public API (`getTemplate`, `instantiate`, `Template`, `PartDescriptor`) stays stable.
-- A new syntax or descriptor kind only touches `compile.ts`.
+- A new syntax or descriptor kind only touches `factory.ts`.
 
 ## Non-goals
 
 - Unquoted attribute values (`a=${x}`, `.prop=${x}`, `@click=${h}`) are supported: exactly one interpolation, no static text.
 - Interpolation inside tag names, comments or `<script>`/`<style>` bodies is not supported.
-- The engine does not render or update. That is the job of parts.
+- The Builder does not render or update. That is the job of parts.
 
 ## Pipeline
 
 ```
-compile(strings, type)
+build(strings, type)
   scan strings, for each interpolation:
     text position       -> onTextSlot()                    -> descriptor
     tag position        -> onTagSlot()                     -> descriptor (`<div ${x}>`, no attribute name)
@@ -38,7 +38,7 @@ compile(strings, type)
                            onAttributeClose()              (at the closing quote) -> descriptor
   wrapMarkup() -> innerHTML -> unwrapContent()
   walk nodes: assign descriptor.nodeIndex, strip attribute placeholders
-  onCompiled()
+  onBuilt()
 
 instantiate(template)
   cloneNode(content)
@@ -61,13 +61,13 @@ Transitions:
 - `TEXT -> ATTR_VALUE` on seeing `name="`.
 - `ATTR_VALUE -> TEXT` on the matching closing quote. The interpolation that followed the closing quote is then re-evaluated as `TEXT`.
 
-The engine tracks `quote`, `literals` and `valueCount` itself. The hooks only see them at open and close.
+The Builder tracks `quote`, `literals` and `valueCount` itself. The hooks only see them at open and close.
 
 ### Markers
 
 - Text slot: a real comment node `<!--std-ui-part-->`, kept in the DOM as an anchor.
 - Tag slot: an injected attribute `std-ui-part-tag-N` valued with the marker (unique per element, since the parser drops duplicate attributes), stripped like attribute slots.
-- Attribute slot: an attribute whose value is the placeholder `std-ui-part`. After parsing, the engine records its `nodeIndex` and removes it. The real value is recomputed from `literals` and live values on first update, so one placeholder works for one or many interpolations.
+- Attribute slot: an attribute whose value is the placeholder `std-ui-part`. After parsing, the Builder records its `nodeIndex` and removes it. The real value is recomputed from `literals` and live values on first update, so one placeholder works for one or many interpolations.
 - Static text before the first interpolation (the `static-` in `class="static-${x}"`) is rewound out of the markup, because it is already stored in `literals[0]`.
 
 ### Node indexing
@@ -77,7 +77,7 @@ Descriptors are in source order, and the walk visits element and comment nodes i
 ## Hooks
 
 ```ts
-interface EngineHooks<D, Part, Type, Open> {
+interface BuilderHooks<D, Part, Type, Open> {
   onTextSlot(ctx): DescriptorInit<D>
   onTagSlot?(ctx): DescriptorInit<D>
   onAttributeOpen(ctx): Open
@@ -85,19 +85,19 @@ interface EngineHooks<D, Part, Type, Open> {
 
   wrapMarkup?(markup, type): string
   unwrapContent?(content, type): void
-  onCompiled?(template, type): void
+  onBuilt?(template, type): void
 
   createPart(descriptor, node): Part
   onInstantiated?(fragment, parts): void
 }
 ```
 
-- `D` is the descriptor type. It must extend `{ nodeIndex, valueCount }`; the engine sets `nodeIndex`.
+- `D` is the descriptor type. It must extend `{ nodeIndex, valueCount }`; the Builder sets `nodeIndex`.
 - `Open` is private state the syntax layer carries from open to close, for example the parsed sigil and name.
-- `Type` is a free string union (`'html' | 'svg'` here). The engine only uses it as a cache key and passes it to hooks.
-- Hooks throw to reject invalid templates. The engine adds no validation of its own beyond "could not parse" and "unterminated attribute value".
+- `Type` is a free string union (`'html' | 'svg'` here). The Builder only uses it as a cache key and passes it to hooks.
+- Hooks throw to reject invalid templates. The Builder adds no validation of its own beyond "could not parse" and "unterminated attribute value".
 
-## How std-ui plugs in (`compile.ts`)
+## How std-ui plugs in (`factory.ts`)
 
 | Concern | Hook(s) |
 |---|---|
@@ -106,19 +106,19 @@ interface EngineHooks<D, Part, Type, Open> {
 | Element slot | `onTagSlot` returns an `element` descriptor; `ElementPart` only accepts directives (e.g. `ref`) |
 | Part creation | `createPart` maps descriptor `kind` to `ChildPart`, `AttributePart`, `BooleanAttributePart`, `PropertyPart` or `EventPart` |
 | SVG | `wrapMarkup` wraps in `<svg>`, `unwrapContent` hoists the children back so indices match the HTML path |
-| Dev diagnostics | `onCompiled` calls `warnOnUndefinedElements` in DEV |
+| Dev diagnostics | `onBuilt` calls `warnOnUndefinedElements` in DEV |
 
-`compile.ts` imports `parts/`, and `parts/` imports `instantiate` for nested templates. The cycle is harmless because the part classes are only used lazily inside `createPart`.
+`factory.ts` imports `parts/`, and `parts/` imports `instantiate` for nested templates. The cycle is harmless because the part classes are only used lazily inside `createPart`.
 
 ## Extending
 
 - **New sigil, for example `:name`:** add it to `SIGIL_KIND`, extend `BINDING_NAME_RE`, add a part kind and a `createPart` case.
 - **New slot behaviour, for example a directive-style attribute:** another `PartKind`, handled in `describeBinding` and `createPart`.
-- **A second, unrelated syntax:** call `createEngine` with different hooks. The cache and scanner are per engine.
+- **A second, unrelated syntax:** call `createBuilder` with different hooks. The cache and scanner are per Builder.
 
 ## Behaviour notes
 
-- The engine's attribute-name regex is permissive (`[^\s"'<>/=]+`). The std-ui layer validates the name and throws `could not parse an attribute binding` for anything it does not accept.
+- The Builder's attribute-name regex is permissive (`[^\s"'<>/=]+`). The std-ui layer validates the name and throws `could not parse an attribute binding` for anything it does not accept.
 - Descriptors are flat objects, so `template.parts[i].kind`, `name`, `literals` and `modifiers` keep working for tests and parts.
 
-See also: [compile-attributes.md](./compile-attributes.md), [html.md](../tag-funcs/html/html.md).
+See also: [attributes.md](./attributes.md), [html.md](../tag-funcs/html/html.md).
