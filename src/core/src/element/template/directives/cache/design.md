@@ -10,7 +10,7 @@ Implementation of the built-in child directive that keeps switched-out templates
 | [`../index.ts`](../index.ts) | Public re-export with other directives. |
 
 `ChildPart` has no knowledge of `cache`; the directive hands it a renderer via `renderWith()`, the same
-pattern as [`../html/unsafe-html.ts`](../html/unsafe-html.ts).
+pattern as [`../unsafe-html/main.ts`](../unsafe-html/main.ts).
 
 ## Why a renderer, not just returning the template
 
@@ -90,6 +90,6 @@ between `#start` and `anchor`, or its stash.
 ## Related reading
 
 - [`README.md`](./README.md) — public API.
-- [`../html/unsafe-html.ts`](../html/unsafe-html.ts) — another directive built on `renderWith()`.
+- [`../unsafe-html/main.ts`](../unsafe-html/main.ts) — another directive built on `renderWith()`.
 - [`../../parts/renderers/child-renderer.ts`](../../parts/renderers/child-renderer.ts) — `ChildRenderer`, `renderWith`.
 - [`../../parts/renderers/template-renderer.ts`](../../parts/renderers/template-renderer.ts) — the non-caching equivalent.

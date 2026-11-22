@@ -7,7 +7,7 @@ import {
 	PropertyPart,
 } from './index.js';
 import { t } from '../tag-funcs/html/index.js';
-import { unsafeHtml } from '../directives/html/index.js';
+import { unsafeHtml } from '../directives/unsafe-html/index.js';
 import { Directive, directive, noChange, type DirectivePart } from '../directives/directive.js';
 import { classMap } from '../directives/class-map/index.js';
 import { styleMap } from '../directives/style-map/index.js';

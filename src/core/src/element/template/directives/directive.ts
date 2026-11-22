@@ -19,7 +19,7 @@ export const noChange: unique symbol = Symbol('noChange');
  * actually committable depends on which kind of position the directive is bound to -
  * `string`/`number`/`null`/`undefined` for an `AttributePart` (stringified/removed), or anything
  * a `ChildPart` already knows how to commit (a string, `TemplateResult`, array, `null`/`undefined`
- * /`false`, or another directive's wrapper - see `directives/html/unsafe-html.ts`) for a `ChildPart`. `noChange` is
+ * /`false`, or another directive's wrapper - see `directives/unsafe-html/main.ts`) for a `ChildPart`. `noChange` is
  * the one value both recognize the same way: "I already applied my update myself - leave whatever
  * I didn't just touch alone."
  */
