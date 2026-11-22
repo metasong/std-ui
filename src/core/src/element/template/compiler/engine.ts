@@ -1,3 +1,4 @@
+import { DEV } from '../../../dev/flag.js';
 // --- Generic template engine -----------------------------------------------------------------------
 //
 // Knows only generic concepts: a tagged template (`strings` + interpolations), the markup between
@@ -330,7 +331,7 @@ export function createEngine<D extends SlotDescriptor, Part, Type extends string
 		if (state.kind === ScanKind.ATTR_VALUE) {
 			const quoteIndex = lastChunk.indexOf(state.attr.quote);
 			if (quoteIndex === -1) {
-				throw new Error(`std-ui html: unterminated attribute value near "...${lastChunk.slice(-40)}"`);
+				throw new Error(DEV ? `std-ui html: unterminated attribute value near "...${lastChunk.slice(-40)}"` : 'std-ui: unterminated attribute value');
 			}
 			state.attr.literals.push(lastChunk.slice(0, quoteIndex));
 			descriptors.push(closeAttr(state.attr));

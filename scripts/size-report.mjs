@@ -5,7 +5,7 @@ import fs from 'node:fs';
 import path from 'node:path';
 import zlib from 'node:zlib';
 
-const kb = n => `${(n / 1024).toFixed(2)} kB`;
+const kb = n => `${(n / 1000).toFixed(2)} kB`;
 const walk = d =>
 	fs.readdirSync(d, { withFileTypes: true }).flatMap(e =>
 		e.isDirectory() ? walk(path.join(d, e.name)) : [path.join(d, e.name)],
@@ -16,8 +16,12 @@ let out = '### Browser bundles (`<pkg>/dist/browser`; `std-ui-ext` keeps `std-ui
 for (const f of [
 	'src/core/dist/browser/std-ui-core.min.js',
 	'src/core/dist/browser/std-ui-core.iife.min.js',
+	'src/core/dist/browser/std-ui-core.release.min.js',
+	'src/core/dist/browser/std-ui-core.release.iife.min.js',
 	'src/ext/dist/browser/std-ui-ext.min.js',
 	'src/ext/dist/browser/std-ui-ext.iife.min.js',
+	'src/ext/dist/browser/std-ui-ext.release.min.js',
+	'src/ext/dist/browser/std-ui-ext.release.iife.min.js',
 ]) {
 	const b = fs.readFileSync(f);
 	const row = `| \`${path.basename(f)}\` | ${kb(b.length)} | ${kb(zlib.gzipSync(b, { level: 9 }).length)} | ${kb(zlib.brotliCompressSync(b).length)} |\n`;

@@ -2,12 +2,13 @@ import { Directive, directive, type DirectivePart, type PartInfo } from '../dire
 import { PartType } from '../../parts/part.js';
 import { renderWith } from '../../parts/renderers/index.js';
 import { MapByKeyRenderer } from './map-by-key-renderer.js';
+import { DEV } from '../../../../dev/flag.js';
 
 class MapByKeyDirective extends Directive {
 	constructor(partInfo: PartInfo) {
 		super(partInfo);
 		if (partInfo.type !== PartType.CHILD) {
-			throw new Error('std-ui mapByKey(): must be bound to a child position.');
+			throw new Error(DEV ? 'std-ui mapByKey(): must be bound to a child position.' : 'mapByKey(): child position only');
 		}
 	}
 
@@ -22,7 +23,7 @@ class MapByKeyDirective extends Directive {
 		let index = 0;
 		for (const item of items) {
 			const key = keyFn(item, index);
-			if (seen.has(key)) throw new Error(`std-ui mapByKey(): duplicate key ${String(key)}.`);
+			if (seen.has(key)) throw new Error(DEV ? `std-ui mapByKey(): duplicate key ${String(key)}.` : 'mapByKey(): duplicate key');
 			seen.add(key);
 			entries.push({ key, value: template(item, index) });
 			index++;

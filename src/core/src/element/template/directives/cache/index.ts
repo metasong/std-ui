@@ -3,6 +3,7 @@ import { getTemplate, instantiate } from '../../compiler/index.js';
 import { isTemplateResult, type TemplateResult } from '../../tag-funcs/html/index.js';
 import { ChildRenderer, renderWith } from '../../parts/renderers/index.js';
 import { PartType, updateParts, type Part } from '../../parts/part.js';
+import { DEV } from '../../../../dev/flag.js';
 
 interface Entry {
 	parts: Part[];
@@ -86,7 +87,7 @@ class CacheDirective extends Directive {
 	constructor(partInfo: PartInfo) {
 		super(partInfo);
 		if (partInfo.type !== PartType.CHILD) {
-			throw new Error('std-ui cache(): must be bound to a child position, not an attribute.');
+			throw new Error(DEV ? 'std-ui cache(): must be bound to a child position, not an attribute.' : 'cache(): child position only');
 		}
 	}
 

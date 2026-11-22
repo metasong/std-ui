@@ -1,5 +1,6 @@
 import { applyDirective, isDirectiveResult, type Directive, type ElementPartInfo } from '../directives/directive.js';
 import { PartType, type Part } from './part.js';
+import { DEV } from '../../../dev/flag.js';
 
 /** <div ${directive()}>: an interpolation in an opening tag with no attribute name. Only
  *  directives (e.g. ref) make sense here; falsy values (cond && ref(r)) are ignored. */
@@ -24,7 +25,7 @@ export class ElementPart implements Part {
 		}
 		this.disconnect();
 		if (value != null && value !== false) {
-			throw new Error('std-ui html: an element binding (<tag ${...}>) only accepts directives, e.g. ref().');
+			throw new Error(DEV ? 'std-ui html: an element binding (<tag ${...}>) only accepts directives, e.g. ref().' : 'std-ui: element binding takes directives only');
 		}
 	}
 }

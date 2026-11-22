@@ -1,6 +1,7 @@
 import { Directive, directive, noChange, type ElementPartInfo, type PartInfo } from '../directive.js';
 import { PartType } from '../../parts/part.js';
 import { state, type State } from '../../../../reactive/signal/index.js';
+import { DEV } from '../../../../dev/flag.js';
 
 /** A signal holding the rendered element, filled in by `ref()`: `undefined` before the first render and after
  *  teardown. Read it by calling it (tracked in effects/templates), or `.peek()` for an untracked read. */
@@ -37,7 +38,7 @@ class RefDirective extends Directive {
 	constructor(partInfo: PartInfo) {
 		super(partInfo);
 		if (partInfo.type !== PartType.ELEMENT) {
-			throw new Error('std-ui ref(): must be bound to an element, e.g. <input ${ref(r)}>.');
+			throw new Error(DEV ? 'std-ui ref(): must be bound to an element, e.g. <input ${ref(r)}>.' : 'ref(): element only');
 		}
 	}
 

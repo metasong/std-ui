@@ -11,6 +11,7 @@ import { assertBindableTarget, isRadio } from './defaults.js';
 import { pullRadioSiblings, registerRadio, unregisterRadio } from './radio-group.js';
 import { BIND_USAGE, isWritableSignal, resolveBinding } from './resolve.js';
 import type { BindOptions, BindPlugin, BindSource, Binding, WritableSignal } from './types.js';
+import { DEV } from '../../../../dev/flag.js';
 
 /** DOM wiring for one binding position; torn down as a unit. */
 interface Wiring {
@@ -35,7 +36,7 @@ function defineBindDirective(plugins: readonly BindPlugin[]) {
 		constructor(partInfo: PartInfo) {
 			super(partInfo);
 			if (!isPropertyPartInfo(partInfo)) {
-				throw new Error('std-ui bind(): must be used as a property binding (e.g. `.value=${bind(...)}`).');
+				throw new Error(DEV ? 'std-ui bind(): must be used as a property binding (e.g. `.value=${bind(...)}`).' : 'bind(): property binding only');
 			}
 			assertBindableTarget(partInfo.element, partInfo.name);
 		}
@@ -133,7 +134,7 @@ function assertUsable(first: object): void {
 	const usable =
 		isWritableSignal(first) ||
 		(typeof (first as BindSource).get === 'function' && typeof (first as BindSource).set === 'function');
-	if (!usable) throw new Error(`std-ui bind(): ${BIND_USAGE}`);
+	if (!usable) throw new Error(DEV ? `std-ui bind(): ${BIND_USAGE}` : 'bind(): invalid target');
 }
 
 type BindFunction = {

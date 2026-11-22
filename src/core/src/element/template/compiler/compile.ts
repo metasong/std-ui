@@ -77,13 +77,13 @@ function parseModifiers(raw: string): Modifier[] {
 function parseBinding(rawName: string, markup: string): OpenBinding {
 	const match = BINDING_NAME_RE.exec(rawName);
 	if (!match) {
-		throw new Error(`std-ui html: could not parse an attribute binding near "...${markup.slice(-40)}"`);
+		throw new Error(DEV ? `std-ui html: could not parse an attribute binding near "...${markup.slice(-40)}"` : 'std-ui: bad attribute binding');
 	}
 	const [, sigil, name, arg, rawModifiers] = match;
 	const attributeInfo: AttributeInfo = { sigil, name, arg, modifiers: parseModifiers(rawModifiers) };
 	const extension = findCustomAttribute(attributeInfo);
 	if (!extension) {
-		throw new Error(`std-ui html: unknown binding sigil "${sigil}" in "${rawName}" - register a CustomAttribute for it.`);
+		throw new Error(DEV ? `std-ui html: unknown binding sigil "${sigil}" in "${rawName}" - register a CustomAttribute for it.` : 'std-ui: unknown binding sigil');
 	}
 	extension.validate?.(attributeInfo);
 	return { rawName, attributeInfo, extension };

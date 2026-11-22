@@ -1,3 +1,4 @@
+import { DEV } from '../../../../dev/flag.js';
 // A tiny `css` tagged template: lets stylesheets be written as
 // `css\`...\`` literals, cached/shared as `CSSStyleSheet` objects, and adopted onto a shadow
 // root via `adoptedStyleSheets` (see `UIElement`'s `static styles`) instead of being re-parsed
@@ -78,9 +79,7 @@ export function css(strings: TemplateStringsArray, ...values: Array<CSSResult | 
 function cssValueToString(value: CSSResult | number): string {
 	if (value instanceof CSSResult) return value.cssText;
 	if (typeof value === 'number') return String(value);
-	throw new TypeError(
-		`Value passed to 'css' must be a 'CSSResult' (from css\`...\`/unsafeCss()) or a number, got: ${String(value)}`,
-	);
+	throw new TypeError(DEV ? `Value passed to 'css' must be a 'CSSResult' (from css\`...\`/unsafeCss()) or a number, got: ${String(value)}` : 'css: invalid value');
 }
 
 /**

@@ -53,7 +53,7 @@ export class CycleGuard {
 	count(watcher: Watcher): void {
 		const n = (this.runs.get(watcher) ?? 0) + 1;
 		if (n > this.limit) {
-			const message = this.describe(watcher);
+			const message = DEV ? this.describe(watcher) : `effect re-ran more than ${this.limit} times (cycle?)`;
 			this.onTrip();
 			this.runs.clear();
 			throw new Error(message);

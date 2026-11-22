@@ -61,7 +61,7 @@ class SlotDirective extends Directive {
 	constructor(partInfo: PartInfo) {
 		super(partInfo);
 		if (partInfo.type !== PartType.CHILD) {
-			throw new Error('std-ui slot(): must be bound to a child position, not an attribute.');
+			throw new Error(DEV ? 'std-ui slot(): must be bound to a child position, not an attribute.' : 'slot(): child position only');
 		}
 	}
 

@@ -1,3 +1,4 @@
+import { DEV } from '../../../dev/flag.js';
 // Attribute <-> property value conversion: the `type`/`converter` half of `@attribute()`'s options
 // (see `./attribute.decorator.ts`, same folder). Everything here is pure data + pure functions - no class-field or
 // metadata concerns - so it can be read/tested in isolation from *how* a field ends up calling it.
@@ -100,9 +101,7 @@ export function resolveConverter<V>(type: AttributeType | undefined, converter: 
 	if (converter) return converter;
 	const resolved = defaultConverters.get(type ?? String);
 	if (!resolved) {
-		throw new Error(
-			"@attribute(): no default converter for this 'type' - pass a 'converter' option instead.",
-		);
+		throw new Error(DEV ? "@attribute(): no default converter for this 'type' - pass a 'converter' option instead." : '@attribute(): converter required');
 	}
 	return resolved as AttributeConverter<V>;
 }

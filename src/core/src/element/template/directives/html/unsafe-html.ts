@@ -1,6 +1,7 @@
 import { Directive, directive, type DirectivePart, type PartInfo } from '../directive.js';
 import { PartType } from '../../parts/part.js';
 import { ChildRenderer, renderWith } from '../../parts/renderers/index.js';
+import { DEV } from '../../../../dev/flag.js';
 
 /** Parses markup and inserts the resulting nodes before the DirectivePart's anchor; re-parses only when
  *  the markup string changes. */
@@ -30,7 +31,7 @@ class UnsafeHtmlDirective extends Directive {
 	constructor(partInfo: PartInfo) {
 		super(partInfo);
 		if (partInfo.type !== PartType.CHILD) {
-			throw new Error('std-ui unsafeHtml(): must be bound to a child position, not an attribute.');
+			throw new Error(DEV ? 'std-ui unsafeHtml(): must be bound to a child position, not an attribute.' : 'unsafeHtml(): child position only');
 		}
 	}
 

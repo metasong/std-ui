@@ -1,5 +1,6 @@
 import { Directive, directive, noChange, type AttributePartInfo, type PartInfo } from '../directive.js';
 import { PartType } from '../../parts/part.js';
+import { DEV } from '../../../../dev/flag.js';
 
 /** `fontSize` -> `font-size`; CSS custom properties (`--foo`) and already-kebab/lowercase names
  *  pass through unchanged, matching `CSSStyleDeclaration.setProperty`'s expectations. */
@@ -28,7 +29,7 @@ class StyleMapDirective extends Directive {
 	constructor(partInfo: PartInfo) {
 		super(partInfo);
 		if (partInfo.type !== PartType.ATTRIBUTE || partInfo.name !== 'style') {
-			throw new Error('std-ui styleMap(): must be bound to a "style" attribute.');
+			throw new Error(DEV ? 'std-ui styleMap(): must be bound to a "style" attribute.' : 'styleMap(): style attribute only');
 		}
 	}
 

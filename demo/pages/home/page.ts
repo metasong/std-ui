@@ -12,7 +12,9 @@ const brotliKb = (file: string): number =>
 	Math.round(((bundleSizes.bundles.find((b) => b.file === file)?.brotli ?? 0) / 1000) * 10) / 10;
 
 const stats: readonly (readonly [number, string, string])[] = [
-	[brotliKb('std-ui-core.iife.min.js'), ' kB', 'core, brotli'], [brotliKb('std-ui-ext.iife.min.js'), ' kB', 'add-ons, brotli'], [0, '', 'virtual DOM'], [0, '', 'build steps required'],
+	[brotliKb('std-ui-core.release.iife.min.js'), ' kB', 'core, brotli'],
+	[brotliKb('std-ui-ext.release.iife.min.js'), ' kB', 'add-ons, brotli'],
+	[0, '', 'virtual DOM'], [0, '', 'build steps required'],
 ];
 
 const goals: readonly (readonly [string, string])[] = [
@@ -58,10 +60,10 @@ export class DemoHomePage extends UIElement {
 		.home-card:hover::before { opacity: 1; }
 		/* The card under the pointer is the centre of attention; its neighbours step back. */
 		.home-cards:has(.home-card:hover) .home-card:not(:hover) { --s: 0.95; opacity: 0.55; filter: blur(0.5px); }
-		
+
 		.reveal { opacity: 0; transform: translateY(2.5rem) scale(0.97); filter: blur(6px); transition: opacity 0.9s cubic-bezier(0.2, 0.8, 0.2, 1) var(--d, 0s), transform 0.9s cubic-bezier(0.2, 0.8, 0.2, 1) var(--d, 0s), filter 0.9s var(--d, 0s); }
 		.reveal.in { opacity: 1; transform: none; filter: none; }
-		
+
 		@keyframes home-shine { to { background-position: -200% center; } }
 		@media (prefers-reduced-motion: reduce) {
 			.reveal { opacity: 1; transform: none; filter: none; transition: none; }

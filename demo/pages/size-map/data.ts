@@ -25,4 +25,4 @@ export type BundleSizes = {
 
 export const SIZE_DATA: BundleSizes = bundleSizes;
 
-export const formatKb = (bytes: number, digits = 2): string => `${(bytes / 1024).toFixed(digits)} kB`;
+export const formatKb = (bytes: number, digits = 2): string => `${(bytes / 1000).toFixed(digits)} kB`;

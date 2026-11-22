@@ -9,6 +9,7 @@ import {
 	writeProperty,
 } from './defaults.js';
 import type { BindAccessor, BindDepth, BindOptions, BindSource, Binding, WritableSignal } from './types.js';
+import { DEV } from '../../../../dev/flag.js';
 
 export function isWritableSignal(value: unknown): value is WritableSignal {
 	return typeof value === 'function' && typeof (value as { set?: unknown }).set === 'function';
@@ -40,7 +41,7 @@ export function resolveBinding(args: readonly unknown[], element: Element, prope
 		model = { get, set };
 		options = rest;
 	} else {
-		throw new Error(`std-ui bind() on ${describeTarget(element, property)}: ${BIND_USAGE}`);
+		throw new Error(DEV ? `std-ui bind() on ${describeTarget(element, property)}: ${BIND_USAGE}` : 'bind(): invalid target');
 	}
 
 	return {

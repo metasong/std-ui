@@ -9,8 +9,8 @@ const BUNDLES = [
 	// 'src/core/dist/browser/std-ui-core.iife.min.js',
 	'src/core/dist/browser/std-ui-core.release.min.js',
 	'src/core/dist/browser/std-ui-core.release.iife.min.js',
-	'src/ext/dist/browser/std-ui-ext.min.js',
-	'src/ext/dist/browser/std-ui-ext.iife.min.js',
+	'src/ext/dist/browser/std-ui-ext.release.min.js',
+	'src/ext/dist/browser/std-ui-ext.release.iife.min.js',
 ];
 const PACKAGES = [
 	['core', 'src/core'],
@@ -79,5 +79,5 @@ const out = {
 };
 
 fs.mkdirSync(path.dirname(DEST), { recursive: true });
-fs.writeFileSync(DEST, JSON.stringify(out) + '\n'); // compact: it is generated, and committed
+fs.writeFileSync(DEST, JSON.stringify(out, null, '\t') + '\n'); // tab-indented so diffs of the committed file stay readable
 console.log(`Wrote ${DEST} (${out.bundles.length} bundles, ${out.packages.length} package trees)`);

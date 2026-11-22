@@ -16,6 +16,7 @@ import { type AttributeConverter, type AttributeType } from './converter.js';
 import { attributeDefs, createAttributeDef } from './metadata.js';
 import { addClassHooks } from '../../ui-element-hooks.js';
 import { attributeHooks } from './wire-reflect.js';
+import { DEV } from '../../../dev/flag.js';
 
 export interface AttributeOptions<V = unknown> {
 	/**
@@ -89,7 +90,7 @@ export type AttributeStore = { (): unknown; peek(): unknown; set(value: never): 
 export function attribute(options: AttributeOptions = {}) {
 	return function attributeDecorator(_value: undefined, context: ClassFieldDecoratorContext<object, unknown>): void {
 		if (context.kind !== 'field') {
-			throw new Error("@attribute() can only decorate a plain class field, e.g. `@attribute() foo = stateTree(0);` (no 'accessor').");
+			throw new Error(DEV ? "@attribute() can only decorate a plain class field, e.g. `@attribute() foo = stateTree(0);` (no 'accessor')." : '@attribute(): plain fields only');
 		}
 		// Registered per class (shared by every instance); if neither `type` nor `converter` was
 		// given, the def's converter is inferred from the store's value on first use - see
