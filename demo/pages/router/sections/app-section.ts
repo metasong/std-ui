@@ -1,4 +1,4 @@
-import { createRef, css, ref, t, tag, state, UIElement } from '@std-ui/core';
+import { createRef, css, ref, t, tag, stateTree, UIElement } from '@std-ui/core';
 import { createRouter, routeParam, searchParam } from '@std-ui/router';
 import '@std-ui/router'; // defines <std-router>, <std-route>, <std-outlet>
 import { createMemoryNavigation } from '@std-ui/router/testing';
@@ -123,8 +123,8 @@ export class DemoRouterFullSection extends UIElement {
 }
 @tag('demo-rt-controls')
 class Controls extends UIElement {
-	private readonly signedIn = state(flag('rt-signed-in'));
-	private readonly fail = state(flag('rt-fail'));
+	private readonly signedIn = stateTree(flag('rt-signed-in'));
+	private readonly fail = stateTree(flag('rt-fail'));
 
 	private toggle(key: string, s: typeof this.signedIn): void {
 		s.set(!s.peek());
@@ -179,7 +179,7 @@ class User extends UIElement {
 @tag('demo-rt-editor')
 class Editor extends UIElement {
 	static override styles = css`textarea { width: 100%; box-sizing: border-box; }`;
-	private readonly text = state('');
+	private readonly text = stateTree('');
 	private saved = '';
 	#off?: () => void;
 

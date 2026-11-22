@@ -1,0 +1,54 @@
+// Writable reactive value: `state()`. See `./computed.ts` for derived values; `../effect/` for
+// side effects; `./tracking.ts` for the shared dependency graph.
+
+import { notify, ReactiveNode, track } from './tracking.js';
+
+/** Options accepted by `state()`, named after `Signal.State`'s options in the proposed standard
+ * signals API. */
+export interface StateOptions<T> {
+	/** Decides whether a `.set()`/`.update()` value counts as a change (and should notify
+	 * subscribers). Defaults to `Object.is`, same as the proposal's default. */
+	equals?(prev: T, next: T): boolean;
+}
+
+/** The read side of a signal: what a consumer may do. Expose a private `State` under this type to hand out read-only access. */
+export interface ReadonlyState<T> {
+	/** Reads the current value and tracks it as a dependency. */
+	(): T;
+	/** Reads the current value without tracking it as a dependency.*/
+	peek(): T;
+}
+
+/** A reactive value: call it to read (and track), call `.set`/`.update` to write. */
+export interface State<T> extends ReadonlyState<T> {
+	set(value: T): void;
+	update(fn: (prev: T) => T): T;
+}
+
+/** Creates a writable reactive value, seeded with `initial`. */
+export function state<T>(initial: T, options: StateOptions<T> = {}): State<T> {
+	const { equals = Object.is } = options;
+	let value = initial;
+	const node = new ReactiveNode();
+
+	const read = (): T => {
+		track(node);
+		return value;
+	};
+	read.set = (next: T): void => {
+		if (equals(next, value)) return;
+		value = next;
+		node.version++;
+		notify(node);
+	};
+	/** Updates the signal value by applying `fn` to the **current** value.
+	 * Returns the new value.
+	*/
+	read.update = (fn: (prev: T) => T): T => {
+		const next = fn(value);
+		read.set(next);
+		return next;
+	};
+	read.peek = (): T => value;
+	return read as State<T>;
+}

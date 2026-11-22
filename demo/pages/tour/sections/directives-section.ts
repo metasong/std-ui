@@ -1,11 +1,11 @@
 // Demonstrates: `classMap` / `styleMap` attribute directives, and `unsafeHtml`.
-import { tag, t, UIElement, unsafeHtml, state } from '@std-ui/core';
+import { tag, t, UIElement, unsafeHtml, stateTree } from '@std-ui/core';
 import { classMap, styleMap } from '@std-ui/core';
 
 @tag('demo-directives-section')
 export class DemoDirectivesSection extends UIElement {
-	readonly active = state(false);
-	readonly big = state(false);
+	readonly active = stateTree(false);
+	readonly big = stateTree(false);
 
 	protected override template() {
 		const classes = { active: this.active(), 'demo-box': true };

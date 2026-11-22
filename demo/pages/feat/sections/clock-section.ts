@@ -1,10 +1,10 @@
 // A custom `UIFeat` (clock with timer cleanup) composed with a ready-made one (`HotkeyFeat`) in field initializers.
-import { state, t, tag, UIElement, UIFeat } from '@std-ui/core';
+import { stateTree, t, tag, UIElement, UIFeat } from '@std-ui/core';
 import { HotkeyFeat } from '@std-ui/ext';
 
 class ClockFeat extends UIFeat {
-	readonly now = state(Date.now());
-	readonly running = state(true);
+	readonly now = stateTree(Date.now());
+	readonly running = stateTree(true);
 
 	protected override connected() {
 		// Re-runs on every connect; the effect is disposed on disconnect, and so is the interval via the cleanup.

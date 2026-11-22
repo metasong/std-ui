@@ -4,7 +4,7 @@ Lets a `UIElement` (from `@std-ui/core`) expose one of its stores to **any** des
 just direct children — without threading it through attributes/properties of every intermediate
 element. Two halves:
 
-- **Provide** — `@provide(key)` on a `state(...)` field, or the decorator-free
+- **Provide** — `@provide(key)` on a `stateTree(...)` field, or the decorator-free
   `defineContext(Class, { provide: { theme: key } })`.
 - **Consume** — `@consume(key) readonly theme!: Theme`: a read-only, reactive property holding the
   nearest ancestor's value, read as `this.theme.mode`. The decorator-free form is
@@ -14,7 +14,7 @@ Both halves are registered **per class** (decorator metadata, or `defineContext`
 nothing is registered per instance.
 
 ```ts
-import { tag, state, t, UIElement } from '@std-ui/core';
+import { tag, stateTree, t, UIElement } from '@std-ui/core';
 import { provide, consume, createContextKey } from '@std-ui/ext';
 
 interface Theme { mode: 'light' | 'dark'; }
@@ -22,7 +22,7 @@ export const ThemeKey = createContextKey<Theme>('theme'); // identity both sides
 
 @tag('app-root')
 class AppRoot extends UIElement {
-	@provide(ThemeKey) readonly theme = state<Theme>({ mode: 'dark' });
+	@provide(ThemeKey) readonly theme = stateTree<Theme>({ mode: 'dark' });
 	// decorator-free: defineContext(AppRoot, { provide: { theme: ThemeKey } });
 
 	protected override connect() {
@@ -48,14 +48,14 @@ fields, then register them in typed maps. Call `defineContext` **before** `defin
 (or `customElements.define`) so elements upgraded at define time already see the registrations.
 
 ```ts
-import { UIElement, defineElement, state, t } from '@std-ui/core';
+import { UIElement, defineElement, stateTree, t } from '@std-ui/core';
 import { defineContext, createContextKey } from '@std-ui/ext';
 
 interface Theme { mode: 'light' | 'dark'; }
 const ThemeKey = createContextKey<Theme>('theme');
 
 class AppRoot extends UIElement {
-	readonly theme = state<Theme>({ mode: 'dark' }); // provided: must be a store of the key's type
+	readonly theme = stateTree<Theme>({ mode: 'dark' }); // provided: must be a store of the key's type
 }
 defineContext(AppRoot, { provide: { theme: ThemeKey } });
 defineElement('app-root', AppRoot);
@@ -80,7 +80,7 @@ defineElement('themed-button', ThemedButton);
 
 `createContextKey<T>(description)` carries `T` in its type and is matched by **identity** (not by
 name), so two unrelated features can't collide, and `T` is checked on both sides: `@provide(key)`
-requires the field to be `SignalState<T>` and `@consume(key)` a field of type `T` (`defineContext`'s `provide` / `consume` maps check the same). `description` is for error messages only.
+requires the field to be `StateTree<T>` and `@consume(key)` a field of type `T` (`defineContext`'s `provide` / `consume` maps check the same). `description` is for error messages only.
 
 ## Provide
 

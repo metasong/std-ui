@@ -1,5 +1,5 @@
 // Class-level attachment: `@hotkeys()` (built on `UIFeat.attachTo`) gives every instance its own feature.
-import { css, state, t, tag, UIElement } from '@std-ui/core';
+import { css, stateTree, t, tag, UIElement } from '@std-ui/core';
 import { hotkeys } from '@std-ui/ext';
 
 @tag('demo-feat-counter')
@@ -9,7 +9,7 @@ import { hotkeys } from '@std-ui/ext';
 })
 export class DemoFeatCounter extends UIElement {
 	static override styles = css`div:focus { outline: 2px solid currentColor; outline-offset: 2px; }`;
-	readonly count = state(0);
+	readonly count = stateTree(0);
 
 	protected override template() {
 		return t`<div tabindex="0">count: <b>${this.count()}</b> <small>focus, then ArrowUp / ArrowDown</small></div>`;

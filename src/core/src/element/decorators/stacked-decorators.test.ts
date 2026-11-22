@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { attribute, defineElement, tag, UIElement } from '../ui-element.js';
-import { state } from '../../reactive/index.js';
+import { stateTree } from '../../reactive/index.js';
 
 // `@attribute()` only registers metadata about a field that already is a store, and the decorator-free
 // `defineElement()` must register exactly the same attribute defs.
@@ -14,7 +14,7 @@ describe('@attribute() stacked on a store field', () => {
 		@tag('stack-single-def')
 		class Foo extends UIElement {
 			@attribute({ reflect: true })
-			readonly label = state('hi');
+			readonly label = stateTree('hi');
 		}
 
 		expect((Foo as unknown as { observedAttributes?: string[] }).observedAttributes).toEqual(['label']);
@@ -24,9 +24,9 @@ describe('@attribute() stacked on a store field', () => {
 describe('defineElement() - the decorator-free path', () => {
 	it('registers the element and mirrors attribute fields, same as @tag + @attribute', async () => {
 		class Foo extends UIElement {
-			readonly count = state(5);
-			readonly label = state('hi');
-			readonly internalOnly = state('x');
+			readonly count = stateTree(5);
+			readonly label = stateTree('hi');
+			readonly internalOnly = stateTree('x');
 		}
 		defineElement('define-el-basic', Foo, {
 			attributes: { count: { type: Number, reflect: true }, label: {} },
@@ -53,8 +53,8 @@ describe('defineElement() - the decorator-free path', () => {
 
 	it('infers the converter from the store value when neither type nor converter is given', () => {
 		class Foo extends UIElement {
-			readonly active = state(false);
-			readonly config = state({ a: 1 });
+			readonly active = stateTree(false);
+			readonly config = stateTree({ a: 1 });
 		}
 		defineElement('define-el-infer', Foo, { attributes: { active: { reflect: true }, config: { reflect: true } } });
 
@@ -73,7 +73,7 @@ describe('defineElement() - the decorator-free path', () => {
 		document.body.appendChild(host);
 
 		class Foo extends UIElement {
-			readonly count = state(0);
+			readonly count = stateTree(0);
 		}
 		defineElement('define-el-upgrade', Foo, { attributes: { count: { type: Number } } });
 
@@ -95,10 +95,10 @@ describe('defineElement() - the decorator-free path', () => {
 
 	it('shares attribute defs with subclasses', () => {
 		class Base extends UIElement {
-			readonly count = state(1);
+			readonly count = stateTree(1);
 		}
 		class Child extends Base {
-			readonly label = state('a');
+			readonly label = stateTree('a');
 		}
 		defineElement('define-el-child', Child, { attributes: { count: { type: Number }, label: {} } });
 

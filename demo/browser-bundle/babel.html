@@ -41,9 +41,9 @@
 
 		@tag('user-badge')
 		class UserBadge extends UIElement {
-			@attribute({ type: Number, reflect: true }) count = state(0);
-			@attribute() label = state('Guest');
-			clicks = state(0);
+			@attribute({ type: Number, reflect: true }) count = stateTree(0);
+			@attribute() label = stateTree('Guest');
+			clicks = stateTree(0);
 
 			template() {
 				return t`

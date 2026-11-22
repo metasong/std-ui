@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { defineElement, state, tag, UIElement } from '@std-ui/core';
+import { defineElement, stateTree, tag, UIElement } from '@std-ui/core';
 import { consume, createContextKey, defineContext, provide } from './index.js';
 
 function flush(): Promise<void> {
@@ -21,7 +21,7 @@ describe('@provide(key) + @consume(key)', () => {
 
 		@tag('ctx-root-basic')
 		class Root extends UIElement {
-			@provide(ThemeKey) readonly theme = state<Theme>({ mode: 'dark' });
+			@provide(ThemeKey) readonly theme = stateTree<Theme>({ mode: 'dark' });
 			protected override connect(): void {
 				this.appendChild(document.createElement('ctx-child-basic'));
 			}
@@ -48,7 +48,7 @@ describe('@provide(key) + @consume(key)', () => {
 
 		@tag('ctx-root-deco')
 		class Root extends UIElement {
-			@provide(ThemeKey) readonly theme = state<Theme>({ mode: 'dark' });
+			@provide(ThemeKey) readonly theme = stateTree<Theme>({ mode: 'dark' });
 			protected override connect(): void {
 				this.appendChild(document.createElement('ctx-child-deco'));
 			}
@@ -88,7 +88,7 @@ describe('@provide(key) + @consume(key)', () => {
 
 		@tag('ctx-root-fn')
 		class Root extends UIElement {
-			@provide(FnKey) readonly greet = state<() => string>(() => 'hi');
+			@provide(FnKey) readonly greet = stateTree<() => string>(() => 'hi');
 			protected override connect(): void {
 				this.appendChild(document.createElement('ctx-child-fn'));
 			}
@@ -114,7 +114,7 @@ describe('@provide(key) + @consume(key)', () => {
 		defineElement('ctx-child-plain', Child);
 
 		class Root extends UIElement {
-			readonly theme = state<Theme>({ mode: 'dark' });
+			readonly theme = stateTree<Theme>({ mode: 'dark' });
 			protected override connect(): void {
 				this.appendChild(document.createElement('ctx-child-plain'));
 			}
@@ -180,7 +180,7 @@ describe('@provide(key) + @consume(key)', () => {
 
 		@tag('ctx-child-nearest')
 		class Child extends UIElement {
-			@provide(ThemeKey) readonly theme = state<Theme>({ mode: 'light' });
+			@provide(ThemeKey) readonly theme = stateTree<Theme>({ mode: 'light' });
 			protected override connect(): void {
 				this.appendChild(document.createElement('ctx-grandchild-nearest'));
 			}
@@ -188,7 +188,7 @@ describe('@provide(key) + @consume(key)', () => {
 
 		@tag('ctx-root-nearest')
 		class Root extends UIElement {
-			@provide(ThemeKey) readonly theme = state<Theme>({ mode: 'dark' });
+			@provide(ThemeKey) readonly theme = stateTree<Theme>({ mode: 'dark' });
 			protected override connect(): void {
 				this.appendChild(document.createElement('ctx-child-nearest'));
 			}
@@ -212,7 +212,7 @@ describe('@provide(key) + @consume(key)', () => {
 
 		@tag('ctx-root-inherit')
 		class Root extends UIElement {
-			@provide(ThemeKey) readonly theme = state<Theme>({ mode: 'dark' });
+			@provide(ThemeKey) readonly theme = stateTree<Theme>({ mode: 'dark' });
 			protected override connect(): void {
 				this.appendChild(document.createElement('ctx-child-inherit'));
 			}

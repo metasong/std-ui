@@ -31,7 +31,7 @@ Both sides record `{ key, contextKey }` per class, never per instance:
 | Decorator | `@provide(key)` -> `providedContexts.register(context.metadata, def)` | `@consume(key)` -> `consumedContexts.register(context.metadata, def)` |
 | Decorator-free | `defineElement(..., { provide: { field: key } })` -> `register(ownMetadata(Class), def)` | `defineElement(..., { consume: { field: key } })` likewise |
 
-`@provide` is typed to `SignalState<V>` fields (checked against the key's `V`) and leaves the field
+`@provide` is typed to `StateTree<V>` fields (checked against the key's `V`) and leaves the field
 untouched - the field *is* the store. `@consume` is typed to a plain `V` field; it only records its
 def. Both are plain-field only (no `accessor`).
 
@@ -94,7 +94,7 @@ Runs after the provide listeners and `connect()`. For each `consumedContexts.get
 def:
 
 ```ts
-const value = signal<unknown>(undefined);
+const value = state<unknown>(undefined);
 let found = false;
 host.dispatchEvent(new ContextRequestEvent(contextKey, next => { found = true; value.set(next); }));
 if (!found) throw new Error(/* names the element and the key */);

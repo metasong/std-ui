@@ -1,6 +1,6 @@
 import { computed } from '../signal/computed.js';
 import { effect } from '../effect/main.js';
-import { signal } from '../signal/signal.js';
+import { state } from '../signal/state.js';
 import { assertNotInReactiveContext, untrack } from '../signal/tracking.js';
 import { toSubscribable } from './subscribable.js';
 import type { ToSignal, ToSignalFromOptions, ToSignalSource } from './types.js';
@@ -33,7 +33,7 @@ export function toSignalFrom<T, U>(
 	assertNotInReactiveContext('toSignalFrom()');
 	const userEquals = options.equals ?? Object.is;
 	const initial: State<T | U | undefined> = { ok: true, value: options.initialValue };
-	const state = signal<State<T | U | undefined>>(initial, {
+	const cell = state<State<T | U | undefined>>(initial, {
 		equals: (a, b) =>
 			a !== initial && b !== initial && a.ok && b.ok && userEquals(a.value as T, b.value as T),
 	});
@@ -44,14 +44,14 @@ export function toSignalFrom<T, U>(
 	const stop = effect(onCleanup => {
 		// Reset a stale error so a fresh source starts clean; keep the last good value.
 		untrack(() => {
-			if (!state.peek().ok) state.set({ ok: true, value: lastValue });
+			if (!cell.peek().ok) cell.set({ ok: true, value: lastValue });
 		});
 
 		let source: ToSignalSource<T> | null | undefined;
 		try {
 			source = factory(); // tracked: signals read here drive re-subscription
 		} catch (error) {
-			untrack(() => state.set({ ok: false, error }));
+			untrack(() => cell.set({ ok: false, error }));
 			return;
 		}
 		if (source == null) return;
@@ -70,11 +70,11 @@ export function toSignalFrom<T, U>(
 					next: value => {
 						if (!active) return;
 						lastValue = value;
-						state.set({ ok: true, value });
+						cell.set({ ok: true, value });
 					},
 					error: error => {
 						if (!active) return;
-						state.set({ ok: false, error });
+						cell.set({ ok: false, error });
 						end();
 					},
 					complete: end,
@@ -82,7 +82,7 @@ export function toSignalFrom<T, U>(
 				unsub = () => result.unsubscribe();
 				if (!active) result.unsubscribe();
 			} catch (error) {
-				state.set({ ok: false, error });
+				cell.set({ ok: false, error });
 			}
 		});
 	});
@@ -95,7 +95,7 @@ export function toSignalFrom<T, U>(
 	options.onCleanup?.(dispose);
 
 	const read = computed<T | U | undefined>(() => {
-		const current = state();
+		const current = cell();
 		if (!current.ok) throw current.error;
 		return current.value;
 	});

@@ -1,14 +1,14 @@
 import { describe, expect, it } from 'vitest';
-import { render, state, t } from '@std-ui/core';
-import { asyncValidator, check, required } from '../../../../reactive/state/check/index.js';
-import { changes } from '../../../../reactive/state/changes/index.js';
-import { formUi } from '../../../../reactive/state/form-ui/index.js';
+import { render, stateTree, t } from '@std-ui/core';
+import { asyncValidator, check, required } from '../../../../reactive/state-tree/check/index.js';
+import { changes } from '../../../../reactive/state-tree/changes/index.js';
+import { formUi } from '../../../../reactive/state-tree/form-ui/index.js';
 import { formBind } from './index.js';
 
 const tick = () => new Promise<void>((r) => queueMicrotask(() => queueMicrotask(r)));
 
 function setup() {
-	const form = formUi(check(state({ name: 'a', nested: { age: 1 } })));
+	const form = formUi(check(stateTree({ name: 'a', nested: { age: 1 } })));
 	const container = document.createElement('div');
 	const view = () => t`<input .value=${formBind(form.name)} />`;
 	render(view(), container);
@@ -17,7 +17,7 @@ function setup() {
 
 describe('formUi()', () => {
 	it('cascades readonly / disabled to descendants, including members added later', () => {
-		const form = formUi(state({ a: { b: 1 } }));
+		const form = formUi(stateTree({ a: { b: 1 } }));
 		expect(form.a.b.formUi.disabled()).toBe(false);
 		form.a.formUi.disabled.own.set(true);
 		expect(form.a.b.formUi.disabled()).toBe(true);
@@ -27,16 +27,16 @@ describe('formUi()', () => {
 	});
 
 	it('a node shared by two trees is disabled when either parent is', () => {
-		const shared = state({ x: 1 });
-		const a = formUi(state({ s: shared }));
-		const b = formUi(state({ s: shared }));
+		const shared = stateTree({ x: 1 });
+		const a = formUi(stateTree({ s: shared }));
+		const b = formUi(stateTree({ s: shared }));
 		expect(a.s.x.formUi.disabled()).toBe(false);
 		b.formUi.disabled.own.set(true);
 		expect(a.s.x.formUi.disabled()).toBe(true);
 	});
 
 	it('touched() is own OR any descendant; touched.own is just this node', () => {
-		const form = formUi(state({ a: { b: 1 } }));
+		const form = formUi(stateTree({ a: { b: 1 } }));
 		expect(form.formUi.touched()).toBe(false);
 		form.a.b.formUi.touch();
 		expect(form.formUi.touched()).toBe(true);
@@ -87,7 +87,7 @@ describe('formBind()', () => {
 	});
 
 	it('shows changes.dirty as [data-dirty]', async () => {
-		const form = changes(state({ name: 'a' }));
+		const form = changes(stateTree({ name: 'a' }));
 		const container = document.createElement('div');
 		render(t`<input .value=${formBind(form.name)} />`, container);
 		const input = container.querySelector('input') as HTMLInputElement;

@@ -2,15 +2,15 @@
 // `./computed-lazy.md`). Uses `./tracking.ts` for dependency tracking.
 
 import { notify, ReactiveNode, runTracked, sourcesChanged, track } from './tracking.js';
-import type { ReadonlySignal, SignalOptions } from './signal.js';
+import type { ReadonlyState, StateOptions } from './state.js';
 
 /** A read-only, lazily-recomputed derived value. Call it to read (and track). */
-export type Computed<T> = ReadonlySignal<T>;
+export type Computed<T> = ReadonlyState<T>;
 
 /** Creates a read-only derived value, lazily re-run whenever a signal/computed it reads changes.
  * `options.equals` (default `Object.is`) is checked against the previous value on recompute, same
  * role as `Signal.Computed`'s `equals` option in the proposed standard signals API. */
-export function computed<T>(fn: () => T, options: SignalOptions<T> = {}): Computed<T> {
+export function computed<T>(fn: () => T, options: StateOptions<T> = {}): Computed<T> {
 	const { equals = Object.is } = options;
 	let value: T;
 	let hasValue = false;

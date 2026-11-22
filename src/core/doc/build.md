@@ -19,7 +19,7 @@ Sizes as of v0.1.0; `npm run build:bundle` prints current numbers. The ES build 
 
   ```html
   <script type="module">
-    import { state, t, render } from './dist/browser/std-ui-core.min.js';
+    import { stateTree, t, render } from './dist/browser/std-ui-core.min.js';
   </script>
   ```
 

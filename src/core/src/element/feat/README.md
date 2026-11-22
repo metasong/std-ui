@@ -6,7 +6,7 @@ Internals: [`design.md`](./design.md). Ready-made features: [`@std-ui/ext` feats
 
 ```ts
 class Clock extends UIFeat {
-	readonly now = state(Date.now());
+	readonly now = stateTree(Date.now());
 
 	protected override connected() {
 		const id = setInterval(() => this.now.set(Date.now()), 1000);

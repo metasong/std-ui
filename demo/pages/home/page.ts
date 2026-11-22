@@ -11,9 +11,9 @@ const stats: readonly (readonly [number, string, string])[] = [
 
 const goals: readonly (readonly [string, string])[] = [
 	['Real Web Components', 'Extend <code>UIElement</code> and it works anywhere HTML works.'],
-	['Fine-grained reactivity', '<code>signal</code>, <code>computed</code> and <code>effect</code> update exactly the DOM that changed. No diffing, no change-detection loop.'],
+	['Fine-grained reactivity', '<code>state</code>, <code>computed</code> and <code>effect</code> update exactly the DOM that changed. No diffing, no change-detection loop.'],
 	['No compiler, no runtime', 'Load one <code>&lt;script&gt;</code> and build. Decorators are optional; <code>defineElement</code> needs no compiler.'],
-	['Reactive state trees', 'Wrap objects and arrays in <code>state(...)</code> for deeply reactive, typed stores.'],
+	['Reactive state trees', 'Wrap objects and arrays in <code>stateTree(...)</code> for deeply reactive, typed stores.'],
 	['Type-safe by design', 'Fields are the store itself, so there are no decorator type lies and IntelliSense just works.'],
 	['Fully extensible', 'Hooks, registries and tree extensions. <code>@std-ui/ext</code> (context, forms, change tracking) is built only on them.'],
 ];

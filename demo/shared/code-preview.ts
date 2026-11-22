@@ -5,7 +5,7 @@
 //   (`source` typically comes from a `?raw` import.)
 //
 // Shadow DOM: the tabs and code live in the shadow root, the demo is projected through a native `<slot>`.
-import { bind, classMap, css, svg, t, tag, UIElement, state } from '@std-ui/core';
+import { bind, classMap, css, svg, t, tag, UIElement, stateTree } from '@std-ui/core';
 import { tokenize } from './highlight.js';
 
 export type CodeFiles = Readonly<Record<string, string>>;
@@ -64,9 +64,9 @@ export class CodePreview extends UIElement {
 	`;
 
 	/** Source text by file name (set with `.files=${...}`); the first file is selected until the user picks another. */
-	readonly files = state<CodeFiles>({});
-	private readonly active = state('');
-	private readonly wrap = state(false);
+	readonly files = stateTree<CodeFiles>({});
+	private readonly active = stateTree('');
+	private readonly wrap = stateTree(false);
 
 	protected override template() {
 		const files = this.files();

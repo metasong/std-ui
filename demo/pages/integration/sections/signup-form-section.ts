@@ -4,12 +4,12 @@
 //   - FormElement (merged)   → first/last errors unioned into the host's single validity state
 //   - FormGroup (range)      → each property's errors routed to its own inner input
 // The browser's own submit validation then blocks the submit while any control is invalid.
-import { bind, css, t, tag, UIElement, state } from '@std-ui/core';
+import { bind, css, t, tag, UIElement, stateTree } from '@std-ui/core';
 import { check, formBind, formUi, required, email } from '@std-ui/ext';
 import '../../bind/sections/validation/merged-control.js';
 import '../../bind/sections/validation/range-control.js';
 
-const model = state({ email: '', first: '', last: '', start: '', end: '' }).with(check).with(formUi);
+const model = stateTree({ email: '', first: '', last: '', start: '', end: '' }).with(check).with(formUi);
 model.email.check.validators.set([required('Email is required'), email('Not a valid email')]);
 model.first.check.validators.set([required('First name required')]);
 model.last.check.validators.set([required('Last name required')]);
@@ -49,7 +49,7 @@ export class DemoIntegrationSignup extends UIElement {
 		}
 	`;
 
-	readonly submitted = state('');
+	readonly submitted = stateTree('');
 
 	#submit(e: Event): void {
 		e.preventDefault();

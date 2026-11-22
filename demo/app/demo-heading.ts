@@ -1,4 +1,4 @@
-import { css, state, t, tag, UIElement } from '@std-ui/core';
+import { css, stateTree, t, tag, UIElement } from '@std-ui/core';
 import { applyTheme, currentTheme, type ThemeMode } from './theme.js';
 import { pageOf } from './pages.js';
 import { routerOf } from './router-of.js';
@@ -6,7 +6,7 @@ import { routerOf } from './router-of.js';
 /** Heading of the current demo page. */
 @tag('demo-heading')
 export class DemoHeading extends UIElement {
-	readonly #theme = state<ThemeMode>(currentTheme());
+	readonly #theme = stateTree<ThemeMode>(currentTheme());
 	static override styles = css`
 		.demo-app-bar {
 			background: var(--std-sys-color-surface-container);

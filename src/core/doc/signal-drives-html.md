@@ -15,7 +15,7 @@ Wiring them up gives you declarative UI that updates surgically: when state chan
 | **Dependencies** | An `effect` re-runs only when signals it *read* change; branch changes in `computed`/`if` are tracked correctly each run. |
 | **Batching** | Multiple synchronous `.set()` calls in one turn collapse to one effect flush (microtask), then one render pass. |
 | **Authoring** | Markup stays in `t\`...\`` templates with attribute/event bindings; state stays in signals, not scattered DOM queries. |
-| **Components** | `UIElement` already connects a `SignalState` to `template()` for you; you can still drop to raw `effect` + `render` outside custom elements. |
+| **Components** | `UIElement` already connects a `StateTree` to `template()` for you; you can still drop to raw `effect` + `render` outside custom elements. |
 
 The fireworks app uses this throughout `src/ui/components/` — e.g. `pause-button` swaps icon markup when `appState.paused()` changes, and `controls-bar` toggles layout classes from `appState` while composing child custom elements in one template.
 
@@ -24,9 +24,9 @@ The fireworks app uses this throughout `src/ui/components/` — e.g. `pause-butt
 Use this for a widget, panel, or one-off view that is not a custom element. The effect is the "render loop": read signals, build a template result, pass it to `render`.
 
 ```ts
-import { state, computed, effect, t, render } from '../src/index.js';
+import { stateTree, computed, effect, t, render } from '../src/index.js';
 
-const count = state(0);
+const count = stateTree(0);
 const label = computed(() => (count() === 1 ? 'click' : 'clicks'));
 
 const container = document.getElementById('app')!;
@@ -52,10 +52,10 @@ Important details:
 
 ## Pattern B — `UIElement`: `template()` reads signals directly → automatic `render`
 
-For custom elements, you usually don't call `effect` + `render` yourself. Subclass `UIElement` and return `t` from `template()`, reading whatever signals you need directly inside it (module-level signals, a shared `state()` tree, or app-wide state like `appState` - `UIElement` itself has no notion of "the" state). `connect()` runs **before** the first `template`, so markup from your template is not in the DOM yet — put bindings and structure in `template`, and use `firstUpdated` / `updated` when you need to touch rendered nodes.
+For custom elements, you usually don't call `effect` + `render` yourself. Subclass `UIElement` and return `t` from `template()`, reading whatever signals you need directly inside it (module-level signals, a shared `stateTree()` tree, or app-wide state like `appState` - `UIElement` itself has no notion of "the" state). `connect()` runs **before** the first `template`, so markup from your template is not in the DOM yet — put bindings and structure in `template`, and use `firstUpdated` / `updated` when you need to touch rendered nodes.
 
 ```ts
-import { state, tag, t, UIElement } from '../src/index.js';
+import { stateTree, tag, t, UIElement } from '../src/index.js';
 
 interface DemoState {
 	counter: {
@@ -64,7 +64,7 @@ interface DemoState {
 	};
 }
 
-const shared = state<DemoState>({
+const shared = stateTree<DemoState>({
 	counter: { value: 0, max: 10 },
 });
 
@@ -94,7 +94,7 @@ shared.counter.value.set(5);           // write a leaf: shared.counter.value is 
 shared.counter.set({ max: 20 });     // or set a branch without touching sibling leaves
 ```
 
-Nested objects become branch `Computed`s; leaves like `value` and `max` are writable `Signal`s on the tree (`shared.counter.value.set(...)`) and are also readable as tracked functions (`shared.counter.value()`). Reading any of them inside `template()` registers that leaf as a dependency of the render effect — same tracking rule as any other `effect()`. See [`../reactive/state/README.md`](../src/reactive/state/README.md) for branch `.set(partial)` and `.peek()`.
+Nested objects become branch `Computed`s; leaves like `value` and `max` are writable `Signal`s on the tree (`shared.counter.value.set(...)`) and are also readable as tracked functions (`shared.counter.value()`). Reading any of them inside `template()` registers that leaf as a dependency of the render effect — same tracking rule as any other `effect()`. See [`../reactive/state-tree/README.md`](../src/reactive/state-tree/README.md) for branch `.set(partial)` and `.peek()`.
 
 What `UIElement` does for you (see `ui-element.ts`):
 
@@ -177,7 +177,7 @@ flowchart LR
 
 - [`saved-ui-rerendering.md`](./saved-ui-rerendering.md) — why signal updates reuse DOM (`strings`
   identity, `render()` fast path, nested `t` in lists).
-- [`../reactive/signal/signal.md`](../src/reactive/signal/signal.md) — primitives, tracking, batching, `peek`.
-- [`../reactive/state/README.md`](../src/reactive/state/README.md) — `state`, branch `.set(partial)`, app-shaped state.
+- [`../reactive/signal/state.md`](../src/reactive/signal/state.md) — primitives, tracking, batching, `peek`.
+- [`../reactive/state-tree/README.md`](../src/reactive/state-tree/README.md) — `state`, branch `.set(partial)`, app-shaped state.
 - [`../element/template/tag-funcs/html/html.md`](../src/element/template/tag-funcs/html/html.md) — binding kinds, limitations, `svg`, `html` (raw markup directive).
 - [`signal-drives-html.example.test.ts`](signal-drives-html.example.test.ts) — executable walkthrough of Patterns A, B, and C.

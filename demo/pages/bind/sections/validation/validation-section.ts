@@ -1,14 +1,14 @@
 // formBind() = bind() + form UI: it mirrors a state's validator errors into the element's constraint
 // validation, and shows the state's `formUi` (touched / readonly / disabled) on the element.
 // Three targets: native controls, a plain FormElement (merged state) and a FormGroup (routed to inner controls).
-import { t, tag, UIElement, state } from '@std-ui/core';
+import { t, tag, UIElement, stateTree } from '@std-ui/core';
 import { check, formBind, formUi } from '@std-ui/ext';
 import './range-control.js';
 import './merged-control.js';
 
 const required = (message: string) => (v: unknown) => (v ? undefined : { flag: 'valueMissing' as const, message });
 
-const form = formUi(check(state({ name: '', age: 5 })));
+const form = formUi(check(stateTree({ name: '', age: 5 })));
 form.name.check.validators.set([
 	required('Name is required'),
 	v => (String(v).length >= 3 ? undefined : { flag: 'tooShort', message: 'At least 3 characters' }),
@@ -17,11 +17,11 @@ form.age.check.validators.set([
 	v => (v >= 2 && v <= 8 ? undefined : { flag: 'rangeOverflow', message: 'Age must be between 2 and 8' }),
 ]);
 
-const range = formUi(check(state({ start: '', end: '' })));
+const range = formUi(check(stateTree({ start: '', end: '' })));
 range.start.check.validators.set([required('Start required')]);
 range.end.check.validators.set([required('End required')]);
 
-const person = formUi(check(state({ first: '', last: '' })));
+const person = formUi(check(stateTree({ first: '', last: '' })));
 person.first.check.validators.set([required('First name required')]);
 person.last.check.validators.set([required('Last name required')]);
 
@@ -33,7 +33,7 @@ type Validatable = HTMLElement & { checkValidity(): boolean; reportValidity(): b
 @tag('demo-bind-validation-section')
 export class DemoBindValidationSection extends UIElement {
 	/** Snapshot of an element's validity, rendered under it (host `validationMessage` shows the grouped format). */
-	readonly status = state('');
+	readonly status = stateTree('');
 
 	#snapshot(selector: string): void {
 		const el = this.querySelector<Validatable>(selector);
@@ -79,7 +79,7 @@ export class DemoBindValidationSection extends UIElement {
 					</button>
 				</div>
 
-				<h3>2. FormElement: errors merged into one state</h3>
+				<h3>2. FormElement: errors merged into one stateTree</h3>
 				<p class="desc">
 					Both <code>.first</code> and <code>.last</code> report into the same host. The real flags
 					(<code>valueMissing</code>…) are unioned, messages are grouped per property, and the single

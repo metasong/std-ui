@@ -25,7 +25,7 @@ export interface AttributeDef {
 /** Every attribute-backed field of a class: `.get(ctor)`, `.register(meta, def)`. */
 export const attributeDefs = createClassRegistry<AttributeDef>('attributeDefs');
 
-/** A `state()` store: callable, with `peek()` and `set()`. Any other field value is treated as a plain value. */
+/** A `stateTree()` store: callable, with `peek()` and `set()`. Any other field value is treated as a plain value. */
 export type SignalLikeForAttribute = { (): unknown; peek(): unknown; set(value: never): void };
 
 export function isSignalLikeForAttribute(value: unknown): value is SignalLikeForAttribute {

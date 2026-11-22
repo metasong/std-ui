@@ -8,11 +8,11 @@ Built-in **property directive** for `.name=${bind(...)}` bindings. Combines:
 Roughly “Angular two-way on one property,” with `live`-style behavior on the down direction only.
 
 ```ts
-import { t, bind, state, tag, UIElement } from '@std-ui/core';
+import { t, bind, stateTree, tag, UIElement } from '@std-ui/core';
 
 @tag('search-field')
 class SearchField extends UIElement {
-	query = state('');
+	query = stateTree('');
 
 	protected override template() {
 		return t`
@@ -25,17 +25,17 @@ class SearchField extends UIElement {
 
 Design notes: [`design.md`](./design.md).
 
-## `state()` / `@attribute()` fields
+## `stateTree()` / `@attribute()` fields
 
-Fields are writable stores — pass the field itself to `bind()`, not a read (`this.email()`). Display and logic still use `()` / `.set()` everywhere else. There is no `@state()` decorator; declare plain fields with `state(...)`.
+Fields are writable stores — pass the field itself to `bind()`, not a read (`this.email()`). Display and logic still use `()` / `.set()` everywhere else. There is no `@stateTree()` decorator; declare plain fields with `stateTree(...)`.
 
 ```ts
-import { t, bind, state, tag, UIElement } from '@std-ui/core';
+import { t, bind, stateTree, tag, UIElement } from '@std-ui/core';
 
 @tag('signup-field')
 class SignupField extends UIElement {
-	email = state('');
-	agreed = state(false);
+	email = stateTree('');
+	agreed = stateTree(false);
 
 	protected override template() {
 		return t`
@@ -50,19 +50,19 @@ class SignupField extends UIElement {
 }
 ```
 
-`@attribute()` fields work the same (`@attribute() age = state(3)`, then `bind(this.age)`). Browser demo:
+`@attribute()` fields work the same (`@attribute() age = stateTree(3)`, then `bind(this.age)`). Browser demo:
 [`demo/pages/bind/sections/form-section.ts`](../../../../../demo/pages/bind/sections/form-section.ts).
 
 ## API
 
 ### `bind(signal[, options])`
 
-Binds a `signal()`, `state()` node, or `state()` / `@attribute()` field directly — the model
+Binds a `state()`, `stateTree()` node, or `stateTree()` / `@attribute()` field directly — the model
 is that store, not a separate signal variable. Any callable with `.set()` works. The read happens
 during render, so model changes re-render the template.
 
 ```ts
-const form = state({ query: '', agreed: false });
+const form = stateTree({ query: '', agreed: false });
 
 t`<input .value=${bind(form.query)} />`
 t`<input type="checkbox" .checked=${bind(form.agreed)} />`
@@ -71,7 +71,7 @@ t`<input type="checkbox" .checked=${bind(form.agreed)} />`
 Override just the event (property on the element is still `.level` → default would be `level-change`):
 
 ```ts
-const level = state(0);
+const level = stateTree(0);
 
 t`<legacy-dial .level="${bind(level, { event: 'levelinput' })}" />`
 ```
@@ -150,7 +150,7 @@ Do **not** bind `@input` / `@change` on the same property when using `bind()` �
 - the state's effective `formUi.readonly` / `disabled` → `readOnly` / `disabled` and `aria-*`.
 
 ```ts
-const form = state({ name: '' }).with(check).with(formUi);
+const form = stateTree({ name: '' }).with(check).with(formUi);
 t`<input .value=${formBind(form.name)} />`;
 ```
 
@@ -196,11 +196,11 @@ Override the event when your component uses a different name: `bind(doc, { event
 
 ### Signal-valued element properties
 
-If the element's property is itself a signal (callable with `.set()`, e.g. a `state()` field), the default `read` calls it (a tracking read) and the default `write` calls `.set(value)` instead of replacing the property:
+If the element's property is itself a signal (callable with `.set()`, e.g. a `stateTree()` field), the default `read` calls it (a tracking read) and the default `write` calls `.set(value)` instead of replacing the property:
 
 ```ts
 class Knob extends UIElement {
-	level = state(0); // element.level is a signal
+	level = stateTree(0); // element.level is a signal
 }
 
 t`<demo-bind-signal-knob .level=${bind(this.level)}></demo-bind-signal-knob>`;

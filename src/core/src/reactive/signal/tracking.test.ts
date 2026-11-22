@@ -2,12 +2,12 @@ import { describe, expect, it, vi } from 'vitest';
 import { computed } from './computed.js';
 import { effect } from '../effect/main.js';
 import { flushEffects } from '../effect/test-helpers.js';
-import { signal } from './signal.js';
+import { state } from './state.js';
 import { ReactiveNode, runTracked, untrack, Watcher } from './tracking.js';
 
 describe('untrack', () => {
 	it('reads a signal without tracking it, even inside a tracked run', () => {
-		const a = signal(1);
+		const a = state(1);
 		const spy = vi.fn(() => untrack(() => a()));
 		const consumer = new ReactiveNode();
 		consumer.markDirty = vi.fn();
@@ -20,7 +20,7 @@ describe('untrack', () => {
 
 describe('Watcher', () => {
 	it('fires notify once when a watched dependency changes, then goes inert', () => {
-		const a = signal(1);
+		const a = state(1);
 		const notify = vi.fn();
 		const watcher = new Watcher(notify);
 		// `signal`/`computed` don't expose their internal `Dependency` directly, so watch through
@@ -56,7 +56,7 @@ describe('Watcher', () => {
 		watcher.watch(dep);
 		watcher.unwatch(dep);
 
-		const a = signal(1);
+		const a = state(1);
 		runTracked(watcher, () => a()); // re-arms watcher with `a`'s real dependency only
 		a.set(2);
 		expect(notify).toHaveBeenCalledTimes(1); // only from `a`, `dep` was already unwatched
@@ -67,7 +67,7 @@ describe('equality cutoff (push-pull)', () => {
 	const flush = () => new Promise<void>((r) => queueMicrotask(() => queueMicrotask(r)));
 
 	it('effect skips re-run when a computed recomputes to an equal value', async () => {
-		const a = signal(1);
+		const a = state(1);
 		const parity = computed(() => a() % 2);
 		let runs = 0;
 		effect(() => {
@@ -83,7 +83,7 @@ describe('equality cutoff (push-pull)', () => {
 	});
 
 	it('computed skips recompute when its computed source is unchanged', () => {
-		const a = signal(1);
+		const a = state(1);
 		const parity = computed(() => a() % 2);
 		const fn = vi.fn(() => parity() * 10);
 		const derived = computed(fn);
@@ -94,7 +94,7 @@ describe('equality cutoff (push-pull)', () => {
 	});
 
 	it('effect still re-runs after a false alarm when later changes happen', async () => {
-		const a = signal(1);
+		const a = state(1);
 		const parity = computed(() => a() % 2);
 		let runs = 0;
 		effect(() => {

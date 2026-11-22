@@ -1,4 +1,4 @@
-import { attribute, signal, state, tag, UIElement } from '@std-ui/core';
+import { attribute, state, stateTree, tag, UIElement } from '@std-ui/core';
 import { Router, createRouter } from '../router/router.js';
 import type { AnnounceFn } from '../router/announcer.js';
 import type { NavigationLike } from '../navigation/types.js';
@@ -8,7 +8,7 @@ import type { RouteDef } from '../types.js';
 @tag('std-router')
 export class StdRouter extends UIElement {
 	/** Attribute `base`: URL prefix the app is served under. Read once, when the router is built. */
-	@attribute() base = state('');
+	@attribute() base = stateTree('');
 	/** Boolean attribute `view-transition`: commit navigations inside a View Transition. Read once, when the router is built. */
 	@attribute() viewTransition = false;
 	/** Config-table routes; set before the element connects. */
@@ -19,7 +19,7 @@ export class StdRouter extends UIElement {
 	@attribute() announce: 'on' | 'off' = 'on';
 	/** Custom announcement text; set before connecting. The default announcer is used if not set. Takes precedence over `announce`. */
 	announceFn?: AnnounceFn;
-	readonly #current = signal<Router | undefined>(undefined); // the only writer is the `router` accessors
+	readonly #current = state<Router | undefined>(undefined); // the only writer is the `router` accessors
 	#started = false;
 	#defaultRouter?: Router; // the router built from attributes; `base` changes are forwarded to it only
 

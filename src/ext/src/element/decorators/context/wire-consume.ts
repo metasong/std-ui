@@ -3,7 +3,7 @@
 // synchronously. Each field becomes a getter over a signal created here, so reads are reactive; the
 // signal lives only in that getter's closure.
 
-import { state, type UIElementHooks } from '@std-ui/core';
+import { stateTree, type UIElementHooks } from '@std-ui/core';
 import type { ContextKey } from './key.js';
 import { consumedContexts } from './metadata.js';
 import { ContextRequestEvent } from './request-event.js';
@@ -15,7 +15,7 @@ import { ContextRequestEvent } from './request-event.js';
  */
 export function wireConsumedContexts(host: HTMLElement): void {
 	for (const { key, contextKey } of consumedContexts.get(host.constructor)) {
-		const value = state<unknown, 'value'>(undefined, { depth: 'value' });
+		const value = stateTree<unknown, 'value'>(undefined, { depth: 'value' });
 		let found = false;
 		host.dispatchEvent(new ContextRequestEvent(contextKey as ContextKey<unknown>, next => {
 			found = true;

@@ -30,7 +30,7 @@ Keep a private version signal that `template()` reads, and bump it:
 ```ts
 @tag('demo-forced')
 class DemoForced extends UIElement {
-	readonly #version = signal(0);
+	readonly #version = state(0);
 	forceRender() { this.#version.update(v => v + 1); }
 
 	protected override template() {

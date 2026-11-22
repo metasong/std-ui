@@ -1,4 +1,4 @@
-import type { Computed, Signal } from '@std-ui/core';
+import type { Computed, State } from '@std-ui/core';
 import { withPrecommit } from '../shim/precommit-shim.js';
 import type { NavigateEventLike, NavigationLike } from '../navigation/types.js';
 import type {
@@ -45,12 +45,12 @@ export interface RouterOptions {
  * this class wires the browser to them through two entry points (`#onNavigate`, `#reresolve`).
  */
 export class Router {
-	readonly location: Signal<RouteLocation>;
-	readonly matches: Signal<RouteMatch[]>;
-	readonly status: Signal<RouterStatus>;
-	readonly error: Signal<unknown>;
+	readonly location: State<RouteLocation>;
+	readonly matches: State<RouteMatch[]>;
+	readonly status: State<RouterStatus>;
+	readonly error: State<unknown>;
 	/** `load()` results keyed by route. */
-	readonly data: Signal<ReadonlyMap<RouteDef, unknown>>;
+	readonly data: State<ReadonlyMap<RouteDef, unknown>>;
 	readonly params: Computed<Record<string, string>>;
 
 	readonly #nav: NavigationLike;

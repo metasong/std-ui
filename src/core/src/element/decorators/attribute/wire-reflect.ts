@@ -4,7 +4,7 @@
 // host attribute (opt-in; plain store fields never appear here).
 
 import { effect as createEffect } from '../../../reactive/index.js';
-import { readValue, type ItemNode } from '../../../reactive/state/index.js';
+import { readValue, type ItemNode } from '../../../reactive/state-tree/index.js';
 import type { UIElementHooks } from '../../ui-element-hooks.js';
 import { parseAttribute, serializeAttribute } from './converter.js';
 import { warnReflectNeedsStore } from '../../../dev/warn-attribute.js';

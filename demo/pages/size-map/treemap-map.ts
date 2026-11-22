@@ -1,4 +1,4 @@
-import { computed, css, signal, state, styleMap, t, tag, UIElement } from '@std-ui/core';
+import { computed, css, state, stateTree, styleMap, t, tag, UIElement } from '@std-ui/core';
 import { formatKb, type SizeNode } from './data.js';
 import { displayName, groupHue, labelPath, layoutTree, type LayoutBox } from './treemap-layout.js';
 
@@ -56,13 +56,13 @@ export class DemoTreemapMap extends UIElement {
 	`;
 
 	/** Inputs, set with `.tree=${...}` etc. They are signals/state so the host re-renders when a parent binds them. */
-	readonly tree = signal<SizeNode | null>(null);
-	readonly aspect = state(2.2);
-	readonly showLeafKb = state(true);
+	readonly tree = state<SizeNode | null>(null);
+	readonly aspect = stateTree(2.2);
+	readonly showLeafKb = stateTree(true);
 	/** Folder/group totals in header bars and legend. Off when the groups are just labels (e.g. core / ext bundles). */
-	readonly showFolderKb = state(true);
+	readonly showFolderKb = stateTree(true);
 	/** Draw the root as a folder level (named header bar with its total) rather than an invisible frame. */
-	readonly showRoot = state(false);
+	readonly showRoot = stateTree(false);
 
 	/** Layout only depends on the tree and aspect, not on hover, so hovering does not recompute it. */
 	readonly #width = computed(() => Math.round(this.aspect() * H));
@@ -71,7 +71,7 @@ export class DemoTreemapMap extends UIElement {
 		return tree ? layoutTree(tree, this.#width(), H, this.showRoot()).filter((b) => b.depth === 0 || (b.w > 2 && b.h > 2)) : [];
 	});
 
-	private readonly selected = signal<SizeNode | null>(null);
+	private readonly selected = state<SizeNode | null>(null);
 
 	/** Keyboard: arrows walk the blocks in paint order (a folder, then its contents), Home/End jump, Esc clears. */
 	#onKey = (e: KeyboardEvent): void => {

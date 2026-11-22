@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { query, queryAll, queryAsync, queryElement, queryElementAsync, queryElements, tag, UIElement } from '../../ui-element.js';
 import { t } from '../../template/tag-funcs/html/index.js';
-import { state } from '../../../reactive/index.js';
+import { stateTree } from '../../../reactive/index.js';
 
 describe('@query()', () => {
 	it('resolves to the matching element, re-querying on every read by default', () => {
@@ -96,7 +96,7 @@ describe('@queryAsync()', () => {
 	it('resolves after a pending render catches up with the queried node', async () => {
 		@tag('query-async-basic')
 		class Foo extends UIElement {
-			readonly show = state(false);
+			readonly show = stateTree(false);
 			@queryAsync('.lazy') lazy!: Promise<HTMLElement | null>;
 			protected override template() {
 				return this.show() ? t`<em class="lazy">here</em>` : t``;
@@ -119,7 +119,7 @@ describe('cached queries never keep a miss', () => {
 	it('re-queries after a null result, then keeps the first successful one (decorator and function)', async () => {
 		@tag('query-cache-miss')
 		class Foo extends UIElement {
-			readonly show = state(false);
+			readonly show = stateTree(false);
 			@query('.late', true) late!: HTMLElement | null;
 			get lateFn() { return queryElement(this, '.late', true); }
 			protected override template() {
@@ -149,7 +149,7 @@ describe('queryElement() & co. (decorator-free)', () => {
 	it('behind class getters they read like the @query() properties (el.span, not el.span())', async () => {
 		@tag('query-methods')
 		class Foo extends UIElement {
-			readonly show = state(false);
+			readonly show = stateTree(false);
 			get span() { return queryElement<HTMLSpanElement>(this, 'span'); }
 			get items() { return queryElements(this, 'li'); }
 			get lazy() { return queryElementAsync(this, '.lazy'); }

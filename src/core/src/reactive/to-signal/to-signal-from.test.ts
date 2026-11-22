@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { effect } from '../effect/main.js';
-import { signal } from '../signal/signal.js';
+import { state } from '../signal/state.js';
 import { flushEffects } from '../effect/test-helpers.js';
 import { toSignalFrom } from './to-signal-from.js';
 import type { PartialObserver, Subscribable } from './types.js';
@@ -26,7 +26,7 @@ describe('toSignalFrom', () => {
 	});
 
 	it('re-subscribes when signals read in the factory change, keeping the last value', async () => {
-		const id = signal(1);
+		const id = state(1);
 		const sources = new Map<number, ReturnType<typeof makeSource<string>>>();
 		const s = toSignalFrom(() => {
 			const n = id();
@@ -46,7 +46,7 @@ describe('toSignalFrom', () => {
 	});
 
 	it('ignores late values from a superseded source', async () => {
-		const id = signal(1);
+		const id = state(1);
 		const made: ReturnType<typeof makeSource<number>>[] = [];
 		const s = toSignalFrom(() => {
 			id();
@@ -61,7 +61,7 @@ describe('toSignalFrom', () => {
 	});
 
 	it('supports null (no source) and promises', async () => {
-		const id = signal<number | null>(null);
+		const id = state<number | null>(null);
 		const s = toSignalFrom(() => (id() === null ? null : Promise.resolve(id()! * 2)), { initialValue: -1 });
 		expect(s()).toBe(-1);
 		id.set(5);
@@ -71,7 +71,7 @@ describe('toSignalFrom', () => {
 	});
 
 	it('a factory error is thrown on read and cleared on re-run', async () => {
-		const id = signal(0);
+		const id = state(0);
 		const s = toSignalFrom(() => {
 			if (id() === 0) throw new Error('nope');
 			return Promise.resolve(id());
@@ -84,7 +84,7 @@ describe('toSignalFrom', () => {
 	});
 
 	it('notifies effects and dispose() stops everything', async () => {
-		const id = signal(1);
+		const id = state(1);
 		const made: ReturnType<typeof makeSource<number>>[] = [];
 		const s = toSignalFrom(() => {
 			id();

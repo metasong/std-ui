@@ -5,10 +5,10 @@
 //   - invalid   `check.errors`       → aria-invalid, and the text of the element named by aria-errormessage
 //   - required  a `required()` validator (its `flag` is 'valueMissing') → aria-required
 // The table reads the attributes straight off the inputs, so it shows what is really on the element.
-import { css, signal, state, t, tag, UIElement } from '@std-ui/core';
+import { css, state, stateTree, t, tag, UIElement } from '@std-ui/core';
 import { asyncValidator, changes, check, email, formBind, formUi, minLength, required } from '@std-ui/ext';
 
-const form = state({ name: 'Ada', email: 'ada@example.com' }).with(check).with(changes).with(formUi);
+const form = stateTree({ name: 'Ada', email: 'ada@example.com' }).with(check).with(changes).with(formUi);
 
 form.name.check.validators.set([required('Name is required'), minLength(3)]);
 form.email.check.validators.set([
@@ -39,7 +39,7 @@ const ATTRIBUTES = ['data-touched', 'data-dirty', 'data-pending', 'aria-invalid'
 const PSEUDO_CLASSES = [':invalid', '[data-touched]:invalid'] as const;
 
 /** Bumped whenever an attribute on an observed input changes, so the table re-reads them. */
-const attributesChanged = signal(0);
+const attributesChanged = state(0);
 
 @tag('demo-bind-form-flags-section')
 export class DemoBindFormFlagsSection extends UIElement {

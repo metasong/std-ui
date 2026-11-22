@@ -1,5 +1,5 @@
 import { FormElement } from './element.js';
-import type { ValidationError } from '../../reactive/state/check/index.js';
+import type { ValidationError } from '../../reactive/state-tree/check/index.js';
 
 /** An inner control that can own validity: another `FormElement` (or group) or a native control. */
 export type ValidationErrorTarget = FormElement | HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement;

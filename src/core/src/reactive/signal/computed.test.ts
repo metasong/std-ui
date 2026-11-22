@@ -2,18 +2,18 @@ import { describe, expect, it, vi } from 'vitest';
 import { computed } from './computed.js';
 import { effect } from '../effect/main.js';
 import { flushEffects } from '../effect/test-helpers.js';
-import { signal } from './signal.js';
+import { state } from './state.js';
 
 describe('computed', () => {
 	it('derives its value from signals it reads', () => {
-		const a = signal(2);
-		const b = signal(3);
+		const a = state(2);
+		const b = state(3);
 		const sum = computed(() => a() + b());
 		expect(sum()).toBe(5);
 	});
 
 	it('recomputes lazily when a dependency changes', () => {
-		const a = signal(2);
+		const a = state(2);
 		const sum = computed(() => a() * 10);
 		expect(sum()).toBe(20);
 		a.set(3);
@@ -21,7 +21,7 @@ describe('computed', () => {
 	});
 
 	it('does not recompute (cached) when read repeatedly with no dependency change', () => {
-		const a = signal(2);
+		const a = state(2);
 		const spy = vi.fn(() => a() * 2);
 		const doubled = computed(spy);
 		doubled();
@@ -31,7 +31,7 @@ describe('computed', () => {
 	});
 
 	it('propagates through chained computeds', () => {
-		const a = signal(1);
+		const a = state(1);
 		const doubled = computed(() => a() * 2);
 		const quadrupled = computed(() => doubled() * 2);
 		expect(quadrupled()).toBe(4);
@@ -40,7 +40,7 @@ describe('computed', () => {
 	});
 
 	it('peek() reads without tracking (no dependency registered)', async () => {
-		const a = signal(1);
+		const a = state(1);
 		const doubled = computed(() => a() * 2);
 		doubled(); // warm cache
 		const spy = vi.fn();
@@ -57,7 +57,7 @@ describe('computed', () => {
 	});
 
 	it('peek() still recomputes when dirty and returns the fresh value', () => {
-		const a = signal(1);
+		const a = state(1);
 		const doubled = computed(() => a() * 2);
 		expect(doubled()).toBe(2);
 		a.set(3);
@@ -65,7 +65,7 @@ describe('computed', () => {
 	});
 
 	it('options.equals keeps the previous cached reference when the recomputed value is equivalent', () => {
-		const a = signal(1);
+		const a = state(1);
 		const point = computed(
 			() => ({ parity: a() % 2 === 0 ? 'even' : 'odd' }),
 			{ equals: (x, y) => x.parity === y.parity }

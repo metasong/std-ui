@@ -1,14 +1,14 @@
 import { describe, expect, it, vi } from 'vitest';
 import { t } from '../../tag-funcs/html/index.js';
 import { render } from '../../render.js';
-import { state } from '../../../../reactive/index.js';
+import { stateTree } from '../../../../reactive/index.js';
 import { attribute, tag, UIElement } from '../../../ui-element.js';
 import { bind } from './index.js';
 
 describe('bind()', () => {
 	it('binds a state node directly, keeping numeric models numeric', () => {
 		const container = document.createElement('div');
-		const form = state({ query: 'hi', age: 3 });
+		const form = stateTree({ query: 'hi', age: 3 });
 		const view = () =>
 			t`<input .value=${bind(form.query)} /><input type="number" .value=${bind(form.age)} />`;
 		render(view(), container);
@@ -27,7 +27,7 @@ describe('bind()', () => {
 
 	it('syncs .value both ways with live skip on redundant render', () => {
 		const container = document.createElement('div');
-		const store = state({ query: 'hi' });
+		const store = stateTree({ query: 'hi' });
 		const view = () => t`<input .value=${bind(store.query)} />`;
 
 		render(view(), container);
@@ -49,7 +49,7 @@ describe('bind()', () => {
 
 	it('syncs .checked via change', () => {
 		const container = document.createElement('div');
-		const store = state({ on: false });
+		const store = stateTree({ on: false });
 		const view = () => t`<input type="checkbox" .checked=${bind(store.on)} />`;
 
 		render(view(), container);
@@ -67,7 +67,7 @@ describe('bind()', () => {
 
 	it('binds arbitrary properties with default `${property}-change` event', () => {
 		const container = document.createElement('div');
-		const store = state({ level: 1 });
+		const store = stateTree({ level: 1 });
 		const view = () => t`<div .level=${bind(store.level)}></div>`;
 
 		render(view(), container);
@@ -85,7 +85,7 @@ describe('bind()', () => {
 
 	it('throws when .checked is bound to a non-checkable <input>', () => {
 		const container = document.createElement('div');
-		const store = state({ on: false });
+		const store = stateTree({ on: false });
 		expect(() =>
 			render(t`<input type="text" .checked=${bind(store.on)} />`, container),
 		).toThrow(/type="checkbox"/i);
@@ -93,7 +93,7 @@ describe('bind()', () => {
 
 	it('uses checked-change on non-input elements', () => {
 		const container = document.createElement('div');
-		const store = state({ on: false });
+		const store = stateTree({ on: false });
 		const view = () => t`<div .checked=${bind(store.on)}></div>`;
 
 		render(view(), container);
@@ -107,7 +107,7 @@ describe('bind()', () => {
 
 	it('uses property name for default event (`.document` → `document-change`)', () => {
 		const container = document.createElement('div');
-		const store = state({ payload: { title: 'a' } });
+		const store = stateTree({ payload: { title: 'a' } });
 		const view = () => t`<div .document=${bind(store.payload)}></div>`;
 
 		render(view(), container);
@@ -131,8 +131,8 @@ describe('bind()', () => {
 
 	it('uses the latest accessor on re-render (no stale closures)', () => {
 		const container = document.createElement('div');
-		const a = state({ v: 'a' });
-		const b = state({ v: 'b' });
+		const a = stateTree({ v: 'a' });
+		const b = stateTree({ v: 'b' });
 		const view = (s: typeof a) => t`<input .value=${bind(s.v)} />`;
 		render(view(a), container);
 		const input = container.querySelector('input')! as HTMLInputElement;
@@ -146,7 +146,7 @@ describe('bind()', () => {
 
 	it('kebab-cases camelCase properties for the default event', () => {
 		const container = document.createElement('div');
-		const store = state({ minValue: 1 });
+		const store = stateTree({ minValue: 1 });
 		render(t`<div .minValue=${bind(store.minValue)}></div>`, container);
 		const div = container.querySelector('div')! as HTMLDivElement & { minValue: number };
 		div.minValue = 9;
@@ -156,7 +156,7 @@ describe('bind()', () => {
 
 	it('re-syncs sibling radios in the same group', () => {
 		const container = document.createElement('div');
-		const store = state({ a: true, b: false });
+		const store = stateTree({ a: true, b: false });
 		const view = () =>
 			t`<input type="radio" name="g" .checked=${bind(store.a)} /><input type="radio" name="g" .checked=${bind(store.b)} />`;
 		render(view(), container);
@@ -170,7 +170,7 @@ describe('bind()', () => {
 
 	it('stops listening after the template is torn down', () => {
 		const container = document.createElement('div');
-		const store = state({ query: 'x' });
+		const store = stateTree({ query: 'x' });
 		render(t`<input .value=${bind(store.query)} />`, container);
 		const input = container.querySelector('input')! as HTMLInputElement;
 		render(t`<p>gone</p>`, container);
@@ -182,8 +182,8 @@ describe('bind()', () => {
 	it('binds state and @attribute() fields directly', () => {
 		@tag('bind-decorated-fields')
 		class Host extends UIElement {
-			readonly text = state('hi');
-			@attribute() readonly age = state(3);
+			readonly text = stateTree('hi');
+			@attribute() readonly age = stateTree(3);
 		}
 		const host = document.createElement('bind-decorated-fields') as Host;
 		const container = document.createElement('div');

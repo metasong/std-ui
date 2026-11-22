@@ -1,5 +1,5 @@
 // "A taste" (from the README): signals, an HTML attribute mirrored to state, and context passed down the tree.
-import { attribute, css, state, t, tag, UIElement } from '@std-ui/core';
+import { attribute, css, stateTree, t, tag, UIElement } from '@std-ui/core';
 import { consume, createContextKey, provide } from '@std-ui/ext';
 
 interface Theme { mode: 'light' | 'dark'; }
@@ -7,7 +7,7 @@ const ThemeKey = createContextKey<Theme>('home-theme');
 
 @tag('demo-home-root')
 export class DemoHomeRoot extends UIElement {
-	@provide(ThemeKey) readonly theme = state<Theme>({ mode: 'dark' }); // shared with every descendant
+	@provide(ThemeKey) readonly theme = stateTree<Theme>({ mode: 'dark' }); // shared with every descendant
 	static override shadowRootOptions = { mode: 'open' } as const; // so <slot> projects children
 	protected override template() { return t`<slot></slot>`; }
 }
@@ -18,7 +18,7 @@ export class DemoHomeCounter extends UIElement {
 		button { padding: .5rem 1rem; border-radius: 999px; border: 0; cursor: pointer; background: #e8def8; color: #1d192b; }
 		button.dark { background: #222; color: #fff; }
 	`;
-	@attribute({ type: Number, reflect: true }) readonly count = state(0); // <demo-home-counter count="3">
+	@attribute({ type: Number, reflect: true }) readonly count = stateTree(0); // <demo-home-counter count="3">
 	@consume(ThemeKey) readonly theme!: Theme; // nearest ancestor's value
 
 	protected override template() {

@@ -1,7 +1,7 @@
 # `@attribute()` - internal design
 
 How attribute registration, conversion, and property <-> attribute sync are implemented. The field
-itself is a plain `state()` store and is never touched. For usage and API, see
+itself is a plain `stateTree()` store and is never touched. For usage and API, see
 [`README.md`](./README.md); for the registration mechanism shared with context, see
 [`../design.md`](../design.md).
 
@@ -30,7 +30,7 @@ branches on `type` - only `parseAttribute` / `serializeAttribute` with each def'
 - `defineElement(name, Class, { attributes: { count: opts } })` ->
   `attributeDefs.register(ownMetadata(Class), def)`.
 
-The decorator accepts any plain class field (a `state()` store or a plain value) and never touches the field. `attributeDefs` is a
+The decorator accepts any plain class field (a `stateTree()` store or a plain value) and never touches the field. `attributeDefs` is a
 `ClassRegistry` (see [`../design.md`](../design.md#one-registry-per-kind-of-registration)): defs live
 in an own array on the class's metadata object, inherited through the metadata prototype chain.
 

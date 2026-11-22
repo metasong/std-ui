@@ -5,7 +5,7 @@ Frameworks often expose **async in templates** as either:
 - an **async pipe** that subscribes to an `Observable` / `Promise` and updates the view when values arrive (Angular’s `AsyncPipe`), or
 - an **async directive** that holds subscription state inside the binding and re-renders when the latest value changes.
 
-std-ui does **not** ship either. Async work is bridged **once** into the signal graph with [`toSignal`](../../../reactive/to-signal/README.md) and [`toSignalFrom`](../../../reactive/to-signal/README.md#reactive-sources-tosignalfromfactory-options), then templates read ordinary signals in `` t`...` `` — the same path as `@state()`, `computed()`, and DOM-driven updates.
+std-ui does **not** ship either. Async work is bridged **once** into the signal graph with [`toSignal`](../../../reactive/to-signal/README.md) and [`toSignalFrom`](../../../reactive/to-signal/README.md#reactive-sources-tosignalfromfactory-options), then templates read ordinary signals in `` t`...` `` — the same path as `@stateTree()`, `computed()`, and DOM-driven updates.
 
 That keeps template bindings **synchronous**, matches the rest of the signal model, and avoids a second subscription lifecycle hidden inside `${...}`.
 
@@ -70,11 +70,11 @@ Until the first emission, use `initialValue` (or accept `undefined` on read). Af
 When the URL, filter, or id comes from component state, use a **factory** so the previous subscription is torn down when deps change:
 
 ```ts
-import { tag, t, UIElement, state, toSignalFrom } from '@std-ui/core';
+import { tag, t, UIElement, stateTree, toSignalFrom } from '@std-ui/core';
 
 @tag('demo-user-by-id')
 class DemoUserById extends UIElement {
-	@state() userId = 1;
+	@stateTree() userId = 1;
 
 	private readonly profile = toSignalFrom(
 		() => (this.userId() ? fetch(`/api/users/${this.userId()}`).then((r) => r.json()) : null),
@@ -95,7 +95,7 @@ While a new fetch is pending, the **last** successful value is kept (see [`../..
 
 ## Patterns in `template()`
 
-- **Loading UI** — branch on `initialValue` / `null` / a dedicated `@state()` flag you set in an `effect`.
+- **Loading UI** — branch on `initialValue` / `null` / a dedicated `@stateTree()` flag you set in an `effect`.
 - **Derived display** — `computed(() => format(this.items.deep()))` instead of awaiting inside the literal.
 - **Lists from async** — resolve in `toSignal`, then `this.rows().map((row) => t\`...\`)` or `mapByKey` (same as sync data).
 - **Errors** — wrap reads that may throw in a small `computed` that returns a result type, or handle failure upstream and store an error signal yourself; do not expect a built-in “async pipe with error slot”.
@@ -106,7 +106,7 @@ Calling `toSignal` / `toSignalFrom` inside `template()`, `computed()`, or `effec
 
 | Need | Built-in | Alternative |
 |------|----------|-------------|
-| Show latest async value | — | `toSignal` / `toSignalFrom`, then `${signal()}` |
+| Show latest async value | — | `toSignal` / `toSignalFrom`, then `${state()}` |
 | React to signal-changing sources | — | `toSignalFrom(() => …)` |
 | Conditional async UI | — | `? :` on signal reads (see [`why-not-structure-directives.md`](./why-not-structure-directives.md)) |
 | DOM-specific async (e.g. virtual list measure) | `virtualize` | Not a generic async pipe |

@@ -90,7 +90,7 @@ Internal `state` uses custom `equals` on the **wrapped** state objects: when bot
 | [`index.ts`](./index.ts) | Re-exports. |
 | [`to-signal.test.ts`](./to-signal.test.ts) | Promise, sync emit, error, dispose, `onCleanup`. |
 
-Depends on [`../signal/`](../signal/signal.md) (`signal`, `computed`, `untrack`).
+Depends on [`../signal/`](../signal/state.md) (`signal`, `computed`, `untrack`).
 
 ## Reactive-context guard
 

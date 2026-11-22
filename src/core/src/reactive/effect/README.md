@@ -2,14 +2,14 @@
 
 Runs a callback immediately, then re-runs it whenever any **signal** or **computed** read inside that callback changes. Re-runs are **microtask-batched**, so several synchronous writes in one tick collapse into a single re-run. Use this for side effects (DOM, logging, subscriptions) — not for derived values (`computed()` for that).
 
-Broader API context: [`../signal/signal.md`](../signal/signal.md). Implementation: [`main.ts`](./main.ts) on top of `Watcher` from [`../signal/tracking.ts`](../signal/tracking.ts) (same role as `Signal.subtle.Watcher` in the [proposal](https://github.com/tc39/proposal-signals)).
+Broader API context: [`../signal/state.md`](../signal/state.md). Implementation: [`main.ts`](./main.ts) on top of `Watcher` from [`../signal/tracking.ts`](../signal/tracking.ts) (same role as `Signal.subtle.Watcher` in the [proposal](https://github.com/tc39/proposal-signals)).
 
 Writing to signals you also read: [`effect-cycles.md`](./effect-cycles.md).
 
 ```ts
-import { effect, signal } from '@std-ui/core';
+import { effect, state } from '@std-ui/core';
 
-const count = signal(0);
+const count = state(0);
 
 const dispose = effect(onCleanup => {
 	el.textContent = String(count());
@@ -59,7 +59,7 @@ Prefer `peek()` / `untrack()` in the main body when you need a value without sub
 ## std-ui usage
 
 - [`../../element/ui-element.ts`](../../element/ui-element.ts) — `UIElement.effect()` wraps this and auto-disposes on `disconnectedCallback()`.
-- [`../state/main.ts`](../state/main.ts) — field reactions and template refresh build on the same primitives.
+- [`../state-tree/main.ts`](../state-tree/main.ts) — field reactions and template refresh build on the same primitives.
 
 ## Tests
 

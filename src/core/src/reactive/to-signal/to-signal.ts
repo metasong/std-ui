@@ -1,5 +1,5 @@
 import { computed } from '../signal/computed.js';
-import { signal } from '../signal/signal.js';
+import { state } from '../signal/state.js';
 import { assertNotInReactiveContext, untrack } from '../signal/tracking.js';
 import { toSubscribable } from './subscribable.js';
 import type { ToSignal, ToSignalOptions, ToSignalSource, Unsubscribable } from './types.js';
@@ -23,7 +23,7 @@ export function toSignal<T, U>(
 	assertNotInReactiveContext('toSignal()');
 	const userEquals = options.equals ?? Object.is;
 	const initial: State<T | U | undefined> = { kind: Kind.Value, value: options.initialValue };
-	const state = signal<State<T | U | undefined>>(initial, {
+	const cell = state<State<T | U | undefined>>(initial, {
 		// The initial value is type `U`, not `T`, so never hand it to the user's `equals`.
 		equals: (a, b) =>
 			a !== initial && b !== initial &&
@@ -44,10 +44,10 @@ export function toSignal<T, U>(
 	untrack(() => {
 		const observable = toSubscribable(source);
 		const result = observable.subscribe({
-			next: value => { if (!disposed) state.set({ kind: Kind.Value, value }); },
+			next: value => { if (!disposed) cell.set({ kind: Kind.Value, value }); },
 			error: error => {
 				if (disposed) return;
-				state.set({ kind: Kind.Error, error });
+				cell.set({ kind: Kind.Error, error });
 				dispose();
 			},
 			complete: dispose,
@@ -57,7 +57,7 @@ export function toSignal<T, U>(
 	});
 
 	const read = computed<T | U | undefined>(() => {
-		const current = state();
+		const current = cell();
 		if (current.kind === Kind.Error) throw current.error;
 		return current.value;
 	});

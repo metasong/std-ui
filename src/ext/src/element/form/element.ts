@@ -1,6 +1,6 @@
 import { UIElement } from '@std-ui/core';
 import { setFlag } from './flags.js';
-import type { ValidationError } from '../../reactive/state/check/index.js';
+import type { ValidationError } from '../../reactive/state-tree/check/index.js';
 
 /**
  * Form-associated variant of `UIElement` backed by `ElementInternals`.

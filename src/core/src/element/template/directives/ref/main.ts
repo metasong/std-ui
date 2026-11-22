@@ -1,10 +1,10 @@
 import { Directive, directive, noChange, type ElementPartInfo, type PartInfo } from '../directive.js';
 import { PartType } from '../../parts/part.js';
-import { signal, type Signal } from '../../../../reactive/signal/index.js';
+import { state, type State } from '../../../../reactive/signal/index.js';
 
 /** A signal holding the rendered element, filled in by `ref()`: `undefined` before the first render and after
  *  teardown. Read it by calling it (tracked in effects/templates), or `.peek()` for an untracked read. */
-export type Ref<T extends Element = Element> = Signal<T | undefined>;
+export type Ref<T extends Element = Element> = State<T | undefined>;
 /** Called with the element when it renders, and with `undefined` when the binding is torn down
  *  or switched to another ref. */
 export type RefCallback<T extends Element = Element> = (el: T | undefined) => void;
@@ -13,7 +13,7 @@ export type RefOrCallback<T extends Element = Element> = Ref<T> | RefCallback<T>
 
 /** Creates an empty `Ref` to pass to `ref()`, e.g. `const input = createRef<HTMLInputElement>()`. */
 export function createRef<T extends Element = Element>(): Ref<T> {
-	return signal<T | undefined>(undefined);
+	return state<T | undefined>(undefined);
 }
 
 /**

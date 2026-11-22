@@ -48,15 +48,15 @@ The core is small on purpose, and almost everything else is an add-on built on t
 - **Tiny.** The full core ships at about **14 kB gzip** (`std-ui-core.iife.min.js`), and the add-ons at about **10 kB**.
 - **Fine-grained reactivity.** `signal`, `computed` and `effect` update exactly the DOM that changed. There is no diffing and no re-render of whole trees.
 - **Real Web Components.** Extend `UIElement`, and it works anywhere HTML works.
-- **Reactive state trees.** Wrap plain objects and arrays in `state(...)` to get deeply reactive, typed stores.
-- **Type-safe by design.** Fields are the store itself (`SignalState<number>`), so there are no decorator type lies and IntelliSense just works.
+- **Reactive state trees.** Wrap plain objects and arrays in `stateTree(...)` to get deeply reactive, typed stores.
+- **Type-safe by design.** Fields are the store itself (`StateTree<number>`), so there are no decorator type lies and IntelliSense just works.
 - **Fully extensible.** Hooks, registries and tree extensions let you add your own features.
 - **Opt-in extras.** Context, change tracking and forms live in `@std-ui/ext`. The core knows nothing about them, so you pay only for what you import.
 
 ## A taste
 
 ```ts
-import { UIElement, tag, attribute, state, t, css } from '@std-ui/core';
+import { UIElement, tag, attribute, stateTree, t, css } from '@std-ui/core';
 import { provide, consume, createContextKey } from '@std-ui/ext';
 
 interface Theme { mode: 'light' | 'dark'; }
@@ -64,7 +64,7 @@ const ThemeKey = createContextKey<Theme>('theme');
 
 @tag('app-root')
 class AppRoot extends UIElement {
-	@provide(ThemeKey) readonly theme = state<Theme>({ mode: 'dark' }); // shared with every descendant
+	@provide(ThemeKey) readonly theme = stateTree<Theme>({ mode: 'dark' }); // shared with every descendant
 	static override shadowRootOptions = { mode: 'open' } as const; // render into a shadow root so <slot> projects children
 	protected override template() { return t`<slot></slot>`; }
 }
@@ -72,7 +72,7 @@ class AppRoot extends UIElement {
 @tag('counter-button')
 class CounterButton extends UIElement {
 	static override styles = css`button { padding: .5rem 1rem; } button.dark { background: #222; color: #fff; }`;
-	@attribute({ type: Number, reflect: true }) readonly count = state(0); // <counter-button count="3">
+	@attribute({ type: Number, reflect: true }) readonly count = stateTree(0); // <counter-button count="3">
 	@consume(ThemeKey) readonly theme!: Theme;                            // nearest ancestor's value
 
 	protected override template() {
@@ -93,7 +93,7 @@ class CounterButton extends UIElement {
 
 ```ts
 class CounterButton extends UIElement {
-	readonly count = state(0);
+	readonly count = stateTree(0);
 	protected override template() {
 		return t`<button @click=${() => this.count.set(this.count() + 1)}>Clicked ${this.count()} times</button>`;
 	}
@@ -108,13 +108,13 @@ defineElement('counter-button', CounterButton, {
 A form-associated element in a few lines: validation feeds the native constraint API (`checkValidity()`, `:invalid`, blocking form submit).
 
 ```ts
-import { tag, state, t } from '@std-ui/core';
+import { tag, stateTree, t } from '@std-ui/core';
 import { FormElement, check, required, minLength, asyncValidator, flags } from '@std-ui/ext';
 
 @tag('name-input')
 class NameInput extends FormElement {
 	// reusable validators on a reactive state node
-	readonly name = state('').with(check);
+	readonly name = stateTree('').with(check);
 
 	constructor() {
 		super();
@@ -148,10 +148,10 @@ Validators are plain functions, so writing your own is one line. Built-ins use t
 ## Track changes in one line
 
 ```ts
-import { state, effect } from '@std-ui/core';
+import { stateTree, effect } from '@std-ui/core';
 import { changes } from '@std-ui/ext';
 
-const form = state({ name: '', tags: [] as string[] }).with(changes);
+const form = stateTree({ name: '', tags: [] as string[] }).with(changes);
 
 effect(() => {
 	// re-runs whenever the form's dirty state changes

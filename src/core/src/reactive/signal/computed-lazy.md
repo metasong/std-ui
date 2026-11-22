@@ -2,7 +2,7 @@
 
 How `computed()` in [`./computed.ts`](./computed.ts) caches its last result, only re-runs the
 derivation when needed, and stops propagation when the result is unchanged. See
-[`./signal.md`](./signal.md) for the full signals API.
+[`./state.md`](./state.md) for the full signals API.
 
 ## The graph model
 
@@ -61,7 +61,7 @@ If the recompute yields a value `equals()` to the cached one, the old value **an
 kept. Observers then see an unchanged version in their own pull check and skip work too:
 
 ```ts
-const n = signal(1);
+const n = state(1);
 const parity = computed(() => n() % 2);
 effect(() => console.log(parity()));
 n.set(3); // parity recomputes to 1 again -> effect does NOT re-run

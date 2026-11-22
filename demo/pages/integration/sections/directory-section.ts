@@ -3,7 +3,7 @@
 //   - `bind()` / `formBind()`   → two-way search box; form fields with validation + touched mirrored onto the inputs
 //   - `virtualize()`                  → the (filtered) list stays windowed however many people exist
 //   - `state` + `UIElement`/`t` → the list itself and re-rendering
-import { bind, t, tag, UIElement, state } from '@std-ui/core';
+import { bind, t, tag, UIElement, stateTree } from '@std-ui/core';
 import { check, formBind, formUi, virtualize } from '@std-ui/ext';
 import { virtualizeListStyles } from '../../../shared/virtualize-list-styles.js';
 
@@ -13,7 +13,7 @@ const NAMES = ['Ada', 'Alan', 'Grace', 'Linus', 'Margaret', 'Dennis', 'Barbara',
 const seed = (): Person[] =>
 	Array.from({ length: 5_000 }, (_, id) => ({ id, name: `${NAMES[id % NAMES.length]} #${id}`, age: 18 + (id % 60) }));
 
-const draft = state({ name: '', age: 30 }).with(check).with(formUi);
+const draft = stateTree({ name: '', age: 30 }).with(check).with(formUi);
 draft.name.check.validators.set([
 	v => (v ? undefined : { flag: 'valueMissing' as const, message: 'Name is required' }),
 	v => (String(v).length >= 3 ? undefined : { flag: 'tooShort' as const, message: 'At least 3 characters' }),
@@ -26,8 +26,8 @@ draft.age.check.validators.set([
 export class DemoIntegrationDirectory extends UIElement {
 	static override styles = virtualizeListStyles;
 
-	readonly people = state<Person[]>(seed());
-	readonly search = state('');
+	readonly people = stateTree<Person[]>(seed());
+	readonly search = stateTree('');
 	#nextId = 5_000;
 
 	#visible(): Person[] {

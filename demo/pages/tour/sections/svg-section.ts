@@ -1,5 +1,5 @@
 // Demonstrates: the `svg` tag — embedding SVG *fragments* (no `<svg>` ancestor in the template string).
-import { tag, t, svg, state, UIElement } from '@std-ui/core';
+import { tag, t, svg, stateTree, UIElement } from '@std-ui/core';
 
 const xs = [40, 120, 200];
 
@@ -10,7 +10,7 @@ const svgCircle = (x: number) => svg`<circle r="20" cx="${x}" cy="40" fill="seag
 
 @tag('demo-svg-section')
 export class DemoSvgSection extends UIElement {
-	readonly report = state('');
+	readonly report = stateTree('');
 
 	protected override template() {
 		return t`

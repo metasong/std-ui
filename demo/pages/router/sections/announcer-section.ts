@@ -1,5 +1,5 @@
 // Router `announce`: a screen-reader message after each client-side navigation.
-import { state, t, tag, UIElement } from '@std-ui/core';
+import { stateTree, t, tag, UIElement } from '@std-ui/core';
 import '@std-ui/router';
 import { createRouter } from '@std-ui/router';
 import { createMemoryNavigation } from '@std-ui/router/testing';
@@ -7,7 +7,7 @@ import { demoRoutes } from './pages.js';
 
 @tag('demo-router-announcer-section')
 export class DemoRouterAnnouncerSection extends UIElement {
-	private readonly heard = state('(navigate to hear something)');
+	private readonly heard = stateTree('(navigate to hear something)');
 
 	// Custom `announce`: same default text, plus we mirror it on screen. Return '' to stay silent.
 	private readonly router = createRouter({

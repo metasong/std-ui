@@ -1,5 +1,5 @@
 import { describe, expect, it, vi } from 'vitest';
-import { signal } from '../signal/signal.js';
+import { state } from '../signal/state.js';
 import { effect } from './main.js';
 import { flushEffects } from './test-helpers.js';
 
@@ -11,7 +11,7 @@ describe('effect', () => {
 	});
 
 	it('re-runs (batched into a microtask) when a read signal changes', async () => {
-		const count = signal(0);
+		const count = state(0);
 		const spy = vi.fn();
 		effect(() => {
 			spy(count());
@@ -27,7 +27,7 @@ describe('effect', () => {
 	});
 
 	it('runs the cleanup registered via onCleanup before the next re-run and on dispose', async () => {
-		const count = signal(0);
+		const count = state(0);
 		const cleanup = vi.fn();
 		const dispose = effect(onCleanup => {
 			count();
@@ -44,7 +44,7 @@ describe('effect', () => {
 	});
 
 	it('dispose() stops future re-runs', async () => {
-		const count = signal(0);
+		const count = state(0);
 		const spy = vi.fn();
 		const dispose = effect(() => spy(count()));
 		dispose();
@@ -55,9 +55,9 @@ describe('effect', () => {
 	});
 
 	it('only tracks dependencies actually read on the latest run (dynamic dependencies)', async () => {
-		const useA = signal(true);
-		const a = signal('a');
-		const b = signal('b');
+		const useA = state(true);
+		const a = state('a');
+		const b = state('b');
 		const spy = vi.fn();
 		effect(() => {
 			spy(useA() ? a() : b());
@@ -79,8 +79,8 @@ describe('effect', () => {
 	});
 
 	it('runs afterAction after monitoredAction, re-running it when monitoredAction re-runs, but not tracking signals it reads', async () => {
-		const count = signal(0);
-		const other = signal(0);
+		const count = state(0);
+		const other = state(0);
 		const order: string[] = [];
 		const monitoredSpy = vi.fn(() => order.push('monitored'));
 		const afterSpy = vi.fn(() => {
@@ -95,14 +95,14 @@ describe('effect', () => {
 		expect(afterSpy).toHaveBeenCalledTimes(1);
 		expect(order).toEqual(['monitored', 'after']);
 
-		// Signal read inside monitoredAction triggers a re-run of both monitoredAction and afterAction.
+		// State read inside monitoredAction triggers a re-run of both monitoredAction and afterAction.
 		count.set(1);
 		await flushEffects();
 		expect(monitoredSpy).toHaveBeenCalledTimes(2);
 		expect(afterSpy).toHaveBeenCalledTimes(2);
 		expect(order).toEqual(['monitored', 'after', 'monitored', 'after']);
 
-		// Signal read only inside afterAction isn't tracked, so changing it shouldn't trigger a re-run.
+		// State read only inside afterAction isn't tracked, so changing it shouldn't trigger a re-run.
 		other.set(1);
 		await flushEffects();
 		expect(monitoredSpy).toHaveBeenCalledTimes(2);

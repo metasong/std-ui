@@ -45,7 +45,7 @@ export interface BindOptions {
 /** `bind({ get, set, ...options })` — accessor and options in one object. */
 export type BindSource = BindAccessor & BindOptions;
 
-/** Anything callable to read with a `.set()` to write: `signal()` or a `state()` node. */
+/** Anything callable to read with a `.set()` to write: `state()` or a `stateTree()` node. */
 export interface WritableSignal<T = unknown> {
 	(): T;
 	set(value: never): void;

@@ -1,6 +1,6 @@
 // Demonstrates: `createContextKey`, `@provide(key)` / `@consume(key)` (read) —
 // a descendant reads an ancestor's reactive value with no prop-drilling.
-import { tag, t, UIElement, state } from '@std-ui/core';
+import { tag, t, UIElement, stateTree } from '@std-ui/core';
 import { consume, provide, createContextKey } from '@std-ui/ext';
 
 interface Theme { mode: 'light' | 'dark'; }
@@ -17,7 +17,7 @@ class DemoThemeChild extends UIElement {
 
 @tag('demo-context-section')
 export class DemoContextSection extends UIElement {
-	@provide(ThemeKey) readonly theme = state<Theme>({ mode: 'light' });
+	@provide(ThemeKey) readonly theme = stateTree<Theme>({ mode: 'light' });
 
 	protected override template() {
 		return t`

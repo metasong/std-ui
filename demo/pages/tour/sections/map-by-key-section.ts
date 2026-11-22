@@ -1,5 +1,5 @@
 // Demonstrates: `mapByKey` — keyed list reconciliation when the list store changes order.
-import { css, tag, t, UIElement, mapByKey, state } from '@std-ui/core';
+import { css, tag, t, UIElement, mapByKey, stateTree } from '@std-ui/core';
 
 type Chore = { id: string; label: string };
 
@@ -29,7 +29,7 @@ export class DemoMapByKeySection extends UIElement {
 		}
 	`;
 
-	readonly chores = state<Chore[]>([
+	readonly chores = stateTree<Chore[]>([
 		{ id: 'wash', label: 'Wash dishes' },
 		{ id: 'mail', label: 'Check mail' },
 		{ id: 'walk', label: 'Walk the dog' },

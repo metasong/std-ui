@@ -4,11 +4,11 @@
 //   Email      check.enabled                    validated only while "Notify me" is on
 //   Address    formUi.disabled                  a disabled input is not validated
 // All three are configured in one call with `form.check.fields({...})`.
-import { t, tag, UIElement, state } from '@std-ui/core';
+import { t, tag, UIElement, stateTree } from '@std-ui/core';
 import { check, formBind, formUi, minLength, pattern, required, when } from '@std-ui/ext';
 
-const form = state({ vat: '', email: '', address: '' }).with(check).with(formUi);
-const isCompany = state(false);
+const form = stateTree({ vat: '', email: '', address: '' }).with(check).with(formUi);
+const isCompany = stateTree(false);
 
 // FEATURE 4: check.fields({...}) sets the rules of several members in one call (here for all
 // three fields), instead of `form.vat.check.validators.set(...)` for each.

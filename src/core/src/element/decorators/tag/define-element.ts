@@ -4,8 +4,8 @@
 //
 // ```ts
 // class MyBadge extends UIElement {
-//   readonly count = state(0);
-//   readonly label = state('hi');
+//   readonly count = stateTree(0);
+//   readonly label = stateTree('hi');
 // }
 // defineElement('my-badge', MyBadge, { attributes: { count: { type: Number, reflect: true }, label: {} } });
 // ```
@@ -20,7 +20,7 @@ import { attributeDefs, createAttributeDef, defineObservedAttributes } from '../
 import { addClassHooks } from '../../ui-element-hooks.js';
 import { attributeHooks } from '../attribute/wire-reflect.js';
 
-/** `attributes` option: field name -> `AttributeOptions`. Fields may be `state()` stores or plain fields (`reflect` needs a store). */
+/** `attributes` option: field name -> `AttributeOptions`. Fields may be `stateTree()` stores or plain fields (`reflect` needs a store). */
 export type AttributesMap<I> = { [K in keyof I & string]?: AttributeOptions };
 
 export interface DefineElementOptions<I> {

@@ -1,13 +1,13 @@
 // Demonstrates: event extensions (`@input.debounce:300`, `@keyup.ctrl+enter.ctrl+y`).
-import { tag, t, UIElement, state } from '@std-ui/core';
+import { tag, t, UIElement, stateTree } from '@std-ui/core';
 // Registers the `@event.modifier` binding and its extensions.
 import '@std-ui/ext';
 
 @tag('demo-event-extensions-section')
 export class DemoEventExtensionsSection extends UIElement {
-	readonly typed = state('');
-	readonly debounced = state('');
-	readonly combos = state<string[]>([]);
+	readonly typed = stateTree('');
+	readonly debounced = stateTree('');
+	readonly combos = stateTree<string[]>([]);
 
 	protected override template() {
 		return t`

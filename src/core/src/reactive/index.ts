@@ -1,4 +1,4 @@
-export { computed, signal, type Computed, type ReadonlySignal, type Signal, type SignalOptions } from './signal/index.js';
+export { computed, state, type Computed, type ReadonlyState, type State, type StateOptions } from './signal/index.js';
 export { effect, type OnCleanup } from './effect/index.js';
 
 export {
@@ -15,13 +15,13 @@ export {
 } from './to-signal/index.js';
 
 export {
-	state,
+	stateTree,
 	type DeepPartial,
-	type SignalState,
+	type StateTree,
 	type StateDepth,
-	type SignalArray,
-	type SignalObject,
-	type SignalLeaf,
+	type StateArray,
+	type StateObject,
+	type StateLeaf,
 	type ItemNode,
 	type Extendable,
 	type Extension,
@@ -31,7 +31,7 @@ export {
 	EQUALS,
 	extendTree,
 	isTreeNode,
-} from './state/index.js';
+} from './state-tree/index.js';
 
 import {
 	assertNotInReactiveContext as _assertNotInReactiveContext,
@@ -42,7 +42,7 @@ import {
 
 /** Grouped re-export of the low-level primitives, named after `Signal.subtle` in the proposed
  * standard signals API (`Signal.subtle.Watcher`, `Signal.subtle.untrack`). Most code should use
- * `state()`/`computed()`/`effect()` instead - reach for `subtle` only when building a custom
+ * `stateTree()`/`computed()`/`effect()` instead - reach for `subtle` only when building a custom
  * scheduler or framework integration on top of the dependency graph. */
 export const subtle = {
 	Watcher: _Watcher,

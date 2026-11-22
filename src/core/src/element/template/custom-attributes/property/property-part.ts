@@ -1,7 +1,7 @@
 import { applyDirective, isDirectiveResult, noChange, type Directive, type PropertyPartInfo } from '../../directives/directive.js';
 import { PartType, type Modifier, type Part, warnIgnoredModifiers } from '../../parts/part.js';
 
-/** A store-valued field (`state(...)`) is written through its `.set()`; plain assignment would replace the store itself. */
+/** A store-valued field (`stateTree(...)`) is written through its `.set()`; plain assignment would replace the store itself. */
 function writeProperty(el: Element, name: string, value: unknown): void {
 	const host = el as unknown as Record<string, unknown>;
 	const current = host[name];

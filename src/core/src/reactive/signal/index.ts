@@ -1,5 +1,5 @@
 export { computed, type Computed } from './computed.js';
-export { signal, type ReadonlySignal, type Signal, type SignalOptions } from './signal.js';
+export { state, type ReadonlyState, type State, type StateOptions } from './state.js';
 export {
 	assertNotInReactiveContext,
 	inReactiveContext,

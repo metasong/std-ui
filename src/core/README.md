@@ -6,8 +6,8 @@ Guides for the library under `src/` (`signal/`, `template/`, `ui-element.ts`):
 
 | Topic | File |
 |---|---|
-| Signals (`signal`, `computed`, `effect`) | [`src/reactive/signal/signal.md`](./src/reactive/signal/signal.md) |
-| Reactive state tree | [`src/reactive/state/README.md`](./src/reactive/state/README.md) |
+| Signals (`signal`, `computed`, `effect`) | [`src/reactive/signal/state.md`](./src/reactive/signal/state.md) |
+| Reactive state tree | [`src/reactive/state-tree/README.md`](./src/reactive/state-tree/README.md) |
 | Async → signal (`toSignal`) | [`src/reactive/to-signal/README.md`](./src/reactive/to-signal/README.md) · [design](./src/reactive/to-signal/design.md) |
 | HTML templates (`t`, `render`) | [`src/element/template/tag-funcs/html/html.md`](./src/element/template/tag-funcs/html/html.md) |
 | CSS templates (`css`, `static styles`) | [`src/element/template/tag-funcs/css/css.md`](./src/element/template/tag-funcs/css/css.md) |
