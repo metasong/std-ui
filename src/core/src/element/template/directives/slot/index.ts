@@ -2,7 +2,8 @@ import { Directive, directive, type DirectivePart, type PartInfo } from '../dire
 import { PartType } from '../../parts/part.js';
 import type { TemplateResult } from '../../tag-funcs/html/index.js';
 import { ChildRenderer, renderWith, TemplateRenderer } from '../../parts/renderers/index.js';
-import { DEV, assertSlotDirectiveInLightDom } from '../../../../dev/index.js';
+import { DEV } from '../../../../dev/flag.js';
+import { assertSlotDirectiveInLightDom } from './dev/warn-slot.js';
 import { getSlotContent } from './slot-content.js';
 
 export { getSlotContent, snapshotLightChildren } from './slot-content.js';

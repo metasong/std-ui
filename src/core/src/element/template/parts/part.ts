@@ -4,7 +4,7 @@
 // patch just that position when `update()` is called with a new value, no-op'ing on `Object.is`-equal
 // values. See `html.ts` for the overall design.
 
-import { DEV } from '../../../dev/index.js';
+import { DEV } from '../../../dev/flag.js';
 
 /**
  * The template positions a directive can be bound to: the discriminator of `PartInfo.type`, set by each

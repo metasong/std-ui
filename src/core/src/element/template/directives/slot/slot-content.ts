@@ -4,7 +4,8 @@
 // mutation - components that never use `slot()` are unaffected) just before the first render;
 // `slot()` later groups them by `slot` attribute and moves them into place.
 
-import { DEV, warnLateSlotChildren } from '../../../../dev/index.js';
+import { DEV } from '../../../../dev/flag.js';
+import { warnLateSlotChildren } from './dev/warn-slot.js';
 
 const snapshots = new WeakMap<Element, Node[]>();
 const grouped = new WeakMap<Element, Map<string, Node[]>>();

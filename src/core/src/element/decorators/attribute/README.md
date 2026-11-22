@@ -40,7 +40,7 @@ the first time it is needed.
 
 **`reflect: true` needs a store.** Reflecting means observing writes to the property, which only a `stateTree()` store
 allows. On a plain field `reflect` has no effect: a dev-only `console.warn` (once per element and field, see
-`../../../dev/warn-attribute.ts`) says so, and attribute -> property still works.
+`dev/warn-attribute.ts`) says so, and attribute -> property still works.
 
 ```html
 <user-badge count="3" label="Ada"></user-badge>

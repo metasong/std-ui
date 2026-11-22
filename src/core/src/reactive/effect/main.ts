@@ -2,7 +2,7 @@
 // `../signal/tracking.ts` - the low-level primitive modeled on `Signal.subtle.Watcher` in the proposed
 // standard signals API. Not part of the TC39 proposal; lives outside `signal/`.
 
-import { CycleGuard } from '../../dev/effect-cycle-guard.js';
+import { CycleGuard } from './dev/effect-cycle-guard.js';
 import { runTracked, sourcesChanged, subscribe, unsubscribe, Watcher } from '../signal/tracking.js';
 
 /**

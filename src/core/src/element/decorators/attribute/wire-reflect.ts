@@ -6,7 +6,7 @@
 import { effect as createEffect } from '../../../reactive/index.js';
 import type { UIElementHooks } from '../../ui-element-hooks.js';
 import { parseAttribute, serializeAttribute } from './converter.js';
-import { warnReflectNeedsStore } from '../../../dev/warn-attribute.js';
+import { warnReflectNeedsStore } from './dev/warn-attribute.js';
 import { attributeDefs, isSignalLikeForAttribute, resolveInferredConverter } from './metadata.js';
 
 /**

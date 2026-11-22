@@ -11,7 +11,8 @@
 //
 // See `html.ts` for the overall design.
 
-import { DEV, warnOnUndefinedElements } from '../../../dev/index.js';
+import { DEV } from '../../../dev/flag.js';
+import { warnOnUndefinedElements } from './dev/warn-undefined-elements.js';
 import { findCustomAttribute, type CustomAttribute, type AttributeInfo } from './custom-attribute.js';
 // Built-in bindings: each registers itself on import.
 import '../custom-attributes/attribute/index.js';

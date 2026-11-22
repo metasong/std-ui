@@ -1,4 +1,4 @@
-import { DEV } from './flag.js';
+import { DEV } from '../../../../dev/flag.js';
 
 const warned = new Set<string>();
 

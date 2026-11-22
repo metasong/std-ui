@@ -6,7 +6,8 @@
 //   `../../template/directives/slot/`), i.e. the host's original children grouped by `slot` attribute.
 
 import type { UIElement } from '../../ui-element.js';
-import { DEV, warnMissingSlotElement } from '../../../dev/index.js';
+import { DEV } from '../../../dev/flag.js';
+import { warnMissingSlotElement } from './dev/warn-missing-slot.js';
 import { getSlotContent } from '../../template/directives/slot/slot-content.js';
 import { assertPlainField } from './assert-plain-field.js';
 
