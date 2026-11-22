@@ -2,31 +2,68 @@
 <html lang="en">
 <head>
 	<meta charset="UTF-8" />
-	<title>std-ui — decorators in the browser (Babel standalone)</title>
+	<title>std-ui — full feature check (decorators via Babel standalone)</title>
 	<meta name="viewport" content="width=device-width, initial-scale=1" />
 	<link rel="stylesheet" href="./styles.css" />
+	<style>
+		.row { display: flex; gap: .5rem; flex-wrap: wrap; align-items: center; margin: .5rem 0; }
+		.done { text-decoration: line-through; }
+		ul.todos { list-style: none; padding: 0; margin: .5rem 0; }
+		ul.todos li { display: flex; justify-content: space-between; gap: .5rem; padding: .15rem 0; }
+		check-report ul { list-style: none; padding: 0; margin: .5rem 0 0; font: 13px/1.5 ui-monospace, monospace; }
+		check-report li.ok::before { content: "PASS "; color: #3fb950; font-weight: 700; }
+		check-report li.fail::before { content: "FAIL "; color: #f85149; font-weight: 700; }
+		check-report .summary { font-weight: 700; }
+	</style>
 </head>
 <body>
 	<header>
-		<h1>Decorators in the browser</h1>
+		<h1>std-ui — full feature check</h1>
 		<p>
-			<code>@tag</code> and <code>@attribute</code> in an inline script, transpiled
-			at load time by <code>@babel/standalone</code> (~2.9 MB, ~0.6 MB gzip). Demo only — use a build step in production.
+			Exercises signals, decorators, templates, directives, shadow DOM, features and lifecycle hooks
+			from the <code>StdUI</code> global. Components use real <code>@decorators</code>, transpiled at load time by
+			<code>@babel/standalone</code>. Each feature is also asserted programmatically; results are listed below.
+			Demo only — use a build step in production.
 		</p>
 		<p><a href="./index.html">← IIFE demo (no decorators)</a></p>
 	</header>
 
 	<main>
 		<section class="card">
-			<h2><code>@attribute</code> from markup</h2>
-			<p class="hint">Attributes are parsed at upgrade; <code>reflect: true</code> writes <code>count</code> back.</p>
-			<user-badge count="3" label="Ada"></user-badge>
-			<p class="hint">Attribute now: <code id="attr-readout"></code></p>
+			<h2>Self-check report</h2>
+			<check-report></check-report>
+		</section>
+
+		<section class="card">
+			<h2><code>@attribute</code> + reflect + converters</h2>
+			<user-badge count="3" label="Ada" admin></user-badge>
+			<p class="hint">Attributes now: <code id="attr-readout"></code></p>
+		</section>
+
+		<section class="card">
+			<h2>Todo list — <code>bind</code>, <code>mapByKey</code>, <code>classMap</code>, <code>styleMap</code>, <code>ref</code>, <code>@query</code>, events</h2>
+			<todo-list></todo-list>
+		</section>
+
+		<section class="card">
+			<h2>Shadow DOM + <code>static styles</code> (<code>css</code>)</h2>
+			<shadow-card heading="Encapsulated"><em>slotted light-DOM child</em></shadow-card>
+			<p class="title" id="outside-title">Outside paragraph (must not be styled by the shadow sheet)</p>
+		</section>
+
+		<section class="card">
+			<h2><code>UIFeat</code> + lifecycle hooks</h2>
+			<timer-box></timer-box>
+		</section>
+
+		<section class="card">
+			<h2>Child values, SVG, standalone <code>render()</code></h2>
+			<div id="standalone"></div>
 		</section>
 	</main>
 
 	<!-- 1. std-ui first: it defines Symbol.metadata, which Babel's decorator output must share. -->
-	<script src="./std-ui-core.iife.min.js"></script>
+	<script src="./std-ui-core.release.iife.min.js"></script>
 
 	<!-- 2. Babel standalone, with the 2023-11 decorators plugin registered as a preset. -->
 	<script src="https://unpkg.com/@babel/standalone@7.24.0/babel.min.js"></script>
@@ -35,32 +72,388 @@
 			plugins: [[Babel.availablePlugins['proposal-decorators'], { version: '2023-11' }]],
 		});
 	</script>
+
 	<!-- 3. App code with real @decorators. `data-plugins=""` is required. -->
 	<script type="text/babel" data-presets="tc39-decorators" data-plugins="">
-		const { UIElement, tag, attribute, state, t } = StdUI;
+		const {
+			UIElement, UIFeat, tag, attribute, query, queryAll,
+			state, computed, effect,
+			t, css, render, unsafeHtml,
+			bind, classMap, styleMap, mapByKey, ref, createRef, withEventOptions,
+		} = StdUI;
 
+		// ---------------------------------------------------------------------------------------
+		// Check harness: every assertion lands in `results`, rendered by <check-report>.
+		// ---------------------------------------------------------------------------------------
+		const results = state([]);
+		const record = (name, ok, detail = '') => results.update((list) => [...list, { name, ok, detail }]);
+		const check = async (name, fn) => {
+			try {
+				const r = await fn();
+				record(name, r !== false, r === false ? 'returned false' : '');
+			} catch (e) {
+				record(name, false, String(e && e.message || e));
+			}
+		};
+		const eq = (a, b, what = '') => {
+			if (!Object.is(a, b)) throw new Error(`${what} expected ${JSON.stringify(b)}, got ${JSON.stringify(a)}`);
+			return true;
+		};
+		const flush = (el) => (el && el.updateComplete) || new Promise((r) => setTimeout(r, 0));
+		const tick = () => new Promise((r) => setTimeout(r, 0));
+
+		@tag('check-report')
+		class CheckReport extends UIElement {
+			template() {
+				const list = results();
+				const failed = list.filter((r) => !r.ok).length;
+				return t`
+					<p class="summary" style=${styleMap({ color: failed ? '#f85149' : '#3fb950' })}>
+						${list.length - failed} passed, ${failed} failed (${list.length} checks)
+					</p>
+					<ul>
+						${list.map((r) => t`<li class=${r.ok ? 'ok' : 'fail'}>${r.name}${r.ok ? '' : t` — <em>${r.detail}</em>`}</li>`)}
+					</ul>
+				`;
+			}
+		}
+
+		// ---------------------------------------------------------------------------------------
+		// 1. @attribute: converters, reflect, attributeChanged, boolean attribute, computed in template
+		// ---------------------------------------------------------------------------------------
 		@tag('user-badge')
 		class UserBadge extends UIElement {
-			@attribute({ type: Number, reflect: true }) count = stateTree(0);
-			@attribute() label = stateTree('Guest');
-			clicks = stateTree(0);
+			@attribute({ type: Number, reflect: true }) count = state(0);
+			@attribute() label = state('Guest');
+			@attribute({ type: Boolean, reflect: true }) admin = state(false);
+			clicks = state(0);
+			title = computed(() => `${this.label()}${this.admin() ? ' (admin)' : ''}`);
 
 			template() {
 				return t`
-					<p class="metric"><strong>${this.label()}</strong>: ${this.count()} (clicked ${this.clicks()}x)</p>
+					<p class="metric">
+						<strong>${this.title()}</strong>: ${this.count()} (clicked ${this.clicks()}x)
+					</p>
 					<div class="actions">
-						<button type="button" class="primary" @click=${() => { this.count.update((n) => n + 1); this.clicks.update((n) => n + 1); }}>+1</button>
-						<button type="button" @click=${() => this.setAttribute('label', 'Grace')}>label = Grace</button>
+						<button type="button" class="primary" data-act="inc"
+							@click=${() => { this.count.update((n) => n + 1); this.clicks.update((n) => n + 1); }}>+1</button>
+						<button type="button" data-act="rename" @click=${() => this.setAttribute('label', 'Grace')}>label = Grace</button>
+						<button type="button" data-act="admin" @click=${() => this.admin.update((v) => !v)}>toggle admin</button>
 					</div>
 				`;
 			}
 		}
 
-		const badge = document.querySelector('user-badge');
-		const readout = document.getElementById('attr-readout');
-		const show = () => (readout.textContent = `count="${badge.getAttribute('count')}" label="${badge.getAttribute('label')}"`);
-		show();
-		new MutationObserver(show).observe(badge, { attributes: true });
+		// ---------------------------------------------------------------------------------------
+		// 2. Todo list: bind, mapByKey, classMap, styleMap, ref, @query/@queryAll, ?/./@ bindings,
+		//    event modifiers, computed, nested templates, conditional / array children.
+		// ---------------------------------------------------------------------------------------
+		@tag('todo-list')
+		class TodoList extends UIElement {
+			draft = state('');
+			filter = state('all');
+			items = state([]);
+			inputRef = createRef();
+			submits = 0;
+			outerClicks = 0;
+			onceClicks = 0;
+			nextId = 1;
+
+			visible = computed(() => {
+				const f = this.filter();
+				return this.items().filter((i) => f === 'all' || (f === 'done') === i.done());
+			});
+			remaining = computed(() => this.items().filter((i) => !i.done()).length);
+
+			@query('.count') countEl;
+			@queryAll('ul.todos li') rows;
+
+			add = () => {
+				const text = this.draft().trim();
+				if (!text) return;
+				this.items.update((l) => [...l, { id: this.nextId++, text, done: state(false) }]);
+				this.draft.set('');
+			};
+			remove = (id) => this.items.update((l) => l.filter((i) => i.id !== id));
+
+			template() {
+				return t`
+					<div @click=${() => { this.outerClicks++; }}>
+						<form class="row" @submit=${(e) => { e.preventDefault(); this.submits++; this.add(); }}>
+							<input ${ref(this.inputRef)} type="text" placeholder="What needs doing?" .value=${bind(this.draft)} />
+							<button type="submit" class="primary" ?disabled=${!this.draft().trim()}>Add</button>
+							<button type="button" data-act="once" @click=${withEventOptions(() => { this.onceClicks++; }, { once: true })}>click (once)</button>
+						</form>
+
+						<div class="row">
+							${['all', 'active', 'done'].map((f) => t`
+								<button type="button" data-filter=${f}
+									class=${classMap({ primary: this.filter() === f })}
+									@click=${() => this.filter.set(f)}>${f}</button>
+							`)}
+						</div>
+
+						<ul class="todos">
+							${mapByKey(this.visible(), (i) => i.id, (i) => t`
+								<li data-id=${i.id}
+									class=${classMap({ done: i.done() })}
+									style=${styleMap({ opacity: i.done() ? '0.5' : null, color: i.done() ? 'gray' : null })}>
+									<label><input type="checkbox" .checked=${bind(i.done)} /> ${i.text}</label>
+									<button type="button" data-act="remove" @click=${() => this.remove(i.id)}>✕</button>
+								</li>
+							`)}
+						</ul>
+
+						<p class="hint" ?hidden=${this.items().length > 0}>Nothing yet — add one above.</p>
+						${this.items().length ? t`<p class="count">${this.remaining()} left</p>` : null}
+						${false}${undefined}
+					</div>
+				`;
+			}
+		}
+
+		// ---------------------------------------------------------------------------------------
+		// 3. Shadow DOM + static styles
+		// ---------------------------------------------------------------------------------------
+		@tag('shadow-card')
+		class ShadowCard extends UIElement {
+			static shadowRootOptions = { mode: 'open' };
+			static styles = css`
+				:host { display: block; border: 2px dashed #7aa2f7; padding: .5rem; }
+				.title { color: rgb(255, 0, 0); font-weight: 700; }
+			`;
+			@attribute() heading = state('Shadow card');
+
+			template() {
+				return t`<div class="title">${this.heading()}</div><slot></slot>`;
+			}
+		}
+
+		// ---------------------------------------------------------------------------------------
+		// 4. UIFeat (controller) + instance hooks
+		// ---------------------------------------------------------------------------------------
+		class TimerFeat extends UIFeat {
+			static active = 0;
+			ticks = state(0);
+			connected() {
+				TimerFeat.active++;
+				const id = setInterval(() => this.ticks.update((n) => n + 1), 50);
+				return () => { TimerFeat.active--; clearInterval(id); };
+			}
+		}
+
+		@tag('timer-box')
+		class TimerBox extends UIElement {
+			timer = new TimerFeat(this);
+			firstUpdatedCount = 0;
+			updatedCount = 0;
+			constructor() {
+				super();
+				this.addHooks({
+					firstUpdated: () => { this.firstUpdatedCount++; },
+					updated: () => { this.updatedCount++; },
+				});
+			}
+			template() {
+				return t`<p class="metric">ticks: <strong>${this.timer.ticks()}</strong> (feature active: ${TimerFeat.active > 0 ? 'yes' : 'no'})</p>`;
+			}
+		}
+
+		// ---------------------------------------------------------------------------------------
+		// Assertions
+		// ---------------------------------------------------------------------------------------
+		(async () => {
+			const badge = document.querySelector('user-badge');
+			const todo = document.querySelector('todo-list');
+			const card = document.querySelector('shadow-card');
+			const box = document.querySelector('timer-box');
+			const readout = document.getElementById('attr-readout');
+			const show = () => (readout.textContent =
+				`count="${badge.getAttribute('count')}" label="${badge.getAttribute('label')}" admin=${badge.hasAttribute('admin')}`);
+			show();
+			new MutationObserver(show).observe(badge, { attributes: true });
+			await flush(badge); await flush(todo); await flush(card); await flush(box);
+
+			// -- signals ------------------------------------------------------------------------
+			await check('state / computed / effect: effect re-runs once per batched write', async () => {
+				const a = state(1);
+				const double = computed(() => a() * 2);
+				const seen = [];
+				const stop = effect(() => { seen.push(double()); });
+				a.set(2); a.set(3); // batched in a microtask
+				await tick();
+				stop();
+				a.set(4); await tick();
+				eq(double(), 8, 'computed');
+				return eq(JSON.stringify(seen), '[2,6]', 'effect values');
+			});
+
+			// -- @attribute -----------------------------------------------------------------------
+			await check('@attribute: Number/String/Boolean parsed from markup', async () => {
+				eq(badge.count(), 3, 'count'); eq(badge.label(), 'Ada', 'label');
+				return eq(badge.admin(), true, 'admin');
+			});
+			await check('@attribute: attribute change updates store and DOM', async () => {
+				badge.setAttribute('count', '10'); await flush(badge);
+				eq(badge.count(), 10, 'store');
+				return eq(badge.querySelector('.metric').textContent.includes('10'), true, 'rendered');
+			});
+			await check('@attribute reflect: store write mirrors back to attribute', async () => {
+				badge.count.set(7); await flush(badge); await tick();
+				return eq(badge.getAttribute('count'), '7', 'attr');
+			});
+			await check('@attribute reflect: Boolean false removes attribute', async () => {
+				badge.admin.set(false); await flush(badge); await tick();
+				return eq(badge.hasAttribute('admin'), false, 'admin attr');
+			});
+			await check('events: @click increments and re-renders', async () => {
+				const before = badge.clicks();
+				badge.querySelector('[data-act=inc]').click(); await flush(badge);
+				eq(badge.clicks(), before + 1, 'clicks');
+				return eq(badge.querySelector('.metric').textContent.includes(`clicked ${before + 1}x`), true, 'text');
+			});
+			await check('computed in template follows attribute (label -> Grace)', async () => {
+				badge.querySelector('[data-act=rename]').click(); await flush(badge);
+				return eq(badge.querySelector('strong').textContent, 'Grace', 'title');
+			});
+
+			// -- todo list: bind / directives -----------------------------------------------------
+			const input = () => todo.querySelector('input[type=text]');
+			const addBtn = () => todo.querySelector('button[type=submit]');
+			const addTodo = async (text) => {
+				input().value = text;
+				input().dispatchEvent(new Event('input', { bubbles: true }));
+				await flush(todo);
+				todo.querySelector('form').requestSubmit(); await flush(todo);
+			};
+
+			await check('?disabled: submit disabled while draft is empty', () => eq(addBtn().disabled, true, 'disabled'));
+			await check('bind (view -> model): typing updates the signal', async () => {
+				input().value = 'x';
+				input().dispatchEvent(new Event('input', { bubbles: true }));
+				eq(todo.draft(), 'x', 'draft');
+				await flush(todo);
+				return eq(addBtn().disabled, false, 'enabled after typing');
+			});
+			await check('bind (model -> view): signal write updates .value', async () => {
+				todo.draft.set('from model'); await flush(todo);
+				eq(input().value, 'from model', 'value');
+				todo.draft.set(''); await flush(todo);
+			});
+			await check('ref: createRef() resolves to the element', () => eq(todo.inputRef(), input(), 'ref'));
+			await check('withEventOptions({ once }): handler fires a single time', async () => {
+				const b = todo.querySelector('[data-act=once]');
+				b.click(); b.click(); b.click();
+				return eq(todo.onceClicks, 1, 'onceClicks');
+			});
+			await check('plain @click bubbles to the parent handler', async () => {
+				const before = todo.outerClicks;
+				todo.querySelector('[data-filter=all]').click(); await flush(todo);
+				return eq(todo.outerClicks, before + 1, 'outerClicks');
+			});
+			await check('@submit (manual preventDefault): handler ran, item added, page stayed', async () => {
+				const submitsBefore = todo.submits;
+				await addTodo('write tests'); await addTodo('ship it'); await addTodo('celebrate');
+				eq(todo.submits, submitsBefore + 3, 'submits');
+				return eq(todo.items().length, 3, 'items');
+			});
+			await check('@query / @queryAll resolve into render root', async () => {
+				eq(todo.rows.length, 3, 'rows');
+				return eq(todo.countEl.textContent.trim(), '3 left', 'count text');
+			});
+			await check('mapByKey: reorder keeps DOM nodes (identity by key)', async () => {
+				const [a, , c] = todo.rows;
+				todo.items.update((l) => [...l].reverse()); await flush(todo);
+				const rows = [...todo.rows];
+				eq(rows[0], c, 'first row is the old last'); return eq(rows[2], a, 'last row is the old first');
+			});
+			await check('bind checkbox + classMap + styleMap: toggling marks row done', async () => {
+				const box1 = todo.querySelector('li input[type=checkbox]');
+				box1.checked = true; box1.dispatchEvent(new Event('change', { bubbles: true })); await flush(todo);
+				const li = box1.closest('li');
+				eq(li.classList.contains('done'), true, 'class done');
+				eq(li.style.opacity, '0.5', 'style opacity');
+				return eq(todo.countEl.textContent.trim(), '2 left', 'remaining');
+			});
+			await check('computed filter: "done" shows 1, "active" shows 2', async () => {
+				todo.querySelector('[data-filter=done]').click(); await flush(todo);
+				eq(todo.rows.length, 1, 'done rows');
+				todo.querySelector('[data-filter=active]').click(); await flush(todo);
+				return eq(todo.rows.length, 2, 'active rows');
+			});
+			await check('classMap on button: only the active filter has .primary', async () => {
+				const prim = [...todo.querySelectorAll('[data-filter]')].filter((b) => b.classList.contains('primary'));
+				eq(prim.length, 1, 'count'); return eq(prim[0].dataset.filter, 'active', 'which');
+			});
+			await check('styleMap: null value removes the property again', async () => {
+				todo.querySelector('[data-filter=all]').click(); await flush(todo);
+				const li = todo.querySelector('li input[type=checkbox]').closest('li');
+				const cb = li.querySelector('input'); cb.checked = false; cb.dispatchEvent(new Event('change', { bubbles: true }));
+				await flush(todo);
+				return eq(li.style.opacity, '', 'opacity cleared');
+			});
+			await check('remove: item leaves the DOM; empty hint toggles ?hidden', async () => {
+				while (todo.items().length) { todo.querySelector('[data-act=remove]').click(); await flush(todo); }
+				eq(todo.rows.length, 0, 'rows');
+				eq(todo.querySelector('.hint').hidden, false, 'hint visible');
+				return eq(todo.countEl, null, 'conditional child removed');
+			});
+
+			// -- shadow DOM + styles --------------------------------------------------------------
+			await check('shadow root created with open mode', () => eq(!!card.shadowRoot, true, 'shadowRoot'));
+			await check('static styles apply inside the shadow root', () =>
+				eq(getComputedStyle(card.shadowRoot.querySelector('.title')).color, 'rgb(255, 0, 0)', 'color'));
+			await check('static styles do not leak outside', () =>
+				eq(getComputedStyle(document.getElementById('outside-title')).color === 'rgb(255, 0, 0)', false, 'leak'));
+			await check('<slot> projects light-DOM children', () =>
+				eq(card.shadowRoot.querySelector('slot').assignedNodes().length > 0, true, 'assigned'));
+			await check('@attribute on shadow component re-renders', async () => {
+				card.setAttribute('heading', 'Changed'); await flush(card);
+				return eq(card.shadowRoot.querySelector('.title').textContent, 'Changed', 'heading');
+			});
+
+			// -- UIFeat + hooks ---------------------------------------------------------------------
+			await check('UIFeat: connected() ran, ticks advance and re-render', async () => {
+				eq(TimerFeat.active, 1, 'active'); const t0 = box.timer.ticks();
+				await new Promise((r) => setTimeout(r, 180)); await flush(box);
+				eq(box.timer.ticks() > t0, true, 'ticks advanced');
+				return eq(box.querySelector('strong').textContent, String(box.timer.ticks()), 'rendered');
+			});
+			await check('hooks: firstUpdated once, updated every render', () => {
+				eq(box.firstUpdatedCount, 1, 'firstUpdated'); return eq(box.updatedCount > 1, true, 'updated');
+			});
+			await check('UIFeat: disconnect runs cleanup; reconnect re-runs setup and firstUpdated', async () => {
+				const parent = box.parentNode; box.remove(); await tick();
+				eq(TimerFeat.active, 0, 'after remove'); parent.append(box); await flush(box);
+				eq(TimerFeat.active, 1, 'after reconnect');
+				return eq(box.firstUpdatedCount, 2, 'firstUpdated runs once per connection');
+			});
+
+			// -- standalone render(): child values, nested templates, unsafeHtml, svg, text/prop/attr ----
+			await check('render(): child values (string, number, nested t, array, null/false) + svg + unsafeHtml', async () => {
+				const root = document.getElementById('standalone');
+				const r = state(4);
+				const view = () => t`
+					<p>${'text'}|${42}|${t`<b>nested</b>`}|${[1, 2, 3].map((n) => t`<i>${n}</i>`)}|${null}|${false}|${undefined}</p>
+					<svg viewBox="0 0 10 10" width="40" height="40"><circle cx="5" cy="5" r=${r()} fill="tomato"></circle></svg>
+					<div id="raw">${unsafeHtml('<u>raw html</u>')}</div>
+					<input id="prop" .value=${'prop-set'} data-x=${'attr-set'} />
+				`;
+				const stop = effect(() => render(view(), root));
+				const p = root.querySelector('p');
+				eq(p.textContent.replace(/\s/g, ''), 'text|42|nested|123|||', 'children');
+				const circle = root.querySelector('circle');
+				eq(circle.namespaceURI, 'http://www.w3.org/2000/svg', 'svg ns');
+				eq(circle.getAttribute('r'), '4', 'r');
+				r.set(8); await tick();
+				eq(root.querySelector('circle'), circle, 'circle node reused');
+				eq(circle.getAttribute('r'), '8', 'r updated');
+				eq(root.querySelector('#raw u').textContent, 'raw html', 'unsafeHtml');
+				eq(root.querySelector('#prop').value, 'prop-set', '.value');
+				eq(root.querySelector('#prop').dataset.x, 'attr-set', 'attr');
+				stop();
+			});
+		})();
 	</script>
 </body>
 </html>

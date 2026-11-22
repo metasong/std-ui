@@ -1,17 +1,17 @@
 {
-	"generatedAt": "2026-11-22T19:27:49.436Z",
+	"generatedAt": "2026-11-22T19:48:48.149Z",
 	"bundles": [
 		{
 			"file": "std-ui-core.release.min.js",
-			"raw": 41116,
-			"gzip": 12184,
-			"brotli": 10978
+			"raw": 30564,
+			"gzip": 10510,
+			"brotli": 9564
 		},
 		{
 			"file": "std-ui-core.release.iife.min.js",
-			"raw": 30685,
-			"gzip": 10587,
-			"brotli": 9649
+			"raw": 30022,
+			"gzip": 10374,
+			"brotli": 9402
 		},
 		{
 			"file": "std-ui-ext.release.min.js",
