@@ -1,6 +1,7 @@
 // Public and internal types for `bind()`. See `./design.md` for the mental model.
 
-import type { StateDepth } from '../../../../reactive/index.js';
+/** How deep a model read tracks on a signal-tree node (see BindOptions.depth). */
+export type BindDepth = 'value' | 'shallow' | 'deep';
 
 /** Model side for `bind({ get, set })` when you don't have a signal. */
 export interface BindAccessor {
@@ -19,7 +20,7 @@ export interface BindOptions {
 	 * All three yield the same plain value. Plain signals without `shallow()` / `deep()` fall back to
 	 * `node()`. Default: `'deep'`.
 	 */
-	depth?: StateDepth;
+	depth?: BindDepth;
 	/**
 	 * DOM event that means "the user (or component) changed the bound property".
 	 * Defaults: native `.value` → `input` (`change` for `<select>`), checkbox/radio `.checked` →

@@ -8,7 +8,8 @@
 // back off the instance (`this[name]`) and answers matching `context-request` events with it (see
 // `./wire-provide.ts`).
 
-import { addClassHooks, type StateTree } from '@std-ui/core';
+import { addClassHooks } from '@std-ui/core';
+import { type StateTree } from '../../../reactive/state-tree/index.js';
 import { provideHooks } from './wire-provide.js';
 import type { ContextKey } from './key.js';
 import { providedContexts } from './metadata.js';

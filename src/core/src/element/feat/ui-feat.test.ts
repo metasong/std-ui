@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { tag, UIElement } from '../ui-element.js';
 import { ownMetadata } from '../decorators/index.js';
-import { state, stateTree } from '../../reactive/index.js';
+import { state } from '../../reactive/index.js';
 import { UIFeat } from './ui-feat.js';
 
 function flush(): Promise<void> {
@@ -92,7 +92,7 @@ describe('UIFeat', () => {
 
 	it('re-renders a host whose template reads a feature signal', async () => {
 		class CounterFeat extends UIFeat {
-			readonly count = stateTree(0);
+			readonly count = state(0);
 		}
 
 		const rendered: number[] = [];

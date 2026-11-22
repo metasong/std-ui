@@ -7,7 +7,7 @@
 //   - `obj.deep()` re-runs on any member's value change, recursively;
 //   - `obj.key` is the member node itself (untracked access), e.g. `obj.user.label.set('x')`.
 
-import { computed, state, type State } from '../../signal/index.js';
+import { computed, state, type State } from '@std-ui/core';
 import {
 	addWith,
 	assertAcyclic,

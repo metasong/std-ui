@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
-import { state } from '../../signal/index.js';
-import { effect } from '../../effect/index.js';
+import { state } from '@std-ui/core';
+import { effect } from '@std-ui/core';
 import { stateTree } from '../main.js';
 import { stateArray } from './main.js';
 

@@ -11,7 +11,7 @@ It is not part of the data: `deep()` never contains it.
 | `node.changes.reset(next?)` | Writes the initial value back: edited values restored, members added since removed, deleted members re-created, a cleared object restored. Validators stay. With `next`, `next` first becomes the new initial value (pushed down to every child), so `reset(node.peek())` marks the current value as saved and a later `reset()` returns to it. Not an undo: it never steps back to the state before your last edit. |
 
 ```ts
-import { stateTree } from '@std-ui/core';
+import { stateTree } from '../index.js';
 import { changes } from '@std-ui/ext';
 
 const form = stateTree({ user: { name: 'a' }, tags: ['x'] }).with(changes);

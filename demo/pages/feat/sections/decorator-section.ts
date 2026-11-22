@@ -1,5 +1,6 @@
 // Class-level attachment: `@hotkeys()` (built on `UIFeat.attachTo`) gives every instance its own feature.
-import { css, stateTree, t, tag, UIElement } from '@std-ui/core';
+import { css, t, tag, UIElement } from '@std-ui/core';
+import { stateTree } from '@std-ui/ext';
 import { hotkeys } from '@std-ui/ext';
 
 @tag('demo-feat-counter')

@@ -1,6 +1,7 @@
 // Demonstrates: `createContextKey`, `@provide(key)` / `@consume(key)` (read) —
 // a descendant reads an ancestor's reactive value with no prop-drilling.
-import { tag, t, UIElement, stateTree } from '@std-ui/core';
+import { tag, t, UIElement } from '@std-ui/core';
+import { stateTree } from '@std-ui/ext';
 import { consume, provide, createContextKey } from '@std-ui/ext';
 
 interface Theme { mode: 'light' | 'dark'; }

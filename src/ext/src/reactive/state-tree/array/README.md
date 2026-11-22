@@ -17,7 +17,7 @@ Implementation details: [`design.md`](./design.md).
 ## Standalone usage
 
 ```ts
-import { state } from '../../signal/index.js';
+import { state } from '@std-ui/core';
 import { effect } from '../../effect/index.js';
 import { stateArray } from './index.js';
 

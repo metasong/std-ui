@@ -1,5 +1,6 @@
 // Demonstrates: `classMap` / `styleMap` attribute directives, and `unsafeHtml`.
-import { tag, t, UIElement, unsafeHtml, stateTree } from '@std-ui/core';
+import { tag, t, UIElement, unsafeHtml } from '@std-ui/core';
+import { stateTree } from '@std-ui/ext';
 import { classMap, styleMap } from '@std-ui/core';
 
 @tag('demo-directives-section')

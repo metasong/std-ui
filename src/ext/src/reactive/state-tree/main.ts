@@ -8,7 +8,7 @@
 // Plain objects (`{ ... }` / `Object.create(null)`) become `StateObject`s; arrays `StateArray`s;
 // everything else (primitives, class instances, null, undefined, functions, ...) is a leaf `State`.
 
-import type { StateOptions } from '../signal/index.js';
+import type { StateOptions } from '@std-ui/core';
 
 import { stateArray, type StateArray } from './array/index.js';
 import { stateLeaf, type StateLeaf } from './leaf.js';

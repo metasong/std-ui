@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest';
-import { render, stateTree, t } from '@std-ui/core';
+import { render, t } from '@std-ui/core';
+import { stateTree } from '../../../../reactive/state-tree/index.js';
 import { asyncValidator, check, required } from '../../../../reactive/state-tree/check/index.js';
 import { changes } from '../../../../reactive/state-tree/changes/index.js';
 import { formUi } from '../../../../reactive/state-tree/form-ui/index.js';

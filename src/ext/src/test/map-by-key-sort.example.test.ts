@@ -3,10 +3,8 @@
  * Run: npm test -- map-by-key-sort.example  (from src/std-ui)
  */
 import { describe, expect, it } from 'vitest';
-import { mapByKey } from '../element/template/directives/map-by-key/index.js';
-import { t } from '../element/template/tag-funcs/html/index.js';
-import { tag, UIElement } from '../element/ui-element.js';
-import { stateTree } from '../reactive/index.js';
+import { mapByKey, t, tag, UIElement } from '@std-ui/core';
+import { stateTree } from '../reactive/state-tree/index.js';
 
 type Chore = { id: string; label: string };
 

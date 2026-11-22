@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { stateTree } from '@std-ui/core';
+import { stateTree } from '../index.js';
 import { formUi } from '../form-ui/main.js';
 import { check } from './main.js';
 import { required } from './validators/required/main.js';

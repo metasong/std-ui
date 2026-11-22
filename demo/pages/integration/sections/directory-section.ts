@@ -3,7 +3,8 @@
 //   - `bind()` / `formBind()`   → two-way search box; form fields with validation + touched mirrored onto the inputs
 //   - `virtualize()`                  → the (filtered) list stays windowed however many people exist
 //   - `state` + `UIElement`/`t` → the list itself and re-rendering
-import { bind, t, tag, UIElement, stateTree } from '@std-ui/core';
+import { bind, t, tag, UIElement } from '@std-ui/core';
+import { stateTree } from '@std-ui/ext';
 import { check, formBind, formUi, virtualize } from '@std-ui/ext';
 import { virtualizeListStyles } from '../../../shared/virtualize-list-styles.js';
 

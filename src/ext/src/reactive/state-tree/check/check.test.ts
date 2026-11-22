@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest';
-import { effect, stateTree } from '@std-ui/core';
+import { effect } from '@std-ui/core';
+import { stateTree } from '../index.js';
 import { changes } from '../changes/index.js';
 import { flushEffects } from '../../../../../core/src/reactive/effect/test-helpers.js';
 import { check, type Validator } from './main.js';

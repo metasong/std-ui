@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest';
-import { defineElement, stateTree, tag, UIElement } from '@std-ui/core';
+import { defineElement, tag, UIElement } from '@std-ui/core';
+import { stateTree } from '../../../reactive/state-tree/index.js';
 import { consume, createContextKey, defineContext, provide } from './index.js';
 
 function flush(): Promise<void> {

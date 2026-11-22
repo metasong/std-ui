@@ -3,7 +3,8 @@
 //   check.fields({...})    rules per member key, in one call
 // Existing and later-added members get them; each member reports its own errors and the parent's
 // `valid` includes them.
-import { t, tag, UIElement, stateTree } from '@std-ui/core';
+import { t, tag, UIElement } from '@std-ui/core';
+import { stateTree } from '@std-ui/ext';
 import { check, formBind, minLength, required } from '@std-ui/ext';
 
 const form = stateTree({

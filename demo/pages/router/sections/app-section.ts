@@ -1,4 +1,5 @@
-import { createRef, css, ref, t, tag, stateTree, UIElement } from '@std-ui/core';
+import { createRef, css, ref, t, tag, UIElement } from '@std-ui/core';
+import { stateTree } from '@std-ui/ext';
 import { createRouter, routeParam, searchParam } from '@std-ui/router';
 import '@std-ui/router'; // defines <std-router>, <std-route>, <std-outlet>
 import { createMemoryNavigation } from '@std-ui/router/testing';

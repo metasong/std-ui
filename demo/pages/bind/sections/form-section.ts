@@ -1,5 +1,6 @@
 // Two-way bind on native form controls: .value, .checked, programmatic reset, re-render while typing.
-import { bind, t, tag, UIElement, stateTree } from '@std-ui/core';
+import { bind, t, tag, UIElement } from '@std-ui/core';
+import { stateTree } from '@std-ui/ext';
 
 @tag('demo-bind-form-section')
 export class DemoBindFormSection extends UIElement {

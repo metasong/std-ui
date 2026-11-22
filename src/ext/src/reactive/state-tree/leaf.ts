@@ -1,4 +1,4 @@
-import { state, type StateOptions, type State } from '../signal/index.js';
+import { state, type StateOptions, type State } from '@std-ui/core';
 import { addWith, EQUALS, type Extendable } from './node.js';
 
 /**

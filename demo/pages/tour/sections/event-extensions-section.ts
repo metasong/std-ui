@@ -1,5 +1,6 @@
 // Demonstrates: event extensions (`@input.debounce:300`, `@keyup.ctrl+enter.ctrl+y`).
-import { tag, t, UIElement, stateTree } from '@std-ui/core';
+import { tag, t, UIElement } from '@std-ui/core';
+import { stateTree } from '@std-ui/ext';
 // Registers the `@event.modifier` binding and its extensions.
 import '@std-ui/ext';
 

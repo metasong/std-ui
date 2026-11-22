@@ -4,7 +4,8 @@
 //   - FormElement (merged)   → first/last errors unioned into the host's single validity state
 //   - FormGroup (range)      → each property's errors routed to its own inner input
 // The browser's own submit validation then blocks the submit while any control is invalid.
-import { bind, css, t, tag, UIElement, stateTree } from '@std-ui/core';
+import { bind, css, t, tag, UIElement } from '@std-ui/core';
+import { stateTree } from '@std-ui/ext';
 import { check, formBind, formUi, required, email } from '@std-ui/ext';
 import '../../bind/sections/validation/merged-control.js';
 import '../../bind/sections/validation/range-control.js';

@@ -1,5 +1,6 @@
 import { describe, expect, it, vi } from 'vitest';
-import { state, stateTree } from '@std-ui/core';
+import { state } from '@std-ui/core';
+import { stateTree } from '../../../index.js';
 import { check } from '../../main.js';
 import { asyncValidator } from '../async/main.js';
 import { minLength } from '../length/main.js';

@@ -1,4 +1,4 @@
-import { attribute, state, stateTree, tag, UIElement } from '@std-ui/core';
+import { attribute, state, tag, UIElement } from '@std-ui/core';
 import { Router, createRouter } from '../router/router.js';
 import type { AnnounceFn } from '../router/announcer.js';
 import type { NavigationLike } from '../navigation/types.js';
@@ -8,7 +8,7 @@ import type { RouteDef } from '../types.js';
 @tag('std-router')
 export class StdRouter extends UIElement {
 	/** Attribute `base`: URL prefix the app is served under. Read once, when the router is built. */
-	@attribute() base = stateTree('');
+	@attribute() base = state('');
 	/** Boolean attribute `view-transition`: commit navigations inside a View Transition. Read once, when the router is built. */
 	@attribute() viewTransition = false;
 	/** Config-table routes; set before the element connects. */

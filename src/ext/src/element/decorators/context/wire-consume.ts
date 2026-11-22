@@ -3,7 +3,8 @@
 // synchronously. Each field becomes a getter over a signal created here, so reads are reactive; the
 // signal lives only in that getter's closure.
 
-import { stateTree, type UIElementHooks } from '@std-ui/core';
+import { type UIElementHooks } from '@std-ui/core';
+import { stateTree } from '../../../reactive/state-tree/index.js';
 import type { ContextKey } from './key.js';
 import { consumedContexts } from './metadata.js';
 import { ContextRequestEvent } from './request-event.js';

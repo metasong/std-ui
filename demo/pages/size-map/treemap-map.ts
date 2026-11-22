@@ -1,4 +1,5 @@
-import { computed, css, state, stateTree, styleMap, t, tag, UIElement } from '@std-ui/core';
+import { computed, css, state, styleMap, t, tag, UIElement } from '@std-ui/core';
+import { stateTree } from '@std-ui/ext';
 import { formatKb, type SizeNode } from './data.js';
 import { displayName, groupHue, labelPath, layoutTree, type LayoutBox } from './treemap-layout.js';
 
@@ -61,6 +62,8 @@ export class DemoTreemapMap extends UIElement {
 	readonly showLeafKb = stateTree(true);
 	/** Folder/group totals in header bars and legend. Off when the groups are just labels (e.g. core / ext bundles). */
 	readonly showFolderKb = stateTree(true);
+	/** Compression the node sizes are measured in (shown in tooltips / selection). */
+	readonly unit = stateTree('gzip');
 	/** Draw the root as a folder level (named header bar with its total) rather than an invisible frame. */
 	readonly showRoot = stateTree(false);
 
@@ -103,7 +106,7 @@ export class DemoTreemapMap extends UIElement {
 		const hue = groupHue(b.group);
 		const pos = this.#pos(b, W);
 		const total = this.tree.peek()?.size ?? 0;
-		const tip = `${labelPath(b.node)} - ${formatKb(b.node.size)} gzip${total ? ` (${((b.node.size / total) * 100).toFixed(1)}%)` : ''}`;
+		const tip = `${labelPath(b.node)} - ${formatKb(b.node.size)} ${this.unit()}${total ? ` (${((b.node.size / total) * 100).toFixed(1)}%)` : ''}`;
 		const enter = () => this.selected.set(b.node);
 		const leave = () => { if (this.selected.peek() === b.node) this.selected.set(null); };
 
@@ -158,7 +161,7 @@ export class DemoTreemapMap extends UIElement {
 			</ul>
 			<div class="detail" aria-live="polite">
 				${sel
-					? t`<code>${labelPath(sel)}</code> - <strong>${formatKb(sel.size)}</strong> gzip
+					? t`<code>${labelPath(sel)}</code> - <strong>${formatKb(sel.size)}</strong> ${this.unit()}
 						(${((sel.size / tree.size) * 100).toFixed(1)}% of ${tree.name})${sel.raw ? t`, ${formatKb(sel.raw, 1)} raw` : ''}`
 					: 'Hover, tap or click a block - or focus the map and use the arrow keys - for its path and share.'}
 			</div>

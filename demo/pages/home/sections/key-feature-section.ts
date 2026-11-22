@@ -1,5 +1,6 @@
 // "A taste" (from the README): signals, an HTML attribute mirrored to state, and context passed down the tree.
-import { attribute, css, stateTree, t, tag, UIElement } from '@std-ui/core';
+import { attribute, css, t, tag, UIElement } from '@std-ui/core';
+import { stateTree } from '@std-ui/ext';
 import { consume, createContextKey, provide } from '@std-ui/ext';
 
 interface Theme { mode: 'light' | 'dark'; }

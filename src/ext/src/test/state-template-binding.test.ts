@@ -1,7 +1,6 @@
 import { describe, expect, it } from 'vitest';
-import { tag, UIElement } from '../element/ui-element.js';
+import { tag, UIElement, t } from '@std-ui/core';
 import { stateTree } from '../reactive/state-tree/index.js';
-import { t } from '../element/template/tag-funcs/html/index.js';
 
 interface ParentState {
 	count: number;

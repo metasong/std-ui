@@ -4,11 +4,20 @@
 // host attribute (opt-in; plain store fields never appear here).
 
 import { effect as createEffect } from '../../../reactive/index.js';
-import { readValue, type ItemNode } from '../../../reactive/state-tree/index.js';
 import type { UIElementHooks } from '../../ui-element-hooks.js';
 import { parseAttribute, serializeAttribute } from './converter.js';
 import { warnReflectNeedsStore } from '../../../dev/warn-attribute.js';
 import { attributeDefs, isSignalLikeForAttribute, resolveInferredConverter } from './metadata.js';
+
+/**
+ * Tracked plain-value read: uses `deep()` when the field provides one (a state-tree node, so any
+ * nested change re-runs the effect), otherwise calls the signal itself. Duck-typed so `core`
+ * has no dependency on state-tree.
+ */
+function readFieldValue(field: unknown): unknown {
+	const deep = (field as { deep?: unknown }).deep;
+	return typeof deep === 'function' ? (deep as () => unknown)() : (field as () => unknown)();
+}
 
 /**
  * For each `@attribute({ reflect: true })` field recorded on `host`'s constructor, creates an
@@ -25,7 +34,7 @@ export function wireReflectedAttributes(host: HTMLElement, registerEffectDispose
 		resolveInferredConverter(host, def);
 		let prev: unknown; // previous property value; `undefined` on the first run
 		registerEffectDisposer(createEffect(() => {
-			const value = readValue((host as unknown as Record<PropertyKey, ItemNode<unknown>>)[def.key]);
+			const value = readFieldValue((host as unknown as Record<PropertyKey, unknown>)[def.key]);
 			const oldValue = prev;
 			prev = value;
 			const serialized = serializeAttribute(value, oldValue, def.converter);

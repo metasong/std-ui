@@ -8,8 +8,7 @@ import {
 	readProperty,
 	writeProperty,
 } from './defaults.js';
-import type { StateDepth } from '../../../../reactive/index.js';
-import type { BindAccessor, BindOptions, BindSource, Binding, WritableSignal } from './types.js';
+import type { BindAccessor, BindDepth, BindOptions, BindSource, Binding, WritableSignal } from './types.js';
 
 export function isWritableSignal(value: unknown): value is WritableSignal {
 	return typeof value === 'function' && typeof (value as { set?: unknown }).set === 'function';
@@ -20,8 +19,8 @@ function isAccessor(value: unknown): value is BindSource {
 	return typeof source?.get === 'function' && typeof source?.set === 'function';
 }
 
-function trackedReader(state: WritableSignal, depth: StateDepth): () => unknown {
-	const read = depth === 'value' ? undefined : (state as Partial<Record<StateDepth, () => unknown>>)[depth];
+function trackedReader(state: WritableSignal, depth: BindDepth): () => unknown {
+	const read = depth === 'value' ? undefined : (state as unknown as Partial<Record<BindDepth, () => unknown>>)[depth];
 	return typeof read === 'function' ? () => read.call(state) : () => state();
 }
 

@@ -9,17 +9,10 @@
 // `touchAll()` marks a whole subtree, e.g. on submit).
 
 import type { WithFeature } from '../tree-feature.js';
-import {
-	childEntries,
-	computed,
-	extendTree,
-	state,
-	type Computed,
-	type State,
-	type StateArray,
-	type StateObject,
-	type TreeNode,
-} from '@std-ui/core';
+import { computed, state, type Computed, type State } from '@std-ui/core';
+import { childEntries, extendTree, type TreeNode } from '../node.js';
+import { type StateArray } from '../array/index.js';
+import { type StateObject } from '../object/index.js';
 
 /**
  * A flag with a resolved read and an own write: `flag()` is tracked and combines this node's own flag

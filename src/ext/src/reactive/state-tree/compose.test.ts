@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
-import { effect } from '../effect/index.js';
-import { flushEffects } from '../effect/test-helpers.js';
-import { state } from '../signal/index.js';
+import { effect } from '@std-ui/core';
+import { flushEffects } from '../../../../core/src/reactive/effect/test-helpers.js';
+import { state } from '@std-ui/core';
 import { stateTree } from './main.js';
 
 describe('state: circular plain data', () => {

@@ -1,6 +1,7 @@
 // Toy control whose `.level` property is itself a `stateTree()` signal; `bind()` reads it by calling it
 // and writes it with `.set()`. Emits `level-change` on user edits only.
-import { stateTree, t, tag, UIElement } from '@std-ui/core';
+import { t, tag, UIElement } from '@std-ui/core';
+import { stateTree } from '@std-ui/ext';
 
 @tag('demo-bind-signal-knob')
 export class DemoBindSignalKnob extends UIElement {

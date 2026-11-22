@@ -1,6 +1,7 @@
 // Demonstrates: event modifiers (`@click.once`, `.prevent`, `.stop`, `.self`, `.stop-immediate`)
 // and single-entry bindings (`class.name`, `style.prop`).
-import { tag, t, css, UIElement, stateTree, withEventOptions } from '@std-ui/core';
+import { tag, t, css, UIElement, withEventOptions } from '@std-ui/core';
+import { stateTree } from '@std-ui/ext';
 // Registers the `class.name` / `style.prop` bindings used below.
 import '@std-ui/ext';
 

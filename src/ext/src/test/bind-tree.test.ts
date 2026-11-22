@@ -1,9 +1,6 @@
 import { describe, expect, it, vi } from 'vitest';
-import { t } from '../../tag-funcs/html/index.js';
-import { render } from '../../render.js';
-import { stateTree } from '../../../../reactive/index.js';
-import { attribute, tag, UIElement } from '../../../ui-element.js';
-import { bind } from './index.js';
+import { t, render, attribute, tag, UIElement, bind } from '@std-ui/core';
+import { stateTree } from '../reactive/state-tree/index.js';
 
 describe('bind()', () => {
 	it('binds a state node directly, keeping numeric models numeric', () => {

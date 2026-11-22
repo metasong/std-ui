@@ -4,7 +4,8 @@
 //   Email      check.enabled                    validated only while "Notify me" is on
 //   Address    formUi.disabled                  a disabled input is not validated
 // All three are configured in one call with `form.check.fields({...})`.
-import { t, tag, UIElement, stateTree } from '@std-ui/core';
+import { t, tag, UIElement } from '@std-ui/core';
+import { stateTree } from '@std-ui/ext';
 import { check, formBind, formUi, minLength, pattern, required, when } from '@std-ui/ext';
 
 const form = stateTree({ vat: '', email: '', address: '' }).with(check).with(formUi);

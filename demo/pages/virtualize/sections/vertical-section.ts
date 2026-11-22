@@ -1,5 +1,6 @@
 // Fixed-height vertical list (~10k rows) + scrollToIndex.
-import { tag, t, UIElement, stateTree } from '@std-ui/core';
+import { tag, t, UIElement } from '@std-ui/core';
+import { stateTree } from '@std-ui/ext';
 import { virtualize, VirtualizeController } from '@std-ui/ext';
 import { virtualizeListStyles } from '../../../shared/virtualize-list-styles.js';
 

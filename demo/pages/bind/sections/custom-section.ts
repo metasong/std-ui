@@ -1,5 +1,6 @@
 // Custom element property + default `level-change` event.
-import { bind, t, stateTree, tag, UIElement } from '@std-ui/core';
+import { bind, t, tag, UIElement } from '@std-ui/core';
+import { stateTree } from '@std-ui/ext';
 import './knob-control.js';
 import './signal-knob-control.js';
 

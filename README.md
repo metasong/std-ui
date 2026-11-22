@@ -176,8 +176,8 @@ Every node in the tree, including members added later, gets `dirty`, `initial` a
 <!-- SIZE:README:START -->
 | File | Minified | Gzip | Brotli |
 |---|---|---|---|
-| `std-ui-core.iife.min.js` | 40.73 kB | 14.07 kB | 12.76 kB |
-| `std-ui-ext.iife.min.js` | 28.46 kB | 10.21 kB | 9.24 kB |
+| `std-ui-core.iife.min.js` | 35.91 kB | 12.47 kB | 11.30 kB |
+| `std-ui-ext.iife.min.js` | 33.45 kB | 11.82 kB | 10.73 kB |
 <!-- SIZE:README:END -->
 
 ## Get started

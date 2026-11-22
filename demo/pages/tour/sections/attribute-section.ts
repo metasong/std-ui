@@ -1,6 +1,7 @@
 // Demonstrates: `@attribute()` (attribute <-> property sync, with `reflect: true`) vs. a plain `stateTree()` field
 // (store-backed, no attribute at all).
-import { tag, t, UIElement, attribute, stateTree, css } from '@std-ui/core';
+import { tag, t, UIElement, attribute, css } from '@std-ui/core';
+import { stateTree } from '@std-ui/ext';
 
 @tag('demo-attribute-section')
 export class DemoAttributeSection extends UIElement {

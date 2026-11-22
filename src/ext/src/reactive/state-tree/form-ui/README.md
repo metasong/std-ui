@@ -8,7 +8,7 @@ The state only **holds** the flags. [`formBind()`](../../../element/template/dir
 shows them on the bound element.
 
 ```ts
-import { stateTree } from '@std-ui/core';
+import { stateTree } from '../index.js';
 import { check, formUi } from '@std-ui/ext';
 
 const form = stateTree({ account: { email: '', name: '' }, city: '' }).with(check).with(formUi);

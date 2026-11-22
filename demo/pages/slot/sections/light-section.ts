@@ -1,5 +1,6 @@
 // Light-DOM slots: `slot()` directive + `@queryAssignedNodes` reading the same content.
-import { slot, t, tag, UIElement, stateTree, queryAssignedNodes } from '@std-ui/core';
+import { slot, t, tag, UIElement, queryAssignedNodes } from '@std-ui/core';
+import { stateTree } from '@std-ui/ext';
 
 @tag('demo-light-card')
 export class DemoLightCard extends UIElement {

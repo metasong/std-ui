@@ -4,19 +4,10 @@
 // node's `check` is first read: it is a lazy getter, so nodes nobody validates cost nothing.
 
 import type { WithFeature } from '../tree-feature.js';
-import {
-	childEntries,
-	computed,
-	extendTree,
-	isTreeNode,
-	state,
-	type Computed,
-	type ItemNode,
-	type State,
-	type StateArray,
-	type StateObject,
-	type TreeNode,
-} from '@std-ui/core';
+import { computed, state, type Computed, type State } from '@std-ui/core';
+import { childEntries, extendTree, isTreeNode, type ItemNode, type TreeNode } from '../node.js';
+import { type StateArray } from '../array/index.js';
+import { type StateObject } from '../object/index.js';
 import type { PathError, ValidationError } from './validation.js';
 
 export type { PathError, ValidationError };

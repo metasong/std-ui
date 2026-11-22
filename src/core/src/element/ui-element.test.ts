@@ -1,6 +1,6 @@
 import { describe, expect, it, vi } from 'vitest';
 import { tag, UIElement } from './ui-element.js';
-import { stateTree } from '../reactive/state-tree/index.js';
+import { state } from '../reactive/index.js';
 import { t } from './template/tag-funcs/html/index.js';
 import { css } from './template/tag-funcs/css/index.js';
 
@@ -53,7 +53,7 @@ describe('UIElement', () => {
 	});
 
 	it('calls template() immediately on connect and again whenever a signal it reads changes', async () => {
-		const tree = stateTree<State>({ count: 0 });
+		const tree = { count: state(0) };
 		const renderSpy = vi.fn();
 
 		@tag('el-template')
@@ -75,7 +75,7 @@ describe('UIElement', () => {
 	});
 
 	it('renders an t() result returned from template() into the element', () => {
-		const tree = stateTree<State>({ count: 7 });
+		const tree = { count: state(7) };
 
 		@tag('el-html')
 		class Foo extends UIElement {
@@ -91,7 +91,7 @@ describe('UIElement', () => {
 	});
 
 	it('calls disconnect() and stops reacting to signals after disconnect', async () => {
-		const tree = stateTree<State>({ count: 0 });
+		const tree = { count: state(0) };
 		const renderSpy = vi.fn();
 		const disconnect = vi.fn();
 
@@ -115,7 +115,7 @@ describe('UIElement', () => {
 	});
 
 	it('renders template() into a shadow root when shadowRootOptions is set', () => {
-		const tree = stateTree<State>({ count: 2 });
+		const tree = { count: state(2) };
 
 		@tag('el-shadow')
 		class Foo extends UIElement {
@@ -220,7 +220,7 @@ describe('UIElement', () => {
 	});
 
 	it('disposes effect()-registered reactions on disconnect', async () => {
-		const tree = stateTree<State>({ count: 0 });
+		const tree = { count: state(0) };
 		const effectSpy = vi.fn();
 
 		@tag('el-effect')
@@ -244,11 +244,11 @@ describe('UIElement', () => {
 	});
 });
 
-describe('stateTree() fields on a UIElement', () => {
+describe('state() fields on a UIElement', () => {
 	it('never touches the host attribute', async () => {
 		@tag('state-no-attr')
 		class Foo extends UIElement {
-			readonly label = stateTree('hi');
+			readonly label = state('hi');
 		}
 
 		const el = document.createElement('state-no-attr') as Foo;
@@ -267,7 +267,7 @@ describe('stateTree() fields on a UIElement', () => {
 
 		@tag('state-template')
 		class Foo extends UIElement {
-			readonly label = stateTree('a');
+			readonly label = state('a');
 			protected override template(): void {
 				rendered.push(this.label());
 			}
@@ -286,7 +286,7 @@ describe('stateTree() fields on a UIElement', () => {
 	it('gives each instance its own store', () => {
 		@tag('state-per-instance')
 		class Foo extends UIElement {
-			readonly count = stateTree(0);
+			readonly count = state(0);
 		}
 
 		const a = document.createElement('state-per-instance') as Foo;
@@ -295,28 +295,11 @@ describe('stateTree() fields on a UIElement', () => {
 		expect(b.count()).toBe(0);
 	});
 
-	it('leaves an unrelated nested branch untouched when only a sibling leaf changes', async () => {
-		@tag('state-obj-sibling')
-		class Foo extends UIElement {
-			readonly config = stateTree({ a: 1, b: { c: 2 } });
-		}
-
-		const el = document.createElement('state-obj-sibling') as Foo;
-		document.body.appendChild(el);
-		const bBefore = el.config.deep().b;
-
-		el.config.set({ ...el.config.peek(), a: 2 });
-		await flush();
-		expect(el.config.deep()).toEqual({ a: 2, b: { c: 2 } });
-		expect(el.config.deep().b).toBe(bBefore);
-		el.remove();
-	});
-
 	it('registers no observedAttributes for a store-only class', () => {
 		@tag('state-only-class')
 		class Foo extends UIElement {
-			readonly a = stateTree(1);
-			readonly b = stateTree(2);
+			readonly a = state(1);
+			readonly b = state(2);
 		}
 
 		expect((Foo as unknown as { observedAttributes?: string[] }).observedAttributes ?? []).toEqual([]);

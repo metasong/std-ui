@@ -3,7 +3,8 @@
 // holding `T`) and, if it has array-only / object-only members, `ArrayExtras` / `ObjectExtras`; then `WithFeature<S, 'name'>` types
 // the tree with it, keeping whatever other features are already on `S`.
 
-import type { StateArray, StateObject } from '@std-ui/core';
+import type { StateArray } from './array/index.js';
+import type { StateObject } from './object/index.js';
 
 /** Mixin per feature for a node whose value is `T`. Augmented by each feature's module. */
 // eslint-disable-next-line @typescript-eslint/no-unused-vars

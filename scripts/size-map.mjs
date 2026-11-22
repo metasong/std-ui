@@ -5,8 +5,10 @@ import path from 'node:path';
 import zlib from 'node:zlib';
 
 const BUNDLES = [
-	'src/core/dist/browser/std-ui-core.min.js',
-	'src/core/dist/browser/std-ui-core.iife.min.js',
+	// 'src/core/dist/browser/std-ui-core.min.js',
+	// 'src/core/dist/browser/std-ui-core.iife.min.js',
+	'src/core/dist/release/std-ui-core.release.min.js',
+	'src/core/dist/release/std-ui-core.release.iife.min.js',
 	'src/ext/dist/browser/std-ui-ext.min.js',
 	'src/ext/dist/browser/std-ui-ext.iife.min.js',
 ];

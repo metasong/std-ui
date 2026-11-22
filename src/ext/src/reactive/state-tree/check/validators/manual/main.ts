@@ -1,4 +1,5 @@
-import { deepEqual, state } from '@std-ui/core';
+import { state } from '@std-ui/core';
+import { deepEqual } from '../../../node.js';
 import { flags } from '../../flags.js';
 import type { ValidationError, Validator } from '../../main.js';
 

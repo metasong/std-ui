@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { effect } from '../effect/index.js';
+import { effect } from '@std-ui/core';
 import { stateTree } from './main.js';
 
 interface State {

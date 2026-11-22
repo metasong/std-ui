@@ -3,7 +3,8 @@
 //   - `flag()` reads the resolved value, `flag.own` writes this node's own flag
 //   - readonly / disabled: set when the node or any ancestor is; touched(): when the node or any descendant is
 //   - mark a whole subtree with `touchAll()`
-import { bind, css, t, tag, UIElement, stateTree } from '@std-ui/core';
+import { bind, css, t, tag, UIElement } from '@std-ui/core';
+import { stateTree } from '@std-ui/ext';
 import { check, formBind, formUi } from '@std-ui/ext';
 
 const form = stateTree({

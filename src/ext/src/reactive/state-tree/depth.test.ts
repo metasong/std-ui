@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
-import { effect } from '../effect/index.js';
-import { flushEffects } from '../effect/test-helpers.js';
+import { effect } from '@std-ui/core';
+import { flushEffects } from '../../../../core/src/reactive/effect/test-helpers.js';
 import { stateTree } from './main.js';
 
 const data = () => ({ id: 1, user: { name: 'Ada', tags: ['a'] } });

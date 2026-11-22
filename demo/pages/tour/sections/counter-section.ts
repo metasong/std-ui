@@ -1,7 +1,8 @@
 // Demonstrates: `state`/`computed`, `UIElement.template()` re-rendering on signal change,
 // `@click` event binding, `?disabled` boolean-attribute binding.
 import { tag, t, UIElement } from '@std-ui/core';
-import { stateTree, computed } from '@std-ui/core';
+import { computed } from '@std-ui/core';
+import { stateTree } from '@std-ui/ext';
 
 const count = stateTree(0);
 const label = computed(() => (count() < 2 ? 'click' : 'clicks'));

@@ -5,8 +5,14 @@ import keyFeature from './sections/key-feature-section.ts?raw';
 
 const files = { 'key-feature-section.ts': keyFeature };
 
+import bundleSizes from '../size-map/bundle-sizes.json';
+
+/** Brotli size (kB, 1 decimal) of a built IIFE bundle. */
+const brotliKb = (file: string): number =>
+	Math.round(((bundleSizes.bundles.find((b) => b.file === file)?.brotli ?? 0) / 1000) * 10) / 10;
+
 const stats: readonly (readonly [number, string, string])[] = [
-	[14, ' kB', 'core, gzip'], [10, ' kB', 'add-ons, gzip'], [0, '', 'virtual DOM'], [0, '', 'build steps required'],
+	[brotliKb('std-ui-core.iife.min.js'), ' kB', 'core, brotli'], [brotliKb('std-ui-ext.iife.min.js'), ' kB', 'add-ons, brotli'], [0, '', 'virtual DOM'], [0, '', 'build steps required'],
 ];
 
 const goals: readonly (readonly [string, string])[] = [
@@ -96,7 +102,7 @@ export class DemoHomePage extends UIElement {
 				const t0 = performance.now();
 				const tick = (now: number): void => {
 					const p = Math.min(1, (now - t0) / 1400);
-					el.textContent = Math.round(end * (1 - (1 - p) ** 3)) + suffix;
+					el.textContent = (Math.round(end * (1 - (1 - p) ** 3) * 10) / 10) + suffix;
 					if (p < 1) requestAnimationFrame(tick);
 				};
 				requestAnimationFrame(tick);

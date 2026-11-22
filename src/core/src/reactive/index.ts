@@ -14,25 +14,6 @@ export {
 	type Unsubscribable,
 } from './to-signal/index.js';
 
-export {
-	stateTree,
-	type DeepPartial,
-	type StateTree,
-	type StateDepth,
-	type StateArray,
-	type StateObject,
-	type StateLeaf,
-	type ItemNode,
-	type Extendable,
-	type Extension,
-	type TreeNode,
-	childEntries,
-	deepEqual,
-	EQUALS,
-	extendTree,
-	isTreeNode,
-} from './state-tree/index.js';
-
 import {
 	assertNotInReactiveContext as _assertNotInReactiveContext,
 	inReactiveContext as _inReactiveContext,

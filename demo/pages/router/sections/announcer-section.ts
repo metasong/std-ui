@@ -1,5 +1,6 @@
 // Router `announce`: a screen-reader message after each client-side navigation.
-import { stateTree, t, tag, UIElement } from '@std-ui/core';
+import { t, tag, UIElement } from '@std-ui/core';
+import { stateTree } from '@std-ui/ext';
 import '@std-ui/router';
 import { createRouter } from '@std-ui/router';
 import { createMemoryNavigation } from '@std-ui/router/testing';

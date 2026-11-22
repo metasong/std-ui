@@ -1,5 +1,6 @@
 // A custom `UIFeat` (clock with timer cleanup) composed with a ready-made one (`HotkeyFeat`) in field initializers.
-import { stateTree, t, tag, UIElement, UIFeat } from '@std-ui/core';
+import { t, tag, UIElement, UIFeat } from '@std-ui/core';
+import { stateTree } from '@std-ui/ext';
 import { HotkeyFeat } from '@std-ui/ext';
 
 class ClockFeat extends UIFeat {

@@ -7,7 +7,7 @@
 //   - `list.deep()` re-runs on structure OR any item's value change;
 //   - `list.at(i)()` only re-runs when that element changes (or the element at `i` is replaced).
 
-import { computed, state, type Computed, type State } from '../../signal/index.js';
+import { computed, state, type Computed, type State } from '@std-ui/core';
 import {
 	addWith,
 	assertAcyclic,

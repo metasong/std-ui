@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { stateTree } from '@std-ui/core';
+import { stateTree } from '../index.js';
 import { changes } from './index.js';
 
 describe("changes: depth 'value'", () => {

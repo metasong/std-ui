@@ -5,7 +5,8 @@
 //   (`source` typically comes from a `?raw` import.)
 //
 // Shadow DOM: the tabs and code live in the shadow root, the demo is projected through a native `<slot>`.
-import { bind, classMap, css, svg, t, tag, UIElement, stateTree } from '@std-ui/core';
+import { bind, classMap, css, svg, t, tag, UIElement } from '@std-ui/core';
+import { stateTree } from '@std-ui/ext';
 import { tokenize } from './highlight.js';
 
 export type CodeFiles = Readonly<Record<string, string>>;

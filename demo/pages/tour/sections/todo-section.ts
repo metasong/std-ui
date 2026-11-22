@@ -1,6 +1,7 @@
 // Pulls several features together in one realistic component: `stateTree()` with a plain-object
 // value (tree-backed, per-leaf reactivity), list rendering, `computed`, and event handlers.
-import { css, tag, t, UIElement, stateTree } from '@std-ui/core';
+import { css, tag, t, UIElement } from '@std-ui/core';
+import { stateTree } from '@std-ui/ext';
 import { computed } from '@std-ui/core';
 
 interface Todo { id: number; text: string; done: boolean; }

@@ -15,11 +15,11 @@ export class DemoSizeMapSummary extends UIElement {
 		return t`
 			<h2 id="bundles">Browser bundles</h2>
 			<p class="desc">
-				Block area = gzip size (level 9). Hover a tile for full filename and bytes. Data in
+				Block area = Brotli size. Hover a tile for full filename and bytes. Data in
 				<code>bundle-sizes.json</code> — <code>npm run build</code> then <code>node scripts/size-map.mjs</code>.
 				Updated ${stamp}.
 			</p>
-			<demo-treemap-map .tree=${this.#bundleTree} .aspect=${2.6} .showLeafKb=${true} .showFolderKb=${false}></demo-treemap-map>
+			<demo-treemap-map .tree=${this.#bundleTree} .aspect=${2.6} .showLeafKb=${true} .showFolderKb=${false} .unit=${'brotli'}></demo-treemap-map>
 		`;
 	}
 }

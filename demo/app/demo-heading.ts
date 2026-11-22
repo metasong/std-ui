@@ -1,4 +1,5 @@
-import { css, stateTree, t, tag, UIElement } from '@std-ui/core';
+import { css, t, tag, UIElement } from '@std-ui/core';
+import { stateTree } from '@std-ui/ext';
 import { applyTheme, currentTheme, type ThemeMode } from './theme.js';
 import { pageOf } from './pages.js';
 import { routerOf } from './router-of.js';

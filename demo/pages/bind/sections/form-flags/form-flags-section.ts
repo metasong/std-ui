@@ -5,7 +5,8 @@
 //   - invalid   `check.errors`       → aria-invalid, and the text of the element named by aria-errormessage
 //   - required  a `required()` validator (its `flag` is 'valueMissing') → aria-required
 // The table reads the attributes straight off the inputs, so it shows what is really on the element.
-import { css, state, stateTree, t, tag, UIElement } from '@std-ui/core';
+import { css, state, t, tag, UIElement } from '@std-ui/core';
+import { stateTree } from '@std-ui/ext';
 import { asyncValidator, changes, check, email, formBind, formUi, minLength, required } from '@std-ui/ext';
 
 const form = stateTree({ name: 'Ada', email: 'ada@example.com' }).with(check).with(changes).with(formUi);

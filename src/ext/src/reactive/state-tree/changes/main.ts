@@ -7,19 +7,10 @@
 // later: its value when it is created), so apply it before editing the state.
 
 import type { WithFeature } from '../tree-feature.js';
-import {
-	childEntries,
-	computed,
-	deepEqual,
-	EQUALS,
-	extendTree,
-	state,
-	type Computed,
-	type ItemNode,
-	type StateArray,
-	type StateObject,
-	type TreeNode,
-} from '@std-ui/core';
+import { computed, state, type Computed } from '@std-ui/core';
+import { childEntries, deepEqual, EQUALS, extendTree, type ItemNode, type TreeNode } from '../node.js';
+import { type StateArray } from '../array/index.js';
+import { type StateObject } from '../object/index.js';
 
 /** Change-tracking members (`dirty`, `initial`, `reset`), grouped under `node.changes`. */
 export interface ChangeTracking<T> {
