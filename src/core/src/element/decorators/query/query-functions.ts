@@ -1,6 +1,6 @@
 // Decorator-free DOM queries: plain functions that take the host element as their first argument.
 // They run the query *when called* and return the result itself - exactly what reading the matching
-// decorated property returns (`@query()`, `@queryAll()`, `@queryAsync()`, `@queryAssignedNodes()`).
+// decorated property returns (`@query()`, `@queryAll()`, `@queryAsync()`).
 //
 // Prefer the decorators where you can use them (`@query('#input') input!: HTMLInputElement | null`):
 // they read as plain properties and need no boilerplate. These functions are for builds without
@@ -10,7 +10,6 @@
 //   get input() { return queryElement<HTMLInputElement>(this, '#input'); }   // el.input
 
 import type { UIElement } from '../../ui-element.js';
-import { readAssignedNodes } from './query-assigned.decorator.js';
 
 /** Cached `queryElement(host, selector, true)` results, per host and selector. */
 const cache = new WeakMap<UIElement, Map<string, Element>>();
@@ -43,4 +42,3 @@ export function queryElementAsync<T extends Element = HTMLElement>(host: UIEleme
 	return host.updateComplete.then(() => host.renderRoot.querySelector<T>(selector));
 }
 
-export { readAssignedNodes as queryAssigned };

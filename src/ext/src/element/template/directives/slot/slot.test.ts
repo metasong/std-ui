@@ -1,8 +1,6 @@
 import { describe, expect, it } from 'vitest';
-import { t } from '../../tag-funcs/html/index.js';
-import { render } from '../../render.js';
+import { t, render, snapshotLightChildren } from '@std-ui/core';
 import { slot } from './index.js';
-import { snapshotLightChildren } from './slot-content.js';
 
 function makeHost(inner: string): HTMLElement {
 	const host = document.createElement('div');

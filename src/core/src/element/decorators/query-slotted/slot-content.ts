@@ -1,11 +1,12 @@
+import { DEV } from '../../../dev/flag.js';
+import type { UIElementHooks } from '../../ui-element-hooks.js';
+import { warnLateSlotChildren } from './dev/warn-late-slot.js';
+
 // Light-DOM slot content store. A light-DOM component renders into its own host, so the children a
 // parent wrote inside it (`<my-card><h1 slot="title">..</h1>body</my-card>`) share a container with
 // the component's rendered output. `snapshotLightChildren()` records those children (no DOM
 // mutation - components that never use `slot()` are unaffected) just before the first render;
 // `slot()` later groups them by `slot` attribute and moves them into place.
-
-import { DEV } from '../../../../dev/flag.js';
-import { warnLateSlotChildren } from './dev/warn-slot.js';
 
 const snapshots = new WeakMap<Element, Node[]>();
 const grouped = new WeakMap<Element, Map<string, Node[]>>();
@@ -37,3 +38,10 @@ export function getSlotContent(host: Element, name = ''): readonly Node[] {
 	}
 	return map.get(name) ?? [];
 }
+
+/** Class hook: snapshots a light-DOM host's children on connect (i.e. before its first render). */
+export const slotSnapshotHooks: UIElementHooks = {
+	beforeConnect(el) {
+		if (!el.shadowRoot) snapshotLightChildren(el);
+	},
+};

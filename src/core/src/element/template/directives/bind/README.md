@@ -57,7 +57,7 @@ class SignupField extends UIElement {
 
 ### `bind(signal[, options])`
 
-Binds a `state()`, `stateTree()` node, or `stateTree()` / `@attribute()` field directly — the model
+Binds a `state()`, node, or `@attribute()` field directly — the model
 is that store, not a separate signal variable. Any callable with `.set()` works. The read happens
 during render, so model changes re-render the template.
 
@@ -71,7 +71,7 @@ t`<input type="checkbox" .checked=${bind(form.agreed)} />`
 Override just the event (property on the element is still `.level` → default would be `level-change`):
 
 ```ts
-const level = stateTree(0);
+const level = state(0);
 
 t`<legacy-dial .level="${bind(level, { event: 'levelinput' })}" />`
 ```
@@ -200,7 +200,7 @@ If the element's property is itself a signal (callable with `.set()`, e.g. a `st
 
 ```ts
 class Knob extends UIElement {
-	level = stateTree(0); // element.level is a signal
+	level = state(0); // element.level is a signal
 }
 
 t`<demo-bind-signal-knob .level=${bind(this.level)}></demo-bind-signal-knob>`;

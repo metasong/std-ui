@@ -1,55 +1,55 @@
 {
-	"generatedAt": "2026-11-22T14:35:07.665Z",
+	"generatedAt": "2026-11-22T19:17:55.099Z",
 	"bundles": [
 		{
 			"file": "std-ui-core.release.min.js",
-			"raw": 41513,
-			"gzip": 12166,
-			"brotli": 10959
+			"raw": 40962,
+			"gzip": 12138,
+			"brotli": 10946
 		},
 		{
 			"file": "std-ui-core.release.iife.min.js",
-			"raw": 31095,
-			"gzip": 10631,
-			"brotli": 9674
+			"raw": 30644,
+			"gzip": 10573,
+			"brotli": 9629
 		},
 		{
 			"file": "std-ui-ext.release.min.js",
-			"raw": 47315,
-			"gzip": 14367,
-			"brotli": 12865
+			"raw": 48785,
+			"gzip": 14771,
+			"brotli": 13247
 		},
 		{
 			"file": "std-ui-ext.release.iife.min.js",
-			"raw": 36141,
-			"gzip": 12683,
-			"brotli": 11506
+			"raw": 37374,
+			"gzip": 13053,
+			"brotli": 11824
 		}
 	],
 	"packages": [
 		{
 			"name": "core",
 			"path": "core",
-			"size": 77052,
-			"raw": 188855,
+			"size": 75708,
+			"raw": 185175,
 			"children": [
 				{
 					"name": "element",
 					"path": "core/element",
-					"size": 68485,
-					"raw": 169028,
+					"size": 67098,
+					"raw": 165224,
 					"children": [
 						{
 							"name": "template",
 							"path": "core/element/template",
-							"size": 45681,
-							"raw": 114351,
+							"size": 43041,
+							"raw": 108229,
 							"children": [
 								{
 									"name": "directives",
 									"path": "core/element/template/directives",
-									"size": 19225,
-									"raw": 47125,
+									"size": 16585,
+									"raw": 41003,
 									"children": [
 										{
 											"name": "bind",
@@ -92,40 +92,6 @@
 													"path": "core/element/template/directives/bind/index.js",
 													"size": 99,
 													"raw": 79
-												}
-											]
-										},
-										{
-											"name": "slot",
-											"path": "core/element/template/directives/slot",
-											"size": 2631,
-											"raw": 6082,
-											"children": [
-												{
-													"name": "index.js",
-													"path": "core/element/template/directives/slot/index.js",
-													"size": 1201,
-													"raw": 3217
-												},
-												{
-													"name": "slot-content.js",
-													"path": "core/element/template/directives/slot/slot-content.js",
-													"size": 831,
-													"raw": 1761
-												},
-												{
-													"name": "dev",
-													"path": "core/element/template/directives/slot/dev",
-													"size": 599,
-													"raw": 1104,
-													"children": [
-														{
-															"name": "warn-slot.js",
-															"path": "core/element/template/directives/slot/dev/warn-slot.js",
-															"size": 599,
-															"raw": 1104
-														}
-													]
 												}
 											]
 										},
@@ -286,8 +252,8 @@
 										{
 											"name": "index.js",
 											"path": "core/element/template/directives/index.js",
-											"size": 178,
-											"raw": 365
+											"size": 169,
+											"raw": 325
 										}
 									]
 								},
@@ -578,8 +544,8 @@
 						{
 							"name": "decorators",
 							"path": "core/element/decorators",
-							"size": 14735,
-							"raw": 33313,
+							"size": 16087,
+							"raw": 35932,
 							"children": [
 								{
 									"name": "attribute",
@@ -630,20 +596,14 @@
 								{
 									"name": "query",
 									"path": "core/element/decorators/query",
-									"size": 4825,
-									"raw": 9925,
+									"size": 3352,
+									"raw": 6694,
 									"children": [
-										{
-											"name": "query-assigned.decorator.js",
-											"path": "core/element/decorators/query/query-assigned.decorator.js",
-											"size": 1029,
-											"raw": 2475
-										},
 										{
 											"name": "query-functions.js",
 											"path": "core/element/decorators/query/query-functions.js",
-											"size": 978,
-											"raw": 2331
+											"size": 926,
+											"raw": 2192
 										},
 										{
 											"name": "query.decorator.js",
@@ -664,20 +624,6 @@
 											"raw": 841
 										},
 										{
-											"name": "dev",
-											"path": "core/element/decorators/query/dev",
-											"size": 363,
-											"raw": 515,
-											"children": [
-												{
-													"name": "warn-missing-slot.js",
-													"path": "core/element/decorators/query/dev/warn-missing-slot.js",
-													"size": 363,
-													"raw": 515
-												}
-											]
-										},
-										{
 											"name": "assert-plain-field.js",
 											"path": "core/element/decorators/query/assert-plain-field.js",
 											"size": 264,
@@ -686,8 +632,48 @@
 										{
 											"name": "index.js",
 											"path": "core/element/decorators/query/index.js",
-											"size": 175,
-											"raw": 378
+											"size": 146,
+											"raw": 276
+										}
+									]
+								},
+								{
+									"name": "query-slotted",
+									"path": "core/element/decorators/query-slotted",
+									"size": 2783,
+									"raw": 5702,
+									"children": [
+										{
+											"name": "query-slotted.decorator.js",
+											"path": "core/element/decorators/query-slotted/query-slotted.decorator.js",
+											"size": 1120,
+											"raw": 2603
+										},
+										{
+											"name": "slot-content.js",
+											"path": "core/element/decorators/query-slotted/slot-content.js",
+											"size": 918,
+											"raw": 1999
+										},
+										{
+											"name": "dev",
+											"path": "core/element/decorators/query-slotted/dev",
+											"size": 745,
+											"raw": 1100,
+											"children": [
+												{
+													"name": "warn-late-slot.js",
+													"path": "core/element/decorators/query-slotted/dev/warn-late-slot.js",
+													"size": 388,
+													"raw": 591
+												},
+												{
+													"name": "warn-missing-slot.js",
+													"path": "core/element/decorators/query-slotted/dev/warn-missing-slot.js",
+													"size": 357,
+													"raw": 509
+												}
+											]
 										}
 									]
 								},
@@ -726,16 +712,16 @@
 								{
 									"name": "index.js",
 									"path": "core/element/decorators/index.js",
-									"size": 303,
-									"raw": 672
+									"size": 345,
+									"raw": 820
 								}
 							]
 						},
 						{
 							"name": "ui-element.js",
 							"path": "core/element/ui-element.js",
-							"size": 3978,
-							"raw": 11292
+							"size": 3879,
+							"raw": 10991
 						},
 						{
 							"name": "feat",
@@ -880,34 +866,34 @@
 				{
 					"name": "index.js",
 					"path": "core/index.js",
-					"size": 466,
-					"raw": 1127
+					"size": 509,
+					"raw": 1251
 				}
 			]
 		},
 		{
 			"name": "ext",
 			"path": "ext",
-			"size": 52028,
-			"raw": 129739,
+			"size": 53587,
+			"raw": 133423,
 			"children": [
 				{
 					"name": "element",
 					"path": "ext/element",
-					"size": 28845,
-					"raw": 74516,
+					"size": 30404,
+					"raw": 78200,
 					"children": [
 						{
 							"name": "template",
 							"path": "ext/element/template",
-							"size": 18064,
-							"raw": 50702,
+							"size": 19623,
+							"raw": 54386,
 							"children": [
 								{
 									"name": "directives",
 									"path": "ext/element/template/directives",
-									"size": 14340,
-									"raw": 42636,
+									"size": 15899,
+									"raw": 46320,
 									"children": [
 										{
 											"name": "virtualize",
@@ -1018,10 +1004,38 @@
 											]
 										},
 										{
+											"name": "slot",
+											"path": "ext/element/template/directives/slot",
+											"size": 1553,
+											"raw": 3651,
+											"children": [
+												{
+													"name": "index.js",
+													"path": "ext/element/template/directives/slot/index.js",
+													"size": 1198,
+													"raw": 3105
+												},
+												{
+													"name": "dev",
+													"path": "ext/element/template/directives/slot/dev",
+													"size": 355,
+													"raw": 546,
+													"children": [
+														{
+															"name": "warn-slot.js",
+															"path": "ext/element/template/directives/slot/dev/warn-slot.js",
+															"size": 355,
+															"raw": 546
+														}
+													]
+												}
+											]
+										},
+										{
 											"name": "index.js",
 											"path": "ext/element/template/directives/index.js",
-											"size": 100,
-											"raw": 110
+											"size": 106,
+											"raw": 143
 										}
 									]
 								},

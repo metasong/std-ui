@@ -6,11 +6,11 @@ Light-DOM slot projection. Usage: [`README.md`](./README.md).
 
 | File | Owns |
 |---|---|
-| [`slot-content.ts`](./slot-content.ts) | `snapshotLightChildren(host)` and `getSlotContent(host, name)`; two `WeakMap`s keyed by host. |
+| [`slot-content.ts`](../../../../../core/src/element/decorators/query-slotted/slot-content.ts) (core) | `snapshotLightChildren(host)` and `getSlotContent(host, name)`; two `WeakMap`s keyed by host. |
 | [`index.ts`](./index.ts) | `SlotDirective`, `SlotRenderer`, `export const slot = directive(SlotDirective)`. |
 | [`slot.test.ts`](./slot.test.ts) | Named/default projection, fallback, re-render stability. |
-| [`../../../ui-element.ts`](../../../ui-element.ts) | Calls `snapshotLightChildren(this)` in `#ensureRenderRoot` when the render root is the host. |
-| [`../../../decorators/query/query-assigned.decorator.ts`](../../../decorators/query/query-assigned.decorator.ts) | Reads `getSlotContent` in light DOM. |
+| [`slotSnapshotHooks`](../../../../../core/src/element/decorators/query-slotted/slot-content.ts) (core) | Snapshots a host's children on connect; class hook attached by `@querySlotted` (`slot()` also snapshots lazily on first use). |
+| [`../../../decorators/query/query-slotted.decorator.ts`](../../../decorators/query/query-slotted.decorator.ts) | Reads `getSlotContent` in light DOM. |
 
 `ChildPart` has no knowledge of `slot`; the directive hands it a renderer via `renderWith()`, same pattern as
 [`../cache/`](../cache/design.md).

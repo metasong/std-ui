@@ -8,11 +8,10 @@ For usage and API, see [`README.md`](./README.md).
 | File | Owns |
 |---|---|
 | [`assert-plain-field.ts`](./assert-plain-field.ts) | `assertPlainField()` — the one piece of validation all three decorators share: throw unless `context.kind === 'field'`. |
-| [`query-functions.ts`](./query-functions.ts) | The decorator-free `queryElement` / `queryElements` / `queryElementAsync` / `queryAssigned` - the **single implementation** of each query. |
+| [`query-functions.ts`](./query-functions.ts) | The decorator-free `queryElement` / `queryElements` / `queryElementAsync` - the **single implementation** of each query. |
 | [`query.decorator.ts`](./query.decorator.ts) | `@query(selector, cache?)`. |
 | [`query-all.decorator.ts`](./query-all.decorator.ts) | `@queryAll(selector)`. |
 | [`query-async.decorator.ts`](./query-async.decorator.ts) | `@queryAsync(selector)`. |
-| [`query-assigned.decorator.ts`](./query-assigned.decorator.ts) | `@queryAssignedNodes(options)` and `readAssignedNodes()` (see [`query-assigned.decorator.md`](./query-assigned.decorator.md)). |
 | [`index.ts`](./index.ts) | Public re-exports, re-exported again from `../index.ts` / `../../ui-element.ts`. |
 | [`query.test.ts`](./query.test.ts) | Behavior tests, through `UIElement`/`tag()`. |
 

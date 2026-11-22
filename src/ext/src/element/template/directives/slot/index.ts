@@ -1,12 +1,9 @@
-import { Directive, directive, type DirectivePart, type PartInfo } from '../directive.js';
-import { PartType } from '../../parts/part.js';
-import type { TemplateResult } from '../../tag-funcs/html/index.js';
-import { ChildRenderer, renderWith, TemplateRenderer } from '../../parts/renderers/index.js';
-import { DEV } from '../../../../dev/flag.js';
+import {
+	ChildRenderer, DEV, Directive, directive, getSlotContent, PartType, renderWith, snapshotLightChildren, TemplateRenderer,
+	type DirectivePart, type DirectiveResult, type PartInfo, type TemplateResult,
+} from '@std-ui/core';
 import { assertSlotDirectiveInLightDom } from './dev/warn-slot.js';
-import { getSlotContent } from './slot-content.js';
 
-export { getSlotContent, snapshotLightChildren } from './slot-content.js';
 
 interface SlotValue {
 	name: string;
@@ -27,6 +24,7 @@ class SlotRenderer extends ChildRenderer<SlotValue> {
 			this.#name = name;
 			if (DEV) assertSlotDirectiveInLightDom(this.host);
 			const host = this.host as Element | undefined;
+			if (host) snapshotLightChildren(host); // no-op if already captured on connect
 			this.#nodes = host ? getSlotContent(host, name) : [];
 			for (const node of this.#nodes) this.anchor.before(node);
 		} else if (this.#name !== name) return false;
@@ -82,4 +80,4 @@ class SlotDirective extends Directive {
  * (true for script-created elements and for upgrades of already-parsed markup; not for an
  * element defined while the parser is still mid-way through its children).
  */
-export const slot = directive(SlotDirective);
+export const slot: (name?: string, fallback?: TemplateResult) => DirectiveResult = directive(SlotDirective);

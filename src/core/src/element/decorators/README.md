@@ -10,7 +10,7 @@ Everything else is **opt-in registration**, available in two equivalent forms:
 | Reactive field | — | `readonly count = stateTree(0)` |
 | Define the element | `@tag('my-el')` | `defineElement('my-el', MyEl)` |
 | Attribute ↔ store | `@attribute(opts)` on a store field | `defineElement(name, MyEl, { attributes: { count: opts } })` |
-| DOM queries | `@query()` / `@queryAll()` / `@queryAsync()` / `@queryAssignedNodes()` | `queryElement(this, sel)` / `queryElements` / `queryElementAsync` / `queryAssigned(this, opts)` (**prefer the decorators**) |
+| DOM queries | `@query()` / `@queryAll()` / `@queryAsync()` | `queryElement(this, sel)` / `queryElements` / `queryElementAsync` (**prefer the decorators**) |
 
 Both forms feed the same registries, so they can be mixed freely. Decorators need a TS/Babel build
 step (browsers don't run them); the decorator-free form works with none.
@@ -56,7 +56,7 @@ Registrations are inherited: a subclass sees its base class's `@attribute` field
 - **Plain fields only** — no `accessor`. Store fields are initialized in the field/constructor phase.
 - **Prefer the `@query*()` decorators.** They read as plain properties (`el.input`) with no
   boilerplate. The decorator-free functions (`queryElement(host, sel)`, `queryElements`,
-  `queryElementAsync`, `queryAssigned`) take the host as their first argument, run when called and
+  `queryElementAsync`) take the host as their first argument, run when called and
   return the result itself - what the matching `@query*()` property returns when read. A field
   initializer runs once, so it can't hold a live value; for property-style access wrap the call in a
   getter: `get input() { return queryElement(this, '#input'); }`.

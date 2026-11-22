@@ -1,13 +1,13 @@
-// Light-DOM slots: `slot()` directive + `@queryAssignedNodes` reading the same content.
-import { slot, t, tag, UIElement, queryAssignedNodes } from '@std-ui/core';
-import { stateTree } from '@std-ui/ext';
+// Light-DOM slots: `slot()` directive + `@querySlotted` reading the same content.
+import { t, tag, UIElement, querySlotted } from '@std-ui/core';
+import { slot, stateTree } from '@std-ui/ext';
 
 @tag('demo-light-card')
 export class DemoLightCard extends UIElement {
 	readonly slotted = stateTree('');
 
-	@queryAssignedNodes<HTMLElement>({ selector: '*' }) defaultChildren!: HTMLElement[];
-	@queryAssignedNodes<HTMLElement>({ slot: 'title', selector: '*' }) titleChildren!: HTMLElement[];
+	@querySlotted<HTMLElement>({ selector: '*' }) defaultChildren!: HTMLElement[];
+	@querySlotted<HTMLElement>({ slot: 'title', selector: '*' }) titleChildren!: HTMLElement[];
 
 	protected override template() {
 		return t`

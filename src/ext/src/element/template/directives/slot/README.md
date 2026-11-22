@@ -37,7 +37,7 @@ class Card extends UIElement {
 - A component that never uses `slot()` is unaffected: the snapshot is just a list of references, no DOM is changed.
 - A slot can only be projected once per host: using the same name twice moves the nodes to the last position.
 
-Reading slotted content from the component: [`@queryAssignedNodes`](../../../decorators/query/query-assigned.decorator.md)
+Reading slotted content from the component: [`@querySlotted`](../../../../../core/src/element/decorators/query-slotted/README.md)
 reads the same captured content in light DOM (and the native `<slot>` in shadow DOM).
 
 Implementation: `SlotRenderer` in `index.ts`, handed to `ChildPart` via `renderWith()`; capture in `slot-content.ts`.

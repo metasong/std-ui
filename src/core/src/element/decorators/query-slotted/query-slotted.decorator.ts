@@ -1,17 +1,18 @@
-// `@queryAssignedNodes()` - read-only accessor over the content a parent projected into one of
-// this component's slots (see `./query-assigned.decorator.md`).
+// `@querySlotted()` - read-only accessor over the content a parent projected into one of
+// this component's slots (see `./README.md`).
 //
 // - Shadow root: delegates to the native `<slot>.assignedNodes({ flatten })`.
 // - Light DOM (default): reads the content captured for the `slot()` directive (see
-//   `../../template/directives/slot/`), i.e. the host's original children grouped by `slot` attribute.
+//   `./slot-content.ts`), i.e. the host's original children grouped by `slot` attribute.
 
 import type { UIElement } from '../../ui-element.js';
+import { addClassHooks } from '../../ui-element-hooks.js';
 import { DEV } from '../../../dev/flag.js';
 import { warnMissingSlotElement } from './dev/warn-missing-slot.js';
-import { getSlotContent } from '../../template/directives/slot/slot-content.js';
-import { assertPlainField } from './assert-plain-field.js';
+import { getSlotContent, slotSnapshotHooks } from './slot-content.js';
 
-export interface QueryAssignedOptions<T extends Node = Node> {
+
+export interface QuerySlottedOptions<T extends Node = Node> {
 	/** Slot name; omit (or `''`) for the default slot. */
 	slot?: string;
 	/** Include nodes of nested slots (shadow DOM only). Default: false. */
@@ -22,7 +23,7 @@ export interface QueryAssignedOptions<T extends Node = Node> {
 	filter?: (node: Node, index: number) => node is T;
 }
 
-function assignedNodes(host: UIElement, { slot = '', flatten = false }: QueryAssignedOptions): Node[] {
+function assignedNodes(host: UIElement, { slot = '', flatten = false }: QuerySlottedOptions): Node[] {
 	const root = host.renderRoot;
 	if (root instanceof ShadowRoot) {
 		const el = root.querySelector<HTMLSlotElement>(slot ? `slot[name="${CSS.escape(slot)}"]` : 'slot:not([name])');
@@ -34,9 +35,9 @@ function assignedNodes(host: UIElement, { slot = '', flatten = false }: QueryAss
 
 /**
  * Nodes currently assigned to a slot of `host`, optionally narrowed by `selector` and/or `filter` -
- * the shared read behind `@queryAssignedNodes()` and `this.queryAssignedNodes()`.
+ * the shared read behind `@querySlotted()` and `this.querySlotted()`.
  */
-export function readAssignedNodes<T extends Node = Node>(host: UIElement, options: QueryAssignedOptions<T> = {}): T[] {
+export function querySlottedNodes<T extends Node = Node>(host: UIElement, options: QuerySlottedOptions<T> = {}): T[] {
 	const { selector, filter } = options;
 	let nodes = assignedNodes(host, options);
 	if (selector) nodes = nodes.filter(n => n instanceof Element && n.matches(selector));
@@ -49,17 +50,18 @@ export function readAssignedNodes<T extends Node = Node>(host: UIElement, option
  * `selector` and/or `filter`.
  *
  * ```ts
- * @queryAssignedNodes({ slot: 'header' }) headerNodes!: Node[];
- * @queryAssignedNodes({ slot: 'tab', selector: 'x-tab' }) tabs!: HTMLElement[];
+ * @querySlotted({ slot: 'header' }) headerNodes!: Node[];
+ * @querySlotted({ slot: 'tab', selector: 'x-tab' }) tabs!: HTMLElement[];
  * ```
  */
-export function queryAssignedNodes<T extends Node = Node>(options: QueryAssignedOptions<T> = {}) {
-	return function queryAssignedNodesDecorator(_value: undefined, context: ClassFieldDecoratorContext<UIElement, T[]>): void {
-		assertPlainField(context, 'queryAssignedNodes');
+export function querySlotted<T extends Node = Node>(options: QuerySlottedOptions<T> = {}) {
+	return function querySlottedDecorator(_value: undefined, context: ClassFieldDecoratorContext<UIElement, T[]>): void {
+		if (context.kind !== 'field') throw new Error('@querySlotted() can only decorate a plain class field (no accessor).');
 		const key = context.name;
+		addClassHooks(context.metadata as object, slotSnapshotHooks); // capture the host's children before its first render (once per class)
 		context.addInitializer(function (this: UIElement): void {
 			Object.defineProperty(this, key, {
-				get: (): T[] => readAssignedNodes(this, options),
+				get: (): T[] => querySlottedNodes(this, options),
 				enumerable: true,
 				configurable: true,
 			});
