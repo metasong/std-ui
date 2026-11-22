@@ -1,6 +1,6 @@
 export { getTemplate, instantiate } from './factory.js';
 export type { PartDescriptor, Template, TemplateType } from './factory.js';
-export { createBuilder } from './builder.js';
+export { createBuilder } from './builder/index.js';
 export type {
 	SlotDescriptor,
 	DescriptorInit,
@@ -12,4 +12,4 @@ export type {
 	Template as GenericTemplate,
 	Builder,
 	BuilderOptions,
-} from './builder.js';
+} from './builder/index.js';

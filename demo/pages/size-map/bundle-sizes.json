@@ -1,17 +1,17 @@
 {
-	"generatedAt": "2026-11-22T19:17:55.099Z",
+	"generatedAt": "2026-11-22T19:27:49.436Z",
 	"bundles": [
 		{
 			"file": "std-ui-core.release.min.js",
-			"raw": 40962,
-			"gzip": 12138,
-			"brotli": 10946
+			"raw": 41116,
+			"gzip": 12184,
+			"brotli": 10978
 		},
 		{
 			"file": "std-ui-core.release.iife.min.js",
-			"raw": 30644,
-			"gzip": 10573,
-			"brotli": 9629
+			"raw": 30685,
+			"gzip": 10587,
+			"brotli": 9649
 		},
 		{
 			"file": "std-ui-ext.release.min.js",
@@ -30,20 +30,20 @@
 		{
 			"name": "core",
 			"path": "core",
-			"size": 75708,
-			"raw": 185175,
+			"size": 76903,
+			"raw": 185730,
 			"children": [
 				{
 					"name": "element",
 					"path": "core/element",
-					"size": 67098,
-					"raw": 165224,
+					"size": 68293,
+					"raw": 165779,
 					"children": [
 						{
 							"name": "template",
 							"path": "core/element/template",
-							"size": 43041,
-							"raw": 108229,
+							"size": 44236,
+							"raw": 108784,
 							"children": [
 								{
 									"name": "directives",
@@ -260,20 +260,52 @@
 								{
 									"name": "factory",
 									"path": "core/element/template/factory",
-									"size": 9120,
-									"raw": 26818,
+									"size": 10315,
+									"raw": 27373,
 									"children": [
 										{
-											"name": "builder.js",
-											"path": "core/element/template/factory/builder.js",
-											"size": 5171,
-											"raw": 17468
+											"name": "builder",
+											"path": "core/element/template/factory/builder",
+											"size": 6366,
+											"raw": 18011,
+											"children": [
+												{
+													"name": "markup-scanner.js",
+													"path": "core/element/template/factory/builder/markup-scanner.js",
+													"size": 3729,
+													"raw": 12005
+												},
+												{
+													"name": "builder.js",
+													"path": "core/element/template/factory/builder/builder.js",
+													"size": 1509,
+													"raw": 3697
+												},
+												{
+													"name": "resolve-indices.js",
+													"path": "core/element/template/factory/builder/resolve-indices.js",
+													"size": 564,
+													"raw": 1237
+												},
+												{
+													"name": "types.js",
+													"path": "core/element/template/factory/builder/types.js",
+													"size": 469,
+													"raw": 993
+												},
+												{
+													"name": "index.js",
+													"path": "core/element/template/factory/builder/index.js",
+													"size": 95,
+													"raw": 79
+												}
+											]
 										},
 										{
 											"name": "factory.js",
 											"path": "core/element/template/factory/factory.js",
-											"size": 2295,
-											"raw": 6083
+											"size": 2296,
+											"raw": 6089
 										},
 										{
 											"name": "custom-attribute.js",
@@ -298,8 +330,8 @@
 										{
 											"name": "index.js",
 											"path": "core/element/template/factory/index.js",
-											"size": 131,
-											"raw": 136
+											"size": 130,
+											"raw": 142
 										}
 									]
 								},

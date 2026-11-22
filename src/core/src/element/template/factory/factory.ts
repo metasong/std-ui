@@ -19,7 +19,7 @@ import '../custom-attributes/attribute/index.js';
 import '../custom-attributes/property/index.js';
 import '../custom-attributes/boolean/index.js';
 import '../custom-attributes/event/index.js';
-import { createBuilder, type BuilderHooks, type SlotDescriptor, type Template as BuilderTemplate } from './builder.js';
+import { createBuilder, type BuilderHooks, type SlotDescriptor, type Template as BuilderTemplate } from './builder/index.js';
 // Parts import `instantiate` for nested templates; they are only touched lazily inside hooks, so
 // the module cycle is harmless.
 import { ElementPart, ChildPart, PartType, type Modifier, type Part } from '../parts/index.js';
