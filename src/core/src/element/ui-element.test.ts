@@ -244,6 +244,85 @@ describe('UIElement', () => {
 	});
 });
 
+describe('state() fields on a UIElement', () => {
+	it('never touches the host attribute', async () => {
+		@tag('state-no-attr')
+		class Foo extends UIElement {
+			readonly label = state('hi');
+		}
+
+		const el = document.createElement('state-no-attr') as Foo;
+		document.body.appendChild(el);
+		expect(el.hasAttribute('label')).toBe(false);
+
+		el.label.set('bye');
+		await flush();
+		expect(el.hasAttribute('label')).toBe(false);
+		expect(el.label()).toBe('bye');
+		el.remove();
+	});
+
+	it('re-renders template() when the field changes', async () => {
+		const rendered: string[] = [];
+
+		@tag('state-template')
+		class Foo extends UIElement {
+			readonly label = state('a');
+			protected override template(): void {
+				rendered.push(this.label());
+			}
+		}
+
+		const el = document.createElement('state-template') as Foo;
+		document.body.appendChild(el);
+		expect(rendered).toEqual(['a']);
+
+		el.label.set('b');
+		await flush();
+		expect(rendered).toEqual(['a', 'b']);
+		el.remove();
+	});
+
+	it('gives each instance its own store', () => {
+		@tag('state-per-instance')
+		class Foo extends UIElement {
+			readonly count = state(0);
+		}
+
+		const a = document.createElement('state-per-instance') as Foo;
+		const b = document.createElement('state-per-instance') as Foo;
+		a.count.set(5);
+		expect(b.count()).toBe(0);
+	});
+
+	it('leaves an unrelated nested branch untouched when only a sibling leaf changes', async () => {
+		@tag('state-obj-sibling')
+		class Foo extends UIElement {
+			readonly config = state({ a: 1, b: { c: 2 } });
+		}
+
+		const el = document.createElement('state-obj-sibling') as Foo;
+		document.body.appendChild(el);
+		const bBefore = el.config.deep().b;
+
+		el.config.set({ ...el.config.peek(), a: 2 });
+		await flush();
+		expect(el.config.deep()).toEqual({ a: 2, b: { c: 2 } });
+		expect(el.config.deep().b).toBe(bBefore);
+		el.remove();
+	});
+
+	it('registers no observedAttributes for a store-only class', () => {
+		@tag('state-only-class')
+		class Foo extends UIElement {
+			readonly a = state(1);
+			readonly b = state(2);
+		}
+
+		expect((Foo as unknown as { observedAttributes?: string[] }).observedAttributes ?? []).toEqual([]);
+	});
+});
+
 function flush(): Promise<void> {
 	return new Promise(resolve => queueMicrotask(() => queueMicrotask(resolve)));
 }
