@@ -20,5 +20,5 @@ Shared protocol: [`./directive.ts`](./directive.ts). How to write a custom direc
 [`why-not-structure-directives.md`](./why-not-structure-directives.md).
 
 **No async pipe or async directive** — bridge Promises and observable-like sources with
-[`toSignal`](../../../reactive/to-signal/README.md) / [`toSignalFrom`](../../../reactive/to-signal/README.md#reactive-sources-tosignalfromfactory-options), then bind signals in templates:
+[`toSignal`](../../../../../ext/src/reactive/to-signal/README.md) / [`toSignalFrom`](../../../../../ext/src/reactive/to-signal/README.md#reactive-sources-tosignalfromfactory-options), then bind signals in templates:
 [`why-not-async-directives-or-pipes.md`](./why-not-async-directives-or-pipes.md).

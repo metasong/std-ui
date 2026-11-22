@@ -1,4 +1,4 @@
-import type { Computed } from '../signal/computed.js';
+import type { Computed } from '@std-ui/core';
 
 /** Minimal observer contract (structurally compatible with RxJS `Partial<Observer<T>>`). */
 export interface PartialObserver<T> {

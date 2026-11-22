@@ -1,6 +1,4 @@
-import { computed } from '../signal/computed.js';
-import { state } from '../signal/state.js';
-import { assertNotInReactiveContext, untrack } from '../signal/tracking.js';
+import { computed, state, subtle } from '@std-ui/core';
 import { toSubscribable } from './subscribable.js';
 import type { ToSignal, ToSignalOptions, ToSignalSource, Unsubscribable } from './types.js';
 
@@ -20,7 +18,7 @@ export function toSignal<T, U>(
 	source: ToSignalSource<T>,
 	options: ToSignalOptions<T, U> = {},
 ): ToSignal<T | U | undefined> {
-	assertNotInReactiveContext('toSignal()');
+	subtle.assertNotInReactiveContext('toSignal()');
 	const userEquals = options.equals ?? Object.is;
 	const initial: State<T | U | undefined> = { kind: Kind.Value, value: options.initialValue };
 	const cell = state<State<T | U | undefined>>(initial, {
@@ -41,7 +39,7 @@ export function toSignal<T, U>(
 	// Register first so a throwing subscribe still has teardown wired.
 	options.onCleanup?.(dispose);
 
-	untrack(() => {
+	subtle.untrack(() => {
 		const observable = toSubscribable(source);
 		const result = observable.subscribe({
 			next: value => { if (!disposed) cell.set({ kind: Kind.Value, value }); },

@@ -1,5 +1,5 @@
 import type { State } from '@std-ui/core';
-import { toSignal, type ToSignal, type ToSignalOptions, type ToSignalSource } from '@std-ui/core';
+import { toSignal, type ToSignal, type ToSignalOptions, type ToSignalSource } from '../to-signal/index.js';
 import { toStateLeaf, type StateLeaf } from './leaf.js';
 
 /** A read-only state leaf fed by an observable / promise, with `dispose()` to stop listening. */

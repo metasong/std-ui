@@ -5,7 +5,7 @@ Frameworks often expose **async in templates** as either:
 - an **async pipe** that subscribes to an `Observable` / `Promise` and updates the view when values arrive (Angular’s `AsyncPipe`), or
 - an **async directive** that holds subscription state inside the binding and re-renders when the latest value changes.
 
-std-ui does **not** ship either. Async work is bridged **once** into the signal graph with [`toSignal`](../../../reactive/to-signal/README.md) and [`toSignalFrom`](../../../reactive/to-signal/README.md#reactive-sources-tosignalfromfactory-options), then templates read ordinary signals in `` t`...` `` — the same path as `@stateTree()`, `computed()`, and DOM-driven updates.
+std-ui does **not** ship either. Async work is bridged **once** into the signal graph with [`toSignal`](../../../../../ext/src/reactive/to-signal/README.md) and [`toSignalFrom`](../../../../../ext/src/reactive/to-signal/README.md#reactive-sources-tosignalfromfactory-options), then templates read ordinary signals in `` t`...` `` — the same path as `@stateTree()`, `computed()`, and DOM-driven updates.
 
 That keeps template bindings **synchronous**, matches the rest of the signal model, and avoids a second subscription lifecycle hidden inside `${...}`.
 
@@ -23,7 +23,7 @@ The template engine updates the DOM when **signals** (or other bound values) cha
 
 ## Use `toSignal` for a fixed async source
 
-Create the bridge **once** (field initializer, module scope, or `connect()`), not inside `template()` — see [`../../../reactive/to-signal/README.md`](../../../reactive/to-signal/README.md#lifetime).
+Create the bridge **once** (field initializer, module scope, or `connect()`), not inside `template()` — see [`../../../../../ext/src/reactive/to-signal/README.md`](../../../../../ext/src/reactive/to-signal/README.md#lifetime).
 
 **Promise** (e.g. load user on connect):
 
@@ -91,7 +91,7 @@ class DemoUserById extends UIElement {
 }
 ```
 
-While a new fetch is pending, the **last** successful value is kept (see [`../../../reactive/to-signal/README.md`](../../../reactive/to-signal/README.md)).
+While a new fetch is pending, the **last** successful value is kept (see [`../../../../../ext/src/reactive/to-signal/README.md`](../../../../../ext/src/reactive/to-signal/README.md)).
 
 ## Patterns in `template()`
 
@@ -111,4 +111,4 @@ Calling `toSignal` / `toSignalFrom` inside `template()`, `computed()`, or `effec
 | Conditional async UI | — | `? :` on signal reads (see [`why-not-structure-directives.md`](./why-not-structure-directives.md)) |
 | DOM-specific async (e.g. virtual list measure) | `virtualize` | Not a generic async pipe |
 
-Further detail: [`../../../reactive/to-signal/README.md`](../../../reactive/to-signal/README.md) · [`../../../reactive/to-signal/design.md`](../../../reactive/to-signal/design.md).
+Further detail: [`../../../../../ext/src/reactive/to-signal/README.md`](../../../../../ext/src/reactive/to-signal/README.md) · [`../../../../../ext/src/reactive/to-signal/design.md`](../../../../../ext/src/reactive/to-signal/design.md).

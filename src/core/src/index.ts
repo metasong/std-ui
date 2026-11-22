@@ -43,8 +43,6 @@ export {
 export { bind, createBind, classMap, styleMap, mapByKey, slot, ref, createRef } from './element/template/directives/index.js';
 export type { BindAccessor, BindOptions, BindPlugin, BindPluginContext, BindSource, Ref, RefCallback, RefOrCallback } from './element/template/directives/index.js';
 export {
-	toSignal,
-	toSignalFrom,
 	computed,
 	effect,
 	subtle,
@@ -53,12 +51,7 @@ export {
 	state,
 	type ReadonlyState,
 	type StateOptions,
-	type ToSignalSource,
 	type State,
-	type Subscribable,
-	type ToSignal,
-	type ToSignalOptions,
-	type ToSignalFromOptions,
 } from './reactive/index.js';
 export { ChildRenderer, renderWith } from './element/template/parts/renderers/index.js';
 export { AttributePart, ChildPart, EventPart, withEventOptions } from './element/template/parts/index.js';

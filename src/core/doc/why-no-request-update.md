@@ -45,4 +45,4 @@ Treat this as an escape hatch. Prefer bridging the source into a signal.
 Not provided either: `changedProperties`, `willUpdate`, `shouldUpdate`, `updated(changed)`. Use
 `computed()` for derived values and `effect()` for side effects on specific signals.
 
-See also: [`why-no-update-hooks.md`](./why-no-update-hooks.md), [`../element/ui-element.ts`](../src/element/ui-element.ts), [`../reactive/to-signal/README.md`](../src/reactive/to-signal/README.md).
+See also: [`why-no-update-hooks.md`](./why-no-update-hooks.md), [`../element/ui-element.ts`](../src/element/ui-element.ts), [`../reactive/to-signal/README.md`](../../ext/src/reactive/to-signal/README.md).

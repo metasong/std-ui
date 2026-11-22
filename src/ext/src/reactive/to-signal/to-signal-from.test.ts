@@ -1,7 +1,6 @@
 import { describe, expect, it } from 'vitest';
-import { effect } from '../effect/main.js';
-import { state } from '../signal/state.js';
-import { flushEffects } from '../effect/test-helpers.js';
+import { effect, state, subtle } from '@std-ui/core';
+import { flushEffects } from '../../../../core/src/reactive/effect/test-helpers.js';
 import { toSignalFrom } from './to-signal-from.js';
 import type { PartialObserver, Subscribable } from './types.js';
 

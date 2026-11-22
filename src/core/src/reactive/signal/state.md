@@ -138,5 +138,5 @@ dependency graph (`effect()` itself is built on `subtle.Watcher`; see [`../effec
   drive `template()` on every change. `UIElement.effect()` itself wraps `effect()` from this folder,
   auto-disposing it on the element's `disconnectedCallback()` - use it for DOM slices that should
   react to specific signals without re-rendering the whole component.
-- `../to-signal/README.md`'s `toSignal()` mirrors Promise/Observable-like sources into a
-  read-only `computed` for the same template and effect consumers (see [`../to-signal/design.md`](../to-signal/design.md)).
+- `../../../../ext/src/reactive/to-signal/README.md`'s `toSignal()` mirrors Promise/Observable-like sources into a
+  read-only `computed` for the same template and effect consumers (see [`../../../../ext/src/reactive/to-signal/design.md`](../../../../ext/src/reactive/to-signal/design.md)).

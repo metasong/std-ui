@@ -1,7 +1,4 @@
-import { computed } from '../signal/computed.js';
-import { effect } from '../effect/main.js';
-import { state } from '../signal/state.js';
-import { assertNotInReactiveContext, untrack } from '../signal/tracking.js';
+import { computed, effect, state, subtle } from '@std-ui/core';
 import { toSubscribable } from './subscribable.js';
 import type { ToSignal, ToSignalFromOptions, ToSignalSource } from './types.js';
 
@@ -30,7 +27,7 @@ export function toSignalFrom<T, U>(
 	factory: () => ToSignalSource<T> | null | undefined,
 	options: ToSignalFromOptions<T, U> = {},
 ): ToSignal<T | U | undefined> {
-	assertNotInReactiveContext('toSignalFrom()');
+	subtle.assertNotInReactiveContext('toSignalFrom()');
 	const userEquals = options.equals ?? Object.is;
 	const initial: State<T | U | undefined> = { ok: true, value: options.initialValue };
 	const cell = state<State<T | U | undefined>>(initial, {
@@ -43,7 +40,7 @@ export function toSignalFrom<T, U>(
 
 	const stop = effect(onCleanup => {
 		// Reset a stale error so a fresh source starts clean; keep the last good value.
-		untrack(() => {
+		subtle.untrack(() => {
 			if (!cell.peek().ok) cell.set({ ok: true, value: lastValue });
 		});
 
@@ -51,12 +48,12 @@ export function toSignalFrom<T, U>(
 		try {
 			source = factory(); // tracked: signals read here drive re-subscription
 		} catch (error) {
-			untrack(() => cell.set({ ok: false, error }));
+			subtle.untrack(() => cell.set({ ok: false, error }));
 			return;
 		}
 		if (source == null) return;
 
-		untrack(() => {
+		subtle.untrack(() => {
 			let active = true;
 			let unsub: (() => void) | undefined;
 			const end = (): void => {

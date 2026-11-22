@@ -1,7 +1,6 @@
 import { describe, expect, it } from 'vitest';
-import { untrack } from '../signal/tracking.js';
-import { effect } from '../effect/main.js';
-import { flushEffects } from '../effect/test-helpers.js';
+import { effect, state, subtle } from '@std-ui/core';
+import { flushEffects } from '../../../../core/src/reactive/effect/test-helpers.js';
 import { toSignal } from './to-signal.js';
 import type { PartialObserver, Subscribable } from './types.js';
 
@@ -145,7 +144,7 @@ describe('toSignal', () => {
 	it('works when created under untrack inside an effect', () => {
 		const { source } = makeSource<number>();
 		expect(() => {
-			effect(() => { untrack(() => { toSignal(source); }); });
+			effect(() => { subtle.untrack(() => { toSignal(source); }); });
 		}).not.toThrow();
 	});
 
