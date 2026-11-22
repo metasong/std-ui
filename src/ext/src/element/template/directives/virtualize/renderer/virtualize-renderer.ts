@@ -1,5 +1,5 @@
 import { ChildRenderer } from '@std-ui/core';
-import { KeyedRows, type KeyedEntries } from '@std-ui/core';
+import { KeyedRows, type KeyedEntries } from '../../_lib/keyed-rows/index.js';
 import type { ControllerTarget, ScrollToIndexOptions, VirtualizeController } from '../controller.js';
 import {
 	computeWindow,

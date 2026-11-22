@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { Directive, applyDirective, directive, isDirectiveResult, noChange, type DirectivePart } from './directive.js';
+import { Directive, applyDirective, directive, isDirectiveResult, noChange, type DirectivePart, type PartInfo } from './directive.js';
 import { PartType } from '../parts/part.js';
 
 function attributePart(el: Element, name: string): DirectivePart {
@@ -66,7 +66,7 @@ describe('applyDirective()', () => {
 
 	it("threads a directive overriding update() straight through, using DirectivePart.element", () => {
 		class ImperativeDirective extends Directive {
-			override update(DirectivePart: DirectivePart, label: string): typeof noChange {
+			override update(DirectivePart: DirectivePart & { element: Element; name: string }, label: string): typeof noChange {
 				DirectivePart.element.setAttribute(DirectivePart.name, `imperative:${label}`);
 				return noChange;
 			}
@@ -80,7 +80,7 @@ describe('applyDirective()', () => {
 
 	it('threads multiple real trailing update() parameters through individually, not as one bundled array', () => {
 		class ConcatDirective extends Directive {
-			override update(DirectivePart: DirectivePart, a: string, b: number): typeof noChange {
+			override update(DirectivePart: DirectivePart & { element: Element; name: string }, a: string, b: number): typeof noChange {
 				DirectivePart.element.setAttribute(DirectivePart.name, `${a}-${b}`);
 				return noChange;
 			}
@@ -93,9 +93,9 @@ describe('applyDirective()', () => {
 
 	it("runs the directive's constructor validation only on first construction at a position", () => {
 		class StrictDirective extends Directive {
-			constructor(partInfo: DirectivePart) {
+			constructor(partInfo: PartInfo) {
 				super(partInfo);
-				if (partInfo.name !== 'class') throw new Error('must be "class"');
+				if ((partInfo as { name?: string }).name !== 'class') throw new Error('must be "class"');
 			}
 			override update(_part: DirectivePart): string {
 				return 'ok';

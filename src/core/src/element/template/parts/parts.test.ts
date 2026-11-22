@@ -100,7 +100,7 @@ describe('AttributePart', () => {
 		'reusing the same instance (and thus its state) across updates at the same position', () => {
 		class CountDirective extends Directive {
 			#count = 0;
-			override update(DirectivePart: { element: Element; name: string }): typeof noChange {
+			override update(DirectivePart: DirectivePart & { element: Element; name: string }): typeof noChange {
 				this.#count++;
 				DirectivePart.element.setAttribute(DirectivePart.name, String(this.#count));
 				return noChange;
@@ -134,7 +134,7 @@ describe('AttributePart', () => {
 
 	it("Directive protocol: gives update() access to the live element/name via the DirectivePart argument", () => {
 		class UppercaseDirective extends Directive {
-			override update(DirectivePart: { element: Element; name: string }, value: string): typeof noChange {
+			override update(DirectivePart: DirectivePart & { element: Element; name: string }, value: string): typeof noChange {
 				DirectivePart.element.setAttribute(DirectivePart.name, value.toUpperCase());
 				return noChange;
 			}

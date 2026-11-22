@@ -32,7 +32,7 @@ describe("state depth: 'value'", () => {
 	});
 
 	it('forwards `equals` to the leaf', async () => {
-		const s = stateTree(data(), { depth: 'value', equals: (a, b) => a.id === b.id });
+		const s = stateTree(data(), { depth: 'value', equals: (a: { id: number }, b: { id: number }) => a.id === b.id });
 		let runs = 0;
 		effect(() => void (s(), runs++));
 		await flushEffects();
@@ -80,7 +80,7 @@ describe("state depth: 'shallow'", () => {
 	});
 
 	it('deep() is shallow(): both re-run on member replacement and on structure changes', async () => {
-		const tree = stateTree<Record<string, unknown>>({ a: 1 }, { depth: 'shallow' });
+		const tree = stateTree<Record<string, unknown>>({ a: 1 }, { depth: 'shallow' } as never);
 		expect(tree.shallow).toBe(tree.deep);
 		const viaShallow: unknown[] = [];
 		const viaDeep: unknown[] = [];
@@ -101,7 +101,7 @@ describe("state depth: 'shallow'", () => {
 	});
 
 	it('set(partial) patches members and a new key becomes a leaf', () => {
-		const tree = stateTree<Record<string, unknown>>({ a: 1 }, { depth: 'shallow' });
+		const tree = stateTree<Record<string, unknown>>({ a: 1 }, { depth: 'shallow' } as never);
 		tree.set({ a: 2, b: { flag: true } });
 		expect(tree.peek()).toEqual({ a: 2, b: { flag: true } });
 		expect((tree.b as unknown as Record<string, unknown>).flag).toBeUndefined(); // `b` is a leaf, `flag` is not a member

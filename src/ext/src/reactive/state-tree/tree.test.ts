@@ -180,7 +180,7 @@ describe('state', () => {
 
 	it('.set() with an unknown key adds a member; delete() removes it', () => {
 		const tree = stateTree(makeState());
-		tree.user.set({ zip: 1 } as State['user']);
+		tree.user.set({ zip: 1 } as unknown as State['user']);
 		expect(tree.user.deep()).toEqual({ label: 'Ada', age: 30, zip: 1 });
 		expect((tree.user as unknown as Record<string, () => unknown>).zip()).toBe(1);
 

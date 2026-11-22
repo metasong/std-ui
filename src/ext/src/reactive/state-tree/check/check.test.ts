@@ -86,7 +86,7 @@ describe('validators', () => {
 
 	describe('changes.dirty / changes.reset()', () => {
 		it('a leaf with an explicit equals uses it for dirty', () => {
-			const s = stateTree({ id: 1, tag: 'a' }, { depth: 'value', equals: (a, b) => a.id === b.id }).with(check).with(changes);
+			const s = stateTree({ id: 1, tag: 'a' }, { depth: 'value', equals: (a: { id: number }, b: { id: number }) => a.id === b.id }).with(check).with(changes);
 			s.set({ id: 1, tag: 'b' });
 			expect(s.changes.dirty()).toBe(false);
 			s.set({ id: 2, tag: 'b' });

@@ -1,8 +1,5 @@
-import { Directive, directive, type DirectivePart, type PartInfo } from '../directive.js';
-import { PartType } from '../../parts/part.js';
-import { renderWith } from '../../parts/renderers/index.js';
+import { Directive, directive, PartType, renderWith, DEV, type DirectivePart, type DirectiveResult, type PartInfo } from '@std-ui/core';
 import { MapByKeyRenderer } from './map-by-key-renderer.js';
-import { DEV } from '../../../../dev/flag.js';
 
 class MapByKeyDirective extends Directive {
 	constructor(partInfo: PartInfo) {
@@ -38,4 +35,12 @@ class MapByKeyDirective extends Directive {
  *
  *   t`<ul>${mapByKey(todos, (t) => t.id, (t) => t`<li>${t.text}</li>`)}</ul>`
  */
-export const mapByKey = directive(MapByKeyDirective);
+const mapByKeyDirective = directive(MapByKeyDirective);
+
+export function mapByKey<T>(
+	items: Iterable<T>,
+	keyFn: (item: T, index: number) => unknown,
+	template: (item: T, index: number) => unknown,
+): DirectiveResult {
+	return mapByKeyDirective(items, keyFn as (item: unknown, index: number) => unknown, template as (item: unknown, index: number) => unknown);
+}

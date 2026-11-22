@@ -9,7 +9,7 @@ describe('pattern validators', () => {
 		expect(v('12a')).toEqual({ flag: 'patternMismatch', message: 'digits only' });
 		expect(v('123')).toBeNull();
 		expect(v('')).toBeNull();
-		expect(v(null)).toBeNull();
+		expect(v(null as never)).toBeNull();
 	});
 
 	it('is safe with global regexes', () => {

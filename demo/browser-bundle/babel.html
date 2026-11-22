@@ -64,6 +64,7 @@
 
 	<!-- 1. std-ui first: it defines Symbol.metadata, which Babel's decorator output must share. -->
 	<script src="./std-ui-core.release.iife.min.js"></script>
+	<script src="./std-ui-ext.release.iife.min.js"></script>
 
 	<!-- 2. Babel standalone, with the 2023-11 decorators plugin registered as a preset. -->
 	<script src="https://unpkg.com/@babel/standalone@7.24.0/babel.min.js"></script>
@@ -79,8 +80,9 @@
 			UIElement, UIFeat, tag, attribute, query, queryAll,
 			state, computed, effect,
 			t, css, render, unsafeHtml,
-			bind, classMap, styleMap, mapByKey, ref, createRef, withEventOptions,
+			bind, classMap, styleMap, ref, createRef, withEventOptions,
 		} = StdUI;
+		const { mapByKey } = StdUIExt;
 
 		// ---------------------------------------------------------------------------------------
 		// Check harness: every assertion lands in `results`, rendered by <check-report>.

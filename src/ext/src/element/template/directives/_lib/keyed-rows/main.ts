@@ -1,4 +1,4 @@
-import { ChildPart } from '../../../parts/child-part.js';
+import { ChildPart } from '@std-ui/core';
 
 export type KeyedEntries = ReadonlyArray<{ readonly key: unknown; readonly value: unknown }>;
 

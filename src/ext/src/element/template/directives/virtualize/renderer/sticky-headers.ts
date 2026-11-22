@@ -1,4 +1,4 @@
-import { KeyedRows } from '@std-ui/core';
+import { KeyedRows } from '../../_lib/keyed-rows/index.js';
 import type { Window as ItemWindow } from '../layout.js';
 import type { VirtualizeOptions } from '../options.js';
 import type { Axis } from './axis.js';

@@ -1,6 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { t } from '../../tag-funcs/html/index.js';
-import { AttributePart, ChildPart } from '../../parts/index.js';
+import { t, render, AttributePart, ChildPart } from '@std-ui/core';
 import { MapByKeyRenderer } from './map-by-key-renderer.js';
 import { mapByKey } from './main.js';
 
@@ -122,5 +121,26 @@ describe('mapByKey', () => {
 
 		renderer.update([{ key: 0, value: 'a' }]);
 		expect(container.textContent).toBe('a');
+	});
+});
+
+describe('mapByKey end-to-end', () => {
+	it('reorders list rows through t()/render() while reusing keyed DOM', () => {
+		const container = document.createElement('div');
+		type Row = { id: string; label: string };
+		const view = (rows: Row[]) =>
+			t`<ul>${mapByKey(rows, (r) => r.id, (r) => t`<li data-id=${r.id}>${r.label}</li>`)}</ul>`;
+
+		render(view([{ id: 'a', label: 'A' }, { id: 'b', label: 'B' }]), container);
+		const liA = container.querySelector('li[data-id="a"]')!;
+		const liB = container.querySelector('li[data-id="b"]')!;
+
+		render(view([{ id: 'b', label: 'B' }, { id: 'a', label: 'A' }]), container);
+		expect(container.querySelector('li[data-id="b"]')).toBe(liB);
+		expect(container.querySelector('li[data-id="a"]')).toBe(liA);
+		expect(Array.from(container.querySelectorAll('li')).map((li) => li.getAttribute('data-id'))).toEqual([
+			'b',
+			'a',
+		]);
 	});
 });

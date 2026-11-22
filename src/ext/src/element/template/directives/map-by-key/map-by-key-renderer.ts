@@ -1,4 +1,4 @@
-import { ChildRenderer } from '../../parts/renderers/child-renderer.js';
+import { ChildRenderer } from '@std-ui/core';
 import { KeyedRows, type KeyedEntries } from '../_lib/keyed-rows/index.js';
 
 export type MapByKeyEntries = KeyedEntries;

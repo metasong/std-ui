@@ -1,55 +1,55 @@
 {
-	"generatedAt": "2026-11-22T19:48:48.149Z",
+	"generatedAt": "2026-11-22T20:08:17.610Z",
 	"bundles": [
 		{
 			"file": "std-ui-core.release.min.js",
-			"raw": 30564,
-			"gzip": 10510,
-			"brotli": 9564
+			"raw": 30354,
+			"gzip": 10329,
+			"brotli": 9407
 		},
 		{
 			"file": "std-ui-core.release.iife.min.js",
-			"raw": 30022,
-			"gzip": 10374,
-			"brotli": 9402
+			"raw": 29853,
+			"gzip": 10179,
+			"brotli": 9249
 		},
 		{
 			"file": "std-ui-ext.release.min.js",
-			"raw": 48785,
-			"gzip": 14771,
-			"brotli": 13247
+			"raw": 50968,
+			"gzip": 15301,
+			"brotli": 13721
 		},
 		{
 			"file": "std-ui-ext.release.iife.min.js",
-			"raw": 37374,
-			"gzip": 13053,
-			"brotli": 11824
+			"raw": 39052,
+			"gzip": 13501,
+			"brotli": 12228
 		}
 	],
 	"packages": [
 		{
 			"name": "core",
 			"path": "core",
-			"size": 76903,
-			"raw": 185730,
+			"size": 74639,
+			"raw": 180383,
 			"children": [
 				{
 					"name": "element",
 					"path": "core/element",
-					"size": 68293,
-					"raw": 165779,
+					"size": 66058,
+					"raw": 160526,
 					"children": [
 						{
 							"name": "template",
 							"path": "core/element/template",
-							"size": 44236,
-							"raw": 108784,
+							"size": 42001,
+							"raw": 103531,
 							"children": [
 								{
 									"name": "directives",
 									"path": "core/element/template/directives",
-									"size": 16585,
-									"raw": 41003,
+									"size": 14350,
+									"raw": 35750,
 									"children": [
 										{
 											"name": "bind",
@@ -176,34 +176,6 @@
 											]
 										},
 										{
-											"name": "_lib",
-											"path": "core/element/template/directives/_lib",
-											"size": 1199,
-											"raw": 3223,
-											"children": [
-												{
-													"name": "keyed-rows",
-													"path": "core/element/template/directives/_lib/keyed-rows",
-													"size": 1199,
-													"raw": 3223,
-													"children": [
-														{
-															"name": "main.js",
-															"path": "core/element/template/directives/_lib/keyed-rows/main.js",
-															"size": 1107,
-															"raw": 3151
-														},
-														{
-															"name": "index.js",
-															"path": "core/element/template/directives/_lib/keyed-rows/index.js",
-															"size": 92,
-															"raw": 72
-														}
-													]
-												}
-											]
-										},
-										{
 											"name": "ref",
 											"path": "core/element/template/directives/ref",
 											"size": 1074,
@@ -224,36 +196,10 @@
 											]
 										},
 										{
-											"name": "map-by-key",
-											"path": "core/element/template/directives/map-by-key",
-											"size": 1019,
-											"raw": 1980,
-											"children": [
-												{
-													"name": "main.js",
-													"path": "core/element/template/directives/map-by-key/main.js",
-													"size": 666,
-													"raw": 1430
-												},
-												{
-													"name": "map-by-key-renderer.js",
-													"path": "core/element/template/directives/map-by-key/map-by-key-renderer.js",
-													"size": 262,
-													"raw": 479
-												},
-												{
-													"name": "index.js",
-													"path": "core/element/template/directives/map-by-key/index.js",
-													"size": 91,
-													"raw": 71
-												}
-											]
-										},
-										{
 											"name": "index.js",
 											"path": "core/element/template/directives/index.js",
-											"size": 169,
-											"raw": 325
+											"size": 152,
+											"raw": 275
 										}
 									]
 								},
@@ -898,58 +844,58 @@
 				{
 					"name": "index.js",
 					"path": "core/index.js",
-					"size": 509,
-					"raw": 1251
+					"size": 480,
+					"raw": 1157
 				}
 			]
 		},
 		{
 			"name": "ext",
 			"path": "ext",
-			"size": 53587,
-			"raw": 133423,
+			"size": 55814,
+			"raw": 138526,
 			"children": [
 				{
 					"name": "element",
 					"path": "ext/element",
-					"size": 30404,
-					"raw": 78200,
+					"size": 32631,
+					"raw": 83303,
 					"children": [
 						{
 							"name": "template",
 							"path": "ext/element/template",
-							"size": 19623,
-							"raw": 54386,
+							"size": 21850,
+							"raw": 59489,
 							"children": [
 								{
 									"name": "directives",
 									"path": "ext/element/template/directives",
-									"size": 15899,
-									"raw": 46320,
+									"size": 18126,
+									"raw": 51423,
 									"children": [
 										{
 											"name": "virtualize",
 											"path": "ext/element/template/directives/virtualize",
-											"size": 11620,
-											"raw": 33665,
+											"size": 11650,
+											"raw": 33701,
 											"children": [
 												{
 													"name": "renderer",
 													"path": "ext/element/template/directives/virtualize/renderer",
-													"size": 8355,
-													"raw": 25077,
+													"size": 8385,
+													"raw": 25113,
 													"children": [
 														{
 															"name": "virtualize-renderer.js",
 															"path": "ext/element/template/directives/virtualize/renderer/virtualize-renderer.js",
-															"size": 3469,
-															"raw": 12337
+															"size": 3487,
+															"raw": 12355
 														},
 														{
 															"name": "sticky-headers.js",
 															"path": "ext/element/template/directives/virtualize/renderer/sticky-headers.js",
-															"size": 1165,
-															"raw": 3368
+															"size": 1177,
+															"raw": 3386
 														},
 														{
 															"name": "scroller-binding.js",
@@ -1064,10 +1010,64 @@
 											]
 										},
 										{
+											"name": "_lib",
+											"path": "ext/element/template/directives/_lib",
+											"size": 1192,
+											"raw": 3207,
+											"children": [
+												{
+													"name": "keyed-rows",
+													"path": "ext/element/template/directives/_lib/keyed-rows",
+													"size": 1192,
+													"raw": 3207,
+													"children": [
+														{
+															"name": "main.js",
+															"path": "ext/element/template/directives/_lib/keyed-rows/main.js",
+															"size": 1100,
+															"raw": 3135
+														},
+														{
+															"name": "index.js",
+															"path": "ext/element/template/directives/_lib/keyed-rows/index.js",
+															"size": 92,
+															"raw": 72
+														}
+													]
+												}
+											]
+										},
+										{
+											"name": "map-by-key",
+											"path": "ext/element/template/directives/map-by-key",
+											"size": 993,
+											"raw": 1821,
+											"children": [
+												{
+													"name": "main.js",
+													"path": "ext/element/template/directives/map-by-key/main.js",
+													"size": 642,
+													"raw": 1298
+												},
+												{
+													"name": "map-by-key-renderer.js",
+													"path": "ext/element/template/directives/map-by-key/map-by-key-renderer.js",
+													"size": 260,
+													"raw": 452
+												},
+												{
+													"name": "index.js",
+													"path": "ext/element/template/directives/map-by-key/index.js",
+													"size": 91,
+													"raw": 71
+												}
+											]
+										},
+										{
 											"name": "index.js",
 											"path": "ext/element/template/directives/index.js",
-											"size": 106,
-											"raw": 143
+											"size": 118,
+											"raw": 182
 										}
 									]
 								},

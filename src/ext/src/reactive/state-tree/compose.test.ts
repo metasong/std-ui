@@ -113,9 +113,9 @@ describe('state: nodes are plain data to the parent', () => {
 		const a = stateTree({ x: 2 });
 		const b = stateTree({ x: 0 });
 		const c = stateTree({ x: 3 });
-		tree.list.push(a);
-		tree.list.unshift(b);
-		tree.list.splice(1, 0, c);
+		tree.list.push(a as never);
+		tree.list.unshift(b as never);
+		tree.list.splice(1, 0, c as never);
 		expect(tree.list[0]).toBe(b);
 		expect(tree.list[1]).toBe(c);
 		expect(tree.list[3]).toBe(a);

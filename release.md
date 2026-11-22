@@ -7,19 +7,19 @@
 
 | File | Minified | Gzip | Brotli |
 |---|---|---|---|
-| `std-ui-core.min.js` | 46.23 kB | 13.98 kB | 12.52 kB |
-| `std-ui-core.iife.min.js` | 35.07 kB | 12.29 kB | 11.13 kB |
-| `std-ui-core.release.min.js` | 30.56 kB | 10.51 kB | 9.56 kB |
-| `std-ui-core.release.iife.min.js` | 30.02 kB | 10.37 kB | 9.40 kB |
-| `std-ui-ext.min.js` | 48.78 kB | 14.77 kB | 13.25 kB |
-| `std-ui-ext.iife.min.js` | 37.37 kB | 13.05 kB | 11.82 kB |
-| `std-ui-ext.release.min.js` | 48.78 kB | 14.77 kB | 13.25 kB |
-| `std-ui-ext.release.iife.min.js` | 37.37 kB | 13.05 kB | 11.82 kB |
+| `std-ui-core.min.js` | 46.17 kB | 13.83 kB | 12.40 kB |
+| `std-ui-core.iife.min.js` | 34.98 kB | 12.15 kB | 11.02 kB |
+| `std-ui-core.release.min.js` | 30.35 kB | 10.33 kB | 9.41 kB |
+| `std-ui-core.release.iife.min.js` | 29.85 kB | 10.18 kB | 9.25 kB |
+| `std-ui-ext.min.js` | 50.96 kB | 15.30 kB | 13.72 kB |
+| `std-ui-ext.iife.min.js` | 39.04 kB | 13.50 kB | 12.23 kB |
+| `std-ui-ext.release.min.js` | 50.97 kB | 15.30 kB | 13.72 kB |
+| `std-ui-ext.release.iife.min.js` | 39.05 kB | 13.50 kB | 12.23 kB |
 
 ### npm packages (compiled `.js`, unminified; excludes maps and `.d.ts`)
 
 | Package | Files | Raw | Gzip |
 |---|---|---|---|
-| `core` | 94 | 185.73 kB | 52.14 kB |
-| `ext` | 82 | 133.42 kB | 36.50 kB |
+| `core` | 89 | 180.38 kB | 50.89 kB |
+| `ext` | 87 | 138.53 kB | 37.62 kB |
 <!-- SIZE:END -->
