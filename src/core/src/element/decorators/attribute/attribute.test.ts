@@ -177,6 +177,26 @@ describe('@attribute()', () => {
 		el.remove();
 	});
 
+	it('Number: absent and empty attributes are 0, a non-numeric one is NaN (documented behaviour)', () => {
+		@tag('attr-num-edge')
+		class Foo extends UIElement {
+			@attribute({ type: Number }) readonly count = state(5);
+		}
+
+		const el = document.createElement('attr-num-edge') as Foo;
+		document.body.appendChild(el);
+		el.setAttribute('count', '7');
+		expect(el.count()).toBe(7);
+		el.setAttribute('count', '');
+		expect(el.count()).toBe(0);
+		el.setAttribute('count', 'abc');
+		expect(el.count()).toBeNaN();
+		el.setAttribute('count', '3');
+		el.removeAttribute('count');
+		expect(el.count()).toBe(0); // the zero value, like '' for String and false for Boolean, not the initial 5
+		el.remove();
+	});
+
 	it('infers type: Number from a numeric initial value when type/converter are omitted', () => {
 		@tag('attr-inf-num')
 		class Foo extends UIElement {

@@ -41,6 +41,12 @@ const stringConverter: AttributeConverter<string> = {
 	toAttribute: value => (value == null ? null : String(value)),
 };
 
+/**
+ * Like the other built-in converters, an absent attribute maps to the type's zero value (`''`, `0`, `false`),
+ * not to the field's initial value. `Number(value)` rules otherwise: an empty value (`count=""`) is `0` and a
+ * non-numeric one (`count="abc"`) is `NaN` (which then reflects back as `"NaN"`, like `input.valueAsNumber`).
+ * Use a custom `converter` for other rules (e.g. keep the old value by returning `undefined`).
+ */
 const numberConverter: AttributeConverter<number> = {
 	fromAttribute: value => (value === null ? 0 : Number(value)),
 	toAttribute: value => (value == null ? null : String(value)),
