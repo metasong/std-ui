@@ -74,7 +74,7 @@ interface OpenAttr<Open> {
 }
 
 /** Scanner state: between tags, or inside an unclosed quoted attribute value. */
-const ScanKind = { TEXT: 'TEXT', ATTR_VALUE: 'ATTR_VALUE' } as const;
+const ScanKind = { TEXT: 0, ATTR_VALUE: 1 } as const;
 
 type ScanState<Open> =
 	| { readonly kind: typeof ScanKind.TEXT }

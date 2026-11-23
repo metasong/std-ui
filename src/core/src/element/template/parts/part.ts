@@ -12,9 +12,9 @@ import { DEV } from '../../../dev/flag.js';
  * `partInfo.type` and throw if used somewhere they don't support, e.g. `classMap` requiring `ATTRIBUTE` + `name === 'class'`, or `html` requiring `CHILD`.
  */
 export const PartType = {
-	ATTRIBUTE: 'attribute',
-	CHILD: 'child',
-	ELEMENT: 'element',
+	ATTRIBUTE: 0,
+	CHILD: 1,
+	ELEMENT: 2,
 } as const;
 export type PartType = (typeof PartType)[keyof typeof PartType];
 

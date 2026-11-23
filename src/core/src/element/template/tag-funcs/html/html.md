@@ -121,7 +121,7 @@ position; no async/`ElementPart`/boolean-attribute/property/event directives):
 
 ```ts
 export const PartType = {
-	ATTRIBUTE: 'attribute', PROPERTY: 'property', CHILD: 'child', ELEMENT: 'element',
+	ATTRIBUTE: 0, PROPERTY: 1, CHILD: 2, ELEMENT: 3,
 } as const;
 
 export interface AttributePartInfo {

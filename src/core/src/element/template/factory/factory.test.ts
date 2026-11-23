@@ -1,7 +1,7 @@
 import { describe, expect, it, vi } from 'vitest';
 import { getTemplate, instantiate } from './factory.js';
 import { t, svg, math } from '../tag-funcs/html/index.js';
-import { updateParts, BooleanAttributePart, PropertyPart, EventPart } from '../parts/index.js';
+import { updateParts, PartType, BooleanAttributePart, PropertyPart, EventPart } from '../parts/index.js';
 import { render } from '../render.js';
 import { registerCustomAttribute } from './custom-attribute.js';
 
@@ -10,7 +10,7 @@ describe('getTemplate/instantiate', () => {
 		const { strings } = t`<p>Hello, ${'Ada'}!</p>`;
 		const template = getTemplate(strings);
 		expect(template.parts).toHaveLength(1);
-		expect(template.parts[0].kind).toBe('child');
+		expect(template.parts[0].kind).toBe(PartType.CHILD);
 
 		const { fragment, parts } = instantiate(template);
 		expect(parts).toHaveLength(1);
@@ -23,7 +23,7 @@ describe('getTemplate/instantiate', () => {
 		const { strings } = t`<div id="${'x'}"></div>`;
 		const template = getTemplate(strings);
 		expect(template.parts).toHaveLength(1);
-		expect(template.parts[0]).toMatchObject({ kind: 'attribute', name: 'id' });
+		expect(template.parts[0]).toMatchObject({ kind: PartType.ATTRIBUTE, name: 'id' });
 		// the marker attribute is stripped out of the parsed template entirely
 		const { fragment } = instantiate(template);
 		expect(fragment.querySelector('div')!.hasAttribute('id')).toBe(false);
@@ -128,14 +128,14 @@ describe('getTemplate/instantiate', () => {
 	it('resolves descriptor order to match source order across mixed child/attribute bindings', () => {
 		const { strings } = t`<div id="${'a'}">${'b'}<span class="${'c'}"></span></div>`;
 		const template = getTemplate(strings);
-		expect(template.parts.map(p => p.kind)).toEqual(['attribute', 'child', 'attribute']);
+		expect(template.parts.map(p => p.kind)).toEqual([PartType.ATTRIBUTE, PartType.CHILD, PartType.ATTRIBUTE]);
 	});
 
 	it('supports multiple interpolations in one attribute value', () => {
 		const { strings, values } = t`<div class="${'a'}-${'b'}"></div>`;
 		const template = getTemplate(strings);
 		expect(template.parts).toHaveLength(1);
-		expect(template.parts[0]).toMatchObject({ kind: 'attribute', name: 'class', valueCount: 2, literals: ['', '-', ''] });
+		expect(template.parts[0]).toMatchObject({ kind: PartType.ATTRIBUTE, name: 'class', valueCount: 2, literals: ['', '-', ''] });
 
 		const { fragment, parts } = instantiate(template);
 		updateParts(parts, values);
@@ -153,8 +153,8 @@ describe('getTemplate/instantiate', () => {
 		const { strings, values } = t`<div class="${'a'} ${'b'}" id="${'c'}"></div>`;
 		const template = getTemplate(strings);
 		expect(template.parts.map(p => [p.kind, p.name, p.valueCount])).toEqual([
-			['attribute', 'class', 2],
-			['attribute', 'id', 1],
+			[PartType.ATTRIBUTE, 'class', 2],
+			[PartType.ATTRIBUTE, 'id', 1],
 		]);
 
 		const { fragment, parts } = instantiate(template);
