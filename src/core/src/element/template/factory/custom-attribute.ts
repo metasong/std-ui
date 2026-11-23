@@ -7,7 +7,7 @@
 // like `@std-ui/ext` can register more with `registerCustomAttribute()`.
 //
 // Extensions must be registered before the templates that use them are first built (templates are
-// cached by their `strings`), typically via a side-effect import.
+// cached by their `strings`), typically via a side-effect import (e.g. importing `@std-ui/ext`).
 
 import type { Modifier, Part } from '../parts/index.js';
 

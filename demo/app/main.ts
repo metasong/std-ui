@@ -1,6 +1,5 @@
 // The demo app: one `<std-router>`, one `<std-route>` per demo, loaded on demand.
-import { css, t, tag, UIElement } from '@std-ui/core';
-import '@std-ui/router'; // defines <std-router>, <std-route>, <std-outlet>
+import { css, t, tag, UIElement } from '@std-ui/core';import '@std-ui/router'; // defines <std-router>, <std-route>, <std-outlet>
 import type { StdRoute, StdRouter } from '@std-ui/router';
 import './demo-heading.js';
 import './demo-nav.js';

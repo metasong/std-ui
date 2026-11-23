@@ -1,8 +1,8 @@
 // --- `@event.modifier=${fn}`: event modifiers. ---------------------------------------------------
 //
-// Importing `@std-ui/ext` registers this over std-ui's default `@` binding, which ignores modifiers.
+// Importing `@std-ui/ext` registers this (see `../register.ts`) over std-ui's default `@` binding, which ignores modifiers.
 
-import { EventPart, WILDCARD, registerCustomAttribute, type CustomAttribute, type Modifier } from '@std-ui/core';
+import { EventPart, WILDCARD, type CustomAttribute, type Modifier } from '@std-ui/core';
 
 import { findEventExtension, type EventAttributeInfo } from './extensions/index.js';
 
@@ -68,5 +68,3 @@ export const eventModifiersExtension: CustomAttribute = {
 	sigil: '@', name: WILDCARD, single: true,
 	createPart: (el, { name, arg, modifiers }, host) => new ModifierEventPart(el, { name, arg, modifiers }, host),
 };
-
-registerCustomAttribute(eventModifiersExtension);

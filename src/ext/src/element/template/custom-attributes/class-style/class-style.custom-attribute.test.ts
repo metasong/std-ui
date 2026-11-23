@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { render, t } from '@std-ui/core';
-import './class-style.custom-attribute.js';
+import '../register.js';
 
 function mount(result: ReturnType<typeof t>): HTMLElement {
 	const container = document.createElement('div');

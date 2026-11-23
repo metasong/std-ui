@@ -1,6 +1,6 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { render, t } from '@std-ui/core';
-import '../../index.js';
+import '../../register.js';
 
 function mount(result: ReturnType<typeof t>) {
 	const container = document.createElement('div');

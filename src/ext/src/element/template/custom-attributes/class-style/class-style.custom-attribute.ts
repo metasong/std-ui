@@ -1,9 +1,9 @@
 // --- `class.name=${on}` / `style.prop=${value}`: bind one entry of the class/style attribute. -------
 //
-// Built only on std-ui's public custom-attribute API. Importing `@std-ui/ext` registers both. The
+// Built only on std-ui's public custom-attribute API. Importing `@std-ui/ext` registers both (see `../register.ts`). The
 // single modifier names the entry; everything else about the binding is validated here.
 
-import { registerCustomAttribute, type CustomAttribute, type AttributeInfo, type Part } from '@std-ui/core';
+import { type CustomAttribute, type AttributeInfo, type Part } from '@std-ui/core';
 
 type ApplyEntry = (el: Element, entry: string, value: unknown) => void;
 
@@ -51,6 +51,3 @@ export const styleAttributeExtension = singleEntryAttributeExtension('style', (e
 	if (value == null || value === false) style.removeProperty(entry);
 	else style.setProperty(entry, String(value));
 });
-
-registerCustomAttribute(classAttributeExtension);
-registerCustomAttribute(styleAttributeExtension);
