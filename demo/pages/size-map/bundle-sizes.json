@@ -1,17 +1,17 @@
 {
-	"generatedAt": "2026-11-23T12:45:50.145Z",
+	"generatedAt": "2026-11-23T13:04:12.623Z",
 	"bundles": [
 		{
 			"file": "std-ui-core.release.min.js",
-			"raw": 30699,
-			"gzip": 10472,
-			"brotli": 9563
+			"raw": 31009,
+			"gzip": 10578,
+			"brotli": 9657
 		},
 		{
 			"file": "std-ui-core.release.iife.min.js",
-			"raw": 30045,
-			"gzip": 10265,
-			"brotli": 9345
+			"raw": 30363,
+			"gzip": 10369,
+			"brotli": 9440
 		},
 		{
 			"file": "std-ui-ext.release.min.js",
@@ -30,8 +30,8 @@
 		{
 			"name": "core",
 			"path": "core",
-			"size": 75940,
-			"raw": 183571,
+			"size": 76508,
+			"raw": 185370,
 			"children": [
 				{
 					"name": "element",
@@ -750,26 +750,26 @@
 				{
 					"name": "reactive",
 					"path": "core/reactive",
-					"size": 7609,
-					"raw": 18175,
+					"size": 8177,
+					"raw": 19974,
 					"children": [
 						{
 							"name": "signal",
 							"path": "core/reactive/signal",
-							"size": 3645,
-							"raw": 8944,
+							"size": 4213,
+							"raw": 10743,
 							"children": [
 								{
 									"name": "tracking.js",
 									"path": "core/reactive/signal/tracking.js",
-									"size": 2039,
-									"raw": 5402
+									"size": 2379,
+									"raw": 6530
 								},
 								{
 									"name": "computed.js",
 									"path": "core/reactive/signal/computed.js",
-									"size": 968,
-									"raw": 2356
+									"size": 1196,
+									"raw": 3027
 								},
 								{
 									"name": "state.js",

@@ -17,9 +17,9 @@ export type Cleanup = void | (() => void);
 export interface UIElementHooks {
 	/** Every connect, before `connect()` runs (so descendants added in `connect()` see it). */
 	beforeConnect?(el: UIElement): Cleanup;
-	/** Every connect, after the one-time `connect()` and before the render effect is wired. */
+	/** Every connect, after `connect()` and before the render effect is wired. */
 	connected?(el: UIElement): Cleanup;
-	/** Once, after the first `template()` is applied. */
+	/** After the first `template()` of each connection is applied (again after a reconnect). */
 	firstUpdated?(el: UIElement): Cleanup;
 	/** After every `template()` is applied. */
 	updated?(el: UIElement): void;

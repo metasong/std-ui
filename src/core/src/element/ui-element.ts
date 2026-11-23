@@ -200,9 +200,12 @@ export abstract class UIElement extends HTMLElement {
 			() => {
 				this.#elementStyles.reinsertIfRemoved(this.#renderRoot!);
 				if (!this.#firstUpdateDone) {
+					// Snapshot before `firstUpdated()`: a hook added from inside it is caught up by
+					// `addHooks()` (the flag below is already set), so it must not also be in this run.
+					const hooks = this.#allHooks();
 					this.#firstUpdateDone = true;
 					this.firstUpdated?.();
-					this.#runCleanupHooks(HookPhase.firstUpdated);
+					this.#runCleanupHooks(HookPhase.firstUpdated, hooks);
 				}
 				this.updated?.();
 				this.#runHooks(HookPhase.updated);
@@ -231,8 +234,10 @@ export abstract class UIElement extends HTMLElement {
 			this.connect?.();
 		}
 
-		this.#runCleanupHooks(HookPhase.connected);
+		// Settled *before* the `connected` phase: a hook added from inside a `connected` hook is not in
+		// that phase's snapshot, so `addHooks()` must catch it up (beforeConnect + connected) itself.
 		this.#hooksSettled = true;
+		this.#runCleanupHooks(HookPhase.connected);
 		this.#wireTemplateUpdateEffect();
 	}
 
@@ -252,8 +257,11 @@ export abstract class UIElement extends HTMLElement {
 	}
 
 	/** Runs a cleanup-returning hook phase on every registered extension; returned cleanups run on disconnect. */
-	#runCleanupHooks(phase: typeof HookPhase.beforeConnect | typeof HookPhase.connected | typeof HookPhase.firstUpdated): void {
-		for (const hooks of this.#allHooks()) {
+	#runCleanupHooks(
+		phase: typeof HookPhase.beforeConnect | typeof HookPhase.connected | typeof HookPhase.firstUpdated,
+		registered: readonly UIElementHooks[] = this.#allHooks(),
+	): void {
+		for (const hooks of registered) {
 			const cleanup = hooks[phase]?.(this);
 			if (cleanup) this.#effectDisposers.push(cleanup);
 		}

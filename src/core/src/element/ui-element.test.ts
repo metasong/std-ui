@@ -136,6 +136,50 @@ describe('UIElement', () => {
 		expect(renderSpy).not.toHaveBeenCalled();
 	});
 
+	describe('addHooks() called while the element is mid-lifecycle', () => {
+		function phases() {
+			const log: string[] = [];
+			const hooks = {
+				beforeConnect: () => { log.push('beforeConnect'); },
+				connected: () => { log.push('connected'); },
+				firstUpdated: () => { log.push('firstUpdated'); },
+			};
+			return { log, hooks };
+		}
+
+		it('runs firstUpdated once for hooks added from inside firstUpdated()', () => {
+			const { log, hooks } = phases();
+
+			@tag('el-hooks-in-first-updated')
+			class Foo extends UIElement {
+				protected override template() { return t`<i></i>`; }
+				protected override firstUpdated(): void { this.addHooks(hooks); }
+			}
+
+			const el = document.createElement('el-hooks-in-first-updated') as Foo;
+			document.body.appendChild(el);
+			expect(log.filter(p => p === 'firstUpdated')).toHaveLength(1);
+			el.remove();
+		});
+
+		it('gives hooks added from inside a connected hook both beforeConnect and connected, once each', () => {
+			const { log, hooks } = phases();
+
+			@tag('el-hooks-in-connected')
+			class Foo extends UIElement {
+				protected override connect(): void {
+					this.addHooks({ connected: (el) => { el.addHooks(hooks); } });
+				}
+			}
+
+			const el = document.createElement('el-hooks-in-connected') as Foo;
+			document.body.appendChild(el);
+			expect(log.filter(p => p === 'beforeConnect')).toHaveLength(1);
+			expect(log.filter(p => p === 'connected')).toHaveLength(1);
+			el.remove();
+		});
+	});
+
 	it('renders template() into a shadow root when shadowRootOptions is set', () => {
 		const tree = { count: state(2) };
 
