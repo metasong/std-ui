@@ -58,8 +58,8 @@ export abstract class UIElement extends HTMLElement {
 	static shadowRootOptions?: ShadowRootInit;
 
 	/**
-	 * Styles shared by every instance of this class, written with `css` (see `./template/tag-funcs/css/index.ts`) -
-	 * is a static `styles` field. `:host` selects the component root either way (the shadow
+	 * Styles shared by every instance of this class, written with the `css` tag (see
+	 * `./template/tag-funcs/css/index.ts`) and assigned to this static `styles` field. `:host` selects the component root either way (the shadow
 	 * host, or - rewritten to `:scope` under the hood - the matched custom element in light DOM).
 	 *
 	 * - Shadow root (`static shadowRootOptions` set): adopted via `adoptedStyleSheets` - cheap,
@@ -140,23 +140,26 @@ export abstract class UIElement extends HTMLElement {
 		});
 	}
 
-	/** lifecycle hook: occur when the element is connected to the document.
-	 *  This is a one-time setup (resolve child nodes, attach listeners, inject any static markup).
-	 *  The most common of these is adding event listeners to nodes external to the element, like a keydown event handler added to the window.
-	 *  Typically, anything done in connect() should be undone when the element is disconnect
-	*/
+	/** lifecycle hook: runs each time the element is connected to the document (again after a
+	 *  disconnect and re-insert), before the first `template()` of that connection.
+	 *  Use it for per-connection setup (resolve child nodes, attach listeners, inject static markup).
+	 *  The most common case is adding listeners to nodes outside the element, like a `keydown`
+	 *  handler on `window`. Anything done here should be undone in `disconnect()`, since `connect()`
+	 *  runs again on reconnect.
+	 */
 	protected connect?(): void;
 
 	/**
-	 * lifecycle hook: Called with the latest state (and once immediately on connect) to sync DOM to
-	 * `state`. Either sync the DOM imperatively (`querySelector`/`textContent`/... and return
-	 * nothing), or return an `t` (see `./template/tag-funcs/html/index.js`) tagged-template result describing the
-	 * component's full markup - the diffing in `./template/tag-funcs/html/index.js` will patch only what changed
-	 * since last time.
+	 * lifecycle hook: Called once immediately on connect, then again whenever any signal it reads
+	 * changes, to sync the DOM with those signals. Either sync the DOM imperatively
+	 * (`querySelector`/`textContent`/... and return nothing), or return a `t` tagged-template result
+	 * (see `./template/tag-funcs/html/index.js`) describing the component's markup - only the values
+	 * that changed since the last render are patched.
 	 */
 	protected template?(): TemplateResult | void;
 
-	/** lifecycle hook: Called once, right after the first `template()` has been applied to the DOM. */
+	/** lifecycle hook: Called right after the first `template()` of each connection has been applied to
+	 *  the DOM. It runs again after a disconnect and reconnect, because the render effect is recreated. */
 	protected firstUpdated?(): void;
 
 	/** lifecycle hook: Called after every `template()` (including the first) has been applied to the DOM. */
@@ -208,8 +211,8 @@ export abstract class UIElement extends HTMLElement {
 	}
 
 	/**
-	 * The render effect body: runs `template()` and renders it. Private; Not a public API.
-	 * `requestUpdate()`. To re-render, write a signal - see `doc/why-no-request-update.md`.
+	 * The render effect body: runs `template()` and renders it. Private, not a public API: there is
+	 * deliberately no `requestUpdate()`. To re-render, write a signal - see `doc/why-no-request-update.md`.
 	 */
 	#requestUpdate() {
 		const result = this.template?.();
@@ -272,14 +275,13 @@ export abstract class UIElement extends HTMLElement {
 	}
 
 	/**
-	 * Attribute → property direction: the browser calls this natively whenever an attribute listed
-	 * in `static observedAttributes` (set up by `tag()` from `@attribute()` fields) is set,
-	 * changed, or removed - including once per already-present attribute right when a pre-existing
-	 * element is upgraded, *before* `connectedCallback`. Parses the new attribute text per the
-	 * field's `type` and writes `this[def.key].set(parsed)` on the field's backing store — the same
-	 * store the property → attribute effect above reads via `this[def.key]()` — so
-	 * writing back the same (serialized) text is a no-op: `signal.set` only notifies on an actual
-	 * value change.
+	 * The browser calls this natively whenever an attribute listed in `static observedAttributes`
+	 * (set up by `tag()` from `@attribute()` fields) is set, changed, or removed - including once
+	 * per already-present attribute when a pre-existing element is upgraded, *before*
+	 * `connectedCallback`. This class only forwards it to the `attributeChanged` hooks; the
+	 * attribute → property parsing lives in the `@attribute()` hooks (see
+	 * `./decorators/attribute/`), which write the parsed value into the field's signal. Writing the
+	 * same value back is a no-op, since `signal.set` only notifies on an actual change.
 	 */
 	private attributeChangedCallback(name: string, oldValue: string | null, newValue: string | null): void {
 		this.#runHooks(HookPhase.attributeChanged, name, oldValue, newValue);
