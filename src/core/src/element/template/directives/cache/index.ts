@@ -1,8 +1,8 @@
 import { assertChildPart } from '../assert-child-part.js';
 import { Directive, directive, type DirectivePart, type PartInfo } from '../directive.js';
 import { getTemplate, instantiate } from '../../factory/index.js';
-import { isTemplateResult, type TemplateResult } from '../../tag-funcs/html/index.js';
-import { ChildRenderer, renderWith } from '../../parts/renderers/index.js';
+import type { TemplateResult } from '../../tag-funcs/html/index.js';
+import { ChildRenderer, isTemplateResult, renderWith } from '../../parts/child-renderers/index.js';
 import { updateParts, type Part } from '../../parts/part.js';
 interface Entry {
 	parts: Part[];

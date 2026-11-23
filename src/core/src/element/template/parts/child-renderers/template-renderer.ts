@@ -3,6 +3,10 @@ import { getTemplate, instantiate } from '../../factory/index.js';
 import { type Part, updateParts } from '../part.js';
 import { ChildRenderer } from './child-renderer.js';
 
+export function isTemplateResult(value: unknown): value is TemplateResult {
+	return typeof value === 'object' && value !== null && 'strings' in value && 'values' in value;
+}
+
 export class TemplateRenderer extends ChildRenderer<TemplateResult> {
 	#strings: TemplateStringsArray | undefined;
 	#parts: Part[] = [];

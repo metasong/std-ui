@@ -1,6 +1,6 @@
 import { assertChildPart } from '../assert-child-part.js';
 import { Directive, directive, type DirectivePart, type PartInfo } from '../directive.js';
-import { ChildRenderer, renderWith } from '../../parts/renderers/index.js';
+import { ChildRenderer, renderWith } from '../../parts/child-renderers/index.js';
 /** Parses markup and inserts the resulting nodes before the DirectivePart's anchor; re-parses only when
  *  the markup string changes. */
 class UnsafeHtmlRenderer extends ChildRenderer<string> {

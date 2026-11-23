@@ -14,7 +14,7 @@ usage and API, see [`README.md`](./README.md).
 | [`../directives.test.ts`](../directives.test.ts) | End-to-end through `t()` / `render()`. |
 
 `mapByKey` does not live in `../parts/`: `ChildPart` only knows the generic `renderWith()` protocol
-from [`../../parts/renderers/child-renderer.ts`](../../parts/renderers/child-renderer.ts). The directive
+from [`../../parts/child-renderers/child-renderer.ts`](../../parts/child-renderers/child-renderer.ts). The directive
 supplies its own renderer class, same pattern as [`../unsafe-html/`](../unsafe-html/).
 
 ## Why it returns a renderer instead of touching the DOM
@@ -85,4 +85,4 @@ order, using a single forward reference `ref`.
 - [`README.md`](./README.md) — public API.
 - [`../../parts/child-part.ts`](../../parts/child-part.ts) — renderer selection and directive application.
 - [`../unsafe-html/`](../unsafe-html/) — another `renderWith()` child directive.
-- [`../../parts/renderers/list-renderer.ts`](../../parts/renderers/list-renderer.ts) — positional list diff.
+- [`../../parts/child-renderers/list-renderer.ts`](../../parts/child-renderers/list-renderer.ts) — positional list diff.

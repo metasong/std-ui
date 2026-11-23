@@ -78,7 +78,3 @@ export function svg(strings: TemplateStringsArray, ...values: unknown[]): Templa
 export function math(strings: TemplateStringsArray, ...values: unknown[]): TemplateResult {
 	return { strings, values, type: 'math' };
 }
-
-export function isTemplateResult(value: unknown): value is TemplateResult {
-	return typeof value === 'object' && value !== null && 'strings' in value && 'values' in value;
-}

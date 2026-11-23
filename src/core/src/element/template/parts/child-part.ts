@@ -1,15 +1,15 @@
-import { isTemplateResult } from '../tag-funcs/html/index.js';
 import { applyDirective, isDirectiveResult, noChange, type ChildPartInfo, type Directive } from '../directives/directive.js';
 import { PartType } from './part.js';
 import type { Part } from './part.js';
 import {
 	isRenderWith,
+	isTemplateResult,
 	ListRenderer,
 	TemplateRenderer,
 	TextRenderer,
 	type ChildRenderer,
 	type ChildRendererClass,
-} from './renderers/index.js';
+} from './child-renderers/index.js';
 
 /** Maps a resolved (post-directive) value to the renderer class that handles it, plus the value
  *  that renderer expects; `undefined` means "render nothing". */

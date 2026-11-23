@@ -91,5 +91,5 @@ between `#start` and `anchor`, or its stash.
 
 - [`README.md`](./README.md) — public API.
 - [`../unsafe-html/main.ts`](../unsafe-html/main.ts) — another directive built on `renderWith()`.
-- [`../../parts/renderers/child-renderer.ts`](../../parts/renderers/child-renderer.ts) — `ChildRenderer`, `renderWith`.
-- [`../../parts/renderers/template-renderer.ts`](../../parts/renderers/template-renderer.ts) — the non-caching equivalent.
+- [`../../parts/child-renderers/child-renderer.ts`](../../parts/child-renderers/child-renderer.ts) — `ChildRenderer`, `renderWith`.
+- [`../../parts/child-renderers/template-renderer.ts`](../../parts/child-renderers/template-renderer.ts) — the non-caching equivalent.

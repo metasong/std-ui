@@ -54,7 +54,7 @@ export {
 	type StateOptions,
 	type State,
 } from './reactive/index.js';
-export { ChildRenderer, TemplateRenderer, renderWith } from './element/template/parts/renderers/index.js';
+export { ChildRenderer, TemplateRenderer, renderWith } from './element/template/parts/child-renderers/index.js';
 export { AttributePart, ChildPart, EventPart, withEventOptions } from './element/template/parts/index.js';
 export { DEV } from './dev/flag.js';
 export { once } from './dev/once.js';
