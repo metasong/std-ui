@@ -1,4 +1,5 @@
 import { DEV } from '../../../dev/flag.js';
+import { kebab } from '../../../util.js';
 // Attribute <-> property value conversion: the `type`/`converter` half of `@attribute()`'s options
 // (see `./attribute.decorator.ts`, same folder). Everything here is pure data + pure functions - no class-field or
 // metadata concerns - so it can be read/tested in isolation from *how* a field ends up calling it.
@@ -49,7 +50,7 @@ const stringConverter: AttributeConverter<string> = {
  */
 const numberConverter: AttributeConverter<number> = {
 	fromAttribute: value => (value === null ? 0 : Number(value)),
-	toAttribute: value => (value == null ? null : String(value)),
+	toAttribute: stringConverter.toAttribute as unknown as AttributeConverter<number>['toAttribute'],
 };
 
 const booleanConverter: AttributeConverter<boolean> = {
@@ -113,19 +114,12 @@ export function resolveConverter<V>(type: AttributeType | undefined, converter: 
 }
 
 /** Parses an attribute string (or `null` if absent/removed) into a property value, via `converter`. */
-export function parseAttribute(value: string | null, oldValue: string | null, converter: AttributeConverter): unknown {
-	return converter.fromAttribute(value, oldValue);
-}
+export const parseAttribute = (value: string | null, oldValue: string | null, c: AttributeConverter): unknown => c.fromAttribute(value, oldValue);
 
-/**
- * Serializes a property value back into attribute text via `converter`: `null` removes the
- * attribute; `undefined` means do not touch the attribute.
- */
-export function serializeAttribute(value: unknown, oldValue: unknown, converter: AttributeConverter): string | null | undefined {
-	return converter.toAttribute(value, oldValue);
-}
+/** Serializes a property value into attribute text via `converter`: `null` removes the attribute; `undefined` leaves it. */
+export const serializeAttribute = (value: unknown, oldValue: unknown, c: AttributeConverter): string | null | undefined => c.toAttribute(value, oldValue);
 
 /** `maxCount` -> `max-count`: default attribute name for a camelCase (or plain) field name. */
 export function toAttributeName(key: PropertyKey): string {
-	return String(key).replace(/([a-z0-9])([A-Z])/g, '$1-$2').toLowerCase();
+	return kebab(String(key));
 }

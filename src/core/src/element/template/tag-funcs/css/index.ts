@@ -100,24 +100,18 @@ export function unsafeCss(value: unknown): CSSResult {
 
 /** Flattens a `CSSResultGroup` (possibly nested arrays) into a flat list of distinct `CSSStyleSheet`s, in order. */
 export function flattenCSSResults(group: CSSResultGroup): CSSStyleSheet[] {
-	const sheets: CSSStyleSheet[] = [];
-	const visit = (g: CSSResultGroup): void => {
-		if (g instanceof CSSResult) sheets.push(g.styleSheet);
-		else g.forEach(visit);
-	};
-	visit(group);
-	return sheets;
+	return mapCSS(group, r => r.styleSheet);
 }
 
 /** Flattens a `CSSResultGroup` (possibly nested arrays) into its concatenated `cssText`, in order. */
 export function flattenCSSText(group: CSSResultGroup): string {
-	const parts: string[] = [];
-	const visit = (g: CSSResultGroup): void => {
-		if (g instanceof CSSResult) parts.push(g.cssText);
-		else g.forEach(visit);
-	};
-	visit(group);
-	return parts.join('\n');
+	return mapCSS(group, r => r.cssText).join('\n');
+}
+
+function mapCSS<T>(group: CSSResultGroup, fn: (r: CSSResult) => T, out: T[] = []): T[] {
+	if (group instanceof CSSResult) out.push(fn(group));
+	else for (const g of group) mapCSS(g, fn, out);
+	return out;
 }
 
 /**

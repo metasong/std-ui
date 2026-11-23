@@ -10,10 +10,9 @@ import {
 } from './defaults.js';
 import type { BindAccessor, BindDepth, BindOptions, BindSource, Binding, WritableSignal } from './types.js';
 import { DEV } from '../../../../dev/flag.js';
+import { isSettable } from '../../../../util.js';
 
-export function isWritableSignal(value: unknown): value is WritableSignal {
-	return typeof value === 'function' && typeof (value as { set?: unknown }).set === 'function';
-}
+export const isWritableSignal = isSettable as (value: unknown) => value is WritableSignal;
 
 function isAccessor(value: unknown): value is BindSource {
 	const source = value as Partial<BindSource> | null | undefined;

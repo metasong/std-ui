@@ -1,20 +1,6 @@
 import { applyDirective, isDirectiveResult, noChange, type Directive, type PropertyPartInfo } from '../../directives/directive.js';
 import { PartType, type Modifier, type Part, warnIgnoredModifiers } from '../../parts/part.js';
-
-/** A store-valued field (`stateTree(...)`) is written through its `.set()`; plain assignment would replace the store itself. */
-function writeProperty(el: Element, name: string, value: unknown): void {
-	const host = el as unknown as Record<string, unknown>;
-	const current = host[name];
-	if (
-		typeof current === 'function'
-		&& current !== value
-		&& typeof (current as { set?: unknown }).set === 'function'
-	) {
-		(current as unknown as { set: (v: unknown) => void }).set(value);
-		return;
-	}
-	host[name] = value;
-}
+import { writeProperty } from '../../directives/bind/defaults.js';
 
 export class PropertyPart implements Part {
 	readonly valueCount = 1;
