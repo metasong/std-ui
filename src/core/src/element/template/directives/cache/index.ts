@@ -76,6 +76,8 @@ class CacheRenderer extends ChildRenderer<unknown> {
 
 	dispose(): void {
 		this.disconnect();
+		// Every entry, active or stashed: its parts own renderers/listeners that only `dispose()` releases.
+		for (const e of this.#entries.values()) for (const p of e.parts) p.dispose?.();
 		this.#detach();
 		this.#entries.clear();
 		this.#start.remove();
