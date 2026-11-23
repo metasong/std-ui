@@ -44,7 +44,8 @@ class ClassMapDirective extends Directive {
 				if (typeof entry !== 'string') continue;
 				for (const token of entry.split(/\s+/)) if (token) next.add(token);
 			}
-		} else {
+		} else if (classes && typeof classes === 'object') {
+			// Anything else (`null`, `undefined`, `false` from `cond && {...}`) means "no classes".
 			const record = classes as Readonly<Record<string, unknown>>;
 			for (const key of Object.keys(record)) if (record[key]) next.add(key);
 		}

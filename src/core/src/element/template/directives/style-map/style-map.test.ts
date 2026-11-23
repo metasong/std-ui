@@ -59,6 +59,37 @@ describe('styleMap', () => {
 		expect(el.style.border).toBe('1px solid red');
 	});
 
+	it('treats a null/undefined/false object as "no styles" instead of throwing', () => {
+		const el = document.createElement('div');
+		const part = new AttributePart(el, 'style');
+		for (const empty of [null, undefined, false]) {
+			expect(() => part.update([styleMap(empty as never)])).not.toThrow();
+		}
+		part.update([styleMap({ color: 'red' })]);
+		part.update([styleMap(null as never)]);
+		expect(el.style.color).toBe('');
+	});
+
+	it('keeps a `;` inside parentheses or quotes in static text (data URLs, content)', () => {
+		const el = document.createElement('div');
+		const part = new AttributePart(el, 'style', ['', 'background:url("data:image/png;base64,AAA=");content:";";']);
+		part.update([styleMap({ color: 'red' })]);
+		expect(el.style.getPropertyValue('background-image')).toContain('data:image/png;base64,AAA=');
+		expect(el.style.getPropertyValue('content')).toBe('";"');
+		expect(el.style.color).toBe('red');
+	});
+
+	it('applies `!important` from static text and from object values', () => {
+		const el = document.createElement('div');
+		const part = new AttributePart(el, 'style', ['', 'margin:0 !important;']);
+		part.update([styleMap({ color: 'red !important', width: '10px' })]);
+		expect(el.style.getPropertyValue('margin')).toBe('0px');
+		expect(el.style.getPropertyPriority('margin')).toBe('important');
+		expect(el.style.getPropertyValue('color')).toBe('red');
+		expect(el.style.getPropertyPriority('color')).toBe('important');
+		expect(el.style.getPropertyPriority('width')).toBe('');
+	});
+
 	it('updates both the directive-managed and static portions independently across re-renders', () => {
 		const el = document.createElement('div');
 		const part = new AttributePart(el, 'style', ['', 'border-radius:4px;']);

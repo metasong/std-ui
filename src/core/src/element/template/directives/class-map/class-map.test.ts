@@ -11,6 +11,17 @@ describe('classMap', () => {
 		expect(el.classList.contains('hidden')).toBe(false);
 	});
 
+	it('treats null/undefined/false/a string as "no classes" instead of throwing', () => {
+		const el = document.createElement('div');
+		const part = new AttributePart(el, 'class');
+		for (const empty of [null, undefined, false, '', 0]) {
+			expect(() => part.update([classMap(empty as never)])).not.toThrow();
+		}
+		part.update([classMap({ on: true })]);
+		part.update([classMap(null as never)]);
+		expect(el.classList.contains('on')).toBe(false);
+	});
+
 	it('leaves classes from static markup/elsewhere untouched', () => {
 		const el = document.createElement('div');
 		el.className = 'static-class';
