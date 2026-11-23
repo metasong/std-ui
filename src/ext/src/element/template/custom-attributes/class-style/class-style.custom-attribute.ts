@@ -46,9 +46,15 @@ export const classAttributeExtension = singleEntryAttributeExtension('class', (e
 	el.classList.toggle(entry, Boolean(value));
 });
 
-/** `style.color=${c}`: `setProperty` (kebab-case, `--custom` works); `null`/`undefined`/`false` removes it. */
+/** A trailing `!important` (any case, optional space after `!`), which `setProperty` would reject as part of the value. */
+const IMPORTANT_RE = /\s*!\s*important\s*$/i;
+
+/** `style.color=${c}`: `setProperty` (kebab-case, `--custom` works); `null`/`undefined`/`false` removes it.
+ *  A trailing `!important` becomes the priority argument (`setProperty` silently ignores a value that contains it). */
 export const styleAttributeExtension = singleEntryAttributeExtension('style', (el, entry, value) => {
 	const style = (el as HTMLElement).style;
-	if (value == null || value === false) style.removeProperty(entry);
-	else style.setProperty(entry, String(value));
+	if (value == null || value === false) { style.removeProperty(entry); return; }
+	const text = String(value);
+	if (IMPORTANT_RE.test(text)) style.setProperty(entry, text.replace(IMPORTANT_RE, ''), 'important');
+	else style.setProperty(entry, text);
 });

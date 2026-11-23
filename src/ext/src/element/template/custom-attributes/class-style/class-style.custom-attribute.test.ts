@@ -32,6 +32,14 @@ describe('class.name / style.prop bindings', () => {
 		expect(el.style.display).toBe('block');
 	});
 
+	it('honours a trailing !important instead of silently dropping the value', () => {
+		const el = mount(t`<div style.color=${'red !important'} style.--x=${'1px!IMPORTANT'}></div>`);
+		expect(el.style.getPropertyValue('color')).toBe('red');
+		expect(el.style.getPropertyPriority('color')).toBe('important');
+		expect(el.style.getPropertyValue('--x')).toBe('1px');
+		expect(el.style.getPropertyPriority('--x')).toBe('important');
+	});
+
 	it('requires exactly one modifier as the entry', () => {
 		expect(() => mount(t`<div class.a.b=${1}></div>`)).toThrow(/exactly one entry/);
 		expect(() => mount(t`<div style.color:red=${1}></div>`)).toThrow(/exactly one entry/);

@@ -12,6 +12,9 @@ import { DEV } from '../../../../dev/flag.js';
  *  matched first (and have no groups) so a tag mentioned inside `<!-- ... -->` is skipped. */
 const RAW_TEXT_TAG_RE = /<!--[\s\S]*?-->|<(\/?)(style|script|textarea|title)(?=[\s/>])[^>]*>/gi;
 
+/** Cheap pre-check: can `markup` contain a raw-text tag at all? (No `g` flag, so `.test` keeps no state.) */
+const MAY_HAVE_RAW_TEXT_RE = /<(?:style|script|textarea|title)/i;
+
 /** Opening or closing `<svg>`/`<math>` tag; group 3 is `/` for a self-closing one. Skips closed comments like above. */
 const FOREIGN_TAG_RE = /<!--[\s\S]*?-->|<(\/?)(svg|math)(?=[\s/>])[^>]*?(\/?)>/gi;
 
@@ -35,7 +38,8 @@ export function insideComment(markup: string): boolean {
  *  `markup` sits in, or `null`. `tagEnd` is the index of the opening tag's `>`.
  *  `foreignRoot`: the whole template is SVG/MathML (`svg\`...\``), where those elements are ordinary. */
 export function openRawTextElement(markup: string, foreignRoot: boolean): { tag: string; tagEnd: number } | null {
-	if (foreignRoot || insideForeignElement(markup)) return null;
+	// Fast exit for the common template with no raw-text tag at all: one plain regex test, no match objects.
+	if (foreignRoot || !MAY_HAVE_RAW_TEXT_RE.test(markup) || insideForeignElement(markup)) return null;
 	let open: { tag: string; tagEnd: number } | null = null;
 	for (const match of markup.matchAll(RAW_TEXT_TAG_RE)) {
 		if (!match[2]) continue; // a comment
