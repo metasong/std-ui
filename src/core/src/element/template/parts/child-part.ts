@@ -1,4 +1,4 @@
-import { applyDirective, isDirectiveResult, noChange, type ChildPartInfo, type Directive } from '../directives/directive.js';
+import { DirectiveSlot, isDirectiveResult, noChange, type ChildPartInfo } from '../directives/directive.js';
 import { PartType } from './part.js';
 import type { Part } from './part.js';
 import {
@@ -27,7 +27,7 @@ export class ChildPart implements Part {
 	#renderer: ChildRenderer<any> | undefined;
 	/** The `Directive` instance bound here, if a `directive()`-made value (e.g. `unsafeHtml()`) was
 	 *  ever applied to this position; reused across renders - see `directives/directive.ts`. */
-	#directive: Directive | undefined;
+	readonly #slot = new DirectiveSlot();
 	/** This position's `ChildPartInfo`, built once and handed to directives - see `directives/directive.ts`. */
 	#partInfo: ChildPartInfo;
 	constructor(private readonly anchor: Comment, private readonly host?: unknown) {
@@ -41,10 +41,9 @@ export class ChildPart implements Part {
 
 	update(values: readonly unknown[]): void {
 		let value = values[0];
-		if (!isDirectiveResult(value)) this.#disconnectDirective();
+		if (!isDirectiveResult(value)) this.#slot.disconnect();
 		else {
-			const { instance, value: resolved } = applyDirective(this.#partInfo, value, this.#directive);
-			this.#directive = instance;
+			const resolved = this.#slot.apply(this.#partInfo, value);
 			if (resolved === noChange) return;
 			value = resolved;
 		}
@@ -64,21 +63,16 @@ export class ChildPart implements Part {
 		this.#renderer = undefined;
 	}
 
-	#disconnectDirective(): void {
-		this.#directive?.disconnected();
-		this.#directive = undefined;
-	}
-
 	/** Runs `disconnected()` on this part's directive and on directives in its nested content,
 	 *  leaving the DOM untouched (so a detached element keeps its last rendered output). */
 	disconnect(): void {
-		this.#disconnectDirective();
+		this.#slot.disconnect();
 		this.#renderer?.disconnect();
 	}
 
 	/** Removes this part's content and its anchor. @internal */
 	dispose(): void {
-		this.#disconnectDirective();
+		this.#slot.disconnect();
 		this.#clear();
 		this.anchor.remove();
 	}

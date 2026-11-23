@@ -1,4 +1,4 @@
-import { applyDirective, isDirectiveResult, noChange, type AttributePartInfo, type Directive } from '../../directives/directive.js';
+import { DirectiveSlot, isDirectiveResult, noChange, type AttributePartInfo } from '../../directives/directive.js';
 import { PartType, type Modifier, type Part, warnIgnoredModifiers } from '../../parts/part.js';
 import { DEV } from '../../../../dev/flag.js';
 
@@ -18,7 +18,7 @@ export class AttributePart implements Part {
 	 *  function keeps being used - see `directives/directive.ts`. Keyed by that value's index among this
 	 *  attribute's interpolations, since an attribute mixing static text with a directive (see
 	 *  `#applyWithStaticText` below) may in principle hold more than one. */
-	#directives: Array<Directive | undefined> = [];
+	#slots: DirectiveSlot[] = [];
 	/** This position's `AttributePartInfo`, built once and handed to directives - see `directives/directive.ts`. */
 	#partInfo: AttributePartInfo;
 	constructor(
@@ -34,17 +34,17 @@ export class AttributePart implements Part {
 
 	/** Runs `disconnected()` on every bound directive and forgets them. */
 	disconnect(): void {
-		for (const d of this.#directives) d?.disconnected();
-		this.#directives = [];
+		for (const s of this.#slots) s.disconnect();
+		this.#slots = [];
 	}
 
 	update(values: readonly unknown[]): void {
-		if (!values.some(isDirectiveResult)) this.disconnect();
+		const hasDirective = values.some(isDirectiveResult);
+		if (!hasDirective) this.disconnect();
 		const isBareSingleValue = this.literals.length === 2 && this.literals[0] === '' && this.literals[1] === '';
 
 		if (isBareSingleValue && isDirectiveResult(values[0])) {
-			const { instance, value } = applyDirective(this.#partInfo, values[0], this.#directives[0]);
-			this.#directives[0] = instance;
+			const value = (this.#slots[0] ??= new DirectiveSlot()).apply(this.#partInfo, values[0]);
 			if (value === noChange) {
 				// The directive applied its own update imperatively (e.g. via classList/el.style), not
 				// via setAttribute - forget any stale #committed string so a later plain value can't be
@@ -66,7 +66,7 @@ export class AttributePart implements Part {
 		// `#applyWithStaticText()`. This part has no built-in knowledge of what kind of directive is
 		// involved (`classMap`, `styleMap`, or anything else) - that's entirely up to whichever
 		// `Directive` subclass reads `part.staticText` (`./directive.js`).
-		if (values.some(isDirectiveResult)) {
+		if (hasDirective) {
 			this.#applyWithStaticText(values);
 			return;
 		}
@@ -74,9 +74,7 @@ export class AttributePart implements Part {
 		let composed = this.literals[0];
 		for (let i = 0; i < values.length; i++) composed += (values[i] == null ? '' : String(values[i])) + this.literals[i + 1];
 
-		if (composed === this.#committed) return;
-		this.#committed = composed;
-		this.el.setAttribute(this.name, composed);
+		this.#commitValue(composed);
 	}
 
 	/**
@@ -105,8 +103,7 @@ export class AttributePart implements Part {
 			const value = values[i];
 			if (!isDirectiveResult(value)) continue;
 
-			const { instance, value: result } = applyDirective(partInfo, value, this.#directives[i]);
-			this.#directives[i] = instance;
+			const result = (this.#slots[i] ??= new DirectiveSlot()).apply(partInfo, value);
 			if (result !== noChange) {
 				throw new Error(DEV ? `std-ui html: a directive bound inside a "${this.name}" attribute alongside static text must ` +
 						`apply itself imperatively (return noChange from update(), reading part.staticText) - a ` +

@@ -1,4 +1,4 @@
-import { applyDirective, isDirectiveResult, type Directive, type ElementPartInfo } from '../directives/directive.js';
+import { DirectiveSlot, isDirectiveResult, type ElementPartInfo } from '../directives/directive.js';
 import { PartType, type Part } from './part.js';
 import { DEV } from '../../../dev/flag.js';
 
@@ -6,21 +6,20 @@ import { DEV } from '../../../dev/flag.js';
  *  directives (e.g. ref) make sense here; falsy values (cond && ref(r)) are ignored. */
 export class ElementPart implements Part {
 	readonly valueCount = 1;
-	#directive: Directive | undefined;
+	readonly #slot = new DirectiveSlot();
 	readonly #partInfo: ElementPartInfo;
 	constructor(el: Element, host?: unknown) {
 		this.#partInfo = { type: PartType.ELEMENT, element: el, host };
 	}
 
 	disconnect(): void {
-		this.#directive?.disconnected();
-		this.#directive = undefined;
+		this.#slot.disconnect();
 	}
 
 	update(values: readonly unknown[]): void {
 		const value = values[0];
 		if (isDirectiveResult(value)) {
-			this.#directive = applyDirective(this.#partInfo, value, this.#directive).instance;
+			this.#slot.apply(this.#partInfo, value);
 			return;
 		}
 		this.disconnect();

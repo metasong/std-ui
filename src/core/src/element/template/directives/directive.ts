@@ -219,3 +219,20 @@ export function applyDirective(DirectivePart: DirectivePart, result: DirectiveRe
 	const value = instance.update(DirectivePart, ...result.args);
 	return { instance, value };
 }
+
+/** Holds the `Directive` instance bound at one position, so each part doesn't repeat the
+ *  "apply, remember the instance, disconnect on teardown" bookkeeping. */
+export class DirectiveSlot {
+	#instance: Directive | undefined;
+	/** Applies `result` here (reusing the instance when possible) and returns what `update()` returned. */
+	apply(part: DirectivePart, result: DirectiveResult): DirectiveReturn {
+		const applied = applyDirective(part, result, this.#instance);
+		this.#instance = applied.instance;
+		return applied.value;
+	}
+	/** Runs `disconnected()` on the held instance and forgets it. */
+	disconnect(): void {
+		this.#instance?.disconnected();
+		this.#instance = undefined;
+	}
+}

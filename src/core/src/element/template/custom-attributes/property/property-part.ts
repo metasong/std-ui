@@ -1,11 +1,11 @@
-import { applyDirective, isDirectiveResult, noChange, type Directive, type PropertyPartInfo } from '../../directives/directive.js';
+import { DirectiveSlot, isDirectiveResult, noChange, type PropertyPartInfo } from '../../directives/directive.js';
 import { PartType, type Modifier, type Part, warnIgnoredModifiers } from '../../parts/part.js';
 import { writeProperty } from '../../directives/bind/defaults.js';
 
 export class PropertyPart implements Part {
 	readonly valueCount = 1;
 	#value: unknown;
-	#directive: Directive | undefined;
+	readonly #slot = new DirectiveSlot();
 	readonly #partInfo: PropertyPartInfo;
 	constructor(
 		private readonly el: Element,
@@ -17,15 +17,13 @@ export class PropertyPart implements Part {
 	}
 
 	disconnect(): void {
-		this.#directive?.disconnected();
-		this.#directive = undefined;
+		this.#slot.disconnect();
 	}
 
 	update(values: readonly unknown[]): void {
 		const value = values[0];
 		if (isDirectiveResult(value)) {
-			const { instance, value: result } = applyDirective(this.#partInfo, value, this.#directive);
-			this.#directive = instance;
+			const result = this.#slot.apply(this.#partInfo, value);
 			if (result === noChange) return;
 			if (Object.is(result, this.#value)) return;
 			this.#value = result;
