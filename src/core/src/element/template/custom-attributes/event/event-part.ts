@@ -6,16 +6,38 @@ export function withEventOptions<H extends EventListenerOrEventListenerObject>(
 	handler: H,
 	options: AddEventListenerOptions,
 ): H & { options: AddEventListenerOptions } {
-	return Object.assign(handler, { options });
+	// Wrap instead of tagging `handler` itself: the same function may be reused elsewhere (e.g. a
+	// shared method) and must not pick up these options. `this` is forwarded for host-bound handlers.
+	const wrapped = typeof handler === 'function'
+		? function (this: unknown, event: Event) { return (handler as (this: unknown, e: Event) => unknown).call(this, event); }
+		: { handleEvent: (event: Event) => handler.handleEvent(event) };
+	return Object.assign(wrapped, { options }) as unknown as H & { options: AddEventListenerOptions };
 }
+
+/** Whether an `EventPart` currently has its listener registered on the element. */
+const ListenerState = {
+	/** Not registered: before the first handler, after the handler became non-callable, or after
+	 *  the options changed (so it must be re-added). The next valid `update()` registers it. */
+	DETACHED: 0,
+	/** Registered with `addEventListener`; handler swaps need no re-registration. */
+	ATTACHED: 1,
+	/** A `once` listener fired and the browser removed it. Re-renders must not re-arm it; it stays
+	 *  this way until the binding stops being `once`, which returns it to `DETACHED`. */
+	SPENT: 2,
+} as const;
+type ListenerState = (typeof ListenerState)[keyof typeof ListenerState];
 
 /** `@event=${handler}`. Modifiers are not interpreted here (they warn in DEV); `@std-ui/ext`
  *  replaces this binding with one that handles `.capture`, `.once`, `.prevent`, etc. */
 export class EventPart implements Part, EventListenerObject {
 	readonly valueCount = 1;
 	#listener: EventListenerOrEventListenerObject | undefined;
-	#attached = false;
+	/** `DETACHED`: not registered; `ATTACHED`: registered; `SPENT`: a `once` listener fired and the
+	 *  browser removed it - stays that way until the binding stops being `once`. */
+	#state: ListenerState = ListenerState.DETACHED;
 	#active: AddEventListenerOptions | undefined;
+	/** Dispose returned by the latest `handler` call. */
+	#cleanup: (() => void) | undefined;
 	constructor(
 		private readonly el: Element,
 		private readonly name: string,
@@ -45,26 +67,31 @@ export class EventPart implements Part, EventListenerObject {
 		// A static `options` property on the handler supplies `addEventListener` options.
 		const own = (listener as { options?: AddEventListenerOptions }).options;
 		const next = this.resolveOptions(typeof own === 'object' && own !== null ? own : undefined);
+		// `once` means once per binding: after it fired, re-renders must not re-arm it. Dropping `once` re-enables it.
+		if (this.#state === ListenerState.SPENT) {
+			if (next?.once) return;
+			this.#state = ListenerState.DETACHED;
+		}
 		const cur = this.#active;
-		if (this.#attached && (cur?.capture !== next?.capture || cur?.once !== next?.once || cur?.passive !== next?.passive || cur?.signal !== next?.signal)) {
+		if (this.#state === ListenerState.ATTACHED && (cur?.capture !== next?.capture || cur?.once !== next?.once || cur?.passive !== next?.passive || cur?.signal !== next?.signal)) {
 			this.#detach();
 		}
 		// The part itself is the one registered listener (stable identity), so swapping handlers
 		// between renders needs no remove/add, and `this` inside a handler is the host.
-		if (!this.#attached) {
+		if (this.#state === ListenerState.DETACHED) {
 			this.#active = next && { ...next };
 			this.el.addEventListener(this.name, this, this.#active);
-			this.#attached = true;
+			this.#state = ListenerState.ATTACHED;
 		}
 	}
 	#detach(): void {
-		if (!this.#attached) return;
+		if (this.#state !== ListenerState.ATTACHED) return;
 		this.el.removeEventListener(this.name, this, this.#active);
-		this.#attached = false;
+		this.#state = ListenerState.DETACHED;
 	}
 
 	handleEvent(event: Event): void {
-		if (this.#active?.once) this.#attached = false; // the browser removed us
+		if (this.#active?.once) this.#state = ListenerState.SPENT; // the browser removed us
 		if (!this.shouldHandle(event)) return;
 
 		// A new invocation supersedes the previous one, like an effect cleanup.
@@ -72,9 +99,6 @@ export class EventPart implements Part, EventListenerObject {
 		const result = this.handler(event);
 		this.#cleanup = typeof result === 'function' ? result : undefined;
 	}
-
-	/** Dispose returned by the latest `handler` call. */
-	#cleanup: (() => void) | undefined;
 
 	/** Teardown (`unmount`, nested disconnect): runs the pending dispose; the listener stays attached. */
 	disconnect(): void {
