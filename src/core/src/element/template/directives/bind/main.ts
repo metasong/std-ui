@@ -12,6 +12,7 @@ import { pullRadioSiblings, registerRadio, unregisterRadio } from './radio-group
 import { BIND_USAGE, isWritableSignal, resolveBinding } from './resolve.js';
 import type { BindOptions, BindPlugin, BindSource, Binding, WritableSignal } from './types.js';
 import { DEV } from '../../../../dev/flag.js';
+import { assertPosition } from '../assert-child-part.js';
 
 /** DOM wiring for one binding position; torn down as a unit. */
 interface Wiring {
@@ -35,9 +36,7 @@ function defineBindDirective(plugins: readonly BindPlugin[]) {
 
 		constructor(partInfo: PartInfo) {
 			super(partInfo);
-			if (!isPropertyPartInfo(partInfo)) {
-				throw new Error(DEV ? 'std-ui bind(): must be used as a property binding (e.g. `.value=${bind(...)}`).' : 'bind(): property binding only');
-			}
+			assertPosition(isPropertyPartInfo(partInfo), 'bind', 'a property binding, e.g. `.value=${bind(...)}`');
 			assertBindableTarget(partInfo.element, partInfo.name);
 		}
 

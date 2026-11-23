@@ -3,6 +3,13 @@ import { state } from '../signal/state.js';
 import { effect, whenFlushed } from './main.js';
 import { flushEffects } from './test-helpers.js';
 
+// Node's `process` (tests run under vitest/Node); declared locally so no `@types/node` is needed.
+declare const process: {
+	on(event: 'uncaughtException', listener: (error: Error) => void): void;
+	once(event: 'uncaughtException', listener: (error: Error) => void): void;
+	off(event: 'uncaughtException', listener: (error: Error) => void): void;
+};
+
 describe('effect', () => {
 	it('runs synchronously once on creation', () => {
 		const spy = vi.fn();

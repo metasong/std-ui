@@ -1,6 +1,6 @@
 import { Directive, directive, noChange, type AttributePartInfo, type PartInfo } from '../directive.js';
 import { PartType } from '../../parts/part.js';
-import { DEV } from '../../../../dev/flag.js';
+import { assertPosition } from '../assert-child-part.js';
 
 /**
  * `classMap` directive: toggles individual classes on/off via `classList`,
@@ -21,9 +21,7 @@ class ClassMapDirective extends Directive {
 
 	constructor(partInfo: PartInfo) {
 		super(partInfo);
-		if (partInfo.type !== PartType.ATTRIBUTE || partInfo.name !== 'class') {
-			throw new Error(DEV ? 'std-ui classMap(): must be bound to a "class" attribute.' : 'classMap(): class attribute only');
-		}
+		assertPosition(partInfo.type === PartType.ATTRIBUTE && partInfo.name === 'class', 'classMap', 'a "class" attribute');
 	}
 
 	/**
