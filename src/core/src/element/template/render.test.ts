@@ -149,4 +149,16 @@ describe('unmount', () => {
 		render(t`<b>${'z'}</b>`, c);
 		expect(log).toEqual(['disconnected']);
 	});
+	it('still disposes parts when the first render throws mid-update', () => {
+		log = [];
+		const c = document.createElement('div');
+		class Boom extends Directive {
+			override update(_part: DirectivePart): string { throw new Error('boom'); }
+		}
+		const boom = directive(Boom);
+		expect(() => render(t`<p>${probe('a')}</p><i>${boom()}</i>`, c)).toThrow('boom');
+		unmount(c);
+		expect(log).toEqual(['disconnected']);
+		expect(c.innerHTML).toBe('');
+	});
 });

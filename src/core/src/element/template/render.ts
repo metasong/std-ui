@@ -57,7 +57,9 @@ export function render(
 	unmount(container);
 	const { fragment, parts } = instantiate(getTemplate(result.strings, result.type), host);
 	container.appendChild(fragment);
+	// Register before the first `updateParts`: the fragment is already in the DOM, so if a binding
+	// throws, the next `render()`/`unmount()` must still find these parts to dispose them.
+	renderedInstances.set(container, { strings: result.strings, parts });
 	// After connect so custom elements are upgraded before `.prop` bindings forward into `stateTree()`/`@attribute()` stores.
 	updateParts(parts, result.values);
-	renderedInstances.set(container, { strings: result.strings, parts });
 }
