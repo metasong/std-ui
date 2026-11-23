@@ -136,6 +136,40 @@ describe('UIElement', () => {
 		expect(renderSpy).not.toHaveBeenCalled();
 	});
 
+	describe('removed from the document while still connecting', () => {
+		it('does not wire the render effect when connect() removes the element', async () => {
+			const count = state(0);
+			const renderSpy = vi.fn();
+
+			@tag('el-removed-in-connect')
+			class Foo extends UIElement {
+				protected override connect(): void { this.remove(); }
+				protected override template(): void { renderSpy(count()); }
+			}
+
+			document.body.appendChild(document.createElement('el-removed-in-connect'));
+			count.set(1);
+			await flush();
+			expect(renderSpy).not.toHaveBeenCalled();
+			expect(Foo).toBeDefined();
+		});
+
+		it('disposes cleanups of a connected hook that removes the element', () => {
+			const cleanup = vi.fn();
+
+			@tag('el-removed-in-connected-hook')
+			class Foo extends UIElement {
+				protected override connect(): void {
+					this.addHooks({ connected: (el) => { el.remove(); return cleanup; } });
+				}
+			}
+
+			document.body.appendChild(document.createElement('el-removed-in-connected-hook'));
+			expect(cleanup).toHaveBeenCalledTimes(1);
+			expect(Foo).toBeDefined();
+		});
+	});
+
 	describe('addHooks() called while the element is mid-lifecycle', () => {
 		function phases() {
 			const log: string[] = [];

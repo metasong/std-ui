@@ -233,12 +233,28 @@ export abstract class UIElement extends HTMLElement {
 			this.#ensureRenderRoot();
 			this.connect?.();
 		}
+		// User code above may have removed us; the browser then ran `disconnectedCallback` synchronously
+		// (nested), which already tore everything down. Wiring anything now would leak it.
+		if (!this.isConnected) return;
 
 		// Settled *before* the `connected` phase: a hook added from inside a `connected` hook is not in
 		// that phase's snapshot, so `addHooks()` must catch it up (beforeConnect + connected) itself.
 		this.#hooksSettled = true;
 		this.#runCleanupHooks(HookPhase.connected);
+		if (!this.isConnected) {
+			// A `connected` hook removed us. Its (and later hooks') cleanups were registered after the nested
+			// `disconnectedCallback` had already run its teardown, so run them now.
+			this.#disposeEffects();
+			return;
+		}
 		this.#wireTemplateUpdateEffect();
+	}
+
+	/** Runs and forgets every registered effect/hook cleanup. */
+	#disposeEffects(): void {
+		const disposers = this.#effectDisposers;
+		this.#effectDisposers = [];
+		disposers.forEach(dispose => dispose());
 	}
 
 	/** Class-level hooks (inherited) followed by this instance's own; a fresh array, safe against mid-iteration changes. */
@@ -271,12 +287,10 @@ export abstract class UIElement extends HTMLElement {
 	private disconnectedCallback(): void {
 		// Teardown mirrors setup in reverse: stop reactivity first, so nothing the steps below do
 		// (e.g. a `disconnect()` that writes a signal) can schedule a render on a half-torn-down element.
-		const disposers = this.#effectDisposers;
-		this.#effectDisposers = [];
 		this.#connected = false;
 		this.#hooksSettled = false;
 		this.#firstUpdateDone = false;
-		disposers.forEach(dispose => dispose());
+		this.#disposeEffects();
 		this.disconnect?.();
 		// Runs bound directives' `disconnected()`; DOM is kept, directives are re-created on reconnect.
 		if (this.#renderRoot) disconnectRendered(this.#renderRoot);
