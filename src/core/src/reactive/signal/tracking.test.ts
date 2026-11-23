@@ -18,6 +18,25 @@ describe('untrack', () => {
 	});
 });
 
+describe('observer hooks', () => {
+	it('fires onWatched for the first observer and onUnwatched when the last one leaves', () => {
+		const source = new ReactiveNode();
+		source.onWatched = vi.fn();
+		source.onUnwatched = vi.fn();
+		const w1 = new Watcher(() => {});
+		const w2 = new Watcher(() => {});
+
+		w1.watch(source);
+		w2.watch(source);
+		expect(source.onWatched).toHaveBeenCalledTimes(1);
+
+		w1.unwatch(source);
+		expect(source.onUnwatched).not.toHaveBeenCalled();
+		w2.unwatch(source);
+		expect(source.onUnwatched).toHaveBeenCalledTimes(1);
+	});
+});
+
 describe('Watcher', () => {
 	it('fires notify once when a watched dependency changes, then goes inert', () => {
 		const a = state(1);

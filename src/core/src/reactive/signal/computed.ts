@@ -2,7 +2,7 @@
 // `./computed-lazy.md`). Uses `./tracking.ts` for dependency tracking.
 
 import { DEV } from '../../dev/flag.js';
-import { notify, ReactiveNode, runTracked, sourcesChanged, track } from './tracking.js';
+import { notify, ReactiveNode, runTracked, sourcesChanged, subscribe, track, unsubscribe } from './tracking.js';
 import type { ReadonlyState, StateOptions } from './state.js';
 
 /** A read-only, lazily-recomputed derived value. Call it to read (and track). */
@@ -24,9 +24,22 @@ export function computed<T>(fn: () => T, options: StateOptions<T> = {}): Compute
 		node.dirty = true;
 		notify(node);
 	};
+	// Subscribed to its sources only while something observes it. An unobserved computed gets no
+	// notifications, so it can't trust `dirty` and re-verifies its sources on every read instead.
+	node.isLive = () => node.observers.size > 0;
+	node.onWatched = () => {
+		subscribe(node);
+		// Nothing told us about changes while idle: re-verify now, so `dirty === false` is trustworthy again.
+		node.dirty = true;
+		node.refresh();
+	};
+	node.onUnwatched = () => {
+		unsubscribe(node); // keeps `sources` for the version checks on the next read
+		node.dirty = true;
+	};
 	let computing = false;
 	node.refresh = () => {
-		if (!node.dirty) return;
+		if (!node.dirty && node.observers.size > 0) return;
 		// Re-entered while our own `fn` is still running => `fn` (directly or via other computeds) reads itself.
 		if (computing) {
 			throw new Error(

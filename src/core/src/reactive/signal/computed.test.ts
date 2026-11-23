@@ -59,6 +59,47 @@ describe('computed', () => {
 		});
 	});
 
+	describe('subscribes to its sources only while observed', () => {
+		it('stays correct for reads made while nothing observes it', () => {
+			const a = state(1);
+			const doubled = computed(() => a() * 2);
+			expect(doubled()).toBe(2);
+			a.set(2);
+			a.set(3);
+			expect(doubled()).toBe(6);
+		});
+
+		it('re-verifies on re-observation: a change made while idle is not missed', async () => {
+			const a = state(1);
+			const doubled = computed(() => a() * 2);
+			const seen: number[] = [];
+
+			const dispose = effect(() => { seen.push(doubled()); });
+			dispose(); // computed goes idle: unsubscribed from `a`
+			a.set(5); // nobody is told
+
+			const dispose2 = effect(() => { seen.push(doubled()); });
+			a.set(6);
+			await flushEffects();
+			dispose2();
+			expect(seen).toEqual([2, 10, 12]);
+		});
+
+		it('chained computeds go idle and wake up together', async () => {
+			const a = state(1);
+			const doubled = computed(() => a() * 2);
+			const quadrupled = computed(() => doubled() * 2);
+			const seen: number[] = [];
+
+			effect(() => { seen.push(quadrupled()); })();
+			a.set(2);
+			effect(() => { seen.push(quadrupled()); });
+			a.set(3);
+			await flushEffects();
+			expect(seen).toEqual([4, 8, 12]);
+		});
+	});
+
 	it('propagates through chained computeds', () => {
 		const a = state(1);
 		const doubled = computed(() => a() * 2);

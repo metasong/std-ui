@@ -25,6 +25,29 @@ export class ReactiveNode {
 	markDirty(): void {}
 	/** Brings the value up to date so `version` is current (computed overrides this). */
 	refresh(): void {}
+
+	/** Whether this node should be subscribed to its sources right now. Effects/watchers always are;
+	 *  a computed overrides this to "only while something observes it", so an abandoned computed
+	 *  isn't kept alive (and re-notified) by the long-lived signals it read. */
+	isLive(): boolean {
+		return true;
+	}
+	/** The first observer arrived (`observers.size` went 0 -> 1). */
+	onWatched(): void {}
+	/** The last observer left (`observers.size` went 1 -> 0). */
+	onUnwatched(): void {}
+}
+
+/** `observer` starts receiving `source`'s notifications; wakes `source` up if it had no observers. */
+function link(source: ReactiveNode, observer: ReactiveNode): void {
+	if (source.observers.has(observer)) return;
+	source.observers.add(observer);
+	if (source.observers.size === 1) source.onWatched();
+}
+
+/** `observer` stops receiving `source`'s notifications; lets `source` go idle if it was the last one. */
+function unlink(source: ReactiveNode, observer: ReactiveNode): void {
+	if (source.observers.delete(observer) && source.observers.size === 0) source.onUnwatched();
 }
 
 /** The node currently running - reads during this window are tracked as its sources. */
@@ -34,7 +57,8 @@ let activeNode: ReactiveNode | null = null;
 export function track(source: ReactiveNode): void {
 	if (!activeNode) return;
 	activeNode.sources.set(source, source.version);
-	source.observers.add(activeNode);
+	// An idle computed records what it read (for `sourcesChanged`) but does not subscribe.
+	if (activeNode.isLive()) link(source, activeNode);
 }
 
 /** Push phase: tells `source`'s observers they may be stale. */
@@ -57,12 +81,12 @@ export function sourcesChanged(node: ReactiveNode): boolean {
 
 /** Starts receiving notifications from everything `node` last read. */
 export function subscribe(node: ReactiveNode): void {
-	for (const source of node.sources.keys()) source.observers.add(node);
+	for (const source of node.sources.keys()) link(source, node);
 }
 
 /** Stops receiving notifications, but keeps `sources` so `sourcesChanged()` still works. */
 export function unsubscribe(node: ReactiveNode): void {
-	for (const source of node.sources.keys()) source.observers.delete(node);
+	for (const source of node.sources.keys()) unlink(source, node);
 }
 
 /** Runs `fn` as `node`, rebuilding its sources from whatever `fn` reads. */
@@ -131,14 +155,14 @@ export class Watcher extends ReactiveNode {
 	watch(...nodes: ReactiveNode[]): void {
 		for (const node of nodes) {
 			this.sources.set(node, node.version);
-			node.observers.add(this);
+			link(node, this);
 		}
 	}
 	/** Stops watching `nodes`. */
 	unwatch(...nodes: ReactiveNode[]): void {
 		for (const node of nodes) {
 			this.sources.delete(node);
-			node.observers.delete(this);
+			unlink(node, this);
 		}
 	}
 	/** The watched nodes that are currently dirty (notified but not yet recomputed). */
