@@ -87,6 +87,9 @@ function flush(): void {
  * signal/computed it read changes. Returns a `dispose()` that stops future re-runs and runs any
  * pending cleanup.
  *
+ * The effect is referenced by every signal it read (and holds its closure), so it is never garbage-collected
+ * on its own: call `dispose()` when the owner goes away. `UIElement` does this for its own effects on disconnect.
+ *
  * @param monitoredAction - The tracked effect body, run initially and on every re-run. Receives
  * `onCleanup` to register cleanup that runs before the next re-run and on dispose.
  * @param afterAction - Optional callback run right after `monitoredAction` on every run (initial

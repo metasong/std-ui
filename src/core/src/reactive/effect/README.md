@@ -32,6 +32,8 @@ dispose(); // stop watching; run pending cleanup
 
 Returns `dispose()`: unsubscribes the effect, removes it from the pending flush queue, and runs any registered cleanup.
 
+**Lifetime.** An effect is held strongly by every signal it read, and holds its body's closure. Nothing collects it automatically (the same contract as `Signal.subtle.Watcher` in the TC39 proposal), so an effect on a long-lived signal (module-level state, a store) keeps everything it closes over alive until you call `dispose()`. Inside a `UIElement`, effects created through `this.effect()` / `connect()` are disposed on disconnect for you; elsewhere (modules, services, tests) keep the returned function and call it when the owner goes away.
+
 ### `onCleanup(fn)`
 
 Call inside the effect body. `fn` runs **before the next re-run** and once more when you call `dispose()`.
