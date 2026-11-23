@@ -23,7 +23,7 @@ export const PAGES: readonly Page[] = [
 		heading: 'std-ui', lead: 'Minimal UI on web standards - a tour of every feature, each in its own custom element.',
 		sections: [
 			['counter', 'Signals'], ['attribute', 'Attributes'], ['context', 'Context'], ['query', 'Queries'],
-			['shadow', 'Shadow DOM'], ['css', 'CSS'], ['directives', 'Directives'], ['bindings', 'Bindings'], ['event-extensions', 'Event ext'],
+			['shadow', 'Shadow DOM'], ['css', 'CSS'], ['directives', 'Directives'], ['bindings', 'Bindings'], ['event-extensions', 'Event ext'], ['text-only', 'Text-only'],
 			['todo', 'Todo'], ['map-by-key', 'Keyed lists'], ['svg', 'SVG'], ['mathml', 'MathML'],
 		],
 	},

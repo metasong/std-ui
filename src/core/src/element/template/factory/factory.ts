@@ -18,11 +18,19 @@ import { registerBuiltinCustomAttributes } from '../custom-attributes/register-b
 import { createBuilder, type BuilderHooks, type SlotDescriptor, type Template as BuilderTemplate } from './builder/index.js';
 // Parts import `instantiate` for nested templates; they are only touched lazily inside hooks, so
 // the module cycle is harmless.
-import { ElementPart, ChildPart, PartType, type Modifier, type Part } from '../parts/index.js';
+import { ElementPart, ChildPart, RawTextPart, PartType, type Modifier, type Part } from '../parts/index.js';
+
+/** Descriptor `kind` of a `<title>`/`<textarea>`/`<style>`/`<script>` body bound as one string. Not a
+ *  `PartType`: directives can't be bound there, so it is never exposed through `PartInfo.type`. */
+export const RAW_TEXT_KIND = 3 as const;
+
+/** What a descriptor builds: a `PartType` position, or `RAW_TEXT_KIND`. */
+export type DescriptorKind = PartType | typeof RAW_TEXT_KIND;
 
 export interface PartDescriptor extends SlotDescriptor {
-	/** Slots are `CHILD`/`ELEMENT`; every attribute-like binding is `ATTRIBUTE` (its extension builds the part). */
-	kind: typeof PartType.CHILD | typeof PartType.ELEMENT | typeof PartType.ATTRIBUTE;
+	/** Slots are `CHILD`/`ELEMENT`; every attribute-like binding is `ATTRIBUTE` (its extension builds the part);
+	 *  `RAW_TEXT_KIND` is a text-only element body (`literals` are its raw static text). */
+	kind: DescriptorKind;
 	/** Attribute/property/event name, sans its `.`/`?`/`@` sigil, `:arg` and any `.modifier`s. Unused for `kind: PartType.CHILD`. */
 	name: string;
 	/** The `:arg` of `name:arg`. Reserved: unused by the built-in kinds, only extensions may consume it. */
@@ -115,6 +123,7 @@ function describeBinding(open: OpenBinding, literals: readonly string[], valueCo
 // --- Part creation ------------------------------------------------------------------------------
 
 function createPart(descriptor: PartDescriptor, target: Node, host?: unknown): Part {
+	if (descriptor.kind === RAW_TEXT_KIND) return new RawTextPart(target as Element, descriptor.literals!, descriptor.valueCount);
 	if (descriptor.extension) {
 		return descriptor.extension.extension.createPart(
 			target as Element, descriptor.extension.attributeInfo, host,
@@ -150,6 +159,7 @@ const foreignSupport = {
 const hooks: BuilderHooks<PartDescriptor, Part, TemplateType, OpenBinding> = {
 	onTextSlot: () => ({ kind: PartType.CHILD, name: '', valueCount: 1 }),
 	onTagSlot: () => ({ kind: PartType.ELEMENT, name: '', valueCount: 1 }),
+	onRawTextBody: ({ literals, valueCount }) => ({ kind: RAW_TEXT_KIND, name: '', valueCount, literals }),
 	onAttributeOpen: ({ rawName, markup }) => parseBinding(rawName, markup),
 	onAttributeClose: (open, { literals, valueCount }) => describeBinding(open, literals, valueCount),
 
@@ -162,7 +172,7 @@ const hooks: BuilderHooks<PartDescriptor, Part, TemplateType, OpenBinding> = {
 	createPart,
 };
 
-const Builder = createBuilder(hooks, { defaultType: 'html' });
+const Builder = createBuilder(hooks, { defaultType: 'html', foreignTypes: ['svg', 'math'] });
 
 export const getTemplate = Builder.getTemplate;
 export const instantiate = Builder.instantiate;

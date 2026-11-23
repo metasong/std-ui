@@ -5,3 +5,4 @@ export { PropertyPart } from '../custom-attributes/property/index.js';
 export { EventPart, withEventOptions } from '../custom-attributes/event/index.js';
 export { ElementPart } from './element-part.js';
 export { ChildPart } from './child-part.js';
+export { RawTextPart } from './raw-text-part.js';

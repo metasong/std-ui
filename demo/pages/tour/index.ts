@@ -10,6 +10,7 @@ import './sections/css-section.js';
 import './sections/directives-section.js';
 import './sections/bindings-section.js';
 import './sections/event-extensions-section.js';
+import './sections/text-only-section.js';
 import './sections/todo-section.js';
 import './sections/map-by-key-section.js';
 import './sections/svg-section.js';

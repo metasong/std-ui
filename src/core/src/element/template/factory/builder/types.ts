@@ -62,6 +62,11 @@ export interface BuilderHooks<D extends SlotDescriptor, Part, Type extends strin
 	 *  Optional: without it such templates are rejected. */
 	onTagSlot?(ctx: TagSlotContext): DescriptorInit<D>;
 
+	/** Interpolations inside a `<title>`/`<textarea>` body (plain text, not markup). `literals` are the static
+	 *  text segments around them (`valueCount + 1` entries, raw HTML text). The descriptor's node is the
+	 *  element itself. Optional: without it such templates are rejected. */
+	onRawTextBody?(ctx: { tag: string; literals: string[]; valueCount: number }): DescriptorInit<D>;
+
 	/** An attribute value's first interpolation was reached. Returns hook-private state for that attribute. */
 	onAttributeOpen(ctx: AttributeOpenContext): Open;
 	/** The attribute's closing quote was reached. Validate and produce the descriptor. */
@@ -98,4 +103,7 @@ export interface BuilderOptions<Type extends string> {
 	/** Marker used for both text-slot comments and attribute placeholders. Default `'std-ui-part'`. */
 	marker?: string;
 	defaultType: Type;
+	/** Types whose markup is parsed as foreign content (SVG, MathML): there `<title>`, `<style>`, `<script>`
+	 *  etc. hold normal markup, so interpolations inside them are fine. */
+	foreignTypes?: readonly Type[];
 }

@@ -29,6 +29,33 @@ Each `${...}` interpolation is bound based on *where* it appears in the markup:
 | `class.` entry | `class.active=${on}` | `el.classList.toggle('active', Boolean(on))` |
 | `style.` entry | `style.color=${value}` | `el.style.setProperty('color', value)` (removed if `value` is `null`/`undefined`/`false`) |
 
+### Text-only elements: `<title>`, `<textarea>`, `<style>`, `<script>`
+
+The HTML parser reads the bodies of these elements as plain text, never as markup, so no child
+slot (comment anchor) can live there. Instead, every `${}` in the body is joined with the static text
+into one string and set as the element's `textContent`:
+
+```ts
+t`<title>${page} - ${site}</title>`
+t`<style>.card { color: ${color}; }</style>`
+t`<script type="application/json">${JSON.stringify(data)}</script>`
+```
+
+- `null`/`undefined` become `''`; everything else is stringified. The part skips the DOM write when the
+  joined string is unchanged.
+- Values are never parsed as HTML or CSS-escaped, so `${'<b>x</b>'}` shows as text. Untrusted input in
+  `<style>` can still change what the CSS means.
+- Static text keeps HTML semantics: `title`/`textarea` decode `&amp;`-style references, `style`/`script`
+  are verbatim.
+- `<script>` stays inert (a script cloned from a template never runs), so use it for data blocks such as
+  `application/json` or `application/ld+json`.
+- `<textarea>` binds its default value; once the user types, re-renders no longer change what they
+  see. Use `.value=${v}` to control the live value.
+- Directives and nested templates are not supported here (a directive throws in DEV).
+- Inside `<svg>`/`<math>` (and `svg\`\``/`math\`\``) these tags hold normal markup, so they use the usual
+  child slots.
+- Interpolations in HTML comments are still rejected.
+
 ### Event modifiers
 
 Chain modifiers onto the event name, in any order and any subset:

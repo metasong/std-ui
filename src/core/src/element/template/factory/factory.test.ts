@@ -3,6 +3,7 @@ import { getTemplate, instantiate } from './factory.js';
 import { t, svg, math } from '../tag-funcs/html/index.js';
 import { updateParts, PartType, BooleanAttributePart, PropertyPart, EventPart } from '../parts/index.js';
 import { render } from '../render.js';
+import { ref } from '../directives/index.js';
 import { registerCustomAttribute } from './custom-attribute.js';
 
 describe('getTemplate/instantiate', () => {
@@ -81,6 +82,99 @@ describe('getTemplate/instantiate', () => {
 	it('reserves `:arg` on binding names', () => {
 		const { strings } = t`<div foo:bar="${1}"></div>`;
 		expect(() => getTemplate(strings)).toThrow(/:arg/);
+	});
+
+	describe('interpolations where markup is not parsed', () => {
+		it.each([
+			['an HTML comment', () => t`<!-- ${'x'} --><p>a</p>`, /HTML comment/],
+		])('rejects one inside %s with a clear message', (_name, make, message) => {
+			const { strings } = make();
+			expect(() => getTemplate(strings)).toThrow(message);
+		});
+
+		it('accepts <title>/<style> in SVG, where they hold normal markup', () => {
+			const container = document.createElement('div');
+			render(t`<svg><title>${'Chart'}</title><style>.a { fill: red; }</style><g>${'x'}</g></svg>`, container);
+			expect(container.querySelector('title')!.textContent).toBe('Chart');
+
+			const fromSvgTag = document.createElement('div');
+			render(svg`<title>${'Direct'}</title>`, fromSvgTag);
+			expect(fromSvgTag.querySelector('title')!.textContent).toBe('Direct');
+		});
+
+		it('binds <title> body with several interpolations and static text', () => {
+			const container = document.createElement('div');
+			const make = (a: unknown, b: unknown) => t`<title>abc ${a} dsd ${b}sdd &amp; end</title><p>${'p'}</p>`;
+			render(make('A', 2), container);
+			const title = container.querySelector('title')!;
+			expect(title.textContent).toBe('abc A dsd 2sdd & end');
+			expect(container.querySelector('p')!.textContent).toBe('p');
+
+			render(make(null, undefined), container);
+			expect(title.textContent).toBe('abc  dsd sdd & end');
+			expect(container.querySelector('title')).toBe(title);
+		});
+
+		it('binds <textarea> body, after attributes, and a <title> after a closed <svg>', () => {
+			const container = document.createElement('div');
+			render(t`<svg></svg><textarea class="x ${'c'}" rows="2">${'hello'}</textarea><title>${'T'}</title>`, container);
+			const area = container.querySelector('textarea')!;
+			expect(area.value).toBe('hello');
+			expect(area.className).toBe('x c');
+			expect(container.querySelector('title')!.textContent).toBe('T');
+		});
+
+		it('binds <style> and <script> bodies verbatim (no entity decoding, script stays inert)', () => {
+			const container = document.createElement('div');
+			const make = (c: string, json: string) =>
+				t`<STYLE>p { color: ${c}; content: "&amp;"; }</STYLE><script type="application/json">${json}</script>`;
+			render(make('red', '{"a":1}'), container);
+			expect(container.querySelector('style')!.textContent).toBe('p { color: red; content: "&amp;"; }');
+			const script = container.querySelector('script')!;
+			expect(script.textContent).toBe('{"a":1}');
+			render(make('blue', '{"a":2}'), container);
+			expect(container.querySelector('style')!.textContent).toContain('blue');
+			expect(container.querySelector('script')).toBe(script);
+			expect(script.textContent).toBe('{"a":2}');
+		});
+
+		it('handles a slot at the very start/end of the body and adjacent slots', () => {
+			const container = document.createElement('div');
+			render(t`<title>${'a'}${'b'}</title><textarea>x${'c'}</textarea>`, container);
+			expect(container.querySelector('title')!.textContent).toBe('ab');
+			expect(container.querySelector('textarea')!.value).toBe('xc');
+		});
+
+		it('keeps svg/math <title> as normal child slots next to an HTML <title>', () => {
+			const container = document.createElement('div');
+			render(t`<title>${'html'}</title><svg><title>${'svg'}</title></svg>`, container);
+			expect(container.querySelector('svg title')!.textContent).toBe('svg');
+			expect(container.querySelector(':scope > title')!.textContent).toBe('html');
+		});
+
+		it('rejects a directive in a text-only body (DEV)', () => {
+			const container = document.createElement('div');
+			expect(() => render(t`<title>${ref(() => {})}</title>`, container)).toThrow(/plain text/);
+		});
+
+		it('throws for an unterminated body', () => {
+			const { strings } = t`<title>${'x'} never closed`;
+			expect(() => getTemplate(strings)).toThrow(/unterminated <title>/);
+		});
+
+		it('treats interpolated markup in a <title> as plain text', () => {
+			const container = document.createElement('div');
+			render(t`<title>${'<b>x</b>'}</title>`, container);
+			const title = container.querySelector('title')!;
+			expect(title.textContent).toBe('<b>x</b>');
+			expect(title.children.length).toBe(0);
+		});
+
+		it('still accepts interpolations after those elements/comments are closed', () => {
+			const container = document.createElement('div');
+			render(t`<!-- note --><textarea></textarea><style>p {}</style><script></script><title>t</title><p>${'ok'}</p>`, container);
+			expect(container.querySelector('p')!.textContent).toBe('ok');
+		});
 	});
 
 	it('rejects namespaced attributes such as `xlink:href` (parsed as name + reserved `:arg`)', () => {

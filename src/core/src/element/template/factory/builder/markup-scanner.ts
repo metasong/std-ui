@@ -1,4 +1,7 @@
 import { DEV } from '../../../../dev/flag.js';
+import {
+	beginRawBody, feedRawBody, insideComment, openRawTextElement, unsupportedContextError, type OpenRawBody,
+} from './raw-text.js';
 import type { BuilderHooks, DescriptorInit, SlotDescriptor } from './types.js';
 
 // --- Markup scanner ---------------------------------------------------------------------------------
@@ -73,11 +76,12 @@ interface OpenAttr<Open> {
 	valueCount: number;
 }
 
-/** Scanner state: between tags, or inside an unclosed quoted attribute value. */
-const ScanKind = { TEXT: 0, ATTR_VALUE: 1 } as const;
+/** Scanner state: between tags, inside an unclosed quoted attribute value, or inside a raw-text body. */
+const ScanKind = { TEXT: 0, ATTR_VALUE: 1, RAW_BODY: 2 } as const;
 
 type ScanState<Open> =
 	| { readonly kind: typeof ScanKind.TEXT }
+	| { readonly kind: typeof ScanKind.RAW_BODY; readonly body: OpenRawBody }
 	| { readonly kind: typeof ScanKind.ATTR_VALUE; readonly attr: OpenAttr<Open> };
 
 export interface MarkupScanResult<D extends SlotDescriptor> {
@@ -85,7 +89,7 @@ export interface MarkupScanResult<D extends SlotDescriptor> {
 	descriptors: D[];
 }
 
-export type MarkupScanner<D extends SlotDescriptor> = (strings: TemplateStringsArray) => MarkupScanResult<D>;
+export type MarkupScanner<D extends SlotDescriptor> = (strings: TemplateStringsArray, foreignRoot?: boolean) => MarkupScanResult<D>;
 
 export function createMarkupScanner<D extends SlotDescriptor, Part, Type extends string, Open>(
 	hooks: BuilderHooks<D, Part, Type, Open>,
@@ -122,6 +126,23 @@ export function createMarkupScanner<D extends SlotDescriptor, Part, Type extends
 		return { state: TEXT, append: marker + chunk.slice(quoteIndex) };
 	}
 
+	/** Consumes `chunk` while inside a raw-text body; once the closing tag is reached the body becomes a descriptor. */
+	function stepRawTextBody(
+		body: OpenRawBody,
+		chunk: string,
+		descriptors: D[],
+	): { state: ScanState<Open>; append: string } {
+		const rest = feedRawBody(body, chunk);
+		// No closing tag yet: the chunk was absorbed into `body`; append nothing, the markup has no body text.
+		if (rest === null) return { state: { kind: ScanKind.RAW_BODY, body }, append: '' };
+
+		// Closing tag reached: one descriptor for the whole body, e.g. valueCount 2, literals ['abc ', ' dsd ', 'sdd'].
+		// `rest` (`</title><p>`) goes back into the markup and scanning resumes as TEXT, so a following
+		// `${c}` in `<p>${c}</p>` is an ordinary text slot.
+		descriptors.push(finalize(hooks.onRawTextBody!({ tag: body.tag, literals: body.literals, valueCount: body.valueCount })));
+		return { state: TEXT, append: rest };
+	}
+
 	/** Starts an attribute binding if `markup` ends inside an open quoted value; `null` otherwise. */
 	function openAttr(markup: string): OpenAttr<Open> | null {
 		const match = ATTR_START_RE.exec(markup);
@@ -137,7 +158,26 @@ export function createMarkupScanner<D extends SlotDescriptor, Part, Type extends
 		markup: string,
 		descriptors: D[],
 		counters: { tagSlots: number },
+		foreignRoot: boolean,
 	): { state: ScanState<Open>; append: string; rewind: number } {
+		if (insideComment(markup)) throw unsupportedContextError('an HTML comment');
+		const raw = openRawTextElement(markup, foreignRoot);
+		if (raw) {
+			if (!hooks.onRawTextBody) throw unsupportedContextError(`<${raw.tag}>`);
+			// The interpolation sits in the body of a text-only element. The body is bound as one string on
+			// the element itself, so there is no comment anchor; instead the element gets a placeholder attribute.
+			//
+			//   t`<title>abc ${a} dsd ${b}sdd</title>`  -> markup so far: `<title>abc `
+			//   markup becomes `<title std-ui-part-tag-0="std-ui-part">` (`>abc ` rewound, `>` re-added after the attribute)
+			//
+			//  - The body's static text is saved in `body.literals` and removed from the markup; it is joined
+			//    with the values at render time, so the parsed `<title>` is empty.
+			//  - State becomes RAW_BODY: later interpolations extend the same body until `</title`
+			//    (see `stepRawBody`), then one descriptor covers all of them.
+			const { body, rewind } = beginRawBody(markup, raw);
+			return { state: { kind: ScanKind.RAW_BODY, body }, append: tagMarker(counters.tagSlots++) + '>', rewind };
+		}
+
 		if (isInsideTag(markup)) {
 			// The interpolation sits inside an opening tag. Three possibilities, checked in order:
 
@@ -212,7 +252,7 @@ export function createMarkupScanner<D extends SlotDescriptor, Part, Type extends
 	 * The tag slot is marked with a placeholder attribute (`std-ui-part-tag-N`) that lets the Builder
 	 * find its element. `nodeIndex` is filled in later by `resolveIndices`.
 	 */
-	return function scanMarkup(strings) {
+	return function scanMarkup(strings, foreignRoot = false) {
 		let markup = '';
 		const descriptors: D[] = [];
 		let state: ScanState<Open> = TEXT;
@@ -229,11 +269,17 @@ export function createMarkupScanner<D extends SlotDescriptor, Part, Type extends
 				// quote was found mid-chunk and *this* interpolation needs a fresh decision below.
 				if (state.kind === ScanKind.ATTR_VALUE) continue;
 			}
+			else if (state.kind === ScanKind.RAW_BODY) {
+				const step = stepRawTextBody(state.body, chunk, descriptors);
+				state = step.state;
+				markup += step.append;
+				if (state.kind === ScanKind.RAW_BODY) continue;
+			}
 			else { // TEXT
 				markup += chunk;
 			}
 
-			const step = stepText(markup, descriptors, counters);
+			const step = stepText(markup, descriptors, counters, foreignRoot);
 			state = step.state;
 			markup = markup.slice(0, markup.length - step.rewind) + step.append;
 		}
@@ -247,6 +293,13 @@ export function createMarkupScanner<D extends SlotDescriptor, Part, Type extends
 			state.attr.literals.push(lastChunk.slice(0, quoteIndex));
 			descriptors.push(closeAttr(state.attr));
 			markup += marker + lastChunk.slice(quoteIndex);
+		}
+		else if (state.kind === ScanKind.RAW_BODY) {
+			const step = stepRawTextBody(state.body, lastChunk, descriptors);
+			if (step.state.kind === ScanKind.RAW_BODY) {
+				throw new Error(DEV ? `std-ui html: unterminated <${state.body.tag}> near "...${lastChunk.slice(-40)}"` : 'std-ui: unterminated element');
+			}
+			markup += step.append;
 		}
 		else {
 			markup += lastChunk;

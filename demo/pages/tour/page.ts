@@ -10,6 +10,7 @@ import css from './sections/css-section.ts?raw';
 import directives from './sections/directives-section.ts?raw';
 import bindings from './sections/bindings-section.ts?raw';
 import eventExtensions from './sections/event-extensions-section.ts?raw';
+import textOnly from './sections/text-only-section.ts?raw';
 import todo from './sections/todo-section.ts?raw';
 import mapByKey from './sections/map-by-key-section.ts?raw';
 import svgSection from './sections/svg-section.ts?raw';
@@ -47,6 +48,9 @@ export class DemoFeaturePage extends UIElement {
 			</code-preview>
 			<code-preview id="event-extensions" .files=${files('event-extensions-section.ts', eventExtensions)}>
 				<demo-event-extensions-section></demo-event-extensions-section>
+			</code-preview>
+			<code-preview id="text-only" .files=${files('text-only-section.ts', textOnly)}>
+				<demo-text-only-section></demo-text-only-section>
 			</code-preview>
 			<code-preview id="todo" .files=${files('todo-section.ts', todo)}>
 				<demo-todo-section></demo-todo-section>

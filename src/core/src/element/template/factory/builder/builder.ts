@@ -27,7 +27,7 @@ export function createBuilder<D extends SlotDescriptor, Part, Type extends strin
 		// Running example: t`<p class="a ${x}" title="e${y}f${z}g" ${d}>Hi ${w}!</p>`
 
 		// Step 1: join the strings, replacing each interpolation with a marker (see markup-scanner.ts).
-		const { markup, descriptors } = scanMarkup(strings);
+		const { markup, descriptors } = scanMarkup(strings, options.foreignTypes?.includes(type) ?? false);
 
 		// Step 2: parse the markup (optionally wrapped, e.g. in `<svg>`, so nodes get the right namespace).
 		const element = document.createElement('template');
