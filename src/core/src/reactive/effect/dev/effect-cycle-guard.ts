@@ -53,7 +53,7 @@ export class CycleGuard {
 	count(watcher: Watcher): void {
 		const n = (this.runs.get(watcher) ?? 0) + 1;
 		if (n > this.limit) {
-			const message = DEV ? this.describe(watcher) : `effect re-ran more than ${this.limit} times (cycle?)`;
+			const message = DEV ? describeCycle(this.limit, this.runs, this.origins, watcher) : `effect re-ran more than ${this.limit} times (cycle?)`;
 			this.onTrip();
 			this.runs.clear();
 			throw new Error(message);
@@ -65,20 +65,26 @@ export class CycleGuard {
 	reset(): void {
 		this.runs.clear();
 	}
+}
 
-	private describe(offender: Watcher): string {
-		const suspects = [...this.runs].filter(([w, n]) => w !== offender && n > 1);
-		const fmt = (w: Watcher, n: number): string =>
-			`  - ran ${n}x${DEV ? `, created at:\n${originOf(this.origins.get(w))}` : ''}`;
-		return [
-			`effect re-ran more than ${this.limit} times in a row: probably a cycle between effects that write signals each other reads.`,
-			`Effect that hit the limit:`,
-			fmt(offender, this.limit),
-			...(suspects.length
-				? [`Other effects re-running in the same chain:`, ...suspects.map(([w, n]) => fmt(w, n))]
-				: []),
-		].join('\n');
-	}
+/** DEV only. A module-level function, not a method: class methods survive minification even when
+ *  unreachable, so the long message text would ship in release builds. */
+function describeCycle(
+	limit: number,
+	runs: ReadonlyMap<Watcher, number>,
+	origins: ReadonlyMap<Watcher, Error>,
+	offender: Watcher,
+): string {
+	const suspects = [...runs].filter(([w, n]) => w !== offender && n > 1);
+	const fmt = (w: Watcher, n: number): string => `  - ran ${n}x, created at:\n${originOf(origins.get(w))}`;
+	return [
+		`effect re-ran more than ${limit} times in a row: probably a cycle between effects that write signals each other reads.`,
+		`Effect that hit the limit:`,
+		fmt(offender, limit),
+		...(suspects.length
+			? [`Other effects re-running in the same chain:`, ...suspects.map(([w, n]) => fmt(w, n))]
+			: []),
+	].join('\n');
 }
 
 /** First stack frames outside the signal core / dev helpers, i.e. the user's `effect(...)` call site. */

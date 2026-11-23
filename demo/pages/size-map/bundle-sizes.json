@@ -1,17 +1,17 @@
 {
-	"generatedAt": "2026-11-23T19:24:10.073Z",
+	"generatedAt": "2026-11-23T19:25:11.519Z",
 	"bundles": [
 		{
 			"file": "std-ui-core.release.min.js",
-			"raw": 33772,
-			"gzip": 11638,
-			"brotli": 10650
+			"raw": 33407,
+			"gzip": 11467,
+			"brotli": 10510
 		},
 		{
 			"file": "std-ui-core.release.iife.min.js",
-			"raw": 32829,
-			"gzip": 11292,
-			"brotli": 10321
+			"raw": 32464,
+			"gzip": 11124,
+			"brotli": 10166
 		},
 		{
 			"file": "std-ui-ext.release.min.js",
@@ -30,8 +30,8 @@
 		{
 			"name": "core",
 			"path": "core",
-			"size": 85058,
-			"raw": 208403,
+			"size": 85151,
+			"raw": 208565,
 			"children": [
 				{
 					"name": "element",
@@ -768,9 +768,49 @@
 				{
 					"name": "reactive",
 					"path": "core/reactive",
-					"size": 8768,
-					"raw": 21753,
+					"size": 8861,
+					"raw": 21915,
 					"children": [
+						{
+							"name": "effect",
+							"path": "core/reactive/effect",
+							"size": 4230,
+							"raw": 10366,
+							"children": [
+								{
+									"name": "main.js",
+									"path": "core/reactive/effect/main.js",
+									"size": 2393,
+									"raw": 6359
+								},
+								{
+									"name": "dev",
+									"path": "core/reactive/effect/dev",
+									"size": 1548,
+									"raw": 3700,
+									"children": [
+										{
+											"name": "effect-cycle-guard.js",
+											"path": "core/reactive/effect/dev/effect-cycle-guard.js",
+											"size": 1548,
+											"raw": 3700
+										}
+									]
+								},
+								{
+									"name": "test-helpers.js",
+									"path": "core/reactive/effect/test-helpers.js",
+									"size": 187,
+									"raw": 225
+								},
+								{
+									"name": "index.js",
+									"path": "core/reactive/effect/index.js",
+									"size": 102,
+									"raw": 82
+								}
+							]
+						},
 						{
 							"name": "signal",
 							"path": "core/reactive/signal",
@@ -800,46 +840,6 @@
 									"path": "core/reactive/signal/index.js",
 									"size": 154,
 									"raw": 209
-								}
-							]
-						},
-						{
-							"name": "effect",
-							"path": "core/reactive/effect",
-							"size": 4137,
-							"raw": 10204,
-							"children": [
-								{
-									"name": "main.js",
-									"path": "core/reactive/effect/main.js",
-									"size": 2393,
-									"raw": 6359
-								},
-								{
-									"name": "dev",
-									"path": "core/reactive/effect/dev",
-									"size": 1455,
-									"raw": 3538,
-									"children": [
-										{
-											"name": "effect-cycle-guard.js",
-											"path": "core/reactive/effect/dev/effect-cycle-guard.js",
-											"size": 1455,
-											"raw": 3538
-										}
-									]
-								},
-								{
-									"name": "test-helpers.js",
-									"path": "core/reactive/effect/test-helpers.js",
-									"size": 187,
-									"raw": 225
-								},
-								{
-									"name": "index.js",
-									"path": "core/reactive/effect/index.js",
-									"size": 102,
-									"raw": 82
 								}
 							]
 						},
