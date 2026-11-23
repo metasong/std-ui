@@ -28,11 +28,15 @@ export function disconnectRendered(container: Element | DocumentFragment): void 
 
 /**
  * Tears down whatever `render()` last put in `container`: runs every bound directive's
- * `disconnected()` and empties the container. Call this before discarding a container (e.g. when a
+ * `disconnected()`, disposes the parts (renderers release rows, controllers, observers) and empties the container. Call this before discarding a container (e.g. when a
  * component is removed); `render()` also calls it when a different template replaces the old one.
  */
 export function unmount(container: Element | DocumentFragment): void {
+	const previous = renderedInstances.get(container);
 	disconnectRendered(container);
+	// `disconnect()` only releases directives; `dispose()` also lets renderers release what they own beyond
+	// the DOM that is emptied below (list/keyed rows, `virtualize` controllers and observers, `cache()` entries).
+	if (previous) for (const part of previous.parts) part.dispose?.();
 	renderedInstances.delete(container);
 	container.textContent = '';
 }

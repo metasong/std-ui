@@ -1,7 +1,8 @@
 import { describe, expect, it } from 'vitest';
 import { Directive, directive, type DirectivePart } from './directives/directive.js';
 import { t, svg } from './tag-funcs/html/index.js';
-import { render, unmount } from './render.js';
+import { render, unmount, disconnectRendered } from './render.js';
+import { ChildRenderer, renderWith } from './parts/child-renderers/index.js';
 
 let log: string[] = [];
 class Probe extends Directive {
@@ -141,6 +142,45 @@ describe('unmount', () => {
 		unmount(c);
 		expect(log).toEqual(['disconnected']);
 		expect(c.innerHTML).toBe('');
+	});
+	it('disposes the top-level parts (renderers), not only disconnects them', () => {
+		let disposed = 0;
+		let disconnected = 0;
+		class Spy extends ChildRenderer<string> {
+			update(): boolean { return true; }
+			override disconnect(): void { disconnected++; }
+			dispose(): void { disposed++; }
+		}
+		class SpyDirective extends Directive {
+			override update(_part: DirectivePart) { return renderWith(Spy, 'x'); }
+		}
+		const spy = directive(SpyDirective);
+
+		const c = document.createElement('div');
+		render(t`<p>${spy()}</p>`, c);
+		unmount(c);
+		expect(disconnected).toBe(1);
+		expect(disposed).toBe(1);
+
+		// Replacing the template disposes too (render() unmounts the old one first).
+		const d = document.createElement('div');
+		render(t`<p>${spy()}</p>`, d);
+		render(t`<b>${'z'}</b>`, d);
+		expect(disposed).toBe(2);
+	});
+	it('does not dispose when the owner is merely detached (it may render again)', () => {
+		let disposed = 0;
+		class Spy extends ChildRenderer<string> {
+			update(): boolean { return true; }
+			dispose(): void { disposed++; }
+		}
+		class SpyDirective extends Directive {
+			override update(_part: DirectivePart) { return renderWith(Spy, 'x'); }
+		}
+		const c = document.createElement('div');
+		render(t`<p>${directive(SpyDirective)()}</p>`, c);
+		disconnectRendered(c);
+		expect(disposed).toBe(0);
 	});
 	it('render() disconnects when a different template replaces the old one', () => {
 		log = [];
