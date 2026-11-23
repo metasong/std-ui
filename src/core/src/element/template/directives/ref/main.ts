@@ -73,16 +73,21 @@ class RefDirective extends Directive {
 	#set(el: Element | undefined): void {
 		const ref = this.#ref;
 		if (!ref) return;
-		if (!isCallback(ref)) {
+		if (isRef(ref)) {
 			// Only clear a ref that still points at our element, so a ref handed to another binding isn't wiped.
 			if (el || ref.peek() === this.#element) ref.set(el);
 		} else ref.call(this.#host, el);
 	}
 }
 
-/** A `Ref` is a signal, which is also a function: tell it from a callback by its `set`. */
-function isCallback(ref: RefOrCallback): ref is RefCallback {
-	return !('set' in ref);
+/** A `Ref` is a signal, which is also a function: tell it from a callback by its `set`.
+ *  (Guards `Ref`, not `RefCallback`: a `Ref` is itself assignable to `RefCallback`, so the false branch of a
+ *  `ref is RefCallback` guard would narrow to `never`.) */
+function isRef(ref: RefOrCallback): ref is Ref {
+	return 'set' in ref;
+}
+function isCallback(ref: RefOrCallback): boolean {
+	return !isRef(ref);
 }
 
 export const ref = directive(RefDirective);

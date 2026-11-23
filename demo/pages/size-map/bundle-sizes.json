@@ -1,55 +1,55 @@
 {
-	"generatedAt": "2026-11-23T15:43:45.543Z",
+	"generatedAt": "2026-11-23T17:06:16.966Z",
 	"bundles": [
 		{
 			"file": "std-ui-core.release.min.js",
-			"raw": 33592,
-			"gzip": 11449,
-			"brotli": 10438
+			"raw": 34820,
+			"gzip": 11891,
+			"brotli": 10831
 		},
 		{
 			"file": "std-ui-core.release.iife.min.js",
-			"raw": 32824,
-			"gzip": 11171,
-			"brotli": 10180
+			"raw": 34009,
+			"gzip": 11594,
+			"brotli": 10572
 		},
 		{
 			"file": "std-ui-ext.release.min.js",
-			"raw": 49469,
-			"gzip": 14735,
-			"brotli": 13227
+			"raw": 49595,
+			"gzip": 14785,
+			"brotli": 13278
 		},
 		{
 			"file": "std-ui-ext.release.iife.min.js",
-			"raw": 37687,
-			"gzip": 12946,
-			"brotli": 11763
+			"raw": 37790,
+			"gzip": 13005,
+			"brotli": 11803
 		}
 	],
 	"packages": [
 		{
 			"name": "core",
 			"path": "core",
-			"size": 81761,
-			"raw": 199860,
+			"size": 84416,
+			"raw": 207847,
 			"children": [
 				{
 					"name": "element",
 					"path": "core/element",
-					"size": 71878,
-					"raw": 175889,
+					"size": 74432,
+					"raw": 183648,
 					"children": [
 						{
 							"name": "template",
 							"path": "core/element/template",
-							"size": 47277,
-							"raw": 117200,
+							"size": 49146,
+							"raw": 123029,
 							"children": [
 								{
 									"name": "directives",
 									"path": "core/element/template/directives",
-									"size": 14539,
-									"raw": 36050,
+									"size": 15464,
+									"raw": 38610,
 									"children": [
 										{
 											"name": "bind",
@@ -104,14 +104,14 @@
 										{
 											"name": "style-map",
 											"path": "core/element/template/directives/style-map",
-											"size": 1787,
-											"raw": 4040,
+											"size": 2309,
+											"raw": 5522,
 											"children": [
 												{
 													"name": "main.js",
 													"path": "core/element/template/directives/style-map/main.js",
-													"size": 1679,
-													"raw": 3950
+													"size": 2201,
+													"raw": 5432
 												},
 												{
 													"name": "index.js",
@@ -124,20 +124,40 @@
 										{
 											"name": "class-map",
 											"path": "core/element/template/directives/class-map",
-											"size": 1518,
-											"raw": 3607,
+											"size": 1587,
+											"raw": 3752,
 											"children": [
 												{
 													"name": "main.js",
 													"path": "core/element/template/directives/class-map/main.js",
-													"size": 1427,
-													"raw": 3536
+													"size": 1496,
+													"raw": 3681
 												},
 												{
 													"name": "index.js",
 													"path": "core/element/template/directives/class-map/index.js",
 													"size": 91,
 													"raw": 71
+												}
+											]
+										},
+										{
+											"name": "ref",
+											"path": "core/element/template/directives/ref",
+											"size": 1408,
+											"raw": 3381,
+											"children": [
+												{
+													"name": "main.js",
+													"path": "core/element/template/directives/ref/main.js",
+													"size": 1311,
+													"raw": 3304
+												},
+												{
+													"name": "index.js",
+													"path": "core/element/template/directives/ref/index.js",
+													"size": 97,
+													"raw": 77
 												}
 											]
 										},
@@ -176,26 +196,6 @@
 											]
 										},
 										{
-											"name": "ref",
-											"path": "core/element/template/directives/ref",
-											"size": 1074,
-											"raw": 2448,
-											"children": [
-												{
-													"name": "main.js",
-													"path": "core/element/template/directives/ref/main.js",
-													"size": 977,
-													"raw": 2371
-												},
-												{
-													"name": "index.js",
-													"path": "core/element/template/directives/ref/index.js",
-													"size": 97,
-													"raw": 77
-												}
-											]
-										},
-										{
 											"name": "assert-child-part.js",
 											"path": "core/element/template/directives/assert-child-part.js",
 											"size": 314,
@@ -212,26 +212,26 @@
 								{
 									"name": "factory",
 									"path": "core/element/template/factory",
-									"size": 13460,
-									"raw": 36192,
+									"size": 14156,
+									"raw": 38712,
 									"children": [
 										{
 											"name": "builder",
 											"path": "core/element/template/factory/builder",
-											"size": 9305,
-											"raw": 26312,
+											"size": 10001,
+											"raw": 28832,
 											"children": [
 												{
 													"name": "markup-scanner.js",
 													"path": "core/element/template/factory/builder/markup-scanner.js",
-													"size": 4506,
-													"raw": 15116
+													"size": 5063,
+													"raw": 17312
 												},
 												{
 													"name": "raw-text.js",
 													"path": "core/element/template/factory/builder/raw-text.js",
-													"size": 2137,
-													"raw": 5143
+													"size": 2276,
+													"raw": 5467
 												},
 												{
 													"name": "builder.js",
@@ -496,20 +496,20 @@
 								{
 									"name": "tag-funcs",
 									"path": "core/element/template/tag-funcs",
-									"size": 4290,
-									"raw": 9606,
+									"size": 4407,
+									"raw": 9916,
 									"children": [
 										{
 											"name": "css",
 											"path": "core/element/template/tag-funcs/css",
-											"size": 2383,
-											"raw": 5511,
+											"size": 2500,
+											"raw": 5821,
 											"children": [
 												{
 													"name": "index.js",
 													"path": "core/element/template/tag-funcs/css/index.js",
-													"size": 2383,
-													"raw": 5511
+													"size": 2500,
+													"raw": 5821
 												}
 											]
 										},
@@ -532,8 +532,8 @@
 								{
 									"name": "render.js",
 									"path": "core/element/template/render.js",
-									"size": 990,
-									"raw": 2361
+									"size": 1121,
+									"raw": 2800
 								},
 								{
 									"name": "index.js",
@@ -546,32 +546,32 @@
 						{
 							"name": "decorators",
 							"path": "core/element/decorators",
-							"size": 16101,
-							"raw": 35974,
+							"size": 16543,
+							"raw": 37150,
 							"children": [
 								{
 									"name": "attribute",
 									"path": "core/element/decorators/attribute",
-									"size": 5821,
-									"raw": 14018,
+									"size": 6263,
+									"raw": 15194,
 									"children": [
 										{
 											"name": "converter.js",
 											"path": "core/element/decorators/attribute/converter.js",
-											"size": 1437,
-											"raw": 3700
+											"size": 1615,
+											"raw": 4137
+										},
+										{
+											"name": "wire-reflect.js",
+											"path": "core/element/decorators/attribute/wire-reflect.js",
+											"size": 1614,
+											"raw": 4261
 										},
 										{
 											"name": "attribute.decorator.js",
 											"path": "core/element/decorators/attribute/attribute.decorator.js",
 											"size": 1374,
 											"raw": 3159
-										},
-										{
-											"name": "wire-reflect.js",
-											"path": "core/element/decorators/attribute/wire-reflect.js",
-											"size": 1350,
-											"raw": 3522
 										},
 										{
 											"name": "metadata.js",
@@ -726,6 +726,12 @@
 							"raw": 12643
 						},
 						{
+							"name": "element-styles.js",
+							"path": "core/element/element-styles.js",
+							"size": 1933,
+							"raw": 5204
+						},
+						{
 							"name": "feat",
 							"path": "core/element/feat",
 							"size": 1695,
@@ -746,12 +752,6 @@
 							]
 						},
 						{
-							"name": "element-styles.js",
-							"path": "core/element/element-styles.js",
-							"size": 1690,
-							"raw": 4450
-						},
-						{
 							"name": "ui-element-hooks.js",
 							"path": "core/element/ui-element-hooks.js",
 							"size": 706,
@@ -762,8 +762,8 @@
 				{
 					"name": "reactive",
 					"path": "core/reactive",
-					"size": 8668,
-					"raw": 21568,
+					"size": 8769,
+					"raw": 21796,
 					"children": [
 						{
 							"name": "signal",
@@ -800,14 +800,14 @@
 						{
 							"name": "effect",
 							"path": "core/reactive/effect",
-							"size": 4036,
-							"raw": 9976,
+							"size": 4137,
+							"raw": 10204,
 							"children": [
 								{
 									"name": "main.js",
 									"path": "core/reactive/effect/main.js",
-									"size": 2292,
-									"raw": 6131
+									"size": 2393,
+									"raw": 6359
 								},
 								{
 									"name": "dev",
@@ -876,20 +876,20 @@
 		{
 			"name": "ext",
 			"path": "ext",
-			"size": 56749,
-			"raw": 140444,
+			"size": 56939,
+			"raw": 140890,
 			"children": [
 				{
 					"name": "element",
 					"path": "ext/element",
-					"size": 33149,
-					"raw": 84520,
+					"size": 33339,
+					"raw": 84966,
 					"children": [
 						{
 							"name": "template",
 							"path": "ext/element/template",
-							"size": 22248,
-							"raw": 60383,
+							"size": 22438,
+							"raw": 60829,
 							"children": [
 								{
 									"name": "directives",
@@ -1098,8 +1098,8 @@
 								{
 									"name": "custom-attributes",
 									"path": "ext/element/template/custom-attributes",
-									"size": 4054,
-									"raw": 8789,
+									"size": 4244,
+									"raw": 9235,
 									"children": [
 										{
 											"name": "event",
@@ -1150,14 +1150,14 @@
 										{
 											"name": "class-style",
 											"path": "ext/element/template/custom-attributes/class-style",
-											"size": 1005,
-											"raw": 2334,
+											"size": 1195,
+											"raw": 2780,
 											"children": [
 												{
 													"name": "class-style.custom-attribute.js",
 													"path": "ext/element/template/custom-attributes/class-style/class-style.custom-attribute.js",
-													"size": 1005,
-													"raw": 2334
+													"size": 1195,
+													"raw": 2780
 												}
 											]
 										},
