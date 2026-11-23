@@ -1,6 +1,7 @@
 // Read-only derived value: `computed()`. Lazily recomputes when dependencies change (see
 // `./computed-lazy.md`). Uses `./tracking.ts` for dependency tracking.
 
+import { DEV } from '../../dev/flag.js';
 import { notify, ReactiveNode, runTracked, sourcesChanged, track } from './tracking.js';
 import type { ReadonlyState, StateOptions } from './state.js';
 
@@ -23,19 +24,34 @@ export function computed<T>(fn: () => T, options: StateOptions<T> = {}): Compute
 		node.dirty = true;
 		notify(node);
 	};
+	let computing = false;
 	node.refresh = () => {
 		if (!node.dirty) return;
-		// "Maybe dirty" is confirmed only if a source's version actually moved.
-		if (!hasValue || sourcesChanged(node)) {
-			const next = runTracked(node, fn);
-			// An equal result keeps the old reference and `version`, so observers skip too.
-			if (!hasValue || !equals(next, value)) {
-				value = next;
-				node.version++;
-			}
-			hasValue = true;
+		// Re-entered while our own `fn` is still running => `fn` (directly or via other computeds) reads itself.
+		if (computing) {
+			throw new Error(
+				DEV
+					? 'std-ui computed: circular dependency detected - a computed read itself while being computed.'
+					: 'std-ui: circular computed',
+			);
 		}
-		node.dirty = false;
+		computing = true;
+		try {
+			// "Maybe dirty" is confirmed only if a source's version actually moved.
+			if (!hasValue || sourcesChanged(node)) {
+				const next = runTracked(node, fn);
+				// An equal result keeps the old reference and `version`, so observers skip too.
+				if (!hasValue || !equals(next, value)) {
+					value = next;
+					node.version++;
+				}
+				hasValue = true;
+			}
+			node.dirty = false;
+		}
+		finally {
+			computing = false; // also on throw, so the computed isn't stuck "computing" forever
+		}
 	};
 
 	const read = (): T => {

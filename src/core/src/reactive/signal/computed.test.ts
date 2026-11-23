@@ -30,6 +30,35 @@ describe('computed', () => {
 		expect(spy).toHaveBeenCalledTimes(1);
 	});
 
+	describe('circular dependencies', () => {
+		it('throws a clear error when a computed reads itself', () => {
+			const self: () => number = computed(() => self() + 1);
+			expect(() => self()).toThrow(/circular/i);
+		});
+
+		it('throws when two computeds read each other', () => {
+			const a: () => number = computed(() => b() + 1);
+			const b: () => number = computed(() => a() + 1);
+			expect(() => a()).toThrow(/circular/i);
+		});
+
+		it('is not stuck after a throw: the computed recovers once the cycle is gone', () => {
+			const breakCycle = state(false);
+			const self: () => number = computed(() => (breakCycle() ? 42 : self()));
+			expect(() => self()).toThrow(/circular/i);
+			breakCycle.set(true);
+			expect(self()).toBe(42);
+		});
+
+		it('does not treat a shared (diamond) dependency as a cycle', () => {
+			const a = state(1);
+			const b = computed(() => a() + 1);
+			const c = computed(() => a() + 2);
+			const d = computed(() => b() + c());
+			expect(d()).toBe(5);
+		});
+	});
+
 	it('propagates through chained computeds', () => {
 		const a = state(1);
 		const doubled = computed(() => a() * 2);
