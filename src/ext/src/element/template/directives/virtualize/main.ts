@@ -1,5 +1,6 @@
 import { Directive, assertChildPart, directive, type DirectivePart, type PartInfo } from '@std-ui/core';
 import { renderWith } from '@std-ui/core';
+import { DEV } from '../../../../dev/flag.js';
 import { VirtualizeRenderer } from './renderer/index.js';
 import type { VirtualizeOptions } from './options.js';
 
@@ -12,10 +13,10 @@ class VirtualizeDirective extends Directive {
 	override update(_part: DirectivePart, items: ArrayLike<unknown>, options: VirtualizeOptions<any>) {
 		for (const name of ['itemSize', 'estimatedItemSize'] as const) {
 			const h = options[name];
-			if (h !== undefined && !(h > 0)) throw new Error(`std-ui virtualize(): ${name} must be > 0.`);
+			if (h !== undefined && !(h > 0)) throw new Error(DEV ? `std-ui virtualize(): ${name} must be > 0.` : `virtualize(): ${name} must be > 0`);
 		}
 		if (options.isHeader && typeof options.lanes === 'number' && options.lanes > 1) {
-			throw new Error('std-ui virtualize(): isHeader requires lanes = 1.');
+			throw new Error(DEV ? 'std-ui virtualize(): isHeader requires lanes = 1.' : 'virtualize(): isHeader needs lanes = 1');
 		}
 		return renderWith(VirtualizeRenderer, { items, options });
 	}

@@ -56,7 +56,7 @@ export function querySlottedNodes<T extends Node = Node>(host: UIElement, option
  */
 export function querySlotted<T extends Node = Node>(options: QuerySlottedOptions<T> = {}) {
 	return function querySlottedDecorator(_value: undefined, context: ClassFieldDecoratorContext<UIElement, T[]>): void {
-		if (context.kind !== 'field') throw new Error('@querySlotted() can only decorate a plain class field (no accessor).');
+		if (context.kind !== 'field') throw new Error(DEV ? '@querySlotted() can only decorate a plain class field (no accessor).' : 'querySlotted: plain fields only');
 		const key = context.name;
 		addClassHooks(context.metadata as object, slotSnapshotHooks); // capture the host's children before its first render (once per class)
 		context.addInitializer(function (this: UIElement): void {

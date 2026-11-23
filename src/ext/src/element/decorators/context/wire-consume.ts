@@ -4,6 +4,7 @@
 // signal lives only in that getter's closure.
 
 import { type UIElementHooks } from '@std-ui/core';
+import { DEV } from '../../../dev/flag.js';
 import { stateTree } from '../../../reactive/state-tree/index.js';
 import type { ContextKey } from './key.js';
 import { consumedContexts } from './metadata.js';
@@ -24,15 +25,17 @@ export function wireConsumedContexts(host: HTMLElement): void {
 		}));
 		if (!found) {
 			throw new Error(
-				`consume() on <${host.tagName.toLowerCase()}> found no ancestor providing context ` +
-					`"${contextKey.description}" - add a matching @provide(key) / defineElement({ provide }) ` +
-					`further up the tree.`,
+				DEV
+					? `consume() on <${host.tagName.toLowerCase()}> found no ancestor providing context ` +
+						`"${contextKey.description}" - add a matching @provide(key) / defineElement({ provide }) ` +
+						`further up the tree.`
+					: 'consume(): no provider found',
 			);
 		}
 		Object.defineProperty(host, key, {
 			get: (): unknown => value(),
 			set(): void {
-				throw new TypeError(`@consume() field "${String(key)}" is read-only - its value comes from the provider.`);
+				throw new TypeError(DEV ? `@consume() field "${String(key)}" is read-only - its value comes from the provider.` : '@consume(): read-only');
 			},
 			enumerable: true,
 			configurable: true,

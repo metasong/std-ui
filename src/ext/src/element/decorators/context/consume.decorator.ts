@@ -8,6 +8,7 @@
 
 import type { ContextKey } from './key.js';
 import { addClassHooks } from '@std-ui/core';
+import { DEV } from '../../../dev/flag.js';
 import { consumedContexts } from './metadata.js';
 import { consumeHooks } from './wire-consume.js';
 
@@ -27,7 +28,7 @@ import { consumeHooks } from './wire-consume.js';
 export function consume<V>(contextKey: ContextKey<V>) {
 	return function consumeDecorator(_value: undefined, ctx: ClassFieldDecoratorContext<object, V>): void {
 		if (ctx.kind !== 'field') {
-			throw new Error("@consume() can only decorate a plain class field, e.g. `@consume(key) readonly foo!: Foo;` (no 'accessor').");
+			throw new Error(DEV ? "@consume() can only decorate a plain class field, e.g. `@consume(key) readonly foo!: Foo;` (no 'accessor')." : '@consume(): plain fields only');
 		}
 		// Storage: per-class (keyed off the constructor, inherited via prototype chain of metadata objects).
 		consumedContexts.register(ctx.metadata as object, { key: ctx.name, contextKey: contextKey as ContextKey<unknown> });

@@ -10,6 +10,7 @@
 
 import type { StateOptions } from '@std-ui/core';
 
+import { DEV } from '../../dev/flag.js';
 import { stateArray, type StateArray } from './array/index.js';
 import { stateLeaf, type StateLeaf } from './leaf.js';
 import { isTreeNode, type ItemNode, type TreeNode } from './node.js';
@@ -171,7 +172,7 @@ function build<T>(
 	const container = Array.isArray(value) || isPlainObject(value);
 	if (container) {
 		if (ancestors.has(value as object)) {
-			throw new TypeError('state: circular reference detected; state must be a finite tree of plain data');
+			throw new TypeError(DEV ? 'state: circular reference detected; state must be a finite tree of plain data' : 'state: circular reference');
 		}
 		ancestors.add(value as object);
 	}

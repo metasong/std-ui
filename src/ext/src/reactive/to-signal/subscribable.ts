@@ -1,3 +1,4 @@
+import { DEV } from '../../dev/flag.js';
 import type { InteropObservable, PartialObserver, Subscribable } from './types.js';
 
 /** `Symbol.observable` if a polyfill defined it, else the RxJS string fallback. No global type augmentation. */
@@ -36,5 +37,5 @@ export function toSubscribable<T>(source: Subscribable<T> | InteropObservable<T>
 	if (isPromiseLike<T>(source)) return promiseAsSubscribable(source);
 	const interop = (source as unknown as Record<PropertyKey, unknown>)?.[observableKey()];
 	if (typeof interop === 'function') return (interop as () => Subscribable<T>).call(source);
-	throw new TypeError('toSignal(): source must be a Promise or have a subscribe() method.');
+	throw new TypeError(DEV ? 'toSignal(): source must be a Promise or have a subscribe() method.' : 'toSignal(): invalid source');
 }

@@ -1,4 +1,5 @@
-import { Directive, directive, assertChildPart, renderWith, DEV, type DirectivePart, type DirectiveResult, type PartInfo } from '@std-ui/core';
+import { Directive, directive, assertChildPart, renderWith, type DirectivePart, type DirectiveResult, type PartInfo } from '@std-ui/core';
+import { DEV } from '../../../../dev/flag.js';
 import { MapByKeyRenderer } from './map-by-key-renderer.js';
 
 class MapByKeyDirective extends Directive {

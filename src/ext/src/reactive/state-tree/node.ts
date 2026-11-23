@@ -1,5 +1,7 @@
 // Shared contract between the tree's container nodes (./array, ./object) and their children.
 
+import { DEV } from '../../dev/flag.js';
+
 /**
  * Carried by every tree node: `node.with(feature)` calls `feature(node)` and returns its result, so
  * separate features chain onto a node: `stateTree(0).with(check).with(changes)`. The core knows no feature.
@@ -65,7 +67,9 @@ export function isTreeNode(value: unknown): value is TreeNode {
 export function assertNotNode(value: unknown): void {
 	if (isTreeNode(value)) {
 		throw new TypeError(
-			'state: cannot write a state node into an existing member; nodes are adopted at construction or as a new key / item',
+			DEV
+				? 'state: cannot write a state node into an existing member; nodes are adopted at construction or as a new key / item'
+				: 'state: cannot write a node into a member',
 		);
 	}
 }
@@ -124,7 +128,7 @@ function reaches(node: unknown, target: object, seen: Set<unknown>): boolean {
  */
 export function assertAcyclic(parent: object, child: unknown): void {
 	if (reaches(child, parent, new Set())) {
-		throw new TypeError('state: circular reference detected; a node cannot contain itself');
+		throw new TypeError(DEV ? 'state: circular reference detected; a node cannot contain itself' : 'state: circular reference');
 	}
 }
 

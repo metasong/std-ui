@@ -9,6 +9,7 @@
 // `./wire-provide.ts`).
 
 import { addClassHooks } from '@std-ui/core';
+import { DEV } from '../../../dev/flag.js';
 import { type StateTree } from '../../../reactive/state-tree/index.js';
 import { provideHooks } from './wire-provide.js';
 import type { ContextKey } from './key.js';
@@ -35,7 +36,7 @@ import { providedContexts } from './metadata.js';
 export function provide<V>(contextKey: ContextKey<V>) {
 	return function provideDecorator(_value: undefined, ctx: ClassFieldDecoratorContext<object, StateTree<V>>): void {
 		if (ctx.kind !== 'field') {
-			throw new Error("@provide() can only decorate a plain class field, e.g. `@provide(key) foo = stateTree(0);` (no 'accessor').");
+			throw new Error(DEV ? "@provide() can only decorate a plain class field, e.g. `@provide(key) foo = stateTree(0);` (no 'accessor')." : '@provide(): plain fields only');
 		}
 		providedContexts.register(ctx.metadata as object, { key: ctx.name, contextKey: contextKey as ContextKey<unknown> });
 		addClassHooks(ctx.metadata as object, provideHooks);

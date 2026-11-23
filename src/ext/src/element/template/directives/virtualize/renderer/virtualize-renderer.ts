@@ -1,4 +1,5 @@
 import { ChildRenderer } from '@std-ui/core';
+import { DEV } from '../../../../../dev/flag.js';
 import { KeyedRows, type KeyedEntries } from '../../_lib/keyed-rows/index.js';
 import type { ControllerTarget, ScrollToIndexOptions, VirtualizeController } from '../controller.js';
 import {
@@ -174,7 +175,7 @@ export class VirtualizeRenderer extends ChildRenderer<VirtualizeValue> implement
 		const entries: { key: unknown; value: unknown }[] = [];
 		for (let i = win.start; i < win.end; i++) {
 			const key = this.#keyOf(i);
-			if (seen.has(key)) throw new Error(`std-ui virtualize(): duplicate key ${String(key)}.`);
+			if (seen.has(key)) throw new Error(DEV ? `std-ui virtualize(): duplicate key ${String(key)}.` : 'virtualize(): duplicate key');
 			seen.add(key);
 			entries.push({ key, value: full || !rows.has(key) ? options.renderItem(items[i], i) : undefined });
 		}

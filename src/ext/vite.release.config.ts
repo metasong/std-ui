@@ -2,10 +2,9 @@ import { defineConfig } from 'vite';
 import { esbuildTs } from '../../scripts/esbuild-ts.ts';
 import { resolve } from 'node:path';
 
-// Release bundles: same as `vite.bundle.config.ts`, but any local `dev/flag.ts` `DEV` is the constant
-// `false`. `ext` has no dev-only code yet (and `@std-ui/core` stays external, so its own release/dev
-// choice is made by whichever core build is loaded), so today this only renames the output; it keeps
-// the release set symmetrical with core and is ready for future dev-only diagnostics.
+// Release bundles: same as `vite.bundle.config.ts`, but `src/dev/flag.ts` `DEV` is the constant
+// `false`, so ext's verbose error messages and dev-only checks are dead-code eliminated. `@std-ui/core`
+// stays external, so its own release/dev choice is made by whichever core build is loaded.
 const releaseFlag = {
 	name: 'std-ui-release-flag',
 	enforce: 'pre' as const,

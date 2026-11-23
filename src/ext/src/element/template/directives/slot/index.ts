@@ -1,7 +1,8 @@
 import {
-	assertChildPart, ChildRenderer, DEV, Directive, directive, getSlotContent, renderWith, snapshotLightChildren, TemplateRenderer,
+	assertChildPart, ChildRenderer, Directive, directive, getSlotContent, renderWith, snapshotLightChildren, TemplateRenderer,
 	type DirectivePart, type DirectiveResult, type PartInfo, type TemplateResult,
 } from '@std-ui/core';
+import { DEV } from '../../../../dev/flag.js';
 import { assertSlotDirectiveInLightDom } from './dev/warn-slot.js';
 
 

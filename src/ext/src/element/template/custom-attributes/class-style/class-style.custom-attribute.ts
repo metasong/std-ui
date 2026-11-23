@@ -4,6 +4,7 @@
 // single modifier names the entry; everything else about the binding is validated here.
 
 import { type CustomAttribute, type AttributeInfo, type Part } from '@std-ui/core';
+import { DEV } from '../../../../dev/flag.js';
 
 type ApplyEntry = (el: Element, entry: string, value: unknown) => void;
 
@@ -31,9 +32,9 @@ function singleEntryAttributeExtension(name: string, apply: ApplyEntry): CustomA
 		single: true,
 		matches: b => b.modifiers.length > 0 || b.arg !== undefined,
 		validate(b: AttributeInfo) {
-			if (b.arg !== undefined) throw new Error(`std-ui html: "${name}:${b.arg}" - ":arg" is not supported on ${name}.`);
+			if (b.arg !== undefined) throw new Error(DEV ? `std-ui html: "${name}:${b.arg}" - ":arg" is not supported on ${name}.` : 'std-ui: ":arg" unsupported');
 			if (b.modifiers.length !== 1 || b.modifiers[0].value !== undefined) {
-				throw new Error(`std-ui html: ${name} takes exactly one entry, e.g. ${name}.entry=\${value}.`);
+				throw new Error(DEV ? `std-ui html: ${name} takes exactly one entry, e.g. ${name}.entry=\${value}.` : `std-ui: ${name} takes one entry`);
 			}
 		},
 		createPart: (el, b) => new EntryPart(el, b.modifiers[0].name, apply),
