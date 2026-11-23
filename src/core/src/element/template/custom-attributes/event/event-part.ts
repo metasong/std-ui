@@ -14,6 +14,9 @@ export function withEventOptions<H extends EventListenerOrEventListenerObject>(
 	return Object.assign(wrapped, { options }) as unknown as H & { options: AddEventListenerOptions };
 }
 
+/** The `addEventListener` options whose change requires removing and re-adding the listener. */
+const LISTENER_OPTION_KEYS = ['capture', 'once', 'passive', 'signal'] as const;
+
 /** Whether an `EventPart` currently has its listener registered on the element. */
 const ListenerState = {
 	/** Not registered: before the first handler, after the handler became non-callable, or after
@@ -74,7 +77,7 @@ export class EventPart implements Part, EventListenerObject {
 			this.#state = ListenerState.DETACHED;
 		}
 		const cur = this.#active;
-		if (this.#state === ListenerState.ATTACHED && (cur?.capture !== next?.capture || cur?.once !== next?.once || cur?.passive !== next?.passive || cur?.signal !== next?.signal)) {
+		if (this.#state === ListenerState.ATTACHED && LISTENER_OPTION_KEYS.some(key => cur?.[key] !== next?.[key])) {
 			this.#detach();
 		}
 		// The part itself is the one registered listener (stable identity), so swapping handlers

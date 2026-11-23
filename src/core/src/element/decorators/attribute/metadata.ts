@@ -4,6 +4,7 @@
 
 import { type AttributeConverter, type AttributeType, inferAttributeType, resolveConverter, toAttributeName } from './converter.js';
 import { createClassRegistry } from '../class-registry.js';
+import { isSettable } from '../../../util.js';
 
 /**
  * One attribute-backed field, recorded either by `@attribute()` (in a class's `context.metadata` /
@@ -29,11 +30,7 @@ export const attributeDefs = createClassRegistry<AttributeDef>('attributeDefs');
 export type SignalLikeForAttribute = { (): unknown; peek(): unknown; set(value: never): void };
 
 export function isSignalLikeForAttribute(value: unknown): value is SignalLikeForAttribute {
-	return (
-		typeof value === 'function' &&
-		typeof (value as { peek?: unknown }).peek === 'function' &&
-		typeof (value as { set?: unknown }).set === 'function'
-	);
+	return isSettable(value) && typeof (value as { peek?: unknown }).peek === 'function';
 }
 
 /**

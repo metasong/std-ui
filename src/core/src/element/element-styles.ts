@@ -19,6 +19,13 @@ import {
 	type CSSResultGroup,
 } from './template/index.js';
 
+/** A `<style>` holding `cssText`, for roots without `adoptedStyleSheets` support. */
+function styleElement(cssText: string): HTMLStyleElement {
+	const style = document.createElement('style');
+	style.textContent = cssText;
+	return style;
+}
+
 /**
  * One instance per `UIElement`, created alongside its render root. Holds the one piece of state
  * styling needs to track across re-renders - the shadow-fallback `<style>`, if any (see `apply()`)
@@ -52,10 +59,7 @@ export class ElementStyles {
 				return;
 			}
 
-			const style = document.createElement('style');
-			style.textContent = flattenCSSText(styles);
-			this.#styleElement = style;
-			renderRoot.prepend(style);
+			renderRoot.prepend(this.#styleElement = styleElement(flattenCSSText(styles)));
 			return;
 		}
 
@@ -75,9 +79,7 @@ export class ElementStyles {
 			sheet.replaceSync(scopedCssText);
 			target.adoptedStyleSheets = [...target.adoptedStyleSheets, sheet];
 		} else {
-			const style = document.createElement('style');
-			style.textContent = scopedCssText;
-			(target instanceof ShadowRoot ? target : document.head).appendChild(style);
+			(target instanceof ShadowRoot ? target : document.head).appendChild(styleElement(scopedCssText));
 		}
 	}
 
