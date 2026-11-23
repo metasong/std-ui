@@ -32,6 +32,33 @@ describe('ref directive', () => {
 		expect(cb).toHaveBeenCalledTimes(1);
 	});
 
+	it('does not re-fire an inline callback on every render', () => {
+		const calls: unknown[] = [];
+		const host = document.createElement('div');
+		// A new arrow function each render, the natural way to write `ref(el => ...)`.
+		const view = (n: number) => t`<div ${ref(el => calls.push([n, el === undefined ? 'undefined' : 'el']))}></div>`;
+		render(view(1), host);
+		render(view(2), host);
+		render(view(3), host);
+		expect(calls).toEqual([[1, 'el']]);
+		unmount(host);
+		// teardown reaches the latest callback
+		expect(calls).toEqual([[1, 'el'], [3, 'undefined']]);
+	});
+
+	it('still switches when a callback is replaced by a Ref or the other way round', () => {
+		const a = createRef();
+		const cb = vi.fn();
+		const host = document.createElement('div');
+		render(t`<div ${ref(cb)}></div>`, host);
+		render(t`<div ${ref(a)}></div>`, host);
+		expect(cb).toHaveBeenLastCalledWith(undefined);
+		expect(a()).toBe(host.firstElementChild);
+		render(t`<div ${ref(cb)}></div>`, host);
+		expect(a()).toBeUndefined();
+		expect(cb).toHaveBeenLastCalledWith(host.firstElementChild);
+	});
+
 	it('clears the old ref and sets the new one when the ref changes', () => {
 		const a = createRef();
 		const b = createRef();

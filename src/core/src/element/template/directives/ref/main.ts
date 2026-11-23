@@ -19,14 +19,15 @@ export function createRef<T extends Element = Element>(): Ref<T> {
 
 /**
  * `ref` directive: gives access to the element it is bound to
- *. Bound on the element itself, no attribute name:
+ * Bound on the element itself, no attribute name:
  *
  *   const input = createRef<HTMLInputElement>();
  *   t`<input ${ref(input)}>`;          // input() is the element after render
  *   t`<input ${ref(el => el?.focus())}>`; // callback form
  *
  * The ref is cleared (or the callback called with `undefined`) when the binding is torn down
- * or later given a different ref.
+ * or later given a different `Ref` (or switched between a `Ref` and a callback). A callback replaced by
+ * another callback is not a switch, so an inline `ref(el => ...)` runs once, not on every render.
  */
 class RefDirective extends Directive {
 	#ref: RefOrCallback | undefined;
@@ -45,9 +46,16 @@ class RefDirective extends Directive {
 	override update(part: ElementPartInfo, ref: RefOrCallback): typeof noChange {
 		this.#host = part.host;
 		if (ref !== this.#ref) {
-			this.#set(undefined);
-			this.#ref = ref;
-			this.#element = undefined;
+			// Two callbacks are the same binding: an inline `ref(el => ...)` is a new function on every render,
+			// so a changed identity says nothing. Keep the latest one (teardown calls it) without notifying.
+			// Refs (stable signals) and callback <-> ref changes are real switches: clear the old one first.
+			if (this.#ref && isCallback(this.#ref) && isCallback(ref)) {
+				this.#ref = ref;
+			} else {
+				this.#set(undefined);
+				this.#ref = ref;
+				this.#element = undefined;
+			}
 		}
 		if (this.#element !== part.element) {
 			this.#element = part.element;
@@ -57,7 +65,6 @@ class RefDirective extends Directive {
 	}
 
 	override disconnected(): void {
-		// Only clear a ref that still points at our element, so a ref handed to another binding isn't wiped.
 		this.#set(undefined);
 		this.#ref = undefined;
 		this.#element = undefined;
@@ -66,11 +73,16 @@ class RefDirective extends Directive {
 	#set(el: Element | undefined): void {
 		const ref = this.#ref;
 		if (!ref) return;
-		// A `Ref` is a signal, which is also a function: tell it from a callback by its `set`.
-		if ('set' in ref) {
+		if (!isCallback(ref)) {
+			// Only clear a ref that still points at our element, so a ref handed to another binding isn't wiped.
 			if (el || ref.peek() === this.#element) ref.set(el);
 		} else ref.call(this.#host, el);
 	}
+}
+
+/** A `Ref` is a signal, which is also a function: tell it from a callback by its `set`. */
+function isCallback(ref: RefOrCallback): ref is RefCallback {
+	return !('set' in ref);
 }
 
 export const ref = directive(RefDirective);
