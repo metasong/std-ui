@@ -14,11 +14,7 @@
 import { DEV } from '../../../dev/flag.js';
 import { warnOnUndefinedElements } from './dev/warn-undefined-elements.js';
 import { findCustomAttribute, type CustomAttribute, type AttributeInfo } from './custom-attribute.js';
-// Built-in bindings: each registers itself on import.
-import '../custom-attributes/attribute/index.js';
-import '../custom-attributes/property/index.js';
-import '../custom-attributes/boolean/index.js';
-import '../custom-attributes/event/index.js';
+import { registerBuiltinCustomAttributes } from '../custom-attributes/register-builtin.js';
 import { createBuilder, type BuilderHooks, type SlotDescriptor, type Template as BuilderTemplate } from './builder/index.js';
 // Parts import `instantiate` for nested templates; they are only touched lazily inside hooks, so
 // the module cycle is harmless.
@@ -45,6 +41,9 @@ export interface PartDescriptor extends SlotDescriptor {
 }
 
 export type Template = BuilderTemplate<PartDescriptor>;
+
+// Explicit, idempotent registration of the built-in bindings (before any template is built).
+registerBuiltinCustomAttributes();
 
 /** `'svg'`/`'math'` wrap the built markup in a temporary `<svg>`/`<math>` during parsing so elements
  *  land in the SVG/MathML namespace. See `html.ts`'s `svg()` and `math()`. */

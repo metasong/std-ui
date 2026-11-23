@@ -1,4 +1,4 @@
-import { WILDCARD, registerCustomAttribute, type CustomAttribute } from '../../factory/custom-attribute.js';
+import { WILDCARD, type CustomAttribute } from '../../factory/custom-attribute.js';
 import { rejectArg } from '../reject-arg.js';
 import { PropertyPart } from './property-part.js';
 
@@ -7,5 +7,3 @@ export const propertyExtension: CustomAttribute = {
 	validate: attributeInfo => rejectArg(attributeInfo.sigil, attributeInfo.name, attributeInfo.arg),
 	createPart: (el, attributeInfo) => new PropertyPart(el, attributeInfo.name, attributeInfo.modifiers),
 };
-
-registerCustomAttribute(propertyExtension);

@@ -4,9 +4,7 @@
 	"description": "Minimal UI on web standards: reactive signals, tagged HTML templates, and Custom Elements - no virtual DOM, no framework runtime.",
 	"type": "module",
 	"license": "MIT",
-	"sideEffects": [
-		"./dist/esm/element/template/custom-attributes/**/*.js"
-	],
+	"sideEffects": false,
 	"main": "./dist/esm/index.js",
 	"module": "./dist/esm/index.js",
 	"types": "./dist/esm/index.d.ts",
@@ -47,7 +45,7 @@
 		"build:bundle": "vite build --config vite.bundle.config.ts",
 		"build:release": "vite build --config vite.release.config.ts",
 		"prepublishOnly": "npm run build",
-		"test": "vitest run --root .. --config vitest.config.ts core/",
+		"test": "vitest run --root ../.. --config vitest.config.ts src/core/",
 		"typecheck": "tsc --noEmit -p ../../tsconfig.json"
 	},
 	"devDependencies": {

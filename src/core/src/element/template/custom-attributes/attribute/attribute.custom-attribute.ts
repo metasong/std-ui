@@ -1,4 +1,4 @@
-import { WILDCARD, registerCustomAttribute, type CustomAttribute } from '../../factory/custom-attribute.js';
+import { WILDCARD, type CustomAttribute } from '../../factory/custom-attribute.js';
 import { AttributePart } from './attribute-part.js';
 import { DEV } from '../../../../dev/flag.js';
 
@@ -10,5 +10,3 @@ export const plainAttributeExtension: CustomAttribute = {
 	},
 	createPart: (el, attributeInfo, _host, v) => new AttributePart(el, attributeInfo.name, [...v.literals], attributeInfo.modifiers),
 };
-
-registerCustomAttribute(plainAttributeExtension);

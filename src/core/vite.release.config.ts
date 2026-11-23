@@ -38,21 +38,8 @@ const terserPass = {
 	},
 };
 
-// `package.json` `sideEffects` only names the published `dist/esm/**` files, so the bundler treats
-// `src/**` as side-effect-free and drops the top-level `registerCustomAttribute(...)` calls that make
-// `attr=` / `?attr=` / `.prop=` / `@event=` bindings work. Keep those modules (same fix as demo/vite.config.ts).
-const keepCustomAttributes = {
-	name: 'std-ui-keep-custom-attributes',
-	enforce: 'pre' as const,
-	transform(code: string, id: string) {
-		if (/[\\/]custom-attributes[\\/]/.test(id.split('?')[0]!) && !id.endsWith('.test.ts')) {
-			return { code, map: null, moduleSideEffects: true };
-		}
-		return null;
-	},
-};
 export default defineConfig({
-	plugins: [releaseFlag, keepCustomAttributes, esbuildTs(), terserPass],
+	plugins: [releaseFlag, esbuildTs(), terserPass],
 	build: {
 		outDir: 'dist/browser',
 		emptyOutDir: false, // shares dist/browser with the normal bundles (build:bundle runs first and cleans it)
