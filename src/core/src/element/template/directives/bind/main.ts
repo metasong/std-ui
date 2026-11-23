@@ -13,6 +13,7 @@ import { BIND_USAGE, isWritableSignal, resolveBinding } from './resolve.js';
 import type { BindOptions, BindPlugin, BindSource, Binding, WritableSignal } from './types.js';
 import { DEV } from '../../../../dev/flag.js';
 import { assertPosition } from '../assert-child-part.js';
+import { usageError } from '../../../../util.js';
 
 /** DOM wiring for one binding position; torn down as a unit. */
 interface Wiring {
@@ -133,7 +134,7 @@ function assertUsable(first: object): void {
 	const usable =
 		isWritableSignal(first) ||
 		(typeof (first as BindSource).get === 'function' && typeof (first as BindSource).set === 'function');
-	if (!usable) throw new Error(DEV ? `std-ui bind(): ${BIND_USAGE}` : 'bind(): invalid target');
+	if (!usable) throw usageError(DEV && `std-ui bind(): ${BIND_USAGE}`, 'bind');
 }
 
 type BindFunction = {

@@ -11,6 +11,7 @@ import {
 import type { BindAccessor, BindDepth, BindOptions, BindSource, Binding, WritableSignal } from './types.js';
 import { DEV } from '../../../../dev/flag.js';
 import { isSettable } from '../../../../util.js';
+import { usageError } from '../../../../util.js';
 
 export const isWritableSignal = isSettable as (value: unknown) => value is WritableSignal;
 
@@ -40,7 +41,7 @@ export function resolveBinding(args: readonly unknown[], element: Element, prope
 		model = { get, set };
 		options = rest;
 	} else {
-		throw new Error(DEV ? `std-ui bind() on ${describeTarget(element, property)}: ${BIND_USAGE}` : 'bind(): invalid target');
+		throw usageError(DEV && `std-ui bind() on ${describeTarget(element, property)}: ${BIND_USAGE}`, 'bind');
 	}
 
 	return {

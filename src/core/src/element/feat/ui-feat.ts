@@ -20,6 +20,7 @@ import type { UIElement } from '../ui-element.js';
 import { addClassHooks, type Cleanup } from '../ui-element-hooks.js';
 import { effect as createEffect, type OnCleanup } from '../../reactive/index.js';
 import { DEV } from '../../dev/flag.js';
+import { usageError } from '../../util.js';
 
 export abstract class UIFeat<H extends UIElement = UIElement> {
 	/** The element this feature is attached to. */
@@ -85,7 +86,7 @@ export abstract class UIFeat<H extends UIElement = UIElement> {
 	 * `beforeConnect` / `connected` / `firstUpdated` (where there is a connection to own it).
 	 */
 	protected effect(monitoredAction: (onCleanup: OnCleanup) => void, afterAction: (() => void) | null = null): void {
-		if (!this.#collector) throw new Error(DEV ? 'UIFeat.effect() must be called from beforeConnect/connected/firstUpdated.' : 'UIFeat.effect(): wrong lifecycle phase');
+		if (!this.#collector) throw usageError(DEV && 'UIFeat.effect() must be called from beforeConnect/connected/firstUpdated.', 'UIFeat');
 		this.#collector.push(createEffect(monitoredAction, afterAction));
 	}
 

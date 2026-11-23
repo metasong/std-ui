@@ -1,5 +1,6 @@
 import { DEV } from '../../../../dev/flag.js';
 import { isSettable, kebab } from '../../../../util.js';
+import { usageError } from '../../../../util.js';
 // Element-aware defaults for `bind()`: which event, how to compare, how to coerce. Everything here
 // is a pure function of (element, property), so `resolve.ts` can stay a simple "options ?? default".
 
@@ -83,6 +84,6 @@ export function defaultCoerce(
 /** `.checked` on a plain <input> must be checkbox or radio (custom elements use `checked-change`). */
 export function assertBindableTarget(element: Element, property: string): void {
 	if (property === 'checked' && element instanceof HTMLInputElement && !isCheckableInput(element)) {
-		throw new Error(DEV ? `std-ui bind(): ${describeTarget(element, property)} requires type="checkbox" or type="radio".` : 'bind(): checkbox/radio only');
+		throw usageError(DEV && `std-ui bind(): ${describeTarget(element, property)} requires type="checkbox" or type="radio".`, 'bind');
 	}
 }

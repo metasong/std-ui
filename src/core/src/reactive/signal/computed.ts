@@ -2,6 +2,7 @@
 // `./computed-lazy.md`). Uses `./tracking.ts` for dependency tracking.
 
 import { DEV } from '../../dev/flag.js';
+import { usageError } from '../../util.js';
 import { notify, ReactiveNode, runTracked, sourcesChanged, subscribe, track, unsubscribe } from './tracking.js';
 import type { ReadonlyState, StateOptions } from './state.js';
 
@@ -42,11 +43,7 @@ export function computed<T>(fn: () => T, options: StateOptions<T> = {}): Compute
 		if (!node.dirty && node.observers.size > 0) return;
 		// Re-entered while our own `fn` is still running => `fn` (directly or via other computeds) reads itself.
 		if (computing) {
-			throw new Error(
-				DEV
-					? 'std-ui computed: circular dependency detected - a computed read itself while being computed.'
-					: 'std-ui: circular computed',
-			);
+			throw usageError(DEV && 'std-ui computed: circular dependency detected - a computed read itself while being computed.', 'computed');
 		}
 		computing = true;
 		try {

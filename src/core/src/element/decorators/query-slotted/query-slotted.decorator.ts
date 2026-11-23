@@ -10,6 +10,7 @@ import { addClassHooks } from '../../ui-element-hooks.js';
 import { DEV } from '../../../dev/flag.js';
 import { warnMissingSlotElement } from './dev/warn-missing-slot.js';
 import { getSlotContent, slotSnapshotHooks } from './slot-content.js';
+import { usageError } from '../../../util.js';
 
 
 export interface QuerySlottedOptions<T extends Node = Node> {
@@ -56,7 +57,7 @@ export function querySlottedNodes<T extends Node = Node>(host: UIElement, option
  */
 export function querySlotted<T extends Node = Node>(options: QuerySlottedOptions<T> = {}) {
 	return function querySlottedDecorator(_value: undefined, context: ClassFieldDecoratorContext<UIElement, T[]>): void {
-		if (context.kind !== 'field') throw new Error(DEV ? '@querySlotted() can only decorate a plain class field (no accessor).' : 'querySlotted: plain fields only');
+		if (context.kind !== 'field') throw usageError(DEV && '@querySlotted() can only decorate a plain class field (no accessor).', '@querySlotted');
 		const key = context.name;
 		addClassHooks(context.metadata as object, slotSnapshotHooks); // capture the host's children before its first render (once per class)
 		context.addInitializer(function (this: UIElement): void {

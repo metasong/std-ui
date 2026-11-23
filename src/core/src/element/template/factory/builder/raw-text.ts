@@ -1,4 +1,5 @@
 import { DEV } from '../../../../dev/flag.js';
+import { usageError } from '../../../../util.js';
 
 // --- Raw-text context detection ---------------------------------------------------------------------
 //
@@ -92,9 +93,9 @@ export function feedRawBody(body: OpenRawBody, chunk: string): string | null {
 /** Error for an interpolation the scanner can't place: an HTML comment, or a raw-text element when the
  *  hooks have no `onRawTextBody`. */
 export function unsupportedContextError(context: string): Error {
-	if (!DEV) return new Error('std-ui: interpolation not supported here');
+	if (!DEV) return usageError('std-ui: interpolation not supported here', 'template');
 	const hint = context === 'an HTML comment'
 		? 'remove the ${...} from the comment.'
 		: 'provide an `onRawTextBody` hook to bind its text.';
-	return new Error(`std-ui html: an interpolation inside ${context} is not supported (its content is not parsed as markup); ${hint}`);
+	return usageError(`std-ui html: an interpolation inside ${context} is not supported (its content is not parsed as markup); ${hint}`, 'template');
 }

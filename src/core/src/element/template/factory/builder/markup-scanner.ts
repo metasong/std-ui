@@ -1,4 +1,6 @@
 import { DEV } from '../../../../dev/flag.js';
+import { usageError } from '../../../../util.js';
+import { near } from './errors.js';
 import {
 	beginRawBody, feedRawBody, insideComment, openRawTextElement, unsupportedContextError, type OpenRawBody,
 } from './raw-text.js';
@@ -71,30 +73,23 @@ function isInsideTag(markup: string): boolean {
 
 /** `<div class=a${x}>`, `<${x}>`: an interpolation where neither a value, a tag slot nor text can go. */
 function misplacedSlotError(markup: string): Error {
-	if (!DEV) return new Error('std-ui: interpolation not supported here');
-	const near = `near "...${markup.slice(-40)}"`;
+	if (!DEV) return usageError(false, 'template');
 	if (/<\/?[\w-]*$/.test(markup)) {
-		return new Error(`std-ui html: an interpolation in a tag name is not supported ${near}; write the tag name statically.`);
+		return usageError(`std-ui html: an interpolation in a tag name is not supported ${near(markup)}; write the tag name statically.`, 'template');
 	}
-	if (/=[^\s"'<>=`]+$/.test(markup)) {
-		return new Error(
-			`std-ui html: an unquoted attribute value must be exactly one interpolation ${near}; ` +
-				`to mix text and values, quote it: class="a\${x}".`,
-		);
-	}
-	return new Error(`std-ui html: unsupported interpolation inside a tag ${near}.`);
+	if (/=[^\s"'<>=`]+$/.test(markup)) return usageError(unquotedValueMessage(markup), 'template');
+	return usageError(`std-ui html: unsupported interpolation inside a tag ${near(markup)}.`, 'template');
 }
+
+const unquotedValueMessage = (markup: string): string =>
+	`std-ui html: an unquoted attribute value must be exactly one interpolation ${near(markup)}; ` +
+	'to mix text and values, quote it: class="a${x}".';
 
 /** After `attr=${x}` the HTML parser must see the end of the attribute: whitespace, `>` or `/`. Text glued to it
  *  (`class=${a}b`) would silently become a stray attribute, so reject it. */
 function assertEndsUnquotedValue(chunk: string, markup: string): void {
 	if (/^[\s>/]/.test(chunk)) return;
-	throw new Error(
-		DEV
-			? `std-ui html: an unquoted attribute value must be exactly one interpolation near "...${markup.slice(-40)}"; ` +
-				`to mix text and values, quote it: class="\${a}b".`
-			: 'std-ui: unquoted attribute value must be one interpolation',
-	);
+	throw usageError(DEV && unquotedValueMessage(markup), 'template');
 }
 
 interface OpenAttr<Open> {
@@ -250,10 +245,7 @@ export function createMarkupScanner<D extends SlotDescriptor, Part, Type extends
 			// 3. Tag slot - the interpolation belongs to the tag itself, with no attribute name:
 			//    `<div ${directive()}>`. It needs the optional `onTagSlot` hook; without it, reject.
 			if (!hooks.onTagSlot) {
-				throw new Error(
-					`std-ui html: unsupported interpolation inside a tag near "...${markup.slice(-40)}" ` +
-						`- tag-level interpolations are not supported here.`,
-				);
+				throw usageError(DEV && `std-ui html: unsupported interpolation inside a tag ${near(markup)} - tag-level interpolations are not supported here.`, 'template');
 			}
 			// A tag slot is its own attribute-like token: it must follow whitespace or a closing quote. Anything
 			// else (`<div class=a${x}>`, `<${x}>`) is a malformed position, not a directive for the element.
@@ -326,7 +318,7 @@ export function createMarkupScanner<D extends SlotDescriptor, Part, Type extends
 		if (state.kind === ScanKind.ATTR_VALUE) {
 			const quoteIndex = lastChunk.indexOf(state.attr.quote);
 			if (quoteIndex === -1) {
-				throw new Error(DEV ? `std-ui html: unterminated attribute value near "...${lastChunk.slice(-40)}"` : 'std-ui: unterminated attribute value');
+				throw usageError(DEV && `std-ui html: unterminated attribute value ${near(lastChunk)}`, 'template');
 			}
 			state.attr.literals.push(lastChunk.slice(0, quoteIndex));
 			descriptors.push(closeAttr(state.attr));
@@ -335,7 +327,7 @@ export function createMarkupScanner<D extends SlotDescriptor, Part, Type extends
 		else if (state.kind === ScanKind.RAW_BODY) {
 			const step = stepRawTextBody(state.body, lastChunk, descriptors);
 			if (step.state.kind === ScanKind.RAW_BODY) {
-				throw new Error(DEV ? `std-ui html: unterminated <${state.body.tag}> near "...${lastChunk.slice(-40)}"` : 'std-ui: unterminated element');
+				throw usageError(DEV && `std-ui html: unterminated <${state.body.tag}> ${near(lastChunk)}`, 'template');
 			}
 			markup += step.append;
 		}

@@ -1,6 +1,7 @@
 import { DirectiveSlot, isDirectiveResult, noChange, type AttributePartInfo } from '../../directives/directive.js';
 import { PartType, type Modifier, type Part, warnIgnoredModifiers } from '../../parts/part.js';
 import { DEV } from '../../../../dev/flag.js';
+import { usageError } from '../../../../util.js';
 
 /**
  * Binds an attribute's full value, which may be composed of static text segments (`literals`)
@@ -105,10 +106,10 @@ export class AttributePart implements Part {
 
 			const result = (this.#slots[i] ??= new DirectiveSlot()).apply(partInfo, value);
 			if (result !== noChange) {
-				throw new Error(DEV ? `std-ui html: a directive bound inside a "${this.name}" attribute alongside static text must ` +
-						`apply itself imperatively (return noChange from update(), reading part.staticText) - a ` +
-						`directive that resolves to its own string/value can't be combined with static text in ` +
-						`the same "${this.name}" attribute.` : 'std-ui: directive must apply itself with static text');
+				throw usageError(DEV && `std-ui html: a directive bound inside a "${this.name}" attribute alongside static text must ` +
+					`apply itself imperatively (return noChange from update(), reading part.staticText) - a ` +
+					`directive that resolves to its own string/value can't be combined with static text in ` +
+					`the same "${this.name}" attribute.`, 'directive');
 			}
 		}
 		// Same reasoning as the bare-directive branch above: this part's own DOM mutations weren't

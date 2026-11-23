@@ -19,6 +19,7 @@ import { createBuilder, type BuilderHooks, type SlotDescriptor, type Template as
 // Parts import `instantiate` for nested templates; they are only touched lazily inside hooks, so
 // the module cycle is harmless.
 import { ElementPart, ChildPart, RawTextPart, PartType, type Modifier, type Part } from '../parts/index.js';
+import { usageError } from '../../../util.js';
 
 /** Descriptor `kind` of a `<title>`/`<textarea>`/`<style>`/`<script>` body bound as one string. Not a
  *  `PartType`: directives can't be bound there, so it is never exposed through `PartInfo.type`. */
@@ -84,13 +85,13 @@ function parseModifiers(raw: string): Modifier[] {
 function parseBinding(rawName: string, markup: string): OpenBinding {
 	const match = BINDING_NAME_RE.exec(rawName);
 	if (!match) {
-		throw new Error(DEV ? `std-ui html: could not parse an attribute binding near "...${markup.slice(-40)}"` : 'std-ui: bad attribute binding');
+		throw usageError(DEV && `std-ui html: could not parse an attribute binding near "...${markup.slice(-40)}"`, 'template');
 	}
 	const [, sigil, name, arg, rawModifiers] = match;
 	const attributeInfo: AttributeInfo = { sigil, name, arg, modifiers: parseModifiers(rawModifiers) };
 	const extension = findCustomAttribute(attributeInfo);
 	if (!extension) {
-		throw new Error(DEV ? `std-ui html: unknown binding sigil "${sigil}" in "${rawName}" - register a CustomAttribute for it.` : 'std-ui: unknown binding sigil');
+		throw usageError(DEV && `std-ui html: unknown binding sigil "${sigil}" in "${rawName}" - register a CustomAttribute for it.`, 'template');
 	}
 	extension.validate?.(attributeInfo);
 	return { rawName, attributeInfo, extension };
@@ -101,10 +102,10 @@ function describeBinding(open: OpenBinding, literals: readonly string[], valueCo
 	const mustBeSingle = extension.single === true;
 	if (mustBeSingle) {
 		if (valueCount !== 1 || literals.some(s => s !== '')) {
-			throw new Error(
+			throw usageError(DEV &&
 				`std-ui html: "${rawName}" must bind exactly one interpolation with no static ` +
 					`text, e.g. ${rawName}="\${value}" - only plain attributes (no sigil) support ` +
-					`multiple/mixed interpolations like class="\${a} \${b}".`,
+					`multiple/mixed interpolations like class="\${a} \${b}".`, 'template',
 			);
 		}
 	}

@@ -1,4 +1,5 @@
 import { DEV } from '../../dev/flag.js';
+import { usageError } from '../../util.js';
 
 // Shared dependency graph for `signal`, `computed`, and `effect`. Every one of them is a
 // `ReactiveNode`; the whole model is:
@@ -117,12 +118,7 @@ export function assertNotInReactiveContext(
 	message?: string,
 ): void {
 	if (inReactiveContext()) {
-		throw new Error(
-			message ??
-				(DEV
-					? `${caller} must not run while a computed, effect, or template is tracking dependencies — each call creates a new subscription. Create the signal once (field, \`connect()\`, or module scope), then read it inside reactive code.`
-					: `${caller} must not run in a reactive context`),
-		);
+		throw usageError(message ?? (DEV && `${caller} must not run while a computed, effect, or template is tracking dependencies — each call creates a new subscription. Create the signal once (field, \`connect()\`, or module scope), then read it inside reactive code.`), caller);
 	}
 }
 
