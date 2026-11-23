@@ -19,6 +19,9 @@ function readFieldValue(field: unknown): unknown {
 	return typeof deep === 'function' ? (deep as () => unknown)() : (field as () => unknown)();
 }
 
+/** The attribute write the reflect effect is performing right now (see its use in `wireReflectedAttributes`). */
+let reflecting: { host: HTMLElement; name: string } | null = null;
+
 /**
  * For each `@attribute({ reflect: true })` field recorded on `host`'s constructor, creates an
  * effect that keeps the host attribute in sync with the field's backing signal, and hands the
@@ -39,14 +42,24 @@ export function wireReflectedAttributes(host: HTMLElement, registerEffectDispose
 			prev = value;
 			const serialized = serializeAttribute(value, oldValue, def.converter);
 			if (serialized === undefined) return; // `toAttribute` returning `undefined` means leave untouched
-			if (serialized === null) host.removeAttribute(def.attribute);
-			else host.setAttribute(def.attribute, serialized);
+			// The browser runs `attributeChangedCallback` synchronously inside these calls. That echo would parse
+			// our own text back into a fresh object (replacing the value just set and notifying subscribers
+			// again), so `applyAttribute` ignores it.
+			const outer = reflecting;
+			reflecting = { host, name: def.attribute };
+			try {
+				if (serialized === null) host.removeAttribute(def.attribute);
+				else host.setAttribute(def.attribute, serialized);
+			} finally {
+				reflecting = outer;
+			}
 		}));
 	}
 }
 
 /** Attribute → property: parses a changed attribute into its field (store `.set()`, or plain assignment). */
 function applyAttribute(host: HTMLElement, name: string, oldValue: string | null, newValue: string | null): void {
+	if (reflecting?.host === host && reflecting.name === name) return; // echo of our own reflection
 	const def = attributeDefs.get(host.constructor).find(def => def.attribute === name);
 	if (!def) return;
 

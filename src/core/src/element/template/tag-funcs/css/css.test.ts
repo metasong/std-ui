@@ -74,6 +74,16 @@ describe('hostSelectorsToScope', () => {
 		expect(hostSelectorsToScope(input)).toBe(':scope { color: red; } :scope:is(.on) { color: blue; } button {}');
 	});
 
+	it('rewrites :host-context(<sel>) to the host itself or any descendant of <sel>', () => {
+		expect(hostSelectorsToScope(':host-context(.dark) { color: white; }'))
+			.toBe(':scope:is(.dark, .dark *) { color: white; }');
+		expect(hostSelectorsToScope(':host-context(:not(.a)) b {}')).toBe(':scope:is(:not(.a), :not(.a) *) b {}');
+	});
+
+	it('does not mangle :host-context into ":scope-context"', () => {
+		expect(hostSelectorsToScope(':host-context(.x) {}')).not.toContain('scope-context');
+	});
+
 	it('does not touch unrelated selectors containing "host" as a substring', () => {
 		expect(hostSelectorsToScope('.host-card {}')).toBe('.host-card {}');
 	});

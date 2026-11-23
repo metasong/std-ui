@@ -1,6 +1,6 @@
 import { describe, expect, it, vi } from 'vitest';
 import { attribute, tag, UIElement } from '../../ui-element.js';
-import { state } from '../../../reactive/index.js';
+import { effect, state } from '../../../reactive/index.js';
 
 function flush(): Promise<void> {
 	return new Promise(resolve => queueMicrotask(() => queueMicrotask(resolve)));
@@ -158,6 +158,46 @@ describe('@attribute()', () => {
 		el.config.set({ a: 3 });
 		await flush();
 		expect(el.getAttribute('config')).toBe('{"a":3}');
+		el.remove();
+	});
+
+	it('does not loop or re-notify subscribers when a reflected Object round-trips through its attribute', async () => {
+		@tag('attr-obj-roundtrip')
+		class Foo extends UIElement {
+			@attribute({ type: Object, reflect: true }) readonly config = state({ a: 1 });
+		}
+		const el = document.createElement('attr-obj-roundtrip') as Foo;
+		document.body.appendChild(el);
+		await flush();
+
+		let runs = 0;
+		const stop = effect(() => { el.config(); runs++; });
+		expect(runs).toBe(1);
+
+		el.config.set({ a: 2 });
+		await flush();
+		await flush();
+		expect(el.getAttribute('config')).toBe('{"a":2}');
+		expect(runs).toBe(2); // the set itself; the attribute echo must not notify again
+		stop();
+		el.remove();
+	});
+
+	it('keeps the object identity that was set when a reflected Object is written to its attribute', async () => {
+		@tag('attr-obj-identity')
+		class Foo extends UIElement {
+			@attribute({ type: Object, reflect: true }) readonly config = state<{ a: number }>({ a: 1 });
+		}
+		const el = document.createElement('attr-obj-identity') as Foo;
+		document.body.appendChild(el);
+		const mine = { a: 2 };
+		el.config.set(mine);
+		await flush();
+		expect(el.getAttribute('config')).toBe('{"a":2}');
+		expect(el.config.peek()).toBe(mine); // not replaced by a JSON copy of itself
+
+		el.setAttribute('config', '{"a":7}'); // a real external attribute write still parses
+		expect(el.config.peek()).toEqual({ a: 7 });
 		el.remove();
 	});
 

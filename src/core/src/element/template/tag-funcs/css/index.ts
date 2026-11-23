@@ -129,7 +129,10 @@ export function flattenCSSText(group: CSSResultGroup): string {
  */
 export function hostSelectorsToScope(cssText: string): string {
 	// `:host(<sel>)` -> `:scope:is(<sel>)` (`:scope` isn't functional); allows one level of nested parens.
+	// `:host-context(<sel>)` -> the host itself or any descendant of <sel>. Must run first: `:host\b` would
+	// otherwise also match its `:host` prefix (`-` is a word boundary) and yield a broken `:scope-context`.
 	return cssText
+		.replace(/:host-context\(((?:[^()]|\([^()]*\))*)\)/g, ':scope:is($1, $1 *)')
 		.replace(/:host\(((?:[^()]|\([^()]*\))*)\)/g, ':scope:is($1)')
-		.replace(/:host\b/g, ':scope');
+		.replace(/:host(?![\w-])/g, ':scope');
 }
