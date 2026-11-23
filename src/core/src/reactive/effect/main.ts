@@ -60,11 +60,21 @@ function flush(): void {
 		// Snapshot first: an effect re-running may schedule more effects, which should run next flush.
 		const watchers = Array.from(pendingWatchers);
 		pendingWatchers.clear();
+		// A throwing effect must not abort the loop: the watchers after it are already out of
+		// `pendingWatchers` and inert, so skipping them would leave them dead for good. Run them all,
+		// then report what failed.
+		const errors: unknown[] = [];
 		for (const watcher of watchers) {
-			cycleGuard.count(watcher);
-			effectBodies.get(watcher)?.();
+			try {
+				cycleGuard.count(watcher);
+				effectBodies.get(watcher)?.();
+			} catch (err) {
+				errors.push(err);
+			}
 		}
 		if (pendingWatchers.size === 0) cycleGuard.reset();
+		if (errors.length === 1) throw errors[0];
+		if (errors.length > 1) throw new AggregateError(errors, `${errors.length} effects threw during one flush`);
 	}
 	finally {
 		// Also when an effect throws: waiters must not hang forever. Re-armed flushes keep them waiting.

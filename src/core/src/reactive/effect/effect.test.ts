@@ -143,3 +143,66 @@ describe('whenFlushed', () => {
 		process.off('uncaughtException', onError);
 	});
 });
+
+describe('effect errors during a flush', () => {
+	/** Runs `body` while swallowing the uncaught errors a throwing flush microtask raises. */
+	async function collectingUncaught(body: () => Promise<void>): Promise<unknown[]> {
+		const errors: unknown[] = [];
+		const onError = (err: unknown) => { errors.push(err); };
+		process.on('uncaughtException', onError);
+		try {
+			await body();
+			await new Promise(r => setTimeout(r, 0));
+		} finally {
+			process.off('uncaughtException', onError);
+		}
+		return errors;
+	}
+
+	it('a throwing effect does not stop the other effects scheduled in the same flush', async () => {
+		const a = state(0);
+		const second = vi.fn();
+		effect(() => { if (a() === 1) throw new Error('boom'); });
+		effect(() => { second(a()); });
+
+		const errors = await collectingUncaught(async () => {
+			a.set(1);
+			await whenFlushed();
+			a.set(2);
+			await whenFlushed();
+		});
+
+		expect(second.mock.calls.map(c => c[0])).toEqual([0, 1, 2]);
+		expect(errors.map(e => (e as Error).message)).toEqual(['boom']);
+	});
+
+	it('the throwing effect itself keeps reacting to what it read before throwing', async () => {
+		const a = state(0);
+		const seen: number[] = [];
+		effect(() => { const v = a(); seen.push(v); if (v === 1) throw new Error('boom'); });
+
+		await collectingUncaught(async () => {
+			a.set(1);
+			await whenFlushed();
+			a.set(2);
+			await whenFlushed();
+		});
+
+		expect(seen).toEqual([0, 1, 2]);
+	});
+
+	it('reports several failures of one flush together', async () => {
+		const a = state(0);
+		effect(() => { if (a() === 1) throw new Error('first'); });
+		effect(() => { if (a() === 1) throw new Error('second'); });
+
+		const errors = await collectingUncaught(async () => {
+			a.set(1);
+			await whenFlushed();
+		});
+
+		expect(errors).toHaveLength(1);
+		expect(errors[0]).toBeInstanceOf(AggregateError);
+		expect((errors[0] as AggregateError).errors.map(e => (e as Error).message)).toEqual(['first', 'second']);
+	});
+});
