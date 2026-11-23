@@ -34,16 +34,42 @@ function scheduleFlush(): void {
 const MAX_RERUNS_PER_CHAIN = 100;
 const cycleGuard = new CycleGuard(MAX_RERUNS_PER_CHAIN, () => pendingWatchers.clear());
 
+/** Resolvers of `whenFlushed()` promises, released once no flush is pending any more. */
+let flushWaiters: Array<() => void> = [];
+
+function releaseWaitersIfIdle(): void {
+	if (flushScheduled || pendingWatchers.size > 0) return;
+	const waiters = flushWaiters;
+	flushWaiters = [];
+	for (const resolve of waiters) resolve();
+}
+
+/**
+ * Resolves once every effect re-run that is pending *now* - and any re-run those cause in turn
+ * (an effect writing a signal another effect reads) - has finished. Resolves immediately when
+ * nothing is pending. Unlike counting microtask hops, this holds for cascades of any depth.
+ */
+export function whenFlushed(): Promise<void> {
+	if (!flushScheduled && pendingWatchers.size === 0) return Promise.resolve();
+	return new Promise(resolve => flushWaiters.push(resolve));
+}
+
 function flush(): void {
 	flushScheduled = false;
-	// Snapshot first: an effect re-running may schedule more effects, which should run next flush.
-	const watchers = Array.from(pendingWatchers);
-	pendingWatchers.clear();
-	for (const watcher of watchers) {
-		cycleGuard.count(watcher);
-		effectBodies.get(watcher)?.();
+	try {
+		// Snapshot first: an effect re-running may schedule more effects, which should run next flush.
+		const watchers = Array.from(pendingWatchers);
+		pendingWatchers.clear();
+		for (const watcher of watchers) {
+			cycleGuard.count(watcher);
+			effectBodies.get(watcher)?.();
+		}
+		if (pendingWatchers.size === 0) cycleGuard.reset();
 	}
-	if (pendingWatchers.size === 0) cycleGuard.reset();
+	finally {
+		// Also when an effect throws: waiters must not hang forever. Re-armed flushes keep them waiting.
+		releaseWaitersIfIdle();
+	}
 }
 
 /**

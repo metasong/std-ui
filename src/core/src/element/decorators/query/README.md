@@ -149,7 +149,7 @@ await el.lazy; // @queryAsync('.lazy') — sees `<em class="lazy">` after the pe
 
 Every read returns a *new* `Promise` (re-running the query once `updateComplete` resolves again) —
 there's no caching option, since the whole point is to reflect whatever render is pending at read
-time. How `updateComplete` aligns with the effect flush (two nested microtasks) is documented in
+time. How `updateComplete` aligns with the effect flush (one microtask hop, then waiting for the effect queue to go idle) is documented in
 [`design.md`](./design.md#queryasync-and-uielementupdatecomplete).
 
 ## Related reading

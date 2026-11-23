@@ -1,17 +1,17 @@
 {
-	"generatedAt": "2026-11-23T13:04:12.623Z",
+	"generatedAt": "2026-11-23T13:18:37.403Z",
 	"bundles": [
 		{
 			"file": "std-ui-core.release.min.js",
-			"raw": 31009,
-			"gzip": 10578,
-			"brotli": 9657
+			"raw": 31263,
+			"gzip": 10674,
+			"brotli": 9743
 		},
 		{
 			"file": "std-ui-core.release.iife.min.js",
-			"raw": 30363,
-			"gzip": 10369,
-			"brotli": 9440
+			"raw": 30594,
+			"gzip": 10457,
+			"brotli": 9521
 		},
 		{
 			"file": "std-ui-ext.release.min.js",
@@ -30,14 +30,14 @@
 		{
 			"name": "core",
 			"path": "core",
-			"size": 76508,
-			"raw": 185370,
+			"size": 77267,
+			"raw": 187818,
 			"children": [
 				{
 					"name": "element",
 					"path": "core/element",
-					"size": 67116,
-					"raw": 162993,
+					"size": 67551,
+					"raw": 164412,
 					"children": [
 						{
 							"name": "template",
@@ -710,8 +710,8 @@
 						{
 							"name": "ui-element.js",
 							"path": "core/element/ui-element.js",
-							"size": 3974,
-							"raw": 11224
+							"size": 4409,
+							"raw": 12643
 						},
 						{
 							"name": "feat",
@@ -750,8 +750,8 @@
 				{
 					"name": "reactive",
 					"path": "core/reactive",
-					"size": 8177,
-					"raw": 19974,
+					"size": 8501,
+					"raw": 21003,
 					"children": [
 						{
 							"name": "signal",
@@ -788,14 +788,14 @@
 						{
 							"name": "effect",
 							"path": "core/reactive/effect",
-							"size": 3545,
-							"raw": 8382,
+							"size": 3869,
+							"raw": 9411,
 							"children": [
 								{
 									"name": "main.js",
 									"path": "core/reactive/effect/main.js",
-									"size": 1814,
-									"raw": 4550
+									"size": 2125,
+									"raw": 5566
 								},
 								{
 									"name": "dev",
@@ -820,8 +820,8 @@
 								{
 									"name": "index.js",
 									"path": "core/reactive/effect/index.js",
-									"size": 89,
-									"raw": 69
+									"size": 102,
+									"raw": 82
 								}
 							]
 						},

@@ -136,6 +136,54 @@ describe('UIElement', () => {
 		expect(renderSpy).not.toHaveBeenCalled();
 	});
 
+	describe('updateComplete', () => {
+		it('waits for a cascade of effects (each write triggers the next flush), not just the first flush', async () => {
+			const s = [state(0), state(0), state(0), state(0), state(0)];
+
+			@tag('el-update-complete-cascade')
+			class Foo extends UIElement {
+				protected override connect(): void {
+					// s[0] -> s[1] -> s[2] -> s[3] -> s[4]: every hop needs its own microtask flush.
+					for (let i = 0; i < s.length - 1; i++) {
+						this.effect(() => { const v = s[i](); s[i + 1].set(v); });
+					}
+				}
+				protected override template() { return t`<b>${s[4]()}</b>`; }
+			}
+
+			const el = document.createElement('el-update-complete-cascade') as Foo;
+			document.body.appendChild(el);
+			s[0].set(7);
+			await el.updateComplete;
+			expect(el.querySelector('b')!.textContent).toBe('7');
+			el.remove();
+		});
+
+		it('also covers a write made after reading updateComplete in the same synchronous turn', async () => {
+			const count = state(0);
+
+			@tag('el-update-complete-late-write')
+			class Foo extends UIElement {
+				protected override template() { return t`<b>${count()}</b>`; }
+			}
+
+			const el = document.createElement('el-update-complete-late-write') as Foo;
+			document.body.appendChild(el);
+			const pending = el.updateComplete;
+			count.set(3);
+			await pending;
+			expect(el.querySelector('b')!.textContent).toBe('3');
+			el.remove();
+		});
+
+		it('resolves for an element that is not connected', async () => {
+			@tag('el-update-complete-detached')
+			class Foo extends UIElement {}
+			const el = document.createElement('el-update-complete-detached') as Foo;
+			await expect(el.updateComplete).resolves.toBe(true);
+		});
+	});
+
 	describe('removed from the document while still connecting', () => {
 		it('does not wire the render effect when connect() removes the element', async () => {
 			const count = state(0);

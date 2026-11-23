@@ -1,1 +1,1 @@
-export { effect, type OnCleanup } from './main.js';
+export { effect, whenFlushed, type OnCleanup } from './main.js';

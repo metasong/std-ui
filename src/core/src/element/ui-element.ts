@@ -14,6 +14,7 @@ import {
 	effect as createEffect,
 	type OnCleanup,
 } from '../reactive/index.js';
+import { whenFlushed } from '../reactive/effect/index.js';
 import { render, disconnectRendered, type CSSResultGroup, type TemplateResult } from './template/index.js';
 
 export {
@@ -126,17 +127,19 @@ export abstract class UIElement extends HTMLElement {
 	}
 
 	/**
-	 * Resolves once any render/effect re-run currently pending (microtask-batched, see
-	 * `./reactive/effect/main.ts`) has run - i.e. the DOM reflects every signal write made so far.
+	 * Resolves once every render/effect re-run pending after the call - including re-runs that
+	 * those cause in turn (an effect writing a signal another effect reads) - has run, i.e. the DOM
+	 * reflects every signal write made so far. Resolves also for an element that isn't connected.
 	 * Used by `@queryAsync()` (`./decorators/query/query-async.decorator.ts`) so a query issued right after
 	 * writing a signal sees the DOM that write produces, not the stale DOM from before it.
 	 */
 	public get updateComplete(): Promise<true> {
 		return new Promise(resolve => {
-			// Two microtask hops: the first lets the pending effect flush (`scheduleFlush()` in
-			// `./reactive/effect/main.ts` queues exactly one microtask); the second runs after that,
-			// guaranteeing the flush has already executed by the time we resolve.
-			queueMicrotask(() => queueMicrotask(() => resolve(true)));
+			// One microtask hop first, so a write made later in the same synchronous turn (after this
+			// read, before `await`) has already scheduled its flush when we ask whether one is pending;
+			// then wait for the effect queue to go fully idle (`whenFlushed`, see
+			// `./reactive/effect/main.ts`), which covers cascades of any depth.
+			queueMicrotask(() => whenFlushed().then(() => resolve(true)));
 		});
 	}
 

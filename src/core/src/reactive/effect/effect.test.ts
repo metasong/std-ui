@@ -1,6 +1,6 @@
 import { describe, expect, it, vi } from 'vitest';
 import { state } from '../signal/state.js';
-import { effect } from './main.js';
+import { effect, whenFlushed } from './main.js';
 import { flushEffects } from './test-helpers.js';
 
 describe('effect', () => {
@@ -107,5 +107,39 @@ describe('effect', () => {
 		await flushEffects();
 		expect(monitoredSpy).toHaveBeenCalledTimes(2);
 		expect(afterSpy).toHaveBeenCalledTimes(2);
+	});
+});
+
+describe('whenFlushed', () => {
+	it('resolves immediately when nothing is pending', async () => {
+		await expect(whenFlushed()).resolves.toBeUndefined();
+	});
+
+	it('waits for a pending re-run', async () => {
+		const a = state(0);
+		const seen: number[] = [];
+		effect(() => { seen.push(a()); });
+		a.set(1);
+		await whenFlushed();
+		expect(seen).toEqual([0, 1]);
+	});
+
+	it('waits for a cascade of any depth', async () => {
+		const s = Array.from({ length: 8 }, () => state(0));
+		for (let i = 0; i < s.length - 1; i++) effect(() => { s[i + 1].set(s[i]()); });
+		s[0].set(5);
+		await whenFlushed();
+		expect(s[s.length - 1]()).toBe(5);
+	});
+
+	it('still resolves when an effect throws during the flush', async () => {
+		const a = state(0);
+		effect(() => { if (a() === 1) throw new Error('boom'); });
+		const onError = vi.fn();
+		process.once('uncaughtException', onError);
+		a.set(1);
+		await whenFlushed();
+		await new Promise(r => setTimeout(r, 0));
+		process.off('uncaughtException', onError);
 	});
 });

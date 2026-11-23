@@ -116,18 +116,19 @@ before reading the field) has actually applied to the DOM. That wait is `UIEleme
 ```ts
 public get updateComplete(): Promise<true> {
 	return new Promise(resolve => {
-		queueMicrotask(() => queueMicrotask(() => resolve(true)));
+		queueMicrotask(() => whenFlushed().then(() => resolve(true)));
 	});
 }
 ```
 
 Render re-runs are microtask-batched (`effect()`'s `scheduleFlush()` in
 `../../../reactive/effect/main.ts` queues exactly **one** `queueMicrotask` per batch of synchronous
-writes, then flushes every pending effect in it). `updateComplete` resolves after **two** nested
-microtask hops specifically so that, no matter when within the current synchronous turn it's
-requested, the pending flush's own single `queueMicrotask` has already had a chance to run and
-complete before `updateComplete` resolves - one hop to "catch up" to whatever flush is already
-queued, a second to run *after* that flush's own body (which is itself synchronous) has finished.
+writes, then flushes every pending effect in it). `updateComplete` first waits **one**
+microtask hop so that a write made later in the same synchronous turn (after reading
+`updateComplete`, before `await`) has already scheduled its flush. It then awaits `whenFlushed()`,
+which resolves only once the effect queue is idle - so an effect that writes a signal read by
+another effect (a cascade of any depth, each hop being its own flush) is waited for too. Counting
+microtask hops alone would resolve too early after the third link of such a chain.
 
 `@queryAsync()`'s getter is then just `queryElementAsync(this, selector)`, which is:
 
