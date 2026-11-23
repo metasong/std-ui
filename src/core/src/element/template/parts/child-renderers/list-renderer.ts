@@ -1,6 +1,12 @@
 import { ChildPart } from '../child-part.js';
 import { ChildRenderer } from './child-renderer.js';
 
+/**
+ * Renders an array child, reusing items by *index*: item `i` of the new array patches the DOM of item
+ * `i` of the old one. Reordering or removing from the middle therefore re-renders those slots in
+ * place and does not preserve per-item DOM state (focus, input values, element identity).
+ * For stable identity across reorders, use `mapByKey` from `@std-ui/ext`.
+ */
 export class ListRenderer extends ChildRenderer<readonly unknown[]> {
 	#items: ChildPart[] = [];
 	update(values: readonly unknown[]): boolean {
