@@ -177,6 +177,40 @@ describe('getTemplate/instantiate', () => {
 		});
 	});
 
+	describe('malformed attribute / tag positions', () => {
+		it.each([
+			['text before an unquoted interpolation', () => t`<div class=a${'b'}></div>`, /unquoted.*class="/s],
+			['text after an unquoted interpolation', () => t`<div class=${'a'}b></div>`, /unquoted.*quote/s],
+			['two unquoted interpolations in a row', () => t`<div class=${'a'}${'b'}></div>`, /unquoted.*quote/s],
+			['a tag name', () => t`<${'div'}></div>`, /tag name/],
+			['a closing tag name', () => t`<div></${'div'}>`, /tag name/],
+		])('rejects %s with a hint', (_name, make, message) => {
+			const { strings } = make();
+			expect(() => getTemplate(strings)).toThrow(message);
+		});
+
+		it('accepts an unquoted interpolation followed by whitespace, `>` or `/`', () => {
+			for (const make of [
+				() => t`<div class=${'a'} id="x"></div>`,
+				() => t`<div class=${'a'}></div>`,
+				() => t`<div class=${'a'}
+					id="x"></div>`,
+				() => t`<input value=${'a'}/>`,
+			]) {
+				const c = document.createElement('div');
+				expect(() => render(make(), c)).not.toThrow();
+			}
+			const c = document.createElement('div');
+			render(t`<div class=${'a'} id="x"></div>`, c);
+			expect(c.firstElementChild!.getAttributeNames().sort()).toEqual(['class', 'id']);
+		});
+
+		it('still accepts a tag slot after whitespace or a closing quote', () => {
+			const c = document.createElement('div');
+			expect(() => render(t`<div class="x"${ref(() => {})}></div><p ${ref(() => {})}></p>`, c)).not.toThrow();
+		});
+	});
+
 	it('rejects namespaced attributes such as `xlink:href` (parsed as name + reserved `:arg`)', () => {
 		const { strings } = svg`<use xlink:href="${'#icon'}"></use>`;
 		expect(() => getTemplate(strings, 'svg')).toThrow(/xlink:href.*reserved/);

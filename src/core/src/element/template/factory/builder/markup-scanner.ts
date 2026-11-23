@@ -69,6 +69,34 @@ function isInsideTag(markup: string): boolean {
 	return markup.lastIndexOf('<') > markup.lastIndexOf('>')/* not exit is -1*/;
 }
 
+/** `<div class=a${x}>`, `<${x}>`: an interpolation where neither a value, a tag slot nor text can go. */
+function misplacedSlotError(markup: string): Error {
+	if (!DEV) return new Error('std-ui: interpolation not supported here');
+	const near = `near "...${markup.slice(-40)}"`;
+	if (/<\/?[\w-]*$/.test(markup)) {
+		return new Error(`std-ui html: an interpolation in a tag name is not supported ${near}; write the tag name statically.`);
+	}
+	if (/=[^\s"'<>=`]+$/.test(markup)) {
+		return new Error(
+			`std-ui html: an unquoted attribute value must be exactly one interpolation ${near}; ` +
+				`to mix text and values, quote it: class="a\${x}".`,
+		);
+	}
+	return new Error(`std-ui html: unsupported interpolation inside a tag ${near}.`);
+}
+
+/** After `attr=${x}` the HTML parser must see the end of the attribute: whitespace, `>` or `/`. Text glued to it
+ *  (`class=${a}b`) would silently become a stray attribute, so reject it. */
+function assertEndsUnquotedValue(chunk: string, markup: string): void {
+	if (/^[\s>/]/.test(chunk)) return;
+	throw new Error(
+		DEV
+			? `std-ui html: an unquoted attribute value must be exactly one interpolation near "...${markup.slice(-40)}"; ` +
+				`to mix text and values, quote it: class="\${a}b".`
+			: 'std-ui: unquoted attribute value must be one interpolation',
+	);
+}
+
 interface OpenAttr<Open> {
 	open: Open;
 	quote: string;
@@ -159,7 +187,7 @@ export function createMarkupScanner<D extends SlotDescriptor, Part, Type extends
 		descriptors: D[],
 		counters: { tagSlots: number },
 		foreignRoot: boolean,
-	): { state: ScanState<Open>; append: string; rewind: number } {
+	): { state: ScanState<Open>; append: string; rewind: number; unquoted?: true } {
 		if (insideComment(markup)) throw unsupportedContextError('an HTML comment');
 		const raw = openRawTextElement(markup, foreignRoot);
 		if (raw) {
@@ -215,7 +243,8 @@ export function createMarkupScanner<D extends SlotDescriptor, Part, Type extends
 				//  - `literals: ['', '']` with `valueCount: 1` means the runtime value is `'' + x + ''`.
 				//  - State goes back to TEXT: the attribute is already complete.
 				//  - `rewind: 0`: no prefix exists to move out of `markup`.
-				return { state: TEXT, append: `"${marker}"`, rewind: 0 };
+				//  - `unquoted`: the next chunk must end the attribute (whitespace, `>` or `/`); see `scanMarkup`.
+				return { state: TEXT, append: `"${marker}"`, rewind: 0, unquoted: true };
 			}
 
 			// 3. Tag slot - the interpolation belongs to the tag itself, with no attribute name:
@@ -226,6 +255,9 @@ export function createMarkupScanner<D extends SlotDescriptor, Part, Type extends
 						`- tag-level interpolations are not supported here.`,
 				);
 			}
+			// A tag slot is its own attribute-like token: it must follow whitespace or a closing quote. Anything
+			// else (`<div class=a${x}>`, `<${x}>`) is a malformed position, not a directive for the element.
+			if (!/[\s"']$/.test(markup)) throw misplacedSlotError(markup);
 			descriptors.push(finalize(hooks.onTagSlot({ markup })));
 			return { state: TEXT, append: tagMarker(counters.tagSlots++), rewind: 0 };
 		}
@@ -257,6 +289,8 @@ export function createMarkupScanner<D extends SlotDescriptor, Part, Type extends
 		const descriptors: D[] = [];
 		let state: ScanState<Open> = TEXT;
 		const counters = { tagSlots: 0 };
+		/** The previous interpolation was a whole unquoted attribute value (`class=${x}`). */
+		let afterUnquoted = false;
 
 		for (let i = 0; i < strings.length - 1; i++) {
 			const chunk = strings[i];
@@ -276,15 +310,19 @@ export function createMarkupScanner<D extends SlotDescriptor, Part, Type extends
 				if (state.kind === ScanKind.RAW_BODY) continue;
 			}
 			else { // TEXT
+				if (afterUnquoted) assertEndsUnquotedValue(chunk, markup);
 				markup += chunk;
 			}
+			afterUnquoted = false;
 
 			const step = stepText(markup, descriptors, counters, foreignRoot);
 			state = step.state;
+			afterUnquoted = step.unquoted === true;
 			markup = markup.slice(0, markup.length - step.rewind) + step.append;
 		}
 
 		const lastChunk = strings[strings.length - 1];
+		if (afterUnquoted) assertEndsUnquotedValue(lastChunk, markup);
 		if (state.kind === ScanKind.ATTR_VALUE) {
 			const quoteIndex = lastChunk.indexOf(state.attr.quote);
 			if (quoteIndex === -1) {
