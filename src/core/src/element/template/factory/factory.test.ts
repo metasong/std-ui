@@ -83,6 +83,11 @@ describe('getTemplate/instantiate', () => {
 		expect(() => getTemplate(strings)).toThrow(/:arg/);
 	});
 
+	it('rejects namespaced attributes such as `xlink:href` (parsed as name + reserved `:arg`)', () => {
+		const { strings } = svg`<use xlink:href="${'#icon'}"></use>`;
+		expect(() => getTemplate(strings, 'svg')).toThrow(/xlink:href.*reserved/);
+	});
+
 	it('registers custom Custom attributes', () => {
 		const seen: unknown[] = [];
 		registerCustomAttribute({

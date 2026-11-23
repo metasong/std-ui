@@ -1,17 +1,17 @@
 {
-	"generatedAt": "2026-11-23T11:48:25.582Z",
+	"generatedAt": "2026-11-23T12:45:50.145Z",
 	"bundles": [
 		{
 			"file": "std-ui-core.release.min.js",
-			"raw": 30383,
-			"gzip": 10367,
-			"brotli": 9447
+			"raw": 30699,
+			"gzip": 10472,
+			"brotli": 9563
 		},
 		{
 			"file": "std-ui-core.release.iife.min.js",
-			"raw": 29856,
-			"gzip": 10220,
-			"brotli": 9302
+			"raw": 30045,
+			"gzip": 10265,
+			"brotli": 9345
 		},
 		{
 			"file": "std-ui-ext.release.min.js",
@@ -30,20 +30,20 @@
 		{
 			"name": "core",
 			"path": "core",
-			"size": 74950,
-			"raw": 180847,
+			"size": 75940,
+			"raw": 183571,
 			"children": [
 				{
 					"name": "element",
 					"path": "core/element",
-					"size": 66347,
-					"raw": 160898,
+					"size": 67116,
+					"raw": 162993,
 					"children": [
 						{
 							"name": "template",
 							"path": "core/element/template",
-							"size": 42276,
-							"raw": 103861,
+							"size": 42950,
+							"raw": 105723,
 							"children": [
 								{
 									"name": "directives",
@@ -212,20 +212,20 @@
 								{
 									"name": "factory",
 									"path": "core/element/template/factory",
-									"size": 10338,
-									"raw": 27377,
+									"size": 10335,
+									"raw": 27361,
 									"children": [
 										{
 											"name": "builder",
 											"path": "core/element/template/factory/builder",
-											"size": 6366,
-											"raw": 18011,
+											"size": 6363,
+											"raw": 17995,
 											"children": [
 												{
 													"name": "markup-scanner.js",
 													"path": "core/element/template/factory/builder/markup-scanner.js",
-													"size": 3729,
-													"raw": 12005
+													"size": 3726,
+													"raw": 11989
 												},
 												{
 													"name": "builder.js",
@@ -290,8 +290,8 @@
 								{
 									"name": "custom-attributes",
 									"path": "core/element/template/custom-attributes",
-									"size": 7057,
-									"raw": 17043,
+									"size": 7661,
+									"raw": 18753,
 									"children": [
 										{
 											"name": "attribute",
@@ -322,14 +322,14 @@
 										{
 											"name": "event",
 											"path": "core/element/template/custom-attributes/event",
-											"size": 1779,
-											"raw": 4302,
+											"size": 2322,
+											"raw": 5908,
 											"children": [
 												{
 													"name": "event-part.js",
 													"path": "core/element/template/custom-attributes/event/event-part.js",
-													"size": 1361,
-													"raw": 3643
+													"size": 1904,
+													"raw": 5249
 												},
 												{
 													"name": "event.custom-attribute.js",
@@ -398,24 +398,24 @@
 											]
 										},
 										{
+											"name": "reject-arg.js",
+											"path": "core/element/template/custom-attributes/reject-arg.js",
+											"size": 310,
+											"raw": 426
+										},
+										{
 											"name": "register-builtin.js",
 											"path": "core/element/template/custom-attributes/register-builtin.js",
 											"size": 287,
 											"raw": 708
-										},
-										{
-											"name": "reject-arg.js",
-											"path": "core/element/template/custom-attributes/reject-arg.js",
-											"size": 249,
-											"raw": 322
 										}
 									]
 								},
 								{
 									"name": "parts",
 									"path": "core/element/template/parts",
-									"size": 4921,
-									"raw": 11287,
+									"size": 4911,
+									"raw": 11263,
 									"children": [
 										{
 											"name": "child-renderers",
@@ -456,16 +456,16 @@
 											]
 										},
 										{
-											"name": "part.js",
-											"path": "core/element/template/parts/part.js",
-											"size": 1088,
-											"raw": 2126
-										},
-										{
 											"name": "child-part.js",
 											"path": "core/element/template/parts/child-part.js",
 											"size": 1086,
 											"raw": 3109
+										},
+										{
+											"name": "part.js",
+											"path": "core/element/template/parts/part.js",
+											"size": 1078,
+											"raw": 2102
 										},
 										{
 											"name": "element-part.js",
@@ -520,8 +520,8 @@
 								{
 									"name": "render.js",
 									"path": "core/element/template/render.js",
-									"size": 907,
-									"raw": 2169
+									"size": 990,
+									"raw": 2361
 								},
 								{
 									"name": "index.js",
@@ -710,8 +710,8 @@
 						{
 							"name": "ui-element.js",
 							"path": "core/element/ui-element.js",
-							"size": 3879,
-							"raw": 10991
+							"size": 3974,
+							"raw": 11224
 						},
 						{
 							"name": "feat",
@@ -750,9 +750,41 @@
 				{
 					"name": "reactive",
 					"path": "core/reactive",
-					"size": 7388,
-					"raw": 17546,
+					"size": 7609,
+					"raw": 18175,
 					"children": [
+						{
+							"name": "signal",
+							"path": "core/reactive/signal",
+							"size": 3645,
+							"raw": 8944,
+							"children": [
+								{
+									"name": "tracking.js",
+									"path": "core/reactive/signal/tracking.js",
+									"size": 2039,
+									"raw": 5402
+								},
+								{
+									"name": "computed.js",
+									"path": "core/reactive/signal/computed.js",
+									"size": 968,
+									"raw": 2356
+								},
+								{
+									"name": "state.js",
+									"path": "core/reactive/signal/state.js",
+									"size": 484,
+									"raw": 977
+								},
+								{
+									"name": "index.js",
+									"path": "core/reactive/signal/index.js",
+									"size": 154,
+									"raw": 209
+								}
+							]
+						},
 						{
 							"name": "effect",
 							"path": "core/reactive/effect",
@@ -790,38 +822,6 @@
 									"path": "core/reactive/effect/index.js",
 									"size": 89,
 									"raw": 69
-								}
-							]
-						},
-						{
-							"name": "signal",
-							"path": "core/reactive/signal",
-							"size": 3424,
-							"raw": 8315,
-							"children": [
-								{
-									"name": "tracking.js",
-									"path": "core/reactive/signal/tracking.js",
-									"size": 2039,
-									"raw": 5402
-								},
-								{
-									"name": "computed.js",
-									"path": "core/reactive/signal/computed.js",
-									"size": 747,
-									"raw": 1727
-								},
-								{
-									"name": "state.js",
-									"path": "core/reactive/signal/state.js",
-									"size": 484,
-									"raw": 977
-								},
-								{
-									"name": "index.js",
-									"path": "core/reactive/signal/index.js",
-									"size": 154,
-									"raw": 209
 								}
 							]
 						},
