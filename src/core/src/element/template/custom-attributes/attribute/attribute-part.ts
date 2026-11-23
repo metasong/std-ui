@@ -22,12 +22,13 @@ export class AttributePart implements Part {
 	#slots: DirectiveSlot[] = [];
 	/** This position's `AttributePartInfo`, built once and handed to directives - see `directives/directive.ts`. */
 	#partInfo: AttributePartInfo;
-	constructor(
-		private readonly el: Element,
-		private readonly name: string,
-		private readonly literals: readonly string[] = ['', ''],
-		modifiers?: readonly Modifier[],
-	) {
+	readonly #el: Element;
+	readonly #name: string;
+	readonly #literals: readonly string[];
+	constructor(el: Element, name: string, literals: readonly string[] = ['', ''], modifiers?: readonly Modifier[]) {
+		this.#el = el;
+		this.#name = name;
+		this.#literals = literals;
 		warnIgnoredModifiers(name, modifiers);
 		this.valueCount = literals.length - 1;
 		this.#partInfo = { type: PartType.ATTRIBUTE, element: el, name };
@@ -42,7 +43,7 @@ export class AttributePart implements Part {
 	update(values: readonly unknown[]): void {
 		const hasDirective = values.some(isDirectiveResult);
 		if (!hasDirective) this.disconnect();
-		const isBareSingleValue = this.literals.length === 2 && this.literals[0] === '' && this.literals[1] === '';
+		const isBareSingleValue = this.#literals.length === 2 && this.#literals[0] === '' && this.#literals[1] === '';
 
 		if (isBareSingleValue && isDirectiveResult(values[0])) {
 			const value = (this.#slots[0] ??= new DirectiveSlot()).apply(this.#partInfo, values[0]);
@@ -72,8 +73,8 @@ export class AttributePart implements Part {
 			return;
 		}
 
-		let composed = this.literals[0];
-		for (let i = 0; i < values.length; i++) composed += (values[i] == null ? '' : String(values[i])) + this.literals[i + 1];
+		let composed = this.#literals[0];
+		for (let i = 0; i < values.length; i++) composed += (values[i] == null ? '' : String(values[i])) + this.#literals[i + 1];
 
 		this.#commitValue(composed);
 	}
@@ -92,11 +93,11 @@ export class AttributePart implements Part {
 	 * imperative directive's effect back into one composed attribute string.
 	 */
 	#applyWithStaticText(values: readonly unknown[]): void {
-		let staticText = this.literals[0];
+		let staticText = this.#literals[0];
 		for (let i = 0; i < values.length; i++) {
 			const value = values[i];
 			if (!isDirectiveResult(value)) staticText += value == null ? '' : String(value);
-			staticText += this.literals[i + 1];
+			staticText += this.#literals[i + 1];
 		}
 		const partInfo: AttributePartInfo = { ...this.#partInfo, staticText };
 
@@ -106,10 +107,10 @@ export class AttributePart implements Part {
 
 			const result = (this.#slots[i] ??= new DirectiveSlot()).apply(partInfo, value);
 			if (result !== noChange) {
-				throw usageError(DEV && `std-ui html: a directive bound inside a "${this.name}" attribute alongside static text must ` +
+				throw usageError(DEV && `std-ui html: a directive bound inside a "${this.#name}" attribute alongside static text must ` +
 					`apply itself imperatively (return noChange from update(), reading part.staticText) - a ` +
 					`directive that resolves to its own string/value can't be combined with static text in ` +
-					`the same "${this.name}" attribute.`, 'directive');
+					`the same "${this.#name}" attribute.`, 'directive');
 			}
 		}
 		// Same reasoning as the bare-directive branch above: this part's own DOM mutations weren't
@@ -124,12 +125,12 @@ export class AttributePart implements Part {
 		if (value == null) {
 			if (this.#committed === null) return;
 			this.#committed = null;
-			this.el.removeAttribute(this.name);
+			this.#el.removeAttribute(this.#name);
 			return;
 		}
 		const str = String(value);
 		if (str === this.#committed) return;
 		this.#committed = str;
-		this.el.setAttribute(this.name, str);
+		this.#el.setAttribute(this.#name, str);
 	}
 }

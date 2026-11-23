@@ -7,11 +7,11 @@ export class PropertyPart implements Part {
 	#value: unknown;
 	readonly #slot = new DirectiveSlot();
 	readonly #partInfo: PropertyPartInfo;
-	constructor(
-		private readonly el: Element,
-		private readonly name: string,
-		modifiers?: readonly Modifier[],
-	) {
+	readonly #el: Element;
+	readonly #name: string;
+	constructor(el: Element, name: string, modifiers?: readonly Modifier[]) {
+		this.#el = el;
+		this.#name = name;
 		warnIgnoredModifiers(`.${name}`, modifiers);
 		this.#partInfo = { type: PartType.ATTRIBUTE, element: el, name, property: true };
 	}
@@ -27,12 +27,12 @@ export class PropertyPart implements Part {
 			if (result === noChange) return;
 			if (Object.is(result, this.#value)) return;
 			this.#value = result;
-			writeProperty(this.el, this.name, result);
+			writeProperty(this.#el, this.#name, result);
 			return;
 		}
 		this.disconnect();
 		if (Object.is(value, this.#value)) return;
 		this.#value = value;
-		writeProperty(this.el, this.name, value);
+		writeProperty(this.#el, this.#name, value);
 	}
 }

@@ -28,42 +28,44 @@ import { DEV } from '../../../dev/flag.js';
  */
 export class CycleGuard {
 	/** Re-run counts for the current chain; cleared once a flush leaves nothing pending. */
-	private readonly runs = new Map<Watcher, number>();
+	readonly #runs = new Map<Watcher, number>();
 	/** Creation-site `Error` of each live effect (dev only). */
-	private readonly origins = new Map<Watcher, Error>();
+	readonly #origins = new Map<Watcher, Error>();
+	readonly #limit: number;
+	readonly #onTrip: () => void;
 
-	constructor(
-		private readonly limit: number,
-		/** Called right before throwing, e.g. to clear the caller's pending queue. */
-		private readonly onTrip: () => void,
-	) {}
+	/** `onTrip` is called right before throwing, e.g. to clear the caller's pending queue. */
+	constructor(limit: number, onTrip: () => void) {
+		this.#limit = limit;
+		this.#onTrip = onTrip;
+	}
 
 	/** Remembers where `watcher`'s effect was created. Call from `effect()`. */
 	register(watcher: Watcher): void {
-		if (DEV) this.origins.set(watcher, new Error());
+		if (DEV) this.#origins.set(watcher, new Error());
 	}
 
 	/** Forgets `watcher`. Call from the effect's dispose. */
 	unregister(watcher: Watcher): void {
-		this.origins.delete(watcher);
-		this.runs.delete(watcher);
+		this.#origins.delete(watcher);
+		this.#runs.delete(watcher);
 	}
 
 	/** Counts one re-run of `watcher`; throws if it exceeded the limit. */
 	count(watcher: Watcher): void {
-		const n = (this.runs.get(watcher) ?? 0) + 1;
-		if (n > this.limit) {
-			const message = DEV ? describeCycle(this.limit, this.runs, this.origins, watcher) : `effect re-ran more than ${this.limit} times (cycle?)`;
-			this.onTrip();
-			this.runs.clear();
+		const n = (this.#runs.get(watcher) ?? 0) + 1;
+		if (n > this.#limit) {
+			const message = DEV ? describeCycle(this.#limit, this.#runs, this.#origins, watcher) : `effect re-ran more than ${this.#limit} times (cycle?)`;
+			this.#onTrip();
+			this.#runs.clear();
 			throw new Error(message);
 		}
-		this.runs.set(watcher, n);
+		this.#runs.set(watcher, n);
 	}
 
 	/** Ends the chain (nothing pending any more). */
 	reset(): void {
-		this.runs.clear();
+		this.#runs.clear();
 	}
 }
 

@@ -38,12 +38,13 @@ export class EventPart implements Part, EventListenerObject {
 	#active: AddEventListenerOptions | undefined;
 	/** Dispose returned by the latest `handler` call. */
 	#cleanup: (() => void) | undefined;
-	constructor(
-		private readonly el: Element,
-		private readonly name: string,
-		modifiers: readonly Modifier[] = [],
-		private readonly host?: unknown,
-	) {
+	readonly #el: Element;
+	readonly #name: string;
+	readonly #host: unknown;
+	constructor(el: Element, name: string, modifiers: readonly Modifier[] = [], host?: unknown) {
+		this.#el = el;
+		this.#name = name;
+		this.#host = host;
 		warnIgnoredModifiers(`@${name}`, modifiers);
 	}
 	/** Extension hook: merges the handler's own `options` with any part-level options. */
@@ -80,13 +81,13 @@ export class EventPart implements Part, EventListenerObject {
 		// between renders needs no remove/add, and `this` inside a handler is the host.
 		if (this.#state === ListenerState.DETACHED) {
 			this.#active = next && { ...next };
-			this.el.addEventListener(this.name, this, this.#active);
+			this.#el.addEventListener(this.#name, this, this.#active);
 			this.#state = ListenerState.ATTACHED;
 		}
 	}
 	#detach(): void {
 		if (this.#state !== ListenerState.ATTACHED) return;
-		this.el.removeEventListener(this.name, this, this.#active);
+		this.#el.removeEventListener(this.#name, this, this.#active);
 		this.#state = ListenerState.DETACHED;
 	}
 
@@ -115,7 +116,7 @@ export class EventPart implements Part, EventListenerObject {
 	 *  next event arrives or the part is disposed. */
 	handler = (event: Event): void | (() => void) => {
 		const l = this.#listener;
-		if (typeof l === 'function') l.call(this.host ?? this.el, event);
+		if (typeof l === 'function') l.call(this.#host ?? this.#el, event);
 		else l?.handleEvent(event);
 	}
 }

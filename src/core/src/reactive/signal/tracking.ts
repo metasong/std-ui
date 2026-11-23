@@ -143,8 +143,10 @@ export function untrack<T>(fn: () => T): T {
  * is built on top of this.
  */
 export class Watcher extends ReactiveNode {
-	constructor(private readonly notify: (this: Watcher) => void) {
+	readonly #notify: (this: Watcher) => void;
+	constructor(notify: (this: Watcher) => void) {
 		super();
+		this.#notify = notify;
 	}
 
 	/** Starts watching `nodes`, in addition to any already watched. */
@@ -167,6 +169,6 @@ export class Watcher extends ReactiveNode {
 	}
 	override markDirty(): void {
 		unsubscribe(this); // inert until re-armed
-		this.notify.call(this);
+		this.#notify.call(this);
 	}
 }

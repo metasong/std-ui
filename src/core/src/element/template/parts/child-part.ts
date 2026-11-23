@@ -30,13 +30,17 @@ export class ChildPart implements Part {
 	readonly #slot = new DirectiveSlot();
 	/** This position's `ChildPartInfo`, built once and handed to directives - see `directives/directive.ts`. */
 	#partInfo: ChildPartInfo;
-	constructor(private readonly anchor: Comment, private readonly host?: unknown) {
+	readonly #anchor: Comment;
+	readonly #host: unknown;
+	constructor(anchor: Comment, host?: unknown) {
+		this.#anchor = anchor;
+		this.#host = host;
 		this.#partInfo = { type: PartType.CHILD, anchor };
 	}
 
 	/** The comment marking the end of this part's content. @internal */
 	get endNode(): Comment {
-		return this.anchor;
+		return this.#anchor;
 	}
 
 	update(values: readonly unknown[]): void {
@@ -54,7 +58,7 @@ export class ChildPart implements Part {
 		}
 		if (this.#renderer?.constructor === picked.Ctor && this.#renderer.update(picked.value)) return;
 		this.#clear();
-		this.#renderer = new picked.Ctor(this.anchor, this.host);
+		this.#renderer = new picked.Ctor(this.#anchor, this.#host);
 		this.#renderer.update(picked.value);
 	}
 
@@ -74,6 +78,6 @@ export class ChildPart implements Part {
 	dispose(): void {
 		this.#slot.disconnect();
 		this.#clear();
-		this.anchor.remove();
+		this.#anchor.remove();
 	}
 }
