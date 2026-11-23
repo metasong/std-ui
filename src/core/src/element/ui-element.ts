@@ -258,14 +258,17 @@ export abstract class UIElement extends HTMLElement {
 
 	/** Removed from the document; disposes the render effect and any `effect()`s set up in `connect()`. */
 	private disconnectedCallback(): void {
-		this.disconnect?.();
-		// Runs bound directives' `disconnected()`; DOM is kept, directives are re-created on reconnect.
-		if (this.#renderRoot) disconnectRendered(this.#renderRoot);
+		// Teardown mirrors setup in reverse: stop reactivity first, so nothing the steps below do
+		// (e.g. a `disconnect()` that writes a signal) can schedule a render on a half-torn-down element.
+		const disposers = this.#effectDisposers;
+		this.#effectDisposers = [];
 		this.#connected = false;
 		this.#hooksSettled = false;
 		this.#firstUpdateDone = false;
-		this.#effectDisposers.forEach(dispose => dispose());
-		this.#effectDisposers = [];
+		disposers.forEach(dispose => dispose());
+		this.disconnect?.();
+		// Runs bound directives' `disconnected()`; DOM is kept, directives are re-created on reconnect.
+		if (this.#renderRoot) disconnectRendered(this.#renderRoot);
 	}
 
 	/**

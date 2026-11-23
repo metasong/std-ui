@@ -114,6 +114,28 @@ describe('UIElement', () => {
 		expect(renderSpy).not.toHaveBeenCalled();
 	});
 
+	it('does not re-render when disconnect() writes a signal the template reads', async () => {
+		const count = state(0);
+		const renderSpy = vi.fn();
+
+		@tag('el-disconnect-write')
+		class Foo extends UIElement {
+			protected override disconnect(): void {
+				count.set(count.peek() + 1);
+			}
+			protected override template(): void {
+				renderSpy(count());
+			}
+		}
+
+		const el = document.createElement('el-disconnect-write') as Foo;
+		document.body.appendChild(el);
+		renderSpy.mockClear();
+		el.remove();
+		await flush();
+		expect(renderSpy).not.toHaveBeenCalled();
+	});
+
 	it('renders template() into a shadow root when shadowRootOptions is set', () => {
 		const tree = { count: state(2) };
 
