@@ -56,6 +56,33 @@ describe('ElementStyles#apply', () => {
 		expect(cssText).toContain(':scope'); // :host rewritten for the @scope block
 	});
 
+	it('adopts light-DOM styles onto the enclosing shadow root, since document sheets do not reach into it', () => {
+		const host = document.createElement('div');
+		const shadowRoot = host.attachShadow({ mode: 'open' });
+		if (!Array.isArray(shadowRoot.adoptedStyleSheets)) return; // unsupported in this environment
+		const el = document.createElement('div'); // a light-DOM element living inside someone else's shadow root
+		shadowRoot.append(el);
+
+		const cssOf = (root: { adoptedStyleSheets: CSSStyleSheet[] }) =>
+			root.adoptedStyleSheets.flatMap(sheet => Array.from(sheet.cssRules)).map(rule => rule.cssText).join('\n');
+		const before = cssOf(document);
+
+		new ElementStyles().apply(el, 'el-light-in-shadow', css`.el-light-in-shadow-marker {}`);
+		expect(cssOf(shadowRoot)).toContain('@scope (el-light-in-shadow)');
+		expect(cssOf(document)).toBe(before); // nothing leaked onto the document
+
+		// Once per (root, tag): a second instance in the same shadow root adds nothing...
+		new ElementStyles().apply(document.createElement('div'), 'el-light-in-shadow', css`.el-light-in-shadow-marker {}`);
+		const other = document.createElement('div');
+		other.attachShadow({ mode: 'open' }).append(document.createElement('div'));
+		expect(shadowRoot.adoptedStyleSheets.length).toBe(1);
+
+		// ...but another shadow root needs its own copy.
+		const inOther = other.shadowRoot!.firstElementChild!;
+		new ElementStyles().apply(inOther, 'el-light-in-shadow', css`.el-light-in-shadow-marker {}`);
+		expect(cssOf(other.shadowRoot! as unknown as { adoptedStyleSheets: CSSStyleSheet[] })).toContain('@scope (el-light-in-shadow)');
+	});
+
 	it('only adopts light-DOM styles once per tag name, even across different ElementStyles instances', () => {
 		const styles = css`.el-light-once-marker {}`;
 		new ElementStyles().apply(document.createElement('div'), 'el-light-once', styles);

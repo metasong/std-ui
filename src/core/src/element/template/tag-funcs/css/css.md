@@ -63,7 +63,7 @@ summarized here:
 |---|---|---|
 | Shadow root, `adoptedStyleSheets` supported | `shadowRoot.adoptedStyleSheets = [...existing, ...sheets]` — the cached `CSSStyleSheet`s, shared by reference across every instance | The shadow boundary itself — `:host` works as normal |
 | Shadow root, no `adoptedStyleSheets` support (e.g. some test DOMs) | A plain `<style>` prepended into the shadow root, one per instance | Still the shadow boundary — no extra wrapping needed |
-| Light DOM (default) | One shared `<style>`/`CSSStyleSheet` adopted onto `document`, **once per custom element tag** (not per instance) | `@scope (tag-name) { ... }` — matches only this tag's elements, never leaks to unrelated markup |
+| Light DOM (default) | One shared `<style>`/`CSSStyleSheet` adopted onto `document` (or onto the enclosing shadow root, when the element is rendered inside another component's shadow tree, since document sheets don't reach into it), **once per custom element tag per root** (not per instance) | `@scope (tag-name) { ... }` — matches only this tag's elements, never leaks to unrelated markup |
 
 ### Why `@scope`, scoped by tag name, shared once
 

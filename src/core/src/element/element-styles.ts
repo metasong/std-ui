@@ -6,7 +6,8 @@
 //   directly - cheap, and naturally scoped by the shadow boundary, so `:host` is left as-is.
 // - Shadow root without `adoptedStyleSheets` support (e.g. some test DOMs): a plain per-instance
 //   `<style>` - still contained by the shadow boundary, so no `@scope` wrapping needed.
-// - Light DOM: adopted **once per custom element tag**, onto `document` - not the render root -
+// - Light DOM: adopted **once per custom element tag**, onto `document` (or onto the enclosing shadow
+//   root, when the element is rendered inside another component's shadow tree) - not the render root -
 //   wrapped in `@scope (tag-name) { ... }` so it only ever matches this tag's elements; `:host`
 //   is rewritten to `:scope` first so the same literal reads the same way as the shadow-DOM case.
 //   One shared sheet per tag (not per instance) avoids re-parsing identical CSS for every instance.
@@ -24,11 +25,12 @@ import {
  * - so `UIElement` itself doesn't have to.
  */
 export class ElementStyles {
-	/** Tag names whose `static styles` have already been adopted onto `document` - shared across every
-	 *  `ElementStyles` instance (static, not per-instance) so every instance of a light-DOM-rendering class
-	 *  after the first is a no-op; custom element tag names are globally unique, so this also can't collide
-	 *  across classes. */
-	static #documentStyledTagNames = new Set<string>();
+	/** Per root (`document`, or a shadow root hosting light-DOM elements), the tag names whose `static styles`
+	 *  were already adopted there - shared across every `ElementStyles` instance (static, not per-instance) so
+	 *  every instance of a light-DOM-rendering class after the first in that root is a no-op; custom element tag
+	 *  names are globally unique, so this also can't collide across classes. Weak, so a removed shadow root
+	 *  takes its entry with it. */
+	static #styledTagNames = new WeakMap<Document | ShadowRoot, Set<string>>();
 
 	/** The `<style>` inserted for the shadow-root-without-`adoptedStyleSheets` fallback (see `apply()`) -
 	 *  `render()` clears the render root's children on structural re-renders, so this is tracked here and
@@ -57,18 +59,25 @@ export class ElementStyles {
 			return;
 		}
 
-		if (ElementStyles.#documentStyledTagNames.has(tagName)) return;
-		ElementStyles.#documentStyledTagNames.add(tagName);
+		// Document sheets don't reach into a shadow tree, so a light-DOM element rendered inside another
+		// component's shadow root needs its sheet on that root; everywhere else it goes on the document.
+		const rootNode = renderRoot.getRootNode();
+		const target: Document | ShadowRoot = rootNode instanceof ShadowRoot ? rootNode : document;
+
+		let styledTagNames = ElementStyles.#styledTagNames.get(target);
+		if (!styledTagNames) ElementStyles.#styledTagNames.set(target, styledTagNames = new Set());
+		if (styledTagNames.has(tagName)) return;
+		styledTagNames.add(tagName);
 
 		const scopedCssText = `@scope (${tagName}) {\n${hostSelectorsToScope(flattenCSSText(styles))}\n}`;
-		if (Array.isArray(document.adoptedStyleSheets)) {
+		if (Array.isArray(target.adoptedStyleSheets)) {
 			const sheet = new CSSStyleSheet();
 			sheet.replaceSync(scopedCssText);
-			document.adoptedStyleSheets = [...document.adoptedStyleSheets, sheet];
+			target.adoptedStyleSheets = [...target.adoptedStyleSheets, sheet];
 		} else {
 			const style = document.createElement('style');
 			style.textContent = scopedCssText;
-			document.head.appendChild(style);
+			(target instanceof ShadowRoot ? target : document.head).appendChild(style);
 		}
 	}
 
