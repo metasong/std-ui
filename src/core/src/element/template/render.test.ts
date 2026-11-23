@@ -149,6 +149,18 @@ describe('unmount', () => {
 		render(t`<b>${'z'}</b>`, c);
 		expect(log).toEqual(['disconnected']);
 	});
+	it('still disconnects nested template parts when their first update throws', () => {
+		log = [];
+		const c = document.createElement('div');
+		class Boom extends Directive {
+			override update(_part: DirectivePart): string { throw new Error('boom'); }
+		}
+		const boom = directive(Boom);
+		const inner = t`<p>${probe('a')}</p><i>${boom()}</i>`;
+		expect(() => render(t`<div>${inner}</div>`, c)).toThrow('boom');
+		unmount(c);
+		expect(log).toEqual(['disconnected']);
+	});
 	it('still disposes parts when the first render throws mid-update', () => {
 		log = [];
 		const c = document.createElement('div');

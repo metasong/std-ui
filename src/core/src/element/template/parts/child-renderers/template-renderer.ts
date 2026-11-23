@@ -20,9 +20,11 @@ export class TemplateRenderer extends ChildRenderer<TemplateResult> {
 		const { fragment, parts } = instantiate(getTemplate(result.strings, result.type), this.host);
 		this.#nodes = Array.from(fragment.childNodes);
 		this.anchor.before(fragment);
-		updateParts(parts, result.values);
+		// Track before the first `updateParts`: the nodes are already in the DOM, so if a binding throws,
+		// `disconnect()`/`dispose()` must still reach these parts.
 		this.#strings = result.strings;
 		this.#parts = parts;
+		updateParts(parts, result.values);
 		return true;
 	}
 	override disconnect(): void {
