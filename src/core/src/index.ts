@@ -31,6 +31,8 @@ export {
 	CSSResult,
 	hostSelectorsToScope,
 	type TemplateResult,
+	type Rendered,
+	type RenderOptions,
 
 	type DirectivePart,
 	type Part,

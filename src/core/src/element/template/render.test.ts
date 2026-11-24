@@ -214,3 +214,110 @@ describe('unmount', () => {
 		expect(c.innerHTML).toBe('');
 	});
 });
+
+describe('render handle', () => {
+	it('throws on update() after dispose() instead of leaking unreachable DOM', () => {
+		const container = document.createElement('div');
+		const handle = render(t`<p>a</p>`, container);
+		handle.dispose();
+		expect(() => handle.update(t`<p>b</p>`)).toThrow(/after dispose/);
+		expect(container.childNodes).toHaveLength(0);
+	});
+
+	it('update() patches like render() and dispose() unmounts a taken-over container', () => {
+		const container = document.createElement('div');
+		const view = (n: string) => t`<p>${n}</p>`;
+		const handle = render(view('a'), container);
+		const p = container.querySelector('p');
+		handle.update(view('b'));
+		expect(container.querySelector('p')).toBe(p);
+		expect(p!.textContent).toBe('b');
+		handle.dispose();
+		expect(container.childNodes).toHaveLength(0);
+	});
+});
+describe('render with the before option', () => {
+	const doc = () => {
+		const article = document.createElement('article');
+		article.innerHTML = '<h1>Title</h1><h2>A</h2><p>text</p>';
+		return article;
+	};
+	const toc = (items: string[]) => t`<ul class="toc"><li>${items.join(',')}</li></ul>`;
+
+	it('renders after a node without clearing or wrapping anything', () => {
+		const article = doc();
+		const h1 = article.querySelector('h1')!;
+		render(toc(['a']), article, { before: h1.nextSibling });
+		expect([...article.children].map((c) => c.tagName)).toEqual(['H1', 'UL', 'H2', 'P']);
+		expect(h1.textContent).toBe('Title'); // the h1 is untouched
+		expect(article.querySelector('ul')!.previousElementSibling).toBe(h1);
+	});
+
+	it('appends when `before` is null', () => {
+		const article = doc();
+		render(toc(['a']), article, { before: null });
+		render(toc(['b']), article, { before: null });
+		expect([...article.children].map((c) => c.tagName)).toEqual(['H1', 'H2', 'P', 'UL', 'UL']);
+	});
+
+	it('patches values in place for the same call site and replaces the DOM for another template', () => {
+		const article = doc();
+		const view = (items: string[]) => toc(items);
+		const r = render(view(['a']), article, { before: article.querySelector('h2') });
+		const ul = article.querySelector('ul');
+		r.update(view(['a', 'b']));
+		expect(article.querySelector('ul')).toBe(ul);
+		expect(ul!.textContent).toBe('a,b');
+
+		r.update(t`<ol><li>other</li></ol>`);
+		expect(article.querySelector('ul')).toBeNull();
+		const ol = article.querySelector('ol')!;
+		expect(ol.nextElementSibling!.tagName).toBe('H2'); // kept its position
+	});
+
+	it('binds .properties on custom elements', () => {
+		const article = doc();
+		const items = [{ id: 'a' }];
+		render(t`<div .items=${items}></div>`, article, { before: null });
+		expect((article.querySelector('div') as unknown as { items: unknown }).items).toBe(items);
+	});
+
+	it('dispose removes only its own nodes and leaves siblings', () => {
+		const article = doc();
+		const before = article.innerHTML;
+		const a = render(toc(['a']), article, { before: article.querySelector('h2') });
+		const b = render(toc(['b']), article, { before: null });
+		a.dispose();
+		expect(article.querySelectorAll('ul')).toHaveLength(1);
+		b.dispose();
+		expect(article.innerHTML).toBe(before); // no leftovers, not even the marker comment
+	});
+
+	it('two renders in one parent are independent', () => {
+		const article = doc();
+		const a = render(toc(['a']), article, { before: article.querySelector('h2') });
+		const b = render(toc(['b']), article, { before: null });
+		a.update(toc(['a2']));
+		expect([...article.querySelectorAll('li')].map((li) => li.textContent)).toEqual(['a2', 'b']);
+		b.dispose();
+		a.dispose();
+	});
+
+	it('runs directive disconnect on dispose', () => {
+		log = [];
+		const article = doc();
+		const r = render(t`<p>${probe('x')}</p>`, article, { before: null });
+		r.dispose();
+		expect(log).toEqual(['disconnected']);
+	});
+
+	it('falls back to the end of the parent when the reference position was removed with the marker', () => {
+		const article = doc();
+		const r = render(toc(['a']), article, { before: article.querySelector('h2') });
+		for (const n of [...article.childNodes]) if (n.nodeType === 8) n.remove(); // someone strips comments
+		r.update(t`<ol><li>x</li></ol>`);
+		expect(article.querySelector('ol')).not.toBeNull();
+		r.dispose();
+		expect(article.querySelector('ol')).toBeNull();
+	});
+});

@@ -340,6 +340,25 @@ render(view(b), container); // same call site -> patches class + text in place
 Switching to a *different* template literal (e.g. a different `if` branch returning a different
 `t\`...\`` string) tears down the old DOM and builds fresh - there's no cross-template diffing.
 
+### Rendering next to existing DOM: `{ before }`
+
+`render()` normally takes the container over (its content is replaced). To put a template *next to* DOM that
+something else owns, e.g. a table of contents after the title of a rendered markdown doc, pass `before`: a child of
+the container to render in front of (`null`: at the end). Nothing is cleared, and `render()` returns a handle:
+
+```ts
+const toc = render(t`<iam-toc .items=${items}></iam-toc>`, article, { before: title.nextSibling });
+toc.update(t`<iam-toc .items=${more}></iam-toc>`); // same call site: only `.items` is patched
+toc.dispose(); // removes only what this render created
+```
+
+- A hidden comment node marks the position, so the template keeps its place when `update()` swaps in a different
+  template. `dispose()` removes it as well.
+- Every call with `before` makes an independent render; several can share one container. The handle is the only way
+  to update or remove one, because `unmount(container)` and a plain `render(…, container)` do not know about them.
+- Without `before`, the handle's `update()` is the same as calling `render()` again, and `dispose()` is `unmount(container)`.
+- `update()` after `dispose()` throws.
+
 ## Using it in a `UIElement`
 
 `../../ui-element.ts`'s `UIElement.template()` hook accepts either style: sync the DOM imperatively
