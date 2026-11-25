@@ -37,11 +37,11 @@ export class DemoBindingsSection extends UIElement {
 		this.log.set([message, ...this.log()].slice(0, 6));
 	}
 
-	// Handlers carrying an `options` property: `addEventListener` options without modifiers.
+	// Handlers with registered options (`withEventOptions` returns the same function): `addEventListener` options without modifiers.
 	// With std-ui-ext (imported above) they override anything set by `.capture` / `.once` / `.passive`.
-	private readonly onceHandler = Object.assign(
+	private readonly onceHandler = withEventOptions(
 		() => this.note('handler.options { once }: fired (and removed)'),
-		{ options: { once: true } satisfies AddEventListenerOptions },
+		{ once: true },
 	);
 	private readonly captureHandler = withEventOptions(
 		() => this.note('handler.options { capture }: runs BEFORE the inner click'),

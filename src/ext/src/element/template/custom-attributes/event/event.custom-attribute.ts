@@ -1,65 +1,51 @@
 // --- `@event.modifier=${fn}`: event modifiers. ---------------------------------------------------
 //
 // Importing `@std-ui/ext` registers this (see `../register.ts`) over std-ui's default `@` binding, which ignores modifiers.
+// Option/filter modifier parsing lives in `./event-modifiers.ts`, shared with the `@event()` decorator.
 
-import { EventPart, WILDCARD, type CustomAttribute, type Modifier } from '@std-ui/core';
+import { EventPart, WILDCARD, type CustomAttribute } from '@std-ui/core';
 
+import { DEV } from '../../../../dev/flag.js';
+import { applyEventFilters, extractEventModifiers, warnOnce, type EventFilters } from './event-modifiers.js';
 import { findEventExtension, type EventAttributeInfo } from './extensions/index.js';
 
-const OPTION_MODIFIERS = ['capture', 'once', 'passive'] as const;
-const FILTER_MODIFIERS = ['prevent', 'stop', 'stop-immediate', 'self'] as const;
+/** Handlers that `@event()` attaches itself; binding one in a template as well would register it twice. */
+const autoAttached = new WeakSet<object>();
 
-type EventFilters = Partial<Record<(typeof FILTER_MODIFIERS)[number], true>>;
-
-const warned = new Set<string>();
-
-/** Splits modifiers into `addEventListener` options and handler filters; warns on unknown ones. */
-function warnOnce(message: string): void {
-	if (warned.has(message)) return;
-	warned.add(message);
-	console.warn(message);
-}
-
-/** Splits modifiers into `addEventListener` options and handler filters. Unknown ones are warned
- *  about, unless a chosen extension (`claimed`) interprets them. */
-function extractEventModifiers(binding: string, modifiers: readonly Modifier[], claimed: boolean) {
-	const options: AddEventListenerOptions = {};
-	const filters: EventFilters = {};
-	for (const mod of modifiers) {
-		if ((OPTION_MODIFIERS as readonly string[]).includes(mod.name) && mod.value === undefined) {
-			options[mod.name as (typeof OPTION_MODIFIERS)[number]] = true;
-		} else if ((FILTER_MODIFIERS as readonly string[]).includes(mod.name) && mod.value === undefined) {
-			filters[mod.name as keyof EventFilters] = true;
-		} else if (!claimed) {
-			warnOnce(`std-ui html: unsupported modifier ".${mod.name}${mod.value === undefined ? '' : `:${mod.value}`}" on "${binding}" was ignored.`);
-		}
-	}
-	return { options, filters };
+/** Marks `handler` as attached by `@event()`; DEV-asserted against in `ModifierEventPart.update`. */
+export function markAutoAttached(handler: object): void {
+	autoAttached.add(handler);
 }
 
 /** `EventPart` plus modifiers; listener lifecycle is inherited, only options and filtering differ. */
 export class ModifierEventPart extends EventPart {
 	readonly #options: AddEventListenerOptions;
 	readonly #filters: EventFilters;
-	constructor(el: Element, info: EventAttributeInfo, host?: unknown) {
+	constructor(el: EventTarget, info: EventAttributeInfo, host?: unknown) {
 		const { name, modifiers } = info;
 		super(el, name, [], host); // no modifiers passed up: the base would warn about all of them
+		this.#name = name;
 		const extension = findEventExtension(info);
 		({ options: this.#options, filters: this.#filters } = extractEventModifiers(`@${name}`, modifiers, !!extension));
 		if (extension) this.handler = extension.handler(this.handler, info);
 		else if (info.arg !== undefined) warnOnce(`std-ui html: ":${info.arg}" on "@${name}" was ignored.`);
 	}
-	// A static `options` property on the handler overrides the modifier-derived options.
+	readonly #name: string;
+	override update(values: readonly unknown[]): void {
+		const handler = values[0];
+		if (DEV && typeof handler === 'function' && autoAttached.has(handler)) {
+			throw new Error(`std-ui @${this.#name}: this handler is already attached by @event(); remove the template binding or the decorator's source.element.`);
+		}
+		super.update(values);
+	}
+	// The handler's `EVENT_OPTIONS` tag (`withEventOptions`, `@event()`) overrides the modifier-derived options.
 	protected override resolveOptions(own: AddEventListenerOptions | undefined): AddEventListenerOptions {
 		return { ...this.#options, ...own };
 	}
-	protected override shouldHandle(event: Event): boolean {
-		const f = this.#filters;
-		if (f.self && event.target !== event.currentTarget) return false;
-		if (f.prevent) event.preventDefault();
-		if (f.stop) event.stopPropagation();
-		if (f['stop-immediate']) event.stopImmediatePropagation();
-		return true;
+	// A static `filters` property on the handler (by `@event()`) adds to the modifier-derived ones.
+	protected override shouldHandle(event: Event, listener: EventListenerOrEventListenerObject | undefined): boolean {
+		const own = (listener as { filters?: EventFilters } | undefined)?.filters;
+		return applyEventFilters(own ? { ...this.#filters, ...own } : this.#filters, event);
 	}
 }
 

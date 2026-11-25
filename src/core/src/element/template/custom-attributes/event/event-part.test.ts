@@ -1,5 +1,5 @@
 import { describe, expect, it, vi } from 'vitest';
-import { EventPart, withEventOptions } from './event-part.js';
+import { EVENT_OPTIONS, EventPart, withEventOptions } from './event-part.js';
 
 describe('EventPart once', () => {
 	/** An EventPart whose options come from the handler's own `options` (the base-class path). */
@@ -37,29 +37,65 @@ describe('EventPart once', () => {
 });
 
 describe('withEventOptions', () => {
-	it('does not mutate the handler passed in', () => {
+	it('returns the same handler with a static `options` property', () => {
 		const fn = () => {};
-		const wrapped = withEventOptions(fn, { once: true });
-		expect((fn as { options?: unknown }).options).toBeUndefined();
-		expect(wrapped.options).toEqual({ once: true });
+		const tagged = withEventOptions(fn, { once: true });
+		expect(tagged).toBe(fn);
+		expect(tagged[EVENT_OPTIONS]).toEqual({ once: true });
+		const listener = { handleEvent: () => {} };
+		expect(withEventOptions(listener, { capture: true })).toBe(listener);
+		expect((listener as any)[EVENT_OPTIONS]).toEqual({ capture: true });
 	});
 
-	it('forwards `this` and the event to the original handler', () => {
+	it('applies the options to every binding of that handler', () => {
+		const spy = vi.fn();
+		const handler = withEventOptions(() => spy(), { once: true });
+		for (const el of [document.createElement('button'), document.createElement('button')]) {
+			new EventPart(el, 'click').update([handler]);
+			el.click();
+			el.click();
+		}
+		expect(spy).toHaveBeenCalledTimes(2); // once per element
+	});
+
+	it('returns the same handler when re-tagged with equal options', () => {
+		const fn = () => {};
+		const first = withEventOptions(fn, { once: true });
+		expect(withEventOptions(fn, { once: true })).toBe(first);
+	});
+
+	it('wraps (and leaves the original alone) when already tagged with different options', () => {
 		const calls: unknown[] = [];
 		const host = {};
 		const fn = function (this: unknown, e: Event) { calls.push(this, e); };
+		withEventOptions(fn, { once: true });
 		const wrapped = withEventOptions(fn, { passive: true });
+		expect(wrapped).not.toBe(fn);
+		expect((fn as any)[EVENT_OPTIONS]).toEqual({ once: true });
+		expect(wrapped[EVENT_OPTIONS]).toEqual({ passive: true });
 		const event = new Event('x');
 		(wrapped as (this: unknown, e: Event) => void).call(host, event);
 		expect(calls).toEqual([host, event]);
 	});
 
-	it('wraps listener objects', () => {
+	it('wraps listener objects already tagged with different options', () => {
 		const handleEvent = vi.fn();
-		const wrapped = withEventOptions({ handleEvent }, { capture: true });
+		const listener = { handleEvent };
+		withEventOptions(listener, { once: true });
+		const wrapped = withEventOptions(listener, { capture: true });
+		expect(wrapped).not.toBe(listener);
 		const event = new Event('x');
 		wrapped.handleEvent(event);
 		expect(handleEvent).toHaveBeenCalledWith(event);
-		expect(wrapped.options).toEqual({ capture: true });
+		expect((listener as any)[EVENT_OPTIONS]).toEqual({ once: true });
+	});
+
+	it('applies options to listener objects', () => {
+		const el = document.createElement('button');
+		const handleEvent = vi.fn();
+		new EventPart(el, 'click').update([withEventOptions({ handleEvent }, { once: true })]);
+		el.click();
+		el.click();
+		expect(handleEvent).toHaveBeenCalledTimes(1);
 	});
 });

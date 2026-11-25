@@ -6,7 +6,7 @@ Built-in **custom attribute** (sigil `@`, wildcard name) that attaches an event 
 import { t, withEventOptions } from '@std-ui/core';
 
 t`<button @click=${onClick}>Save</button>`;
-t`<button @click=${withEventOptions(onClick, { once: true })}>Once</button>`;
+t`<button @click=${onceClick}>Once</button>`; // const onceClick = withEventOptions(onClick, { once: true })
 ```
 
 ## Behavior
@@ -21,17 +21,23 @@ t`<button @click=${withEventOptions(onClick, { once: true })}>Once</button>`;
 
 ## Listener options
 
-Wrap a handler with `withEventOptions(handler, options)` to supply `AddEventListenerOptions`
-(`capture`, `once`, `passive`, `signal`). Changing any of these between renders re-attaches the
-listener.
+`withEventOptions(handler, options)` tags a handler with `AddEventListenerOptions` (`capture`, `once`, `passive`, `signal`)
+under the `EVENT_OPTIONS` symbol key (so a listener object's own `options` field is never misread) and returns **the same handler** (no wrapper).
+Set it once where the handler is created (a class field) and bind it plainly. The options apply to every
+binding of that function, so use one you own. Changing options between renders re-attaches the listener.
+
+```ts
+readonly onClick = withEventOptions(() => this.save(), { once: true });
+t`<button @click=${this.onClick}>Once</button>`;
+```
 
 ## Modifiers
 
 The core part does not interpret modifiers (`@click.prevent`, `.once`, ...); they warn in DEV.
 `@std-ui/ext` replaces this binding with one that handles them, using the protected hooks:
 
-- `resolveOptions(own)` — merge handler options with part-level options.
-- `shouldHandle(event)` — run side effects before the handler; return `false` to skip it.
+- `resolveOptions(own)` — merge the handler's own `options` with part-level options.
+- `shouldHandle(event, listener)` — run side effects before the handler; return `false` to skip it.
 
 ## Files
 

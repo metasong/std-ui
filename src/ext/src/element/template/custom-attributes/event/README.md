@@ -16,7 +16,9 @@ t`<button @click.prevent.stop=${onClick}>Go</button>`;
 | `.self` | filter | Skips the handler unless `event.target === event.currentTarget` |
 
 - Unknown or valued modifiers are ignored with a one-time `console.warn`.
-- A handler's own `options` (from `withEventOptions`) override modifier-derived options.
+- A handler's own `options` (`withEventOptions`, or `@event(options)`) override modifier-derived options; its `filters` (`@event(options, filters)`) add to modifier-derived ones.
+- In DEV, binding a method that `@event(on, eventName, ...)` already attaches throws (it would register twice); see the
+  [decorator README](../../../decorators/event/README.md#the-already-attached-throw).
 - `:arg` is passed to extensions; with no matching extension it is ignored with a one-time warning.
 - Modifiers beyond the built-ins are interpreted by [extensions](./extensions/README.md).
 
