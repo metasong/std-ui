@@ -2,7 +2,8 @@
 // reads, B writes what A reads) and throws instead of freezing the page in an endless microtask loop.
 // See `../effect-cycles.md`.
 
-import type { Watcher } from '../../signal/tracking.js';
+/** Identity of a guarded effect (any object). */
+type Watcher = object;
 import { DEV } from '../../../dev/flag.js';
 
 /**

@@ -18,10 +18,8 @@ import { untrack, Watcher } from '../signal/tracking.js';
  */
 export type OnCleanup = (cleanup: () => void) => void;
 
-/** Watchers pending a (microtask-batched) re-run. */
-const pendingWatchers = new Set<Watcher>();
-/** Each watcher's re-run body, looked up by `flush()`. */
-const effectBodies = new Map<Watcher, () => void>();
+/** Effects pending a (microtask-batched) re-run. Swapped (not copied) by `flush()`. */
+let pending = new Set<Effect>();
 let flushScheduled = false;
 
 function scheduleFlush(): void {
@@ -32,13 +30,13 @@ function scheduleFlush(): void {
 
 /** Max re-runs of one effect within a single chain of consecutive flushes before we assume a cycle. */
 const MAX_RERUNS_PER_CHAIN = 100;
-const cycleGuard = new CycleGuard(MAX_RERUNS_PER_CHAIN, () => pendingWatchers.clear());
+const cycleGuard = new CycleGuard(MAX_RERUNS_PER_CHAIN, () => pending.clear());
 
 /** Resolvers of `whenFlushed()` promises, released once no flush is pending any more. */
 let flushWaiters: Array<() => void> = [];
 
 function releaseWaitersIfIdle(): void {
-	if (flushScheduled || pendingWatchers.size > 0) return;
+	if (flushScheduled || pending.size > 0) return;
 	const waiters = flushWaiters;
 	flushWaiters = [];
 	for (const resolve of waiters) resolve();
@@ -50,35 +48,109 @@ function releaseWaitersIfIdle(): void {
  * nothing is pending. Unlike counting microtask hops, this holds for cascades of any depth.
  */
 export function whenFlushed(): Promise<void> {
-	if (!flushScheduled && pendingWatchers.size === 0) return Promise.resolve();
+	if (!flushScheduled && pending.size === 0) return Promise.resolve();
 	return new Promise(resolve => flushWaiters.push(resolve));
 }
 
 function flush(): void {
 	flushScheduled = false;
 	try {
-		// Snapshot first: an effect re-running may schedule more effects, which should run next flush.
-		const watchers = Array.from(pendingWatchers);
-		pendingWatchers.clear();
-		// A throwing effect must not abort the loop: the watchers after it are already out of
-		// `pendingWatchers` and inert, so skipping them would leave them dead for good. Run them all,
-		// then report what failed.
-		const errors: unknown[] = [];
-		for (const watcher of watchers) {
+		// Double-buffer: effects scheduled while running land in the fresh set and run next flush.
+		const batch = pending;
+		pending = new Set();
+		// A throwing effect must not abort the loop: the rest are already out of `pending` and inert,
+		// so skipping them would leave them dead for good. Run them all, then report what failed.
+		let errors: unknown[] | undefined;
+		for (const fx of batch) {
 			try {
-				cycleGuard.count(watcher);
-				effectBodies.get(watcher)?.();
+				cycleGuard.count(fx);
+				fx.run();
 			} catch (err) {
-				errors.push(err);
+				(errors ??= []).push(err);
 			}
 		}
-		if (pendingWatchers.size === 0) cycleGuard.reset();
-		if (errors.length === 1) throw errors[0];
-		if (errors.length > 1) throw new AggregateError(errors, `${errors.length} effects threw during one flush`);
+		if (pending.size === 0) cycleGuard.reset();
+		if (errors) {
+			if (errors.length === 1) throw errors[0];
+			throw new AggregateError(errors, `${errors.length} effects threw during one flush`);
+		}
 	}
 	finally {
 		// Also when an effect throws: waiters must not hang forever. Re-armed flushes keep them waiting.
 		releaseWaitersIfIdle();
+	}
+}
+
+class Effect {
+	#cleanups: Array<() => void> | null = null;
+	#disposed = false;
+	readonly #action: (onCleanup: OnCleanup) => void;
+	readonly #after: (() => void) | null;
+	readonly #watcher: Watcher;
+	// Runs inside a `Signal.Computed`, which tracks reads. A watcher notification only means "maybe
+	// dirty": `get()` re-runs this only if a source really changed (equality cutoff), so cleanup +
+	// action are skipped on false alarms.
+	readonly #body = new Signal.Computed<void>(() => {
+		this.#runCleanup();
+		this.#action(this.#onCleanup);
+	});
+	readonly #onCleanup: OnCleanup = fn => {
+		(this.#cleanups ??= []).push(fn);
+	};
+
+	constructor(action: (onCleanup: OnCleanup) => void, after: (() => void) | null) {
+		this.#action = action;
+		this.#after = after;
+		// `notify` runs synchronously inside the writer's `set()` (reads/writes are forbidden there), so
+		// it only schedules into the shared microtask flush: many synchronous writes, one re-run.
+		this.#watcher = new Watcher(() => {
+			if (this.#disposed || pending.has(this)) return;
+			pending.add(this);
+			scheduleFlush();
+		});
+		cycleGuard.register(this);
+		this.#watcher.watch(this.#body);
+		// First run is synchronous so initial DOM sync isn't deferred a tick.
+		this.run();
+	}
+
+	run(): void {
+		if (this.#disposed) return;
+		try {
+			this.#body.get();
+			this.#after?.();
+		} finally {
+			// A watcher goes inert after it notifies; re-arm it for the next change.
+			this.#watcher.watch();
+		}
+	}
+
+	dispose = (): void => {
+		if (this.#disposed) return;
+		this.#disposed = true;
+		pending.delete(this);
+		cycleGuard.unregister(this);
+		this.#watcher.unwatch(this.#body);
+		this.#runCleanup();
+	};
+
+	/** Runs cleanups LIFO, untracked; every one runs, the first error is rethrown afterwards. */
+	#runCleanup(): void {
+		const fns = this.#cleanups;
+		if (!fns) return;
+		this.#cleanups = null;
+		untrack(() => {
+			let failed = false;
+			let firstError: unknown;
+			for (let i = fns.length - 1; i >= 0; i--) {
+				try {
+					fns[i]();
+				} catch (err) {
+					if (!failed) { failed = true; firstError = err; }
+				}
+			}
+			if (failed) throw firstError;
+		});
 	}
 }
 
@@ -100,71 +172,5 @@ export function effect(
 	monitoredAction: (onCleanup: OnCleanup) => void,
 	afterAction: (() => void) | null = null
 ): () => void {
-	// Cleanups registered during the current run. `onCleanup` may be called any number of times; they
-	// run in reverse registration order (like a stack / `defer`), so later resources that depend on
-	// earlier ones are released first.
-	let cleanups: Array<() => void> = [];
-	let disposed = false;
-
-	const runCleanup = (): void => {
-		const fns = cleanups;
-		cleanups = [];
-		let failed = false;
-		let firstError: unknown;
-		for (let i = fns.length - 1; i >= 0; i--) {
-			try {
-				fns[i]();
-			} catch (err) {
-				// Keep going so one failing cleanup doesn't leak the rest; rethrow the first at the end.
-				if (!failed) {
-					failed = true;
-					firstError = err;
-				}
-			}
-		}
-		if (failed) throw firstError;
-	};
-	const onCleanup: OnCleanup = (fn: () => void) => {
-		cleanups.push(fn);
-	};
-
-	// The body runs inside a `Signal.Computed`, which tracks what it reads. A notification from the
-	// watcher only means "maybe dirty": `body.get()` re-runs the function only if a source really
-	// changed (equality cutoff), so cleanup + action live inside it and are skipped on false alarms.
-	const body = new Signal.Computed<void>(() => {
-		untrack(runCleanup);
-		monitoredAction(onCleanup);
-	});
-	// `notify` runs synchronously inside the writer's `set()` (reads/writes are forbidden there), so it
-	// only schedules `rerun` into the shared microtask flush: many synchronous writes, one re-run.
-	const watcher = new Watcher(function notify(this: Watcher): void {
-		if (disposed || pendingWatchers.has(this)) return;
-		pendingWatchers.add(this);
-		scheduleFlush();
-	});
-	const rerun = (): void => {
-		if (disposed) return;
-		try {
-			body.get();
-			afterAction?.();
-		} finally {
-			// A watcher goes inert after it notifies; re-arm it for the next change.
-			watcher.watch();
-		}
-	};
-	effectBodies.set(watcher, rerun);
-	cycleGuard.register(watcher);
-
-	watcher.watch(body);
-	// First run happens synchronously, so initial DOM sync isn't deferred a tick.
-	rerun();
-
-	return () => {
-		disposed = true;
-		pendingWatchers.delete(watcher);
-		effectBodies.delete(watcher);
-		cycleGuard.unregister(watcher);
-		watcher.unwatch(body);
-		untrack(runCleanup);
-	};
+	return new Effect(monitoredAction, afterAction).dispose;
 }
