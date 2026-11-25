@@ -8,7 +8,8 @@ core's `EventPart` and the [`@event.modifier` binding](../../template/custom-att
 | Way | Use when | Why it exists |
 | --- | --- | --- |
 | **1. Template binding with modifiers**<br>`@click.once.prevent=${this.onClick}` | The target is an element **in this template**, and the options are simple and fixed. This is the default. | The binding is the listener's lifecycle: it attaches when the element is rendered and detaches when it goes. Modifiers put the options next to the element they affect, and need no extra code. Modifiers need `@std-ui/ext`; core's binding ignores them (with a DEV warning). |
-| **2. Options carried by the handler**<br>`withEventOptions(fn, opts)` (core) works on **any** function or listener object: a class field, a module-level function, an arrow function, `{ handleEvent }`. `@event(opts, filters)` (ext, template-only form) is the same idea for **class methods** only. Bind the result plainly: `@click=${onClick}` | The same handler is bound in several places, or the options are more than a modifier chain should hold (`signal`, many filters), or the handler is not a class method, or you are on core without ext. | The options travel with the function, so templates stay clean and there is no per-render allocation. The cost is that they apply to **every** binding of that function (an already-tagged function with different options gets a wrapper instead). Use a function you own. |
+| **2a. Options carried by any handler**<br>`withEventOptions(fn, opts)` (core), bound plainly: `@click=${onClick}` | The handler is **not a class method** (a class field, a module-level function, an arrow function, `{ handleEvent }`), or you are on core without ext, and the options are more than a modifier chain should hold (`signal`, ...). | Works on **any** function or listener object. The options travel with the function, so templates stay clean and there is no per-render allocation. The cost is that they apply to **every** binding of that function (an already-tagged function with different options gets a wrapper instead). Use a function you own. It sets `AddEventListenerOptions` only; for filters use modifiers. |
+| **2b. Options carried by a method**<br>`@event(opts, filters)` (ext, template-only form), bound plainly: `@click=${this.onClick}` | The handler is a **class method** and it needs fixed options and/or filters (`prevent`, `stop`, `self`) wherever it is bound. | Same idea as 2a, declared on the method itself, and it also carries **filters**. Methods only (it is a method decorator). Nothing is attached; the template binding still decides the element and event name. |
 | **3. Attach decorator**<br>`@event(ListenOn.window, 'resize', opts)` | The target is **not in the template**: `window`, `document`, the host, or a computed element such as `host => host.parentElement`. | A template binding can only attach to an element the template renders. The decorator ties the listener to the **element's connect/disconnect** instead, so it is removed with the element, and `this` is the host. |
 
 Rules of thumb:
@@ -41,6 +42,10 @@ class MyEl extends UIElement {
 
 - `on` is a function `(host) => EventTarget | null | undefined`, resolved on **every connect** (a literal element
   is not accepted: the decorator runs once per class, not per instance). A `null`/`undefined` result skips the listener.
+- `on` is called **once per connect**: there is no equality check, no computed wrapper, and no tracking of signals it
+  reads. Keep it stable for the duration of a connection (`host`, `window`, `document`, `host.parentElement`).
+  Moving the element to a new parent normally fires disconnect then connect, so it re-resolves; a signal the function
+  reads, or a target that only appears later (a `null` result), is **not** picked up until the next reconnect.
 - `ListenOn.host`, `ListenOn.window` and `ListenOn.document` are ready-made; `window`/`document` resolve to `null`
   when the global is absent (SSR).
 - `eventName` takes the template syntax, so `keydown.ctrl+s` and `input.debounce:300` work, and so do ext's event
