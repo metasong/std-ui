@@ -4,6 +4,18 @@
 
 /** Identity of a guarded effect (any object). */
 type Watcher = object;
+/** Where an effect came from: its creation stack, or (capture off) its body for a source snippet. */
+type Origin = Error | ((...args: never[]) => void);
+
+/**
+ * Dev switch: capture a creation stack for every effect (default on). `new Error()` costs ~7us per
+ * effect, which adds up with thousands of effects. Turn off with
+ * `globalThis.__STD_UI_EFFECT_STACKS__ = false` (read on each `effect()` call, so it can be toggled
+ * at runtime). Cycle errors then show the start of the effect body instead of a stack.
+ */
+function captureStacks(): boolean {
+	return (globalThis as { __STD_UI_EFFECT_STACKS__?: boolean }).__STD_UI_EFFECT_STACKS__ !== false;
+}
 import { DEV } from '../../../dev/flag.js';
 
 /**
@@ -30,8 +42,8 @@ import { DEV } from '../../../dev/flag.js';
 export class CycleGuard {
 	/** Re-run counts for the current chain; cleared once a flush leaves nothing pending. */
 	readonly #runs = new Map<Watcher, number>();
-	/** Creation-site `Error` of each live effect (dev only). */
-	readonly #origins = new Map<Watcher, Error>();
+	/** Creation-site `Error` (or the effect body, when stack capture is off) of each live effect (dev only). */
+	readonly #origins = new Map<Watcher, Origin>();
 	readonly #limit: number;
 	readonly #onTrip: () => void;
 
@@ -42,8 +54,8 @@ export class CycleGuard {
 	}
 
 	/** Remembers where `watcher`'s effect was created. Call from `effect()`. */
-	register(watcher: Watcher): void {
-		if (DEV) this.#origins.set(watcher, new Error());
+	register(watcher: Watcher, action: (...args: never[]) => void): void {
+		if (DEV) this.#origins.set(watcher, captureStacks() ? new Error() : action);
 	}
 
 	/** Forgets `watcher`. Call from the effect's dispose. */
@@ -75,7 +87,7 @@ export class CycleGuard {
 function describeCycle(
 	limit: number,
 	runs: ReadonlyMap<Watcher, number>,
-	origins: ReadonlyMap<Watcher, Error>,
+	origins: ReadonlyMap<Watcher, Origin>,
 	offender: Watcher,
 ): string {
 	const suspects = [...runs].filter(([w, n]) => w !== offender && n > 1);
@@ -91,7 +103,12 @@ function describeCycle(
 }
 
 /** First stack frames outside the signal core / dev helpers, i.e. the user's `effect(...)` call site. */
-function originOf(error: Error | undefined): string {
+function originOf(origin: Origin | undefined): string {
+	if (typeof origin === 'function') {
+		// Stack capture was off: show the start of the effect body instead (built only now, on error).
+		return `    (stack capture off) ${origin.toString().replace(/\s+/g, ' ').slice(0, 160)}`;
+	}
+	const error = origin;
 	if (!error?.stack) return '    (unknown)';
 	return error.stack
 		.split('\n')

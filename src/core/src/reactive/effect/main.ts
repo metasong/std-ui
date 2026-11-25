@@ -108,7 +108,7 @@ class Effect {
 			pending.add(this);
 			scheduleFlush();
 		});
-		cycleGuard.register(this);
+		cycleGuard.register(this, action);
 		this.#watcher.watch(this.#body);
 		// First run is synchronous so initial DOM sync isn't deferred a tick.
 		this.run();
