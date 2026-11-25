@@ -4,7 +4,7 @@ Runs a callback immediately, then re-runs it whenever any **signal** or **comput
 
 Broader API context: [`../signal/state.md`](../signal/state.md). Implementation: [`main.ts`](./main.ts) on top of `Watcher` from [`../signal/tracking.ts`](../signal/tracking.ts) (same role as `Signal.subtle.Watcher` in the [proposal](https://github.com/tc39/proposal-signals)).
 
-Writing to signals you also read: [`effect-cycles.md`](./effect-cycles.md).
+Writing to signals you also read: [`effect-cycles.md`](./effect-cycles.md). How it is implemented: [`design.md`](./design.md).
 
 ```ts
 import { effect, state } from '@std-ui/core';
@@ -28,7 +28,7 @@ dispose(); // stop watching; run pending cleanup
 | Argument | Role |
 |----------|------|
 | `monitoredAction` | Effect body. Receives `onCleanup` to register teardown. **Dependency-tracked** — only signals/computeds actually read on the latest run are subscribed. |
-| `afterAction` | Optional. Runs right after `monitoredAction` on every run (initial and re-runs). **Not tracked** — reads there do not add dependencies or trigger re-runs. |
+| `afterAction` | Optional. Runs right after `monitoredAction` whenever it actually ran (initial and real re-runs; skipped when a notification turns out to be a false alarm). **Not tracked** — reads there do not add dependencies or trigger re-runs. |
 
 Returns `dispose()`: unsubscribes the effect, removes it from the pending flush queue, and runs any registered cleanup.
 

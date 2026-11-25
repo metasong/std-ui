@@ -1,4 +1,5 @@
 import { describe, expect, it, vi } from 'vitest';
+import { computed } from '../signal/computed.js';
 import { state } from '../signal/state.js';
 import { effect, whenFlushed } from './main.js';
 import { flushEffects } from './test-helpers.js';
@@ -111,6 +112,33 @@ describe('effect', () => {
 
 		// State read only inside afterAction isn't tracked, so changing it shouldn't trigger a re-run.
 		other.set(1);
+		await flushEffects();
+		expect(monitoredSpy).toHaveBeenCalledTimes(2);
+		expect(afterSpy).toHaveBeenCalledTimes(2);
+	});
+
+	it('skips afterAction when the watcher fires but monitoredAction does not re-run (false alarm)', async () => {
+		const source = state(1);
+		// Same result for 1 and 3, so the equality cutoff keeps the effect's body from re-running.
+		const parity = computed(() => source.get() % 2);
+		const monitoredSpy = vi.fn(() => { parity.get(); });
+		const afterSpy = vi.fn();
+		effect(monitoredSpy, afterSpy);
+		expect(monitoredSpy).toHaveBeenCalledTimes(1);
+		expect(afterSpy).toHaveBeenCalledTimes(1);
+
+		source.set(3); // watcher is notified, but parity is unchanged
+		await flushEffects();
+		expect(monitoredSpy).toHaveBeenCalledTimes(1);
+		expect(afterSpy).toHaveBeenCalledTimes(1);
+
+		// A real change still runs both, and afterAction stays paired with monitoredAction afterwards.
+		source.set(4);
+		await flushEffects();
+		expect(monitoredSpy).toHaveBeenCalledTimes(2);
+		expect(afterSpy).toHaveBeenCalledTimes(2);
+
+		source.set(6); // false alarm again
 		await flushEffects();
 		expect(monitoredSpy).toHaveBeenCalledTimes(2);
 		expect(afterSpy).toHaveBeenCalledTimes(2);
