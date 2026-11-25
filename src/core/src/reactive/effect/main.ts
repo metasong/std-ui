@@ -90,7 +90,9 @@ class Effect {
 	// Runs inside a `Signal.Computed`, which tracks reads. A watcher notification only means "maybe
 	// dirty": `get()` re-runs this only if a source really changed (equality cutoff), so cleanup +
 	// action are skipped on false alarms.
+	#ran = false;
 	readonly #body = new Signal.Computed<void>(() => {
+		this.#ran = true;
 		this.#runCleanup();
 		this.#action(this.#onCleanup);
 	});
@@ -118,7 +120,11 @@ class Effect {
 		if (this.#disposed) return;
 		try {
 			this.#body.get();
-			this.#after?.();
+			// `afterAction` pairs with `monitoredAction`: skip it when the body was not re-run (false alarm).
+			if (this.#ran) {
+				this.#ran = false;
+				this.#after?.();
+			}
 		} finally {
 			// A watcher goes inert after it notifies; re-arm it for the next change.
 			this.#watcher.watch();
