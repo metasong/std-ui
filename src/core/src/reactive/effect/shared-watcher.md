@@ -93,6 +93,41 @@ reasons.
      "next flush" set would have to line up. That is a rewrite of the scheduling core for an
      unmeasured gain.
 
+## Variant: a pool of watchers
+
+A middle ground between one watcher per effect and one for all: a small set of N watchers
+(for example one per ~64 effects, grown on demand), with each effect body assigned to one of them
+(round-robin or hash).
+
+How it works:
+
+- Each pool watcher has its own `notify`, which queues a flush for that watcher.
+- On flush, only the notified watchers call `getPending()` and pull their stale bodies.
+- Only those watchers re-arm afterwards.
+
+Compared with one shared watcher:
+
+- **Scan cost** drops to about `total / N` per notified watcher, instead of scanning every effect.
+- **Failure blast radius** drops: a missed re-arm silences about `1/N` of the effects, not all.
+
+Compared with one watcher per effect:
+
+- Saves `total - N` watchers and `notify` closures.
+
+Costs:
+
+- Scanning is still O(watched per watcher), not O(affected) as today. Clean effects that share a
+  watcher with a dirty one are scanned for nothing.
+- Ordering is harder: several watchers can flush in one tick, so the "next flush" semantics,
+  `whenFlushed()` and the cycle guard must cover all of them.
+- Dispose still needs a `Map<Computed, Effect>` and an `unwatch` on the right watcher.
+- N is a tuning knob. A fixed N does not suit both 10 and 100,000 effects, which argues for
+  growing the pool (a new watcher every K effects).
+
+It is a better compromise than a single shared watcher, but the same objection applies: the only
+gain is watcher and closure memory, which is unmeasured. Try it only after the benchmark below
+shows watcher allocation matters.
+
 ## When it would be worth doing
 
 - Profiling shows memory or creation time dominated by watcher allocation. This is more likely
