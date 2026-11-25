@@ -32,7 +32,7 @@ it calls `view(child)` (in `main.ts`), which returns one of:
 
 | Child state | What the parent does |
 | --- | --- |
-| `check` built | Uses the child's own `valid()` / `errors.all()` / `pending()` (its subtree included) |
+| `check` built | Uses the child's own `valid.get()` / `errors.all.get()` / `pending.get()` (its subtree included) |
 | `check` not built | The child cannot have validators, so it adds nothing itself. The parent descends into the child's own children, because a deeper node may have built its `check` |
 | Not a tree node (custom `ItemNode`) | Falls back to `child.check` if present |
 

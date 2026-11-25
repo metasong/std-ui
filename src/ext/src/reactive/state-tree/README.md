@@ -26,7 +26,7 @@ what it re-runs on differs:
 
 | Read | Re-runs on |
 | --- | --- |
-| `x()` | replacement only (like a plain `state(value)`) |
+| `x.get()` | replacement only (like a plain `state(value)`) |
 | `x.shallow()` | + structural change (key add/delete, push/splice/reorder) |
 | `x.deep()` | + any value change below, recursively |
 | `x.peek()` | never (deep untracked snapshot) |
@@ -54,7 +54,7 @@ Converts a value into its `StateTree`. Reach into leaves to read or write them:
 a.b.c.d();      // 1 (tracked read)
 a.b.c.d.set(5); // write the leaf
 a.deep();       // { b: { c: { d: 5 } } } (tracked read)
-a().b === a.b;  // true: `()` on a container returns its child nodes
+a.get().b === a.b;  // true: `()` on a container returns its child nodes
 ```
 
 `options` is forwarded to every leaf `state()` (e.g. custom `equals`); it has no effect on
@@ -73,9 +73,9 @@ const deep = stateTree(data);                         // default
 deep.user.name.set('Bob');                              // notifies readers of user.name
 
 const shallow = stateTree(data, { depth: 'shallow' });
-shallow.user();                                         // data.user (raw reference, not walked)
+shallow.user.get();                                         // data.user (raw reference, not walked)
 shallow.user.set({ name: 'Bob', tags: [] });            // replace the member: notifies
-shallow.user().name = 'Zed';                            // in-place mutation: no signal
+shallow.user.get().name = 'Zed';                            // in-place mutation: no signal
 shallow.set({ id: 2 });                                 // patches members, like any container
 shallow.deep();                                         // { id: 2, user: ... }
 
@@ -104,7 +104,7 @@ parsed document) and don't want a node per field. Notes:
   ```ts
   const big = stateTree({ rows: [...] }, { depth: 'shallow' });
   const page = stateTree({ title: 'T', big });  // deep parent, `big` stays shallow
-  page.big.rows();                                // raw array (one leaf)
+  page.big.rows.get();                                // raw array (one leaf)
   page.deep();                                    // includes big's rows
   ```
 - Types follow the depth: `StateTreeOf<T, D>` (members of a shallow tree are `StateLeaf`s;
@@ -158,10 +158,10 @@ return the plain value; errors live on the node, not on the value.
 | Member | Role |
 | --- | --- |
 | `node.check.validators` | `State<Validator<T>[]>`; `node.check.validators.set([...])`. A validator takes the node's raw value and returns an error, an array of errors, or nothing. |
-| `node.check.errors()` | Tracked `{ flag, message }[]` from this node's **own** validators (`[]` when valid). |
-| `node.check.valid.own()` | Tracked boolean: this node's **own** validators report no errors. |
-| `node.check.valid()` | Tracked boolean: this node and every descendant has no errors. Same as `errors.all().length === 0`, but cheaper and only notifies when the boolean flips. |
-| `node.check.errors.all()` | Tracked `{ flag, message, path }[]` for the node and all descendants, leaf first (each subtree in key/index order, then the node's own errors). `path` is relative to this node (`[]` = itself). |
+| `node.check.errors.get()` | Tracked `{ flag, message }[]` from this node's **own** validators (`[]` when valid). |
+| `node.check.valid.own.get()` | Tracked boolean: this node's **own** validators report no errors. |
+| `node.check.valid.get()` | Tracked boolean: this node and every descendant has no errors. Same as `errors.all.get().length === 0`, but cheaper and only notifies when the boolean flips. |
+| `node.check.errors.all.get()` | Tracked `{ flag, message, path }[]` for the node and all descendants, leaf first (each subtree in key/index order, then the node's own errors). `path` is relative to this node (`[]` = itself). |
 
 ```ts
 const required: Validator<string> = (v) => (v ? undefined : { flag: 'valueMissing', message: 'Required' });
@@ -170,9 +170,9 @@ const form = stateTree({ user: { name: '' }, tags: ['a', ''] });
 form.user.name.check.validators.set([required]);
 form.check.validators.set([(v) => (v.tags.length ? undefined : { flag: 'valueMissing', message: 'No tags' })]);
 
-form.user.name();   // '' (plain value)
-form.user.check.valid();  // false (descendant `name` has an error)
-form.check.errors.all();   // [{ flag: 'valueMissing', message: 'Required', path: ['user', 'name'] }]
+form.user.name.get();   // '' (plain value)
+form.user.check.valid.get();  // false (descendant `name` has an error)
+form.check.errors.all.get();   // [{ flag: 'valueMissing', message: 'Required', path: ['user', 'name'] }]
 ```
 
 A `Validator` takes only the node's value. To configure one (limits, message), write a factory that
@@ -185,9 +185,9 @@ const range = (min: number, max: number, message = `Must be between ${min} and $
 const form = stateTree({ age: 1 });
 form.age.check.validators.set([range(2, 8, 'value must be between 2 and 8')]);
 
-form.age.check.errors(); // [{ flag: 'customError', message: 'value must be between 2 and 8' }]
+form.age.check.errors.get(); // [{ flag: 'customError', message: 'value must be between 2 and 8' }]
 form.age.set(5);
-form.age.check.valid.own();  // true
+form.age.check.valid.own.get();  // true
 ```
 
 Branch validators see the raw subtree value, so cross-field checks work while a child is invalid.
@@ -195,7 +195,7 @@ Plain signals mixed into a tree have no validation and count as valid.
 
 ## Change tracking: `dirty` and `reset()`
 
-Provided by `@std-ui/ext`: `stateTree(...).with(changes)` adds `node.changes` (`dirty()`, `initial()`,
+Provided by `@std-ui/ext`: `stateTree(...).with(changes)` adds `node.changes` (`dirty.get()`, `initial.get()`,
 `reset(next?)`) to every node, next to `node.check`. Not part of the data: `deep()` never contains it.
 Details: [`changes`](../../../../ext/src/reactive/state-tree/changes/README.md).
 

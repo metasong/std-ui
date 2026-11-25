@@ -47,7 +47,7 @@ So in a component:
 
 ```ts
 protected override template() {
-	return t`<span>${this.count()}</span>`;
+	return t`<span>${this.count.get()}</span>`;
 }
 ```
 

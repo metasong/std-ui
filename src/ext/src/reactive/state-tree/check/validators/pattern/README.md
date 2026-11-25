@@ -7,7 +7,7 @@
 
 ```ts
 form.zip.check.validators.set([pattern(/^\d{4}$/, '4 digits')]);
-form.mail.check.validators.set([required(), email()]);
+form.mail.check.validators.set([required(), email.get()]);
 ```
 
 Empty and nullish values pass; add `required` to reject them. `lastIndex` is reset before each

@@ -49,7 +49,7 @@ effect(
   let timer: number | undefined;
   effect(
   	() => {
-  		if (!enabled()) return;          // nothing acquired on this run
+  		if (!enabled.get()) return;          // nothing acquired on this run
   		handler = () => resize();
   		window.addEventListener('resize', handler);
   		timer = setTimeout(poll, 500);
@@ -64,7 +64,7 @@ effect(
 
   // With registration, each cleanup sits next to what it releases, and only runs if registered:
   effect(onCleanup => {
-  	if (!enabled()) return;
+  	if (!enabled.get()) return;
   	const handler = () => resize();
   	window.addEventListener('resize', handler);
   	onCleanup(() => window.removeEventListener('resize', handler));

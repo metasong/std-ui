@@ -17,7 +17,7 @@ Wiring them up gives you declarative UI that updates surgically: when state chan
 | **Authoring** | Markup stays in `t\`...\`` templates with attribute/event bindings; state stays in signals, not scattered DOM queries. |
 | **Components** | `UIElement` already connects a `StateTree` to `template()` for you; you can still drop to raw `effect` + `render` outside custom elements. |
 
-The fireworks app uses this throughout `src/ui/components/` — e.g. `pause-button` swaps icon markup when `appState.paused()` changes, and `controls-bar` toggles layout classes from `appState` while composing child custom elements in one template.
+The fireworks app uses this throughout `src/ui/components/` — e.g. `pause-button` swaps icon markup when `appState.paused.get()` changes, and `controls-bar` toggles layout classes from `appState` while composing child custom elements in one template.
 
 ## Pattern A — Standalone: `effect` + `render` + signals
 
@@ -27,12 +27,12 @@ Use this for a widget, panel, or one-off view that is not a custom element. The 
 import { stateTree, computed, effect, t, render } from '../src/index.js';
 
 const count = stateTree(0);
-const label = computed(() => (count() === 1 ? 'click' : 'clicks'));
+const label = computed(() => (count.get() === 1 ? 'click' : 'clicks'));
 
 const container = document.getElementById('app')!;
 const view = () => t`
-	<p>You have <strong>${count()}</strong> ${label()}.</p>
-	<button ?disabled=${count() >= 10} @click=${() => count.update(n => n + 1)}>
+	<p>You have <strong>${count.get()}</strong> ${label.get()}.</p>
+	<button ?disabled=${count.get() >= 10} @click=${() => count.update(n => n + 1)}>
 		Increment
 	</button>
 `;
@@ -73,10 +73,10 @@ class DemoCounter extends UIElement {
 	protected override template() {
 		const { value, max } = shared.counter;
 		return t`
-			<span>${value()}</span> / ${max()}
+			<span>${value.get()}</span> / ${max.get()}
 			<button
 				type="button"
-				?disabled=${value() >= max()}
+				?disabled=${value.get() >= max.get()}
 				@click=${() => shared.counter.value.update(n => n + 1)}
 			>+</button>
 		`;
@@ -94,7 +94,7 @@ shared.counter.value.set(5);           // write a leaf: shared.counter.value is 
 shared.counter.set({ max: 20 });     // or set a branch without touching sibling leaves
 ```
 
-Nested objects become branch `Computed`s; leaves like `value` and `max` are writable `Signal`s on the tree (`shared.counter.value.set(...)`) and are also readable as tracked functions (`shared.counter.value()`). Reading any of them inside `template()` registers that leaf as a dependency of the render effect — same tracking rule as any other `effect()`. See [`../reactive/state-tree/README.md`](../src/reactive/state-tree/README.md) for branch `.set(partial)` and `.peek()`.
+Nested objects become branch `Computed`s; leaves like `value` and `max` are writable `Signal`s on the tree (`shared.counter.value.set(...)`) and are also readable as tracked functions (`shared.counter.value.get()`). Reading any of them inside `template()` registers that leaf as a dependency of the render effect — same tracking rule as any other `effect()`. See [`../reactive/state-tree/README.md`](../src/reactive/state-tree/README.md) for branch `.set(partial)` and `.peek()`.
 
 What `UIElement` does for you (see `ui-element.ts`):
 
@@ -128,7 +128,7 @@ protected override firstUpdated(): void {
 	const badge = this.querySelector('.badge') as HTMLElement;
 
 	this.effect(() => {
-		badge.textContent = String(shared.unreadCount());
+		badge.textContent = String(shared.unreadCount.get());
 	});
 }
 ```
@@ -164,11 +164,11 @@ flowchart LR
 
 ## Feature checklist (demo these in the example test)
 
-- **Text and attributes** — `${count()}`, `class=${cls}`, `?disabled=${bool}`.
+- **Text and attributes** — `${count.get()}`, `class=${cls}`, `?disabled=${bool}`.
 - **Properties and events** — `.value`, `@click` (see `html.md` binding table).
 - **Nested templates** — `t` inside `${...}` for conditional fragments without a second top-level template.
 - **No-op updates** — `count.set(5)` when already `5` does not notify; DOM is not touched.
-- **Derived state** — `computed(() => count() * 2)` inside the template or passed into `${...}`.
+- **Derived state** — `computed(() => count.get() * 2)` inside the template or passed into `${...}`.
 - **Fine-grained DOM** — `this.effect()` in `firstUpdated` to update a node omitted from `template` (Pattern C).
 - **Post-render hooks** — `firstUpdated()` once, then `updated()` on every render pass (including the first).
 - **Cleanup** — disconnect the element or call the `effect` disposer; no stray updates after teardown.

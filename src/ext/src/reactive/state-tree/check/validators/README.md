@@ -33,7 +33,7 @@ How validators are tracked (and why async checks are not): [`design.md`](./desig
 
 ## Enabling conditionally
 
-`when(enabled, validator | validators[])` applies validators only while `enabled()` (a signal,
+`when(enabled, validator | validators[])` applies validators only while `enabled.get()` (a signal,
 computed or `() => boolean`) is true. Disabled means no errors, not pending, and the validator is
 not called (an async one starts no request). `null` means always enabled. The `flag` tag is not
 kept, since the constraint is conditional.
@@ -45,7 +45,7 @@ form.vat.check.validators.set([required(), when(isCompany, [minLength(8), patter
 To switch off a whole node's own validation, set `node.check.enabled.set(false)` (default `true`);
 then `valid.own` is true and `errors` is empty. Descendants keep their own `enabled`.
 
-With `formUi` on the tree, a node whose `formUi.disabled()` is true (own or inherited from an
+With `formUi` on the tree, a node whose `formUi.disabled.get()` is true (own or inherited from an
 ancestor) is treated the same way, like a native disabled control.
 
 ## Rules for many members: `eachValidators` and `fields`
@@ -57,7 +57,7 @@ include them with the index or key as the path. A member's own `validators` stil
 
 ```ts
 form.tags.check.eachValidators.set([required(), minLength(3)]);
-form.tags.push(''); // invalid right away; form.tags.check.errors.all() ? [{ path: [1], ... }]
+form.tags.push(''); // invalid right away; form.tags.check.errors.all.get() ? [{ path: [1], ... }]
 ```
 
 `object.check.fields({...})` sets validators per member key in one call, also for members added

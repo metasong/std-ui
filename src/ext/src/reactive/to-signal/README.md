@@ -13,7 +13,7 @@ class LiveTicker extends UIElement {
 	private readonly counter = toSignal(interval(1000), { initialValue: 0 });
 
 	protected override template() {
-		return t`<span>${this.counter()}</span>`;
+		return t`<span>${this.counter.get()}</span>`;
 	}
 }
 ```
@@ -77,7 +77,7 @@ Passing `onCleanup` ties disposal to the same rules as other component `effect()
 Use it when the source depends on signals. `factory` runs in a tracked context; when a signal it reads changes, the previous subscription is disposed and the factory re-runs.
 
 ```ts
-const user = toSignalFrom(() => fetch(`/users/${this.id()}`).then(r => r.json()), { initialValue: null });
+const user = toSignalFrom(() => fetch(`/users/${this.id.get()}`).then(r => r.json()), { initialValue: null });
 ```
 
 - Returning `null`/`undefined` means "no source right now".

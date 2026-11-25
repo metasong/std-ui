@@ -24,7 +24,7 @@ Behaviour that is not an attribute is set as properties on the `<std-route>` ele
 
 ```ts
 const user = document.getElementById('user-route') as StdRoute;
-user.guard = ({ params }) => (signedIn() ? true : '/login'); // true | false | redirect path
+user.guard = ({ params }) => (signedIn.get() ? true : '/login'); // true | false | redirect path
 user.load = async ({ params, signal }) => fetchUser(params.id, signal); // -> outlet `data`
 ```
 
@@ -45,7 +45,7 @@ import { createRouter } from '@std-ui/router';
 const router = createRouter({ routes: [{ path: 'users/:id', element: 'user-page' }] });
 await router.start();
 router.navigate('/users/3');
-router.params(); // { id: '3' }; also location(), matches(), status(), error(), data()
+router.params.get(); // { id: '3' }; also location.get(), matches.get(), status.get(), error.get(), data.get()
 ```
 
 Matching: static > `:param` > `*`; an exact (ended) path beats a param or splat.
@@ -69,7 +69,7 @@ Declare fields `readonly` so TypeScript rejects writes (a runtime check throws t
 ## Leaving with unsaved changes
 
 ```ts
-const off = router.beforeLeave(() => !dirty() || confirm('Discard changes?'), { unload: dirty });
+const off = router.beforeLeave(() => !dirty.get() || confirm('Discard changes?'), { unload: dirty });
 // call off() on disconnect
 ```
 

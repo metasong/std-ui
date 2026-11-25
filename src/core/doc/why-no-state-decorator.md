@@ -10,11 +10,11 @@ class DemoCounter extends UIElement {
 	readonly config = state({ theme: 'dark', limits: { max: 10 } });
 
 	protected override template() {
-		return t`<button @click=${() => this.count.update(n => n + 1)}>${this.count()} ${this.config.theme()}</button>`;
+		return t`<button @click=${() => this.count.update(n => n + 1)}>${this.count.get()} ${this.config.theme.get()}</button>`;
 	}
 }
 
-el.count();      // 0
+el.count.get();      // 0
 el.count.set(3); // updates the store and schedules a re-render
 ```
 
@@ -31,13 +31,13 @@ flags) to something that only looks like a number.
 
 ### 2. Expose the field as the signal (`549c92e`)
 
-The decorator turned the field into its backing store: read with `this.count()`, write with
+The decorator turned the field into its backing store: read with `this.count.get()`, write with
 `this.count.set(4)` / `.update()`. Now the signal can be composed with (validation, error state,
 derived values, bindings).
 
 Problem: typing. A field decorator can only return an initializer, call `context.addInitializer`,
 or register metadata. It **cannot change the declared type** of the field. `@state() a = 1` is
-typed `number`, but at runtime it is a store, so `this.a()` and `.set()` were IntelliSense errors.
+typed `number`, but at runtime it is a store, so `this.a.get()` and `.set()` were IntelliSense errors.
 
 ### 3. Remove the decorator (`c9cb97e`)
 

@@ -7,7 +7,7 @@ Bind it on the element itself (no attribute name):
 import { t, ref, createRef } from '@std-ui/core';
 
 const input = createRef<HTMLInputElement>();
-t`<input ${ref(input)}>`;               // input() === the <input> after render
+t`<input ${ref(input)}>`;               // input.get() === the <input> after render
 t`<input ${ref(el => el?.focus())}>`;   // callback form
 ```
 

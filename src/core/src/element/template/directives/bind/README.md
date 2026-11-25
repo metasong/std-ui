@@ -27,7 +27,7 @@ Design notes: [`design.md`](./design.md).
 
 ## `stateTree()` / `@attribute()` fields
 
-Fields are writable stores — pass the field itself to `bind()`, not a read (`this.email()`). Display and logic still use `()` / `.set()` everywhere else. There is no `@stateTree()` decorator; declare plain fields with `stateTree(...)`.
+Fields are writable stores — pass the field itself to `bind()`, not a read (`this.email.get()`). Display and logic still use `()` / `.set()` everywhere else. There is no `@stateTree()` decorator; declare plain fields with `stateTree(...)`.
 
 ```ts
 import { t, bind, stateTree, tag, UIElement } from '@std-ui/core';
@@ -44,7 +44,7 @@ class SignupField extends UIElement {
 				<input type="checkbox" .checked=${bind(this.agreed)} />
 				I agree
 			</label>
-			<p>${this.email()} — agreed: ${this.agreed()}</p>
+			<p>${this.email.get()} — agreed: ${this.agreed.get()}</p>
 		`;
 	}
 }
@@ -101,7 +101,7 @@ t`
 	<input
 		type="number"
 		.value="${bind({
-			get: () => String(store.count()),
+			get: () => String(store.count.get()),
 			set: (v) => store.count.set(Number(v)),
 		})}"
 	/>

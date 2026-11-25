@@ -32,9 +32,9 @@ return state(value, signalOptions);
 
 - one `Signal` of child nodes with `equals: () => false`, edited **in place** for structural
   changes (array mutators, object `delete`) and swapped for a **new instance** on replacement;
-- `()` = `computed(() => children())` — the core's `Object.is` equality cutoff lets only a new
+- `()` = `computed(() => children.get())` — the core's `Object.is` equality cutoff lets only a new
   instance through (see [`../signal/computed-lazy.md`](../signal/computed-lazy.md));
-- `shallow()` = `children()` — every structural change;
+- `shallow()` = `children.get()` — every structural change;
 - `deep()` = `computed` mapping each child through `readValue`;
 - a `Proxy` for untracked child access (`list[i]`, `obj.key`).
 

@@ -18,11 +18,11 @@ One signal plus derived reads:
    mutators (`push`, `splice`, ...) edit this array **in place** via `mutate()` and then
    `nodes.set(sameArray)`; equality is always false so this still notifies. Only `set()` swaps in
    a **new** array.
-2. **`()`** — `computed(() => nodes())` is the callable `StateArray`. In-place edits recompute to
+2. **`()`** — `computed(() => nodes.get())` is the callable `StateArray`. In-place edits recompute to
    the same instance, so the core's equality cutoff (see
    [`../../signal/computed-lazy.md`](../../signal/computed-lazy.md)) stops them; only `set()` gets through.
-3. **`shallow()`** — reads `nodes()` directly: every structural change.
-4. **`deep()`** — `computed(() => nodes().map(readValue))`: structure plus every item, recursively.
+3. **`shallow()`** — reads `nodes.get()` directly: every structural change.
+4. **`deep()`** — `computed(() => nodes.get().map(readValue))`: structure plus every item, recursively.
 
 Item nodes are opaque except for `ItemNode<T>` (`()`, `.peek()`, `.set()`). `state` passes
 `(item) => stateTree(item)` so elements can be branches or leaves.
@@ -62,12 +62,12 @@ instance is what notifies `()`.
 
 ## `at(index)` and `length`
 
-- `at` uses one cached `computed` per requested index that reads `nodes()` and indexes, so dependents
+- `at` uses one cached `computed` per requested index that reads `nodes.get()` and indexes, so dependents
   only re-run when the node at that index changes (default `Object.is`), not on every structural edit.
 - Negative indices (`length + index`) are deliberately not normalized to positive ones: `-1` follows
   the last slot as length changes, so it gets its own cache entry. Normalizing would need an untracked
   length (stale) or a tracked one (defeats the cache).
-- `length` is `computed(() => nodes().length)` — does **not** read item values, only structure.
+- `length` is `computed(() => nodes.get().length)` — does **not** read item values, only structure.
 
 ## Integration with `state`
 

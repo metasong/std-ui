@@ -12,7 +12,7 @@ import { effect, state } from '@std-ui/core';
 const count = state(0);
 
 const dispose = effect(onCleanup => {
-	el.textContent = String(count());
+	el.textContent = String(count.get());
 
 	const id = setInterval(tick, 1000);
 	onCleanup(() => clearInterval(id));

@@ -13,7 +13,7 @@ is enough.
 For how child bindings treat `null` / `false` / `undefined`, nested `` t`...` ``, and list diffing, see
 [`../tag-funcs/html/html.md`](../tag-funcs/html/html.md#logic-conditionals-and-lists).
 
-`@stateTree()` / `@attribute()` fields are their backing stores: read with `this.field()` inside
+`@stateTree()` / `@attribute()` fields are their backing stores: read with `this.field.get()` inside
 `template()` (so the render effect tracks changes), write with `this.field.set(...)` or
 `.update(...)` in handlers — see [`../../decorators/README.md`](../../decorators/README.md).
 
@@ -28,7 +28,7 @@ protocol is needed for the common cases.
 **If only** (no else) — ternary with `null` when the condition is false; falsy child values render nothing:
 
 ```ts
-${this.showBanner() ? t`<p class="banner">Sale on now</p>` : null}
+${this.showBanner.get() ? t`<p class="banner">Sale on now</p>` : null}
 ```
 
 **If / else** — same pattern, swap `null` for another `` t`...` ``:
@@ -44,11 +44,11 @@ class DemoGreeting extends UIElement {
   protected override template() {
     return t`
       <section>
-        ${this.loggedIn() ? t`<p>Welcome, ${this.name()}</p>` : null}
-        ${this.loggedIn()
+        ${this.loggedIn.get() ? t`<p>Welcome, ${this.name.get()}</p>` : null}
+        ${this.loggedIn.get()
           ? t`<p class="ok">You are signed in.</p>`
           : t`<p class="hint">Please sign in.</p>`}
-        <p ?hidden=${!this.loggedIn()}>Account settings and extra details live here.</p>
+        <p ?hidden=${!this.loggedIn.get()}>Account settings and extra details live here.</p>
       </section>
     `;
   }
@@ -70,9 +70,9 @@ class DemoRoleBanner extends UIElement {
   protected override template() {
     return t`
       <section class="role-banner">
-        ${this.role() === 'admin'
+        ${this.role.get() === 'admin'
           ? t`<p class="banner admin">Full admin console</p>`
-          : this.role() === 'member'
+          : this.role.get() === 'member'
             ? t`<p class="banner member">Member dashboard</p>`
             : t`<p class="banner guest">Sign up to get access</p>`}
       </section>
@@ -173,10 +173,10 @@ class DemoStatusPanel extends UIElement {
   protected override template() {
     return t`
       <header>
-        ${this.loadState() === 'loading'
+        ${this.loadState.get() === 'loading'
           ? t`<p class="loading">Working…</p>`
-          : this.loadState() === 'error'
-            ? t`<p class="err">${this.errorMessage()}</p>`
+          : this.loadState.get() === 'error'
+            ? t`<p class="err">${this.errorMessage.get()}</p>`
             : null}
       </header>
     `;
@@ -184,7 +184,7 @@ class DemoStatusPanel extends UIElement {
 }
 ```
 
-When each case is a different inner `` t`...` `` literal, changing `tab()` / `loadState()` (via
+When each case is a different inner `` t`...` `` literal, changing `tab.get()` / `loadState.get()` (via
 `.set` on the field store) swaps the mounted subtree (same rules as `if` / `else` above).
 
 A `switch` **statement** cannot appear inside `${...}` (it is a statement, not an expression), but
@@ -196,7 +196,7 @@ class DemoTabBody extends UIElement {
   @stateTree() tab: Tab = 'home';
 
   private renderBody() {
-    switch (this.tab()) {
+    switch (this.tab.get()) {
       case 'home':
         return t`<section><h2>Home</h2></section>`;
       case 'settings':
@@ -212,7 +212,7 @@ class DemoTabBody extends UIElement {
 }
 ```
 
-A lookup table (`Record<Tab, () => TemplateResult>`) works the same way: `${views[this.tab()]()}`.
+A lookup table (`Record<Tab, () => TemplateResult>`) works the same way: `${views[this.tab.get()]()}`.
 
 ## What we add instead of structure directives
 

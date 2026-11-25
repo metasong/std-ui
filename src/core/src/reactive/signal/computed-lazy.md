@@ -62,7 +62,7 @@ kept. Observers then see an unchanged version in their own pull check and skip w
 
 ```ts
 const n = state(1);
-const parity = computed(() => n() % 2);
+const parity = computed(() => n.get() % 2);
 effect(() => console.log(parity()));
 n.set(3); // parity recomputes to 1 again -> effect does NOT re-run
 ```

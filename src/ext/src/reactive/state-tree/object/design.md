@@ -7,9 +7,9 @@ How `stateObject()` in [`main.ts`](./main.ts) is implemented. For usage, see [`R
 1. **`members: State<Record<string, N>>`** — the member nodes by key, with `equals: () => false`.
    `delete` edits the record **in place** and then `members.set(sameRecord)`; a membership change
    from `set()` (new key, clear, restore) swaps in a **new** record.
-2. **`()`** — `computed(() => members())`. In-place edits recompute to the same instance and are
+2. **`()`** — `computed(() => members.get())`. In-place edits recompute to the same instance and are
    cut off by `Object.is`; only a new record gets through.
-3. **`shallow()`** — reads `members()` directly: every membership change.
+3. **`shallow()`** — reads `members.get()` directly: every membership change.
 4. **`deep()`** — `computed` building `{ [key]: readValue(member) }`, or the empty value when cleared.
 5. **`empty`** — `false`, or `{ value: undefined | null }` after `set(undefined | null)`. A plain
    variable is enough: every change to it is paired with a new `members` record, which notifies.

@@ -76,8 +76,8 @@ class CounterButton extends UIElement {
 	@consume(ThemeKey) readonly theme!: Theme;                            // nearest ancestor's value
 
 	protected override template() {
-		return t`<button class=${this.theme.mode} @click=${() => this.count.set(this.count() + 1)}>
-			Clicked ${this.count()} times
+		return t`<button class=${this.theme.mode} @click=${() => this.count.set(this.count.get() + 1)}>
+			Clicked ${this.count.get()} times
 		</button>`;
 	}
 }
@@ -95,7 +95,7 @@ class CounterButton extends UIElement {
 class CounterButton extends UIElement {
 	readonly count = stateTree(0);
 	protected override template() {
-		return t`<button @click=${() => this.count.set(this.count() + 1)}>Clicked ${this.count()} times</button>`;
+		return t`<button @click=${() => this.count.set(this.count.get() + 1)}>Clicked ${this.count.get()} times</button>`;
 	}
 }
 defineElement('counter-button', CounterButton, {
@@ -143,7 +143,7 @@ class NameInput extends FormElement {
 <form><name-input name="name"></name-input><button>Save</button></form>
 ```
 
-Validators are plain functions, so writing your own is one line. Built-ins use the standard `ValidityState` flags, and async validators track a `pending` state, so `this.name.check.pending()` can gate submit while a check is in flight.
+Validators are plain functions, so writing your own is one line. Built-ins use the standard `ValidityState` flags, and async validators track a `pending` state, so `this.name.check.pending.get()` can gate submit while a check is in flight.
 
 ## Track changes in one line
 
@@ -155,11 +155,11 @@ const form = stateTree({ name: '', tags: [] as string[] }).with(changes);
 
 effect(() => {
 	// re-runs whenever the form's dirty state changes
-	saveButton.disabled = !form.changes.dirty();
+	saveButton.disabled = !form.changes.dirty.get();
 });
 
-form.name.set('Ada');        // effect runs: dirty() is true, Save is enabled
-form.changes.reset();        // back to the initial value: dirty() is false, Save is disabled
+form.name.set('Ada');        // effect runs: dirty.get() is true, Save is enabled
+form.changes.reset();        // back to the initial value: dirty.get() is false, Save is disabled
 ```
 
 Every node in the tree, including members added later, gets `dirty`, `initial` and `reset`.

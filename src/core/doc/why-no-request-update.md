@@ -34,7 +34,7 @@ class DemoForced extends UIElement {
 	forceRender() { this.#version.update(v => v + 1); }
 
 	protected override template() {
-		this.#version(); // track
+		this.#version.get(); // track
 		return t`<p>${legacy.read()}</p>`;
 	}
 }

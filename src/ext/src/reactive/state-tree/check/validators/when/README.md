@@ -14,7 +14,7 @@ when(isCompany, [minLength(8), pattern(/^[A-Z]{2}/)]); // one condition for seve
 when(null, minLength(8)); // null: always enabled, returns the validator unchanged
 ```
 
-| `enabled()` | Result |
+| `enabled.get()` | Result |
 | --- | --- |
 | `true` | Same as the wrapped validator(s); errors are concatenated, `pending` is forwarded |
 | `false` | No errors, not pending, wrapped validators are not called (an async one starts no request) |

@@ -37,7 +37,7 @@ class DemoProfile extends UIElement {
 	});
 
 	protected override template() {
-		const u = this.user();
+		const u = this.user.get();
 		return t`
 			<section>
 				${u === null ? t`<p class="loading">Loading…</p>` : t`<p>Hello, ${u.name}</p>`}
@@ -58,7 +58,7 @@ class LiveClock extends UIElement {
 	private readonly tick = toSignal(interval(1000), { initialValue: 0 });
 
 	protected override template() {
-		return t`<span>${this.tick()}</span>`;
+		return t`<span>${this.tick.get()}</span>`;
 	}
 }
 ```
@@ -77,12 +77,12 @@ class DemoUserById extends UIElement {
 	@stateTree() userId = 1;
 
 	private readonly profile = toSignalFrom(
-		() => (this.userId() ? fetch(`/api/users/${this.userId()}`).then((r) => r.json()) : null),
+		() => (this.userId.get() ? fetch(`/api/users/${this.userId.get()}`).then((r) => r.json()) : null),
 		{ initialValue: null as { name: string } | null },
 	);
 
 	protected override template() {
-		const p = this.profile();
+		const p = this.profile.get();
 		return t`
 			<button type="button" @click=${() => this.userId.update((id) => id + 1)}>Next id</button>
 			${p === null ? t`<p>…</p>` : t`<p>${p.name}</p>`}
@@ -97,7 +97,7 @@ While a new fetch is pending, the **last** successful value is kept (see [`../..
 
 - **Loading UI** — branch on `initialValue` / `null` / a dedicated `@stateTree()` flag you set in an `effect`.
 - **Derived display** — `computed(() => format(this.items.deep()))` instead of awaiting inside the literal.
-- **Lists from async** — resolve in `toSignal`, then `this.rows().map((row) => t\`...\`)` or `mapByKey` (same as sync data).
+- **Lists from async** — resolve in `toSignal`, then `this.rows.get().map((row) => t\`...\`)` or `mapByKey` (same as sync data).
 - **Errors** — wrap reads that may throw in a small `computed` that returns a result type, or handle failure upstream and store an error signal yourself; do not expect a built-in “async pipe with error slot”.
 
 Calling `toSignal` / `toSignalFrom` inside `template()`, `computed()`, or `effect()` **throws** (`assertNotInReactiveContext`) so subscriptions are not recreated on every reactive pass.

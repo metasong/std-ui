@@ -72,7 +72,7 @@ class XTabs extends UIElement {
 			<nav>
 				${this.tabs.map((tab, i) => t`
 					<button type="button"
-						aria-selected=${i === this.selected()}
+						aria-selected=${i === this.selected.get()}
 						@click=${() => this.selected.set(i)}>
 						${tab.getAttribute('label')}
 					</button>`)}
@@ -82,7 +82,7 @@ class XTabs extends UIElement {
 
 	protected override updated() {
 		// Show only the selected panel; the nodes themselves stay in place.
-		this.tabs.forEach((tab, i) => (tab.hidden = i !== this.selected()));
+		this.tabs.forEach((tab, i) => (tab.hidden = i !== this.selected.get()));
 	}
 }
 ```
@@ -136,11 +136,11 @@ class XCard extends UIElement {
 				::slotted([slot='title']) { margin: 0 0 .5rem; }
 			</style>
 			<article>
-				<header ?hidden=${!this.hasTitle()}>
+				<header ?hidden=${!this.hasTitle.get()}>
 					<slot name="title" @slotchange=${this.#sync}></slot>
 				</header>
 				<slot @slotchange=${this.#sync}></slot>
-				<small>${this.itemCount()} item(s)</small>
+				<small>${this.itemCount.get()} item(s)</small>
 			</article>`;
 	}
 }

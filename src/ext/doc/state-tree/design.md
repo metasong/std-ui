@@ -7,7 +7,7 @@ plain `stateTree(...)` class field. For usage, see [`README.md`](./README.md).
 
 A field decorator can only return an initializer, call `context.addInitializer`, or register
 metadata - it **cannot change the declared type** of the field it decorates. `@stateTree() count = 0` was
-therefore still typed `number`, while the runtime value was a store, so `this.count()` and
+therefore still typed `number`, while the runtime value was a store, so `this.count.get()` and
 `.set()` were IntelliSense errors. Making the field the store itself fixes the type at the source:
 `StateTree<number>`.
 

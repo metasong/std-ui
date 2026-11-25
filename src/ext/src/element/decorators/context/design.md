@@ -99,7 +99,7 @@ let found = false;
 host.dispatchEvent(new ContextRequestEvent(contextKey, next => { found = true; value.set(next); }));
 if (!found) throw new Error(/* names the element and the key */);
 Object.defineProperty(host, key, {
-	get: () => value(),
+	get: () => value.get(),
 	set() { throw new TypeError(/* read-only */); },
 	enumerable: true,
 	configurable: true,
@@ -113,7 +113,7 @@ Object.defineProperty(host, key, {
   itself - no registry, no field on `UIElement`. Reading `this.theme` inside `template()` or `effect()`
   tracks the signal, so consumers re-render when the provider's store changes.
 - **Plain-value reads.** The field is typed as the key's value (`Theme`), not as a signal, so a
-  context whose value is itself a function or signal reads as `this.value`, not `this.value()()`.
+  context whose value is itself a function or signal reads as `this.value`, not `this.value.get()()`.
 - **Read-only.** The setter always throws a `TypeError` (instead of failing silently in sloppy mode, or
   with the engine's cryptic getter-only message). A consumed value is owned by its provider; changing it
   means changing the provider's store.

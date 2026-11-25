@@ -25,7 +25,7 @@ class UserBadge extends UIElement {
 	get input() { return queryElement<HTMLInputElement>(this, 'input'); } // el.input, like `@query('input') input`
 
 	protected override template() {
-		return t`<span>${this.label()}: ${this.count()}</span><input />`;
+		return t`<span>${this.label.get()}: ${this.count.get()}</span><input />`;
 	}
 }
 defineElement('user-badge', UserBadge, {

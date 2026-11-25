@@ -11,14 +11,14 @@ const unique = asyncValidator<string>(
 	},
 	{ debounce: 300 },
 );
-form.email.check.validators.set([required(), email(), unique]);
+form.email.check.validators.set([required(), email.get(), unique]);
 
-unique.pending();            // this validator: true while its check is outstanding
-form.email.check.pending.own();  // the node: true when any of its validators is pending
-form.email.check.valid.own();    // false while pending
+unique.pending.get();            // this validator: true while its check is outstanding
+form.email.check.pending.own.get();  // the node: true when any of its validators is pending
+form.email.check.valid.own.get();    // false while pending
 ```
 
-`unique.pending()` is tracked, so it works in effects and templates. It reports on the value the node
+`unique.pending.get()` is tracked, so it works in effects and templates. It reports on the value the node
 last asked the validator to check: it is `false` until the node has read the validator once, and it
 follows a value change one microtask later. `node.check.pending.own` updates immediately and is the one
 to use for gating submit.
@@ -78,7 +78,7 @@ const vat = asyncValidator<string, string>(
 		const ok = await api.vatValid(number, countryCode, { abortSignal });
 		return ok ? null : { flag: flags.customError, message: 'Invalid VAT number' };
 	},
-	{ deps: () => country() },
+	{ deps: () => country.get() },
 );
 form.vat.check.validators.set([vat]);
 
@@ -91,7 +91,7 @@ country.set('BE'); // `deps` re-runs, so the check runs again for the same numbe
 - The cache key is the node's value plus the `deps` result (compared deeply), so the check re-runs
   when either changes. While it runs the node is pending, as for a value change.
 - Return a plain value or an object from `deps`; return several inputs together with
-  `() => ({ country: country(), vatId: vatId() })`.
+  `() => ({ country: country.get(), vatId: vatId.get() })`.
 
 ## Behavior
 

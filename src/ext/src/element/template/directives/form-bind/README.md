@@ -22,15 +22,15 @@ gets the value sync, and `bind({ get, set })` accessors get no form UI at all.
 
 | Source | On the element |
 | --- | --- |
-| `check.errors()` | Constraint validation: `setCustomValidity` on native `<input>`, `<select>`, `<textarea>`; `setErrors(property, errors)` on a `FormElement` (flags merged across its bound properties). Cleared when the state is valid or the binding goes away. |
-| `check.errors()` (also) | `aria-invalid="true"` while the element is invalid. If the element has an `aria-errormessage="<id>"` pointing to an element in the same root, that element's text is set to the validation message (nothing is created for you). |
+| `check.errors.get()` | Constraint validation: `setCustomValidity` on native `<input>`, `<select>`, `<textarea>`; `setErrors(property, errors)` on a `FormElement` (flags merged across its bound properties). Cleared when the state is valid or the binding goes away. |
+| `check.errors.get()` (also) | `aria-invalid="true"` while the element is invalid. If the element has an `aria-errormessage="<id>"` pointing to an element in the same root, that element's text is set to the validation message (nothing is created for you). |
 | `focusout` / `invalid` | Sets `formUi.touched.own` (or marks the element directly when the state has no `formUi`). |
-| `formUi.touched()` | The `data-touched` attribute on every element, plus `:state(touched)` on custom elements with `ElementInternals`. Style errors only after that: `[data-touched]:invalid` (or `:state(touched):invalid`). |
-| `changes.dirty()` | The `data-dirty` attribute, plus `:state(dirty)` on custom elements with `ElementInternals`. |
-| `check.pending.own()` | The `data-pending` attribute, plus `:state(pending)` on custom elements with `ElementInternals`, and `aria-busy="true"` while an async validator has no result yet. |
+| `formUi.touched.get()` | The `data-touched` attribute on every element, plus `:state(touched)` on custom elements with `ElementInternals`. Style errors only after that: `[data-touched]:invalid` (or `:state(touched):invalid`). |
+| `changes.dirty.get()` | The `data-dirty` attribute, plus `:state(dirty)` on custom elements with `ElementInternals`. |
+| `check.pending.own.get()` | The `data-pending` attribute, plus `:state(pending)` on custom elements with `ElementInternals`, and `aria-busy="true"` while an async validator has no result yet. |
 | `required()` validator | `aria-required="true"` while a validator with `flag: 'valueMissing'` (what `required()` returns) is on `check.validators`. The native `required` attribute is not set, so there is no second native error. |
-| `formUi.readonly()` | `readOnly` on `<input>` / `<textarea>`, otherwise the `readonly` attribute; plus `aria-readonly`. |
-| `formUi.disabled()` | `disabled` on native controls and buttons, otherwise the `disabled` attribute; plus `aria-disabled`. |
+| `formUi.readonly.get()` | `readOnly` on `<input>` / `<textarea>`, otherwise the `readonly` attribute; plus `aria-readonly`. |
+| `formUi.disabled.get()` | `disabled` on native controls and buttons, otherwise the `disabled` attribute; plus `aria-disabled`. |
 
 `readonly` and `disabled` are the **resolved** values, so a parent's flag applies to every bound control below
 it. While the resolved flag stays false the directive writes nothing, and on disconnect it only undoes what it applied itself.

@@ -6,7 +6,7 @@ order**. That split gives three tracking depths, plus per-slot access:
 
 | Read | Returns | Re-runs on |
 | --- | --- | --- |
-| `list()` | plain values | whole replacement via `set()` / `update()` only (like a plain `state(array)`) |
+| `list.get()` | plain values | whole replacement via `set()` / `update()` only (like a plain `state(array)`) |
 | `list.shallow()` | plain values | + `push` / `pop` / `splice` / reorder |
 | `list.deep()` | plain values | + any item's value change, recursively |
 | `list.at(i)` | node | the node at `i` being swapped |
@@ -25,7 +25,7 @@ const list = stateArray([1, 2, 3], (n) => state(n));
 
 effect(() => console.log(list.deep())); // [1, 2, 3]
 list.at(0)!.set(10);                    // only index-0 effects + deep() readers
-list.push(4);                           // shallow() / deep() / length readers, not list()
+list.push(4);                           // shallow() / deep() / length readers, not list.get()
 ```
 
 ## Via `stateTree()`
@@ -38,7 +38,7 @@ import { stateTree } from '../main.js';
 const root = stateTree({ tags: ['a', 'b'] });
 root.tags.push('c');
 root.tags.at(0)!.set('z');
-root(); // { tags: ['z', 'b', 'c'] }
+root.get(); // { tags: ['z', 'b', 'c'] }
 ```
 
 Nested object elements are full `StateTree` branches:
@@ -107,7 +107,7 @@ For lists that reorder or splice in the middle, pair `@stateTree()` with keyed r
 
 | Member | Role |
 | --- | --- |
-| `list()` | Plain values; notifies only on whole replacement (`set` / `update`). |
+| `list.get()` | Plain values; notifies only on whole replacement (`set` / `update`). |
 | `list.shallow()` | Plain values; notifies on any structural change (replace, push, splice, reorder). |
 | `list.deep()` | Tracked plain values (structure + every item, recursively). |
 | `list[i]` | Untracked node at non-negative integer `i`. |
@@ -116,9 +116,9 @@ For lists that reorder or splice in the middle, pair `@stateTree()` with keyed r
 | `list.update(fn)` | `set(fn(peek()))`, returns new snapshot. |
 | `list.length` | `Computed` of current length (tracks structural changes only). |
 | `list.at(i)` | Item node at `i`; `undefined` if out of range. Only notifies when the node at `i` changes. Negative `i` counts from the end and is tracked separately from the positive index it currently resolves to (`-1` follows the last slot as length changes). |
-| `list.check.validators` / `errors()` / `errors.all()` / `valid()` | Validation, see [`../README.md`](../README.md#validation). Validators receive the raw values array; `errors.all()` paths use item indices. |
-| `list.changes.dirty()` / `reset(next?)` | Change tracking against the initial values, see [`../README.md`](../README.md#change-tracking-dirty-and-reset). |
-| `push` / `pop` / `shift` / `unshift` / `splice` / `remove` / `clear` | Array-like mutations, in place on the node array; notify `shallow()` / `deep()` / `length` / `at`, not `list()`. |
+| `list.check.validators` / `errors.get()` / `errors.all.get()` / `valid.get()` | Validation, see [`../README.md`](../README.md#validation). Validators receive the raw values array; `errors.all.get()` paths use item indices. |
+| `list.changes.dirty.get()` / `reset(next?)` | Change tracking against the initial values, see [`../README.md`](../README.md#change-tracking-dirty-and-reset). |
+| `push` / `pop` / `shift` / `unshift` / `splice` / `remove` / `clear` | Array-like mutations, in place on the node array; notify `shallow()` / `deep()` / `length` / `at`, not `list.get()`. |
 
 ## `set()` vs wholesale leaf replace
 
@@ -135,9 +135,9 @@ Whole-array replacement from a parent branch still works: `tree.set({ tags: ['x'
 - `DeepPartial` for a parent object does not express per-index patches; use `tags.at(i).set(...)` or
   collection mutators.
 - The internal node list uses `equals: () => false` so in-place structural mutation of the `N[]`
-  array always notifies `shallow()`; `list()` subscribes to a computed over it whose `Object.is`
+  array always notifies `shallow()`; `list.get()` subscribes to a computed over it whose `Object.is`
   cutoff only passes a new array instance (from `set()`).
-- `list()` and `shallow()` return the cached `deep()` value without subscribing to the items, so a
+- `list.get()` and `shallow()` return the cached `deep()` value without subscribing to the items, so a
   value read through them can be newer than the last change they notified on.
 - `makeItem` is required when constructing standalone `stateArray`; `state` supplies
   `(item) => stateTree(item)`.

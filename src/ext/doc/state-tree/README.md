@@ -9,16 +9,16 @@ class CounterChip extends UIElement {
 	readonly config = stateTree({ theme: 'dark', limits: { max: 10 } });
 
 	protected override template() {
-		return t`<span>${this.count()} ${this.config.theme()}</span>`;
+		return t`<span>${this.count.get()} ${this.config.theme.get()}</span>`;
 	}
 }
 
-el.count();              // 0
+el.count.get();              // 0
 el.count.set(3);         // updates the store and schedules a re-render
 ```
 
 **Why it was removed:** a decorator can't change the declared type of the field it decorates, so
-`@stateTree() count = 0` was still typed `number` — `this.count()` / `.set()` showed up as errors in
+`@stateTree() count = 0` was still typed `number` — `this.count.get()` / `.set()` showed up as errors in
 IntelliSense. With the store as the field, the type is `StateTree<number>` from the start, and the
 class-wiring machinery that swapped the field for an accessor (`field-store.ts`) is gone.
 

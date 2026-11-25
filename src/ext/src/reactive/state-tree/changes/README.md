@@ -6,8 +6,8 @@ It is not part of the data: `deep()` never contains it.
 
 | Member | Role |
 | --- | --- |
-| `node.changes.dirty()` | Tracked boolean: the node's current value differs (deeply) from the value it was created with. On a leaf, an explicit `equals` option replaces the deep comparison (e.g. `Object.is` or an id compare for large `'value'` data); containers always compare deeply. Editing back to the original makes it clean again. |
-| `node.changes.initial()` | Tracked plain value `reset()` restores: the creation value, or the last `next` passed to `reset(next)`. |
+| `node.changes.dirty.get()` | Tracked boolean: the node's current value differs (deeply) from the value it was created with. On a leaf, an explicit `equals` option replaces the deep comparison (e.g. `Object.is` or an id compare for large `'value'` data); containers always compare deeply. Editing back to the original makes it clean again. |
+| `node.changes.initial.get()` | Tracked plain value `reset()` restores: the creation value, or the last `next` passed to `reset(next)`. |
 | `node.changes.reset(next?)` | Writes the initial value back: edited values restored, members added since removed, deleted members re-created, a cleared object restored. Validators stay. With `next`, `next` first becomes the new initial value (pushed down to every child), so `reset(node.peek())` marks the current value as saved and a later `reset()` returns to it. Not an undo: it never steps back to the state before your last edit. |
 
 ```ts
@@ -16,9 +16,9 @@ import { changes } from '@std-ui/ext';
 
 const form = stateTree({ user: { name: 'a' }, tags: ['x'] }).with(changes);
 form.user.name.set('b');
-form.changes.dirty();       // true
+form.changes.dirty.get();       // true
 form.user.name.changes.reset();
-form.changes.dirty();       // false
+form.changes.dirty.get();       // false
 ```
 
 ## Notes

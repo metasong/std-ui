@@ -15,8 +15,8 @@ Implementation: [`./`](./) holds the TC39-aligned primitives — [`state.ts`](./
 
 | Primitive | Create | Read | Write |
 |---|---|---|---|
-| `state(initial)` | `const count = state(0)` | `count()`/`count.peek()`  | `count.set(5)` / `count.update(n => n + 1)` |
-| `computed(fn)` | `const double = computed(() => count() * 2)` | `double()` / `double.peek()` | n/a (read-only, derived) |
+| `state(initial)` | `const count = state(0)` | `count.get()`/`count.peek()`  | `count.set(5)` / `count.update(n => n + 1)` |
+| `computed(fn)` | `const double = computed(() => count.get() * 2)` | `double.get()` / `double.peek()` | n/a (read-only, derived) |
 | `effect(fn)` | `effect(onCleanup => { ... })` | n/a (runs itself) | n/a |
 
 ### `state(initial)`
@@ -28,7 +28,7 @@ import { state } from './state.js';
 
 const count = state(0);
 
-count();              // read (and auto-track if inside a computed/effect) -> 0
+count.get();              // read (and auto-track if inside a computed/effect) -> 0
 count.set(1);          // write -> notifies subscribers if the value actually changed
 count.update(n => n + 1); // read-modify-write, returns the new value
 count.peek();          // read WITHOUT tracking as a dependency
@@ -48,15 +48,15 @@ changes (not eagerly on every write).
 ```ts
 import { computed } from '../index.js';
 
-const double = computed(() => count() * 2);
+const double = computed(() => count.get() * 2);
 
-double();       // reads (and auto-tracks) count; recomputes only if marked dirty since last read
+double.get();       // reads (and auto-tracks) count; recomputes only if marked dirty since last read
 double.peek();  // same value, but does not track this computed as a dependency
 ```
 
 - Use `.peek()` on a `computed` inside another `computed`/`effect` when you need its value but
   don't want changes to it to trigger a re-run (still recomputes lazily if dirty).
-- Dependencies are rebuilt on every recompute, so conditional reads (`a() ? b() : c()`) are
+- Dependencies are rebuilt on every recompute, so conditional reads (`a.get() ? b.get() : c.get()`) are
   tracked correctly - whichever branch actually ran is what's subscribed to.
 - A `computed` can itself be read by another `computed`/`effect`; changes propagate through the
   whole chain.
@@ -77,7 +77,7 @@ re-run. Use this for side effects (DOM writes, logging, subscriptions) - not for
 import { effect } from '../index.js';
 
 const dispose = effect(onCleanup => {
-	el.textContent = String(double());
+	el.textContent = String(double.get());
 
 	// Optional: register cleanup to run before the next re-run, and on dispose.
 	const id = setInterval(tick, 1000);

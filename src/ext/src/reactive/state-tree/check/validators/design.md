@@ -10,10 +10,10 @@ validators (signal) ─┐
 node value (read()) ─┼─► errors (computed) ─┬─► valid ─────────┐
 signals read by      │                      └─► errors          ├─► valid (+ children)
 each validator ──────┘
-validators + value + pending() reads ─► pending.own ─► pending (+ children)
+validators + value + pending.get() reads ─► pending.own ─► pending (+ children)
 ```
 
-- `errors` is one computed. Inside it, `read()` (the node's plain value) and `validators()` are
+- `errors` is one computed. Inside it, `read()` (the node's plain value) and `validators.get()` are
   read, then every validator is called. **A validator therefore runs inside a tracking context:**
   every signal or computed it reads becomes a dependency of `errors`.
 - `validators` is a signal created with `equals: () => false`, so `validators.set([...])` always
@@ -89,7 +89,7 @@ so reading `pending` alone starts the request. Without that, a node whose `error
 could look "not pending" while still unvalidated.
 
 `pending(value)` is a pure read (`settled` vs key) plus the idempotent `ensure`. The argument-less
-form `validator.pending()` has no value to compare, so it uses the `wanted` signal: the last key
+form `validator.pending.get()` has no value to compare, so it uses the `wanted` signal: the last key
 requested. `wanted` cannot be written from inside the computed either, so `ensure` sets it in a
 `queueMicrotask`. This is why the direct form is `false` before the first read and lags a value
 change by one microtask; `node.check.pending.own` (which passes the value) does not lag.
@@ -97,7 +97,7 @@ change by one microtask; `node.check.pending.own` (which passes the value) does 
 ## Enabling: `when` and `check.enabled`
 
 Both are plain reads inside the existing computeds, so they need no new tracking. `when` wraps
-validators and forwards `pending`, short-circuiting on `enabled() &&` so a disabled async validator
+validators and forwards `pending`, short-circuiting on `enabled.get() &&` so a disabled async validator
 is never asked (no `ensure`, no request). It drops `flag` because the constraint is conditional.
 `check.enabled` is a signal checked at the top of `ownErrors` and `pendingOwn`; it covers the node's
 own validators only, so parent aggregates see a disabled child as valid and not pending.
@@ -110,7 +110,7 @@ aggregates. Async checks start on that first read, and a node nobody reads is ne
 ## Trade-offs
 
 - **`wanted` microtask:** needed to avoid signal writes during a computed; cost is the one-tick lag
-  of the argument-less `pending()`.
+  of the argument-less `pending.get()`.
 - **Latest-key cache only:** keeps memory flat and matches typical input; going back to an old
   value re-checks it.
 - **`deps` is explicit:** it asks authors to list dependencies, instead of relying on tracking

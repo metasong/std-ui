@@ -14,18 +14,18 @@ import { check, formUi } from '@std-ui/ext';
 const form = stateTree({ account: { email: '', name: '' }, city: '' }).with(check).with(formUi);
 
 form.account.formUi.disabled.own.set(true); // email and name are now disabled too
-form.account.email.formUi.disabled();       // true  (an ancestor is disabled)
-form.city.formUi.disabled();                // false
+form.account.email.formUi.disabled.get();       // true  (an ancestor is disabled)
+form.city.formUi.disabled.get();                // false
 ```
 
 ## Flags
 
 Each of `touched`, `readonly` and `disabled` has the same shape:
 
-- `flag()`: tracked, the **resolved** value (own flag combined with related nodes, see below).
+- `flag.get()`: tracked, the **resolved** value (own flag combined with related nodes, see below).
 - `flag.own`: this node's own flag, a writable `State<boolean>`.
 
-| Flag | `flag()` is true when | Direction |
+| Flag | `flag.get()` is true when | Direction |
 | --- | --- | --- |
 | `readonly` | the node **or any ancestor** is readonly | down: a parent locks its members |
 | `disabled` | the node **or any ancestor** is disabled | down |
@@ -37,12 +37,12 @@ A node adopted into several trees has several parents: it is readonly / disabled
 
 | Member | Role |
 | --- | --- |
-| `touch()` / `untouch()` | Set / clear this node's `touched.own`. A touched descendant still makes `touched()` true. |
+| `touch()` / `untouch()` | Set / clear this node's `touched.own`. A touched descendant still makes `touched.get()` true. |
 | `touchAll()` / `untouchAll()` | Same for the node and every descendant, e.g. on submit and on reset. |
 
 ```ts
 form.formUi.touchAll();           // submit: every bound control shows its errors
-form.account.formUi.touched();    // true
+form.account.formUi.touched.get();    // true
 form.formUi.untouchAll();         // reset
 ```
 

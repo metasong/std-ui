@@ -33,10 +33,10 @@ to diff old and new values by hand.
 class DemoTotal extends UIElement {
 	@stateTree() price = 10;
 	@stateTree() qty = 2;
-	readonly #total = computed(() => this.price() * this.qty());
+	readonly #total = computed(() => this.price.get() * this.qty.get());
 
 	protected override template() {
-		return t`<p>Total: ${this.#total()}</p>`;
+		return t`<p>Total: ${this.#total.get()}</p>`;
 	}
 }
 ```

@@ -87,7 +87,7 @@ API notes: [`../ext/src/element/template/directives/virtualize/README.md`](../ex
 The **Keyed lists** section is the browser counterpart to the Lit-style `repeat()` tutorial: sort
 with **A → Z** / **Z → A**, tick a checkbox on one row, then sort again. The box should stay on the
 same chore because `mapByKey` reconciles by `id`. Compare with **todo list** above, which uses
-`this.todos().map(...)` and is fine for append/remove but would mis-attach control state if you reordered.
+`this.todos.get().map(...)` and is fine for append/remove but would mis-attach control state if you reordered.
 
 - Live UI: run the demo and scroll to **Keyed lists (`mapByKey`)**.
 - Automated check: from `src/std-ui`, `npm test -- map-by-key-sort.example` (see [`../core/src/doc/map-by-key-sort.example.test.ts`](../core/src/doc/map-by-key-sort.example.test.ts)).

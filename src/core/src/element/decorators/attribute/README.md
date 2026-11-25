@@ -47,7 +47,7 @@ allows. On a plain field `reflect` has no effect: a dev-only `console.warn` (onc
 ```
 
 ```js
-el.count(); // 3 — parsed at upgrade
+el.count.get(); // 3 — parsed at upgrade
 el.count.set(4); // re-renders; with reflect: true, updates count="4"
 el.setAttribute('count', '9'); // attributeChangedCallback → store
 ```

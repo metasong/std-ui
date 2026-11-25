@@ -12,7 +12,7 @@ const server = manualValidator<string>();
 form.email.check.validators.set([server]);
 
 server.set('Email taken');       // replaces its earlier errors
-form.email.check.errors();       // [{ flag: 'customError', message: 'Email taken' }]
+form.email.check.errors.get();       // [{ flag: 'customError', message: 'Email taken' }]
 server.clear();                  // removes them
 ```
 
