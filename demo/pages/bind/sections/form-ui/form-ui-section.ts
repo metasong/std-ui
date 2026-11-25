@@ -32,10 +32,10 @@ function flagRow(label: string, node: { formUi: typeof form.formUi }, depth: Fla
 			<th scope="row">${label}</th>
 			<td><input type="checkbox" aria-label="${label} readonly" .checked=${bind(ui.readonly.own)} /></td>
 			<td><input type="checkbox" aria-label="${label} disabled" .checked=${bind(ui.disabled.own)} /></td>
-			<td><code>${yes(ui.readonly())}</code></td>
-			<td><code>${yes(ui.disabled())}</code></td>
-			<td><code>${yes(ui.touched.own())}</code></td>
-			<td><code>${yes(ui.touched())}</code></td>
+			<td><code>${yes(ui.readonly.get())}</code></td>
+			<td><code>${yes(ui.disabled.get())}</code></td>
+			<td><code>${yes(ui.touched.own.get())}</code></td>
+			<td><code>${yes(ui.touched.get())}</code></td>
 		</tr>
 	`;
 }

@@ -6,11 +6,11 @@
 	// --- Inline render (no custom element) -----------------------------------------------------
 
 	const inlineCount = state(0);
-	const inlineLabel = computed(() => (inlineCount() === 1 ? 'click' : 'clicks'));
+	const inlineLabel = computed(() => (inlineCount.get() === 1 ? 'click' : 'clicks'));
 
 	function inlineView() {
 		return t`
-			<p class="metric"><strong>${inlineCount()}</strong> ${inlineLabel()}</p>
+			<p class="metric"><strong>${inlineCount.get()}</strong> ${inlineLabel.get()}</p>
 			<div class="actions">
 				<button
 					type="button"
@@ -20,7 +20,7 @@
 				<button
 					type="button"
 					@click=${() => inlineCount.set(0)}
-					?disabled=${inlineCount() === 0}
+					?disabled=${inlineCount.get() === 0}
 				>reset</button>
 			</div>
 		`;
@@ -34,15 +34,15 @@
 	// --- Custom element (decorator-free equivalent of @tag + UIElement) ------------------------
 
 	const count = state(0);
-	const label = computed(() => (count() === 1 ? 'click' : 'clicks'));
+	const label = computed(() => (count.get() === 1 ? 'click' : 'clicks'));
 
 	class BrowserBundleCounter extends UIElement {
 		template() {
 			return t`
-				<p class="metric"><strong>${count()}</strong> ${label()}</p>
+				<p class="metric"><strong>${count.get()}</strong> ${label.get()}</p>
 				<div class="actions">
 					<button type="button" class="primary" @click=${() => count.update((n) => n + 1)}>+1</button>
-					<button type="button" @click=${() => count.set(0)} ?disabled=${count() === 0}>reset</button>
+					<button type="button" @click=${() => count.set(0)} ?disabled=${count.get() === 0}>reset</button>
 				</div>
 			`;
 		}

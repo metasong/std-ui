@@ -21,8 +21,8 @@ export class DemoBindCustomEventSection extends UIElement {
 					.color=${bind(this.color, { event: 'swatch-picked' })}
 					@swatch-picked=${(e: Event) => this.lastEvent.set(String((e as CustomEvent).detail))}
 				></demo-bind-swatch>
-				<p class="demo-bind-mirror">Model: <code>${this.color()}</code></p>
-				<p class="demo-bind-mirror">Last <code>swatch-picked</code> detail: <code>${this.lastEvent()}</code></p>
+				<p class="demo-bind-mirror">Model: <code>${this.color.get()}</code></p>
+				<p class="demo-bind-mirror">Last <code>swatch-picked</code> detail: <code>${this.lastEvent.get()}</code></p>
 				<div class="demo-actions">
 					<button type="button" @click=${() => this.color.set('tomato')}>set model to tomato</button>
 					<button type="button" class="tonal" @click=${() => this.color.set('royalblue')}>set model to royalblue</button>

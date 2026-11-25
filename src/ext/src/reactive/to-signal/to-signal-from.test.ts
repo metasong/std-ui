@@ -21,34 +21,34 @@ describe('toSignalFrom', () => {
 		const a = makeSource<number>();
 		const s = toSignalFrom(() => a.source, { initialValue: 0 });
 		a.emit(4);
-		expect(s()).toBe(4);
+		expect(s.get()).toBe(4);
 	});
 
 	it('re-subscribes when signals read in the factory change, keeping the last value', async () => {
 		const id = state(1);
 		const sources = new Map<number, ReturnType<typeof makeSource<string>>>();
 		const s = toSignalFrom(() => {
-			const n = id();
+			const n = id.get();
 			const src = makeSource<string>();
 			sources.set(n, src);
 			return src.source;
 		}, { initialValue: '' });
 		sources.get(1)!.emit('one');
-		expect(s()).toBe('one');
+		expect(s.get()).toBe('one');
 
 		id.set(2);
 		await flushEffects();
 		expect(sources.get(1)!.isUnsubscribed()).toBe(true);
-		expect(s()).toBe('one'); // stale until the new source emits
+		expect(s.get()).toBe('one'); // stale until the new source emits
 		sources.get(2)!.emit('two');
-		expect(s()).toBe('two');
+		expect(s.get()).toBe('two');
 	});
 
 	it('ignores late values from a superseded source', async () => {
 		const id = state(1);
 		const made: ReturnType<typeof makeSource<number>>[] = [];
 		const s = toSignalFrom(() => {
-			id();
+			id.get();
 			const src = makeSource<number>();
 			made.push(src);
 			return src.source;
@@ -56,43 +56,43 @@ describe('toSignalFrom', () => {
 		id.set(2);
 		await flushEffects();
 		made[0].emit(99);
-		expect(s()).toBeUndefined();
+		expect(s.get()).toBeUndefined();
 	});
 
 	it('supports null (no source) and promises', async () => {
 		const id = state<number | null>(null);
-		const s = toSignalFrom(() => (id() === null ? null : Promise.resolve(id()! * 2)), { initialValue: -1 });
-		expect(s()).toBe(-1);
+		const s = toSignalFrom(() => (id.get() === null ? null : Promise.resolve(id.get()! * 2)), { initialValue: -1 });
+		expect(s.get()).toBe(-1);
 		id.set(5);
 		await flushEffects();
 		await flushEffects();
-		expect(s()).toBe(10);
+		expect(s.get()).toBe(10);
 	});
 
 	it('a factory error is thrown on read and cleared on re-run', async () => {
 		const id = state(0);
 		const s = toSignalFrom(() => {
-			if (id() === 0) throw new Error('nope');
-			return Promise.resolve(id());
+			if (id.get() === 0) throw new Error('nope');
+			return Promise.resolve(id.get());
 		}, { initialValue: 0 });
-		expect(() => s()).toThrow('nope');
+		expect(() => s.get()).toThrow('nope');
 		id.set(3);
 		await flushEffects();
 		await flushEffects();
-		expect(s()).toBe(3);
+		expect(s.get()).toBe(3);
 	});
 
 	it('notifies effects and dispose() stops everything', async () => {
 		const id = state(1);
 		const made: ReturnType<typeof makeSource<number>>[] = [];
 		const s = toSignalFrom(() => {
-			id();
+			id.get();
 			const src = makeSource<number>();
 			made.push(src);
 			return src.source;
 		}, { initialValue: 0 });
 		const seen: number[] = [];
-		const stop = effect(() => { seen.push(s()); });
+		const stop = effect(() => { seen.push(s.get()); });
 		made[0].emit(1);
 		await flushEffects();
 		expect(seen).toEqual([0, 1]);

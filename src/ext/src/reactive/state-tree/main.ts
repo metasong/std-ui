@@ -8,7 +8,7 @@
 // Plain objects (`{ ... }` / `Object.create(null)`) become `StateObject`s; arrays `StateArray`s;
 // everything else (primitives, class instances, null, undefined, functions, ...) is a leaf `State`.
 
-import type { StateOptions } from '@std-ui/core';
+import type { Computed, State, StateOptions } from '@std-ui/core';
 
 import { DEV } from '../../dev/flag.js';
 import { stateArray, type StateArray } from './array/index.js';
@@ -35,7 +35,7 @@ function isPlainObject(value: unknown): value is PlainObject {
 // leaf path instead of the branch path.
 type IsBranch<T> = T extends readonly unknown[] // array → leaf
 	? false
-	: T extends Function // function → leaf
+	: T extends Function | State<any> | Computed<any> // function or core signal → leaf
 		? false
 		: T extends object // object (incl. null in TS) → branch
 			? true

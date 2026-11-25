@@ -4,7 +4,7 @@
 
 import { type AttributeConverter, type AttributeType, inferAttributeType, resolveConverter, toAttributeName } from './converter.js';
 import { createClassRegistry } from '../class-registry.js';
-import { isSettable } from '../../../util.js';
+import { isWritableState } from '../../../reactive/signal/state.js';
 
 /**
  * One attribute-backed field, recorded either by `@attribute()` (in a class's `context.metadata` /
@@ -26,13 +26,6 @@ export interface AttributeDef {
 /** Every attribute-backed field of a class: `.get(ctor)`, `.register(meta, def)`. */
 export const attributeDefs = createClassRegistry<AttributeDef>('attributeDefs');
 
-/** A `stateTree()` store: callable, with `peek()` and `set()`. Any other field value is treated as a plain value. */
-export type SignalLikeForAttribute = { (): unknown; peek(): unknown; set(value: never): void };
-
-export function isSignalLikeForAttribute(value: unknown): value is SignalLikeForAttribute {
-	return isSettable(value) && typeof (value as { peek?: unknown }).peek === 'function';
-}
-
 /**
  * Resolves a still-placeholder converter from `host`'s field value (the store's `peek()`, or the plain value) - a
  * no-op once resolved. The def is shared by every instance, so the first one to call this resolves it for all.
@@ -40,7 +33,7 @@ export function isSignalLikeForAttribute(value: unknown): value is SignalLikeFor
 export function resolveInferredConverter(host: object, def: AttributeDef): void {
 	if (!def.infer) return;
 	const field = (host as Record<PropertyKey, unknown>)[def.key];
-	def.converter = resolveConverter(inferAttributeType(isSignalLikeForAttribute(field) ? field.peek() : field), undefined) as AttributeConverter;
+	def.converter = resolveConverter(inferAttributeType(isWritableState(field) ? field.peek() : field), undefined) as AttributeConverter;
 	def.infer = false;
 }
 

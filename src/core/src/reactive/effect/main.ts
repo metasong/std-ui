@@ -1,9 +1,9 @@
-// Side-effect runner: `effect()`. Re-runs are microtask-batched. Built on top of `Watcher` from
-// `../signal/tracking.ts` - the low-level primitive modeled on `Signal.subtle.Watcher` in the proposed
-// standard signals API. Not part of the TC39 proposal; lives outside `signal/`.
+// Side-effect runner: `effect()`. Re-runs are microtask-batched. Built on `Signal.subtle.Watcher`
+// + `Signal.Computed` from `signal-polyfill`. Not part of the TC39 proposal; lives outside `signal/`.
 
 import { CycleGuard } from './dev/effect-cycle-guard.js';
-import { runTracked, sourcesChanged, subscribe, unsubscribe, Watcher } from '../signal/tracking.js';
+import { Signal } from 'signal-polyfill';
+import { untrack, Watcher } from '../signal/tracking.js';
 
 /**
  * Call inside an `effect()` body to register cleanup that runs before the next re-run, and on dispose.
@@ -128,33 +128,34 @@ export function effect(
 		cleanups.push(fn);
 	};
 
-	// `rerun` does the actual work. Running it through `runTracked(watcher, ...)` re-arms the
-	// watcher with whatever deps this run actually read (a `Watcher` goes inert - stops watching -
-	// the moment it fires `notify`, per the proposed standard signals API).
-	let hasRun = false;
-	const rerun = (): void => {
-		if (disposed) return;
-		// Pull phase: a notification only means "maybe dirty"; skip if nothing read actually changed.
-		if (hasRun && !sourcesChanged(watcher)) {
-			subscribe(watcher);
-			return;
-		}
-		hasRun = true;
-
-		runCleanup();
-		runTracked(watcher, () => monitoredAction(onCleanup));
-		afterAction?.();
-	};
-	// `notify` (called by `watcher.run()` when a watched dependency changes) just schedules `rerun`
-	// into the shared microtask flush, so multiple synchronous writes only trigger one re-run.
+	// The body runs inside a `Signal.Computed`, which tracks what it reads. A notification from the
+	// watcher only means "maybe dirty": `body.get()` re-runs the function only if a source really
+	// changed (equality cutoff), so cleanup + action live inside it and are skipped on false alarms.
+	const body = new Signal.Computed<void>(() => {
+		untrack(runCleanup);
+		monitoredAction(onCleanup);
+	});
+	// `notify` runs synchronously inside the writer's `set()` (reads/writes are forbidden there), so it
+	// only schedules `rerun` into the shared microtask flush: many synchronous writes, one re-run.
 	const watcher = new Watcher(function notify(this: Watcher): void {
 		if (disposed || pendingWatchers.has(this)) return;
 		pendingWatchers.add(this);
 		scheduleFlush();
 	});
+	const rerun = (): void => {
+		if (disposed) return;
+		try {
+			body.get();
+			afterAction?.();
+		} finally {
+			// A watcher goes inert after it notifies; re-arm it for the next change.
+			watcher.watch();
+		}
+	};
 	effectBodies.set(watcher, rerun);
 	cycleGuard.register(watcher);
 
+	watcher.watch(body);
 	// First run happens synchronously, so initial DOM sync isn't deferred a tick.
 	rerun();
 
@@ -163,7 +164,7 @@ export function effect(
 		pendingWatchers.delete(watcher);
 		effectBodies.delete(watcher);
 		cycleGuard.unregister(watcher);
-		unsubscribe(watcher);
-		runCleanup();
+		watcher.unwatch(body);
+		untrack(runCleanup);
 	};
 }

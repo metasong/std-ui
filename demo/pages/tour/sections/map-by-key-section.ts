@@ -38,7 +38,7 @@ export class DemoMapByKeySection extends UIElement {
 	]);
 
 	protected override template() {
-		const chores = this.chores();
+		const chores = this.chores.get();
 		return t`
 			<h2>Keyed lists (<code>mapByKey</code>)</h2>
 			<p class="desc">
@@ -66,6 +66,6 @@ export class DemoMapByKeySection extends UIElement {
 	}
 
 	private sortByLabel(dir: 1 | -1): void {
-		this.chores.set([...this.chores()].sort((a, b) => a.label.localeCompare(b.label) * dir));
+		this.chores.set([...this.chores.get()].sort((a, b) => a.label.localeCompare(b.label) * dir));
 	}
 }

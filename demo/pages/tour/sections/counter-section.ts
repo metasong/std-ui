@@ -5,7 +5,7 @@ import { computed } from '@std-ui/core';
 import { stateTree } from '@std-ui/ext';
 
 const count = stateTree(0);
-const label = computed(() => (count() < 2 ? 'click' : 'clicks'));
+const label = computed(() => (count.get() < 2 ? 'click' : 'clicks'));
 
 @tag('demo-counter-section')
 export class DemoCounterSection extends UIElement {
@@ -13,10 +13,10 @@ export class DemoCounterSection extends UIElement {
 		return t`
 			<h2>Signals + templates</h2>
 			<p class="desc"><code>stateTree</code>, <code>computed</code>, <code>html</code>/<code>render</code> — the template re-renders in place whenever a read signal changes.</p>
-			<p><strong>${count()}</strong> ${label()}</p>
+			<p><strong>${count.get()}</strong> ${label.get()}</p>
 			<div class="demo-actions">
 				<button type="button" @click=${() => count.update(n => n + 1)}>+1</button>
-				<button type="button" class="tonal" @click=${() => count.set(0)} ?disabled=${count() === 0}>reset</button>
+				<button type="button" class="tonal" @click=${() => count.set(0)} ?disabled=${count.get() === 0}>reset</button>
 			</div>
 		`;
 	}

@@ -28,7 +28,7 @@ export function manualValidator<T = unknown>(): ManualValidator<T> {
 	let at: { value: T } | null = null; // value the errors belong to, captured on first run after `set`
 	let expired = false;
 	const validator = ((value: T) => {
-		const errs = cell();
+		const errs = cell.get();
 		if (!errs) return null;
 		if (expired) return null;
 		if (!at) at = { value };

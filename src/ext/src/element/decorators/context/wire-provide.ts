@@ -7,11 +7,11 @@ import { effect as createEffect, type UIElementHooks } from '@std-ui/core';
 import { providedContexts } from './metadata.js';
 import { CONTEXT_REQUEST_EVENT, ContextRequestEvent } from './request-event.js';
 
-type ProvidedStore = { (): unknown; deep?: () => unknown };
+type ProvidedStore = { get(): unknown; deep?: () => unknown };
 
 /** Deep (tracked) read of a store: a state tree's `.deep()`, else the leaf's own value. */
 function readValue(store: ProvidedStore): unknown {
-	return typeof store.deep === 'function' ? store.deep() : store();
+	return typeof store.deep === 'function' ? store.deep() : store.get();
 }
 
 /**

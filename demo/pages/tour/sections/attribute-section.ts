@@ -35,15 +35,15 @@ export class DemoAttributeSection extends UIElement {
 			<h2>Attributes vs. stateTree</h2>
 			<p class="desc"><code>@attribute({ reflect: true })</code> mirrors to/from the host's HTML attributes (inspect <code>&lt;demo-attribute-section&gt;</code> in devtools). Toggling <code>theme</code> flips this card via <code>:host([theme="dark"])</code> in <code>static styles</code> — not the whole page (see Context). <code>stateTree()</code> alone stays JS-only.</p>
 			<p>
-				theme=<code>${this.theme()}</code>,
-				count=<code>${this.count()}</code>
+				theme=<code>${this.theme.get()}</code>,
+				count=<code>${this.count.get()}</code>
 			</p>
 			<div class="demo-actions">
 				<button type="button" @click=${() => this.theme.update(t => t === 'light' ? 'dark' : 'light')}>toggle theme attribute</button>
 				<button type="button" class="tonal" @click=${() => this.count.update(n => n + 1)}>increment count attribute</button>
-				<button type="button" class="text" @click=${() => this.expanded.set(!this.expanded())}>${this.expanded() ? 'hide' : 'show'} internal-only stateTree</button>
+				<button type="button" class="text" @click=${() => this.expanded.set(!this.expanded.get())}>${this.expanded.get() ? 'hide' : 'show'} internal-only stateTree</button>
 			</div>
-			${this.expanded() ? t`<p><em>This line comes from a plain <code>stateTree()</code> — it never appears as an attribute.</em></p>` : ''}
+			${this.expanded.get() ? t`<p><em>This line comes from a plain <code>stateTree()</code> — it never appears as an attribute.</em></p>` : ''}
 		`;
 	}
 }

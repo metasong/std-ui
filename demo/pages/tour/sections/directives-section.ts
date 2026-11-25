@@ -9,10 +9,10 @@ export class DemoDirectivesSection extends UIElement {
 	readonly big = stateTree(false);
 
 	protected override template() {
-		const classes = { active: this.active(), 'demo-box': true };
+		const classes = { active: this.active.get(), 'demo-box': true };
 		const styles = {
-			padding: this.big() ? '1.5rem' : '0.75rem',
-			fontSize: this.big() ? '1.125rem' : '1rem',
+			padding: this.big.get() ? '1.5rem' : '0.75rem',
+			fontSize: this.big.get() ? '1.125rem' : '1rem',
 			transition: 'all 150ms ease',
 		};
 
@@ -23,8 +23,8 @@ export class DemoDirectivesSection extends UIElement {
 				classMap + styleMap controlled box (mixed with static "class"/"style" text)
 			</div>
 			<div class="demo-actions">
-				<button type="button" @click=${() => this.active.set(!this.active())}>toggle active class</button>
-				<button type="button" class="tonal" @click=${() => this.big.set(!this.big())}>toggle size style</button>
+				<button type="button" @click=${() => this.active.set(!this.active.get())}>toggle active class</button>
+				<button type="button" class="tonal" @click=${() => this.big.set(!this.big.get())}>toggle size style</button>
 			</div>
 			<div>${unsafeHtml('<em>rendered via <code>unsafeHtml</code></em>')}</div>
 		`;

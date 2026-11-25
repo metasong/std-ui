@@ -13,10 +13,10 @@ describe('bind()', () => {
 		expect(a.value).toBe('hi');
 		a.value = 'yo';
 		a.dispatchEvent(new Event('input', { bubbles: true }));
-		expect(form.query()).toBe('yo');
+		expect(form.query.get()).toBe('yo');
 		b.value = '7';
 		b.dispatchEvent(new Event('input', { bubbles: true }));
-		expect(form.age()).toBe(7);
+		expect(form.age.get()).toBe(7);
 		form.query.set('reset');
 		render(view(), container);
 		expect(a.value).toBe('reset');
@@ -37,7 +37,7 @@ describe('bind()', () => {
 
 		input.value = 'hello';
 		input.dispatchEvent(new Event('input', { bubbles: true }));
-		expect(store.query()).toBe('hello');
+		expect(store.query.get()).toBe('hello');
 
 		store.query.set('reset');
 		render(view(), container);
@@ -55,7 +55,7 @@ describe('bind()', () => {
 
 		input.checked = true;
 		input.dispatchEvent(new Event('change', { bubbles: true }));
-		expect(store.on()).toBe(true);
+		expect(store.on.get()).toBe(true);
 
 		store.on.set(false);
 		render(view(), container);
@@ -73,7 +73,7 @@ describe('bind()', () => {
 
 		div.level = 5;
 		div.dispatchEvent(new Event('level-change', { bubbles: true }));
-		expect(store.level()).toBe(5);
+		expect(store.level.get()).toBe(5);
 
 		store.level.set(2);
 		render(view(), container);
@@ -99,7 +99,7 @@ describe('bind()', () => {
 
 		div.checked = true;
 		div.dispatchEvent(new Event('checked-change', { bubbles: true }));
-		expect(store.on()).toBe(true);
+		expect(store.on.get()).toBe(true);
 	});
 
 	it('uses property name for default event (`.document` → `document-change`)', () => {
@@ -137,8 +137,8 @@ describe('bind()', () => {
 		expect(input.value).toBe('b');
 		input.value = 'typed';
 		input.dispatchEvent(new Event('input', { bubbles: true }));
-		expect(b.v()).toBe('typed');
-		expect(a.v()).toBe('a');
+		expect(b.v.get()).toBe('typed');
+		expect(a.v.get()).toBe('a');
 	});
 
 	it('kebab-cases camelCase properties for the default event', () => {
@@ -148,7 +148,7 @@ describe('bind()', () => {
 		const div = container.querySelector('div')! as HTMLDivElement & { minValue: number };
 		div.minValue = 9;
 		div.dispatchEvent(new Event('min-value-change', { bubbles: true }));
-		expect(store.minValue()).toBe(9);
+		expect(store.minValue.get()).toBe(9);
 	});
 
 	it('re-syncs sibling radios in the same group', () => {
@@ -160,8 +160,8 @@ describe('bind()', () => {
 		const [ra, rb] = Array.from(container.querySelectorAll('input')) as HTMLInputElement[];
 		rb.checked = true;
 		rb.dispatchEvent(new Event('change', { bubbles: true }));
-		expect(store.b()).toBe(true);
-		expect(store.a()).toBe(false);
+		expect(store.b.get()).toBe(true);
+		expect(store.a.get()).toBe(false);
 		expect(ra.checked).toBe(false);
 	});
 
@@ -173,7 +173,7 @@ describe('bind()', () => {
 		render(t`<p>gone</p>`, container);
 		input.value = 'late';
 		input.dispatchEvent(new Event('input', { bubbles: true }));
-		expect(store.query()).toBe('x');
+		expect(store.query.get()).toBe('x');
 	});
 
 	it('binds state and @attribute() fields directly', () => {
@@ -191,10 +191,10 @@ describe('bind()', () => {
 		expect(a.value).toBe('hi');
 		a.value = 'yo';
 		a.dispatchEvent(new Event('input', { bubbles: true }));
-		expect(host.text()).toBe('yo');
+		expect(host.text.get()).toBe('yo');
 		b.value = '7';
 		b.dispatchEvent(new Event('input', { bubbles: true }));
-		expect(host.age()).toBe(7);
+		expect(host.age.get()).toBe(7);
 		host.text.set('reset');
 		render(view(), container);
 		expect(a.value).toBe('reset');

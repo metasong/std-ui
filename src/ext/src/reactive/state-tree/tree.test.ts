@@ -23,9 +23,9 @@ describe('state', () => {
 
 	it('exposes each branch/leaf as a same-named property', () => {
 		const tree = stateTree(makeState());
-		expect(tree.count()).toBe(0);
+		expect(tree.count.get()).toBe(0);
 		expect(tree.user.deep()).toEqual({ label: 'Ada', age: 30 });
-		expect(tree.user.label()).toBe('Ada');
+		expect(tree.user.label.get()).toBe('Ada');
 	});
 
 	it('treats arrays as observable collections (StateArray)', () => {
@@ -49,7 +49,7 @@ describe('state', () => {
 	it('a leaf .set() is reflected when reading its ancestor branches', () => {
 		const tree = stateTree(makeState());
 		tree.user.label.set('Grace');
-		expect(tree.user.label()).toBe('Grace');
+		expect(tree.user.label.get()).toBe('Grace');
 		expect(tree.user.deep()).toEqual({ label: 'Grace', age: 30 });
 		expect(tree.deep()).toEqual({ count: 0, user: { label: 'Grace', age: 30 }, tags: ['a', 'b'] });
 	});
@@ -101,8 +101,8 @@ describe('state', () => {
 	it('set() forwards explicit undefined to leaf children', () => {
 		const tree = stateTree(makeState());
 		tree.set({ count: undefined, user: { label: 'Grace' } });
-		expect(tree.count()).toBeUndefined();
-		expect(tree.user.label()).toBe('Grace');
+		expect(tree.count.get()).toBeUndefined();
+		expect(tree.user.label.get()).toBe('Grace');
 	});
 
 	it('setting one branch only notifies effects that read that branch', async () => {
@@ -110,7 +110,7 @@ describe('state', () => {
 		let userRuns = 0;
 		let countRuns = 0;
 		effect(() => { tree.user.deep(); userRuns++; });
-		effect(() => { tree.count(); countRuns++; });
+		effect(() => { tree.count.get(); countRuns++; });
 		await flush();
 
 		tree.user.label.set('Grace');
@@ -124,7 +124,7 @@ describe('state', () => {
 		let userRuns = 0;
 		let countRuns = 0;
 		effect(() => { tree.user.deep(); userRuns++; });
-		effect(() => { tree.count(); countRuns++; });
+		effect(() => { tree.count.get(); countRuns++; });
 		await flush();
 
 		tree.user.set({ label: 'Grace' });
@@ -152,7 +152,7 @@ describe('state', () => {
 	it('branch .set() with an empty partial is a no-op for subscribers', async () => {
 		const tree = stateTree(makeState());
 		let userRuns = 0;
-		effect(() => { tree.user(); userRuns++; });
+		effect(() => { tree.user.get(); userRuns++; });
 		await flush();
 
 		tree.user.set({});
@@ -163,26 +163,26 @@ describe('state', () => {
 	it('state on a plain object with a null prototype is still a branch', () => {
 		const value = Object.assign(Object.create(null), { n: 1 }) as { n: number };
 		const tree = stateTree(value);
-		expect(tree.n()).toBe(1);
+		expect(tree.n.get()).toBe(1);
 		tree.n.set(2);
 		expect(tree.deep()).toEqual({ n: 2 });
 	});
 
 	it('state on a non-object root is a single leaf signal tree', () => {
 		const tree = stateTree(42);
-		expect(tree()).toBe(42);
+		expect(tree.get()).toBe(42);
 		expect(tree.shallow()).toBe(42);
 		expect(tree.deep()).toBe(42);
 		expect(tree.peek()).toBe(42);
 		tree.set(7);
-		expect(tree()).toBe(7);
+		expect(tree.get()).toBe(7);
 	});
 
 	it('.set() with an unknown key adds a member; delete() removes it', () => {
 		const tree = stateTree(makeState());
 		tree.user.set({ zip: 1 } as unknown as State['user']);
 		expect(tree.user.deep()).toEqual({ label: 'Ada', age: 30, zip: 1 });
-		expect((tree.user as unknown as Record<string, () => unknown>).zip()).toBe(1);
+		expect((tree.user as unknown as Record<string, { get(): unknown }>).zip.get()).toBe(1);
 
 		expect(tree.user.delete('zip')).toBe(true);
 		expect(tree.user.delete('zip')).toBe(false);
@@ -193,7 +193,7 @@ describe('state', () => {
 		const tree = stateTree(makeState());
 		let callRuns = 0;
 		let shallowRuns = 0;
-		effect(() => { tree.user(); callRuns++; });
+		effect(() => { tree.user.get(); callRuns++; });
 		effect(() => { tree.user.shallow(); shallowRuns++; });
 		await flush();
 
@@ -216,9 +216,9 @@ describe('state', () => {
 
 	it('object (), shallow() and deep() return the same plain value', () => {
 		const tree = stateTree(makeState());
-		expect(tree.user()).toEqual({ label: 'Ada', age: 30 });
+		expect(tree.user.get()).toEqual({ label: 'Ada', age: 30 });
 		expect(tree.user.shallow()).toBe(tree.user.deep());
-		expect(tree.user()).toBe(tree.user.deep());
+		expect(tree.user.get()).toBe(tree.user.deep());
 	});
 });
 

@@ -145,7 +145,7 @@ describe('<std-router> markup', () => {
 		);
 		await tick();
 		await tick();
-		expect(el.router.location().pathname).toBe('/about');
+		expect(el.router.location.get().pathname).toBe('/about');
 		expect(el.querySelector('std-outlet p')).not.toBeNull();
 	});
 
@@ -153,6 +153,6 @@ describe('<std-router> markup', () => {
 		const el = mount(`<std-route path="/a"></std-route><std-outlet></std-outlet>`, '/');
 		await tick();
 		await el.router.navigate('/a');
-		expect(el.router.matches()).toHaveLength(1);
+		expect(el.router.matches.get()).toHaveLength(1);
 	});
 });

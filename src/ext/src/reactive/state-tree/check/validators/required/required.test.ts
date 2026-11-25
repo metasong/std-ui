@@ -15,8 +15,8 @@ describe('required', () => {
 	it('uses a custom message and works on a node', () => {
 		const s = check(stateTree({ name: '' }));
 		s.name.check.validators.set([required<string>('Name needed')]);
-		expect(s.name.check.errors()).toEqual([{ flag: 'valueMissing', message: 'Name needed' }]);
+		expect(s.name.check.errors.get()).toEqual([{ flag: 'valueMissing', message: 'Name needed' }]);
 		s.name.set('x');
-		expect(s.name.check.valid.own()).toBe(true);
+		expect(s.name.check.valid.own.get()).toBe(true);
 	});
 });

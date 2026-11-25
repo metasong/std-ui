@@ -1,8 +1,3 @@
-/** Whether `value` is callable with a `.set()` - a signal/store. Shared by bind, property parts and attributes. */
-export function isSettable(value: unknown): value is { (): unknown; set(value: never): void } {
-	return typeof value === 'function' && typeof (value as { set?: unknown }).set === 'function';
-}
-
 /**
  * Error for API misuse. Call as `throw usageError(DEV && 'detailed message')`: with `DEV` the constant `false`
  * the message expression folds away at the call site (a closure or helper building it would survive
@@ -15,12 +10,12 @@ export function usageError(dev: string | false, context: string): Error {
 
 /**
  * Tracked read of a signal at `depth`: `'deep'`/`'shallow'` use the matching method when the signal has one
- * (a state-tree node, so nested changes are tracked), otherwise - or for `'value'` - it is called directly.
+ * (a state-tree node, so nested changes are tracked), otherwise - or for `'value'` - its `get()` is used.
  * Duck-typed so core has no dependency on state-tree.
  */
-export function readSignal(signal: () => unknown, depth: 'value' | 'shallow' | 'deep' = 'deep'): unknown {
+export function readSignal(signal: { get(): unknown }, depth: 'value' | 'shallow' | 'deep' = 'deep'): unknown {
 	const read = depth === 'value' ? undefined : (signal as unknown as Record<string, unknown>)[depth];
-	return typeof read === 'function' ? read.call(signal) : signal();
+	return typeof read === 'function' ? read.call(signal) : signal.get();
 }
 
 /** `maxCount` -> `max-count`. */

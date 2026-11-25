@@ -19,16 +19,16 @@ function makeSource<T>() {
 describe('toSignal', () => {
 	it('is undefined (or initialValue) until a promise resolves', async () => {
 		const s = toSignal(Promise.resolve(5));
-		expect(s()).toBeUndefined();
+		expect(s.get()).toBeUndefined();
 		await flushEffects();
-		expect(s()).toBe(5);
-		expect(toSignal(new Promise<number>(() => {}), { initialValue: 0 })()).toBe(0);
+		expect(s.get()).toBe(5);
+		expect(toSignal(new Promise<number>(() => {}), { initialValue: 0 }).get()).toBe(0);
 	});
 
 	it('throws on read when a promise rejects', async () => {
 		const s = toSignal(Promise.reject(new Error('boom')));
 		await flushEffects();
-		expect(() => s()).toThrow('boom');
+		expect(() => s.get()).toThrow('boom');
 	});
 
 	it('tracks the latest value of an observable-like source', () => {
@@ -36,21 +36,21 @@ describe('toSignal', () => {
 		const s = toSignal(source, { initialValue: 0 });
 		emit(1);
 		emit(2);
-		expect(s()).toBe(2);
+		expect(s.get()).toBe(2);
 	});
 
 	it('keeps a synchronously emitted value', () => {
 		const source: Subscribable<number> = {
 			subscribe(o) { o.next?.(7); return { unsubscribe() {} }; },
 		};
-		expect(toSignal(source)()).toBe(7);
+		expect(toSignal(source).get()).toBe(7);
 	});
 
 	it('throws on read after the observable errors', () => {
 		const { source, fail } = makeSource<number>();
 		const s = toSignal(source);
 		fail(new Error('bad'));
-		expect(() => s()).toThrow('bad');
+		expect(() => s.get()).toThrow('bad');
 	});
 
 	it('dispose() unsubscribes, ignores later values, and keeps the last one', () => {
@@ -60,14 +60,14 @@ describe('toSignal', () => {
 		s.dispose();
 		emit(2);
 		expect(isUnsubscribed()).toBe(true);
-		expect(s()).toBe(1);
+		expect(s.get()).toBe(1);
 	});
 
 	it('dispose() makes a pending promise result ignored', async () => {
 		const s = toSignal(Promise.resolve(1), { initialValue: 0 });
 		s.dispose();
 		await flushEffects();
-		expect(s()).toBe(0);
+		expect(s.get()).toBe(0);
 	});
 
 	it('throws when called inside an effect (reactive context)', () => {
@@ -83,7 +83,7 @@ describe('toSignal', () => {
 		const { source, emit } = makeSource<number>();
 		const s = toSignal(source, { initialValue: 0 });
 		const seen: number[] = [];
-		const stop = effect(() => { seen.push(s()); });
+		const stop = effect(() => { seen.push(s.get()); });
 		await flushEffects();
 		emit(1);
 		await flushEffects();
@@ -103,7 +103,7 @@ describe('toSignal', () => {
 		emit(1);
 		emit(1);
 		expect(calls).toEqual([[1, 1]]);
-		expect(s()).toBe(1);
+		expect(s.get()).toBe(1);
 	});
 
 	it('error releases the subscription', () => {
@@ -127,7 +127,7 @@ describe('toSignal', () => {
 		const { source, emit } = makeSource<number>();
 		const s = toSignal<number>({ '@@observable': () => source });
 		emit(3);
-		expect(s()).toBe(3);
+		expect(s.get()).toBe(3);
 	});
 
 	it('throws a TypeError for unsupported sources', () => {

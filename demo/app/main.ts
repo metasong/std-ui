@@ -31,7 +31,7 @@ export class DemoApp extends UIElement {
 		};
 		this.effect(() => {
 			const { router } = this.querySelector('std-router') as StdRouter;
-			if (router.status() === 'idle') requestAnimationFrame(scrollToHash);
+			if (router.status.get() === 'idle') requestAnimationFrame(scrollToHash);
 		});
 	}
 

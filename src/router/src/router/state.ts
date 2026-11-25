@@ -15,7 +15,7 @@ export class RouterState {
 
 	constructor(initial: RouteLocation) {
 		this.location = state(initial);
-		this.params = computed(() => this.matches().at(-1)?.params ?? {});
+		this.params = computed(() => this.matches.get().at(-1)?.params ?? {});
 	}
 
 	loading(): void {

@@ -34,7 +34,7 @@ export class DemoMathmlSection extends UIElement {
 	readonly report = stateTree('');
 
 	protected override template() {
-		const [a, b, c] = [this.a(), this.b(), this.c()];
+		const [a, b, c] = [this.a.get(), this.b.get(), this.c.get()];
 		const disc = b * b - 4 * a * c;
 
 		// x = (-b ± sqrt(b^2 - 4ac)) / 2a, built from fragments
@@ -114,7 +114,7 @@ export class DemoMathmlSection extends UIElement {
 					<small>&larr; a/b should render as a fraction, but renders nothing</small>
 				</div>
 			</div>
-			<pre style="white-space:pre-wrap;font-size:0.8rem">${this.report()}</pre>
+			<pre style="white-space:pre-wrap;font-size:0.8rem">${this.report.get()}</pre>
 		`;
 	}
 

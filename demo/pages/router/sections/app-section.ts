@@ -134,8 +134,8 @@ class Controls extends UIElement {
 
 	protected override template() {
 		return t`<p>
-			<label><input type="checkbox" .checked=${this.signedIn()} @change=${() => this.toggle('rt-signed-in', this.signedIn)} /> signed in (admin guard)</label>
-			<label><input type="checkbox" .checked=${this.fail()} @change=${() => this.toggle('rt-fail', this.fail)} /> admin loader throws</label>
+			<label><input type="checkbox" .checked=${this.signedIn.get()} @change=${() => this.toggle('rt-signed-in', this.signedIn)} /> signed in (admin guard)</label>
+			<label><input type="checkbox" .checked=${this.fail.get()} @change=${() => this.toggle('rt-fail', this.fail)} /> admin loader throws</label>
 		</p>`;
 	}
 }
@@ -145,8 +145,8 @@ class Status extends UIElement {
 	protected override template() {
 		const router = routerOf(this);
 		return t`<p class="rt-status">
-			path=${router.location().pathname} · status=${router.status()} · matches=${router.matches().length}
-			· params=${JSON.stringify(router.params())}
+			path=${router.location.get().pathname} · status=${router.status.get()} · matches=${router.matches.get().length}
+			· params=${JSON.stringify(router.params.get())}
 		</p>`;
 	}
 }
@@ -197,7 +197,7 @@ class Editor extends UIElement {
 	protected override template() {
 		return t`<div class="rt-panel">
 			<h2>Editor</h2>
-			<textarea rows="4" .value=${this.text()} @input=${(e: Event) => this.text.set((e.target as HTMLTextAreaElement).value)}></textarea>
+			<textarea rows="4" .value=${this.text.get()} @input=${(e: Event) => this.text.set((e.target as HTMLTextAreaElement).value)}></textarea>
 			<button @click=${() => (this.saved = this.text.peek())}>Save</button>
 			<p>Type, then navigate away or reload: you are asked first.</p>
 		</div>`;

@@ -1,4 +1,4 @@
-import type { State } from '@std-ui/core';
+import { isState, type State } from '@std-ui/core';
 import { toSignal, type ToSignal, type ToSignalOptions, type ToSignalSource } from '../to-signal/index.js';
 import { toStateLeaf, type StateLeaf } from './leaf.js';
 
@@ -30,13 +30,8 @@ export function toStateTree<T, U>(
 	options: ToSignalOptions<T, U> = {},
 ): StateLeaf<T> | ToStateTree<T | U | undefined> {
 	// A writable signal is upgraded in place (shared, still writable); `options` don't apply.
-	if (isSignalState<T>(source)) return toStateLeaf(source);
+	if (isState(source)) return toStateLeaf(source as State<T>);
 	return fromSource(source as ToSignalSource<T>, options);
-}
-
-function isSignalState<T>(value: unknown): value is State<T> {
-	const v = value as { peek?: unknown; set?: unknown } | null;
-	return typeof value === 'function' && typeof v?.peek === 'function' && typeof v?.set === 'function';
 }
 
 function fromSource<T, U>(

@@ -99,7 +99,7 @@ describe('@queryAsync()', () => {
 			readonly show = state(false);
 			@queryAsync('.lazy') lazy!: Promise<HTMLElement | null>;
 			protected override template() {
-				return this.show() ? t`<em class="lazy">here</em>` : t``;
+				return this.show.get() ? t`<em class="lazy">here</em>` : t``;
 			}
 		}
 
@@ -123,7 +123,7 @@ describe('cached queries never keep a miss', () => {
 			@query('.late', true) late!: HTMLElement | null;
 			get lateFn() { return queryElement(this, '.late', true); }
 			protected override template() {
-				return t`${this.show() ? t`<p class="late">x</p>` : ''}`;
+				return t`${this.show.get() ? t`<p class="late">x</p>` : ''}`;
 			}
 		}
 
@@ -155,7 +155,7 @@ describe('queryElement() & co. (decorator-free)', () => {
 			get lazy() { return queryElementAsync(this, '.lazy'); }
 			get cached() { return queryElement(this, 'span', true); }
 			protected override template() {
-				return t`<span>hi</span><ul><li>a</li><li>b</li></ul>${this.show() ? t`<p class="lazy">here</p>` : ''}`;
+				return t`<span>hi</span><ul><li>a</li><li>b</li></ul>${this.show.get() ? t`<p class="lazy">here</p>` : ''}`;
 			}
 		}
 

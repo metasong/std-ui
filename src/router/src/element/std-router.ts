@@ -28,7 +28,7 @@ export class StdRouter extends UIElement {
 	 * Reactive: reading it inside an effect re-runs when `router` is assigned later.
 	 */
 	get router(): Router {
-		let router = this.#current();
+		let router = this.#current.get();
 		if (!router) {
 			router = createRouter({
 				routes: this.routes,
@@ -55,7 +55,7 @@ export class StdRouter extends UIElement {
 	protected override connect(): void {
 		// A template binding sets `base` after connect, so forward later values to the router instead of reading once.
 		this.effect(() => {
-			const base = this.base();
+			const base = this.base.get();
 			if (this.#defaultRouter) this.#defaultRouter.base = base;
 		});
 		void this.router; // exist before descendants connect, so <std-route>s can register synchronously

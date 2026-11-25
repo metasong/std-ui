@@ -55,7 +55,7 @@ export function toSignal<T, U>(
 	});
 
 	const read = computed<T | U | undefined>(() => {
-		const current = cell();
+		const current = cell.get();
 		if (current.kind === Kind.Error) throw current.error;
 		return current.value;
 	});

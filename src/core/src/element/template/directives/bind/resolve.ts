@@ -8,14 +8,15 @@ import {
 	readProperty,
 	writeProperty,
 } from './defaults.js';
-import type { BindAccessor, BindDepth, BindOptions, BindSource, Binding, WritableSignal } from './types.js';
+import type { BindAccessor, BindDepth, BindOptions, BindSource, Binding } from './types.js';
 import { DEV } from '../../../../dev/flag.js';
-import { isSettable, readSignal } from '../../../../util.js';
+import { isWritableState } from '../../../../reactive/signal/state.js';
+import { readSignal } from '../../../../util.js';
 import { usageError } from '../../../../util.js';
 
-export const isWritableSignal = isSettable as (value: unknown) => value is WritableSignal;
 
-function isAccessor(value: unknown): value is BindSource {
+/** `{ get, set }`: a plain accessor, but also any signal (which has both). */
+export function isAccessor(value: unknown): value is BindSource {
 	const source = value as Partial<BindSource> | null | undefined;
 	return typeof source?.get === 'function' && typeof source?.set === 'function';
 }
@@ -28,9 +29,9 @@ export function resolveBinding(args: readonly unknown[], element: Element, prope
 	let model: BindAccessor;
 	let options: BindOptions;
 
-	if (isWritableSignal(first)) {
+	if (isWritableState(first)) {
 		options = (second as BindOptions | undefined) ?? {};
-		model = { get: () => readSignal(first, options.depth), set: v => (first as WritableSignal<unknown>).set(v as never) };
+		model = { get: () => readSignal(first, options.depth), set: v => first.set(v as never) };
 	} else if (isAccessor(first)) {
 		const { get, set, ...rest } = first;
 		model = { get, set };

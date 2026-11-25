@@ -8,7 +8,7 @@ describe('ref directive', () => {
 		const input = createRef<HTMLInputElement>();
 		const host = document.createElement('div');
 		render(t`<input ${ref(input)} id="a">`, host);
-		expect(input()).toBe(host.querySelector('input'));
+		expect(input.get()).toBe(host.querySelector('input'));
 		expect(host.querySelector('input')!.id).toBe('a');
 		expect(host.querySelector('input')!.getAttributeNames().some(n => n.startsWith('@std-ui/core'))).toBe(false);
 	});
@@ -53,9 +53,9 @@ describe('ref directive', () => {
 		render(t`<div ${ref(cb)}></div>`, host);
 		render(t`<div ${ref(a)}></div>`, host);
 		expect(cb).toHaveBeenLastCalledWith(undefined);
-		expect(a()).toBe(host.firstElementChild);
+		expect(a.get()).toBe(host.firstElementChild);
 		render(t`<div ${ref(cb)}></div>`, host);
-		expect(a()).toBeUndefined();
+		expect(a.get()).toBeUndefined();
 		expect(cb).toHaveBeenLastCalledWith(host.firstElementChild);
 	});
 
@@ -65,8 +65,8 @@ describe('ref directive', () => {
 		const host = document.createElement('div');
 		render(t`<div ${ref(a)}></div>`, host);
 		render(t`<div ${ref(b)}></div>`, host);
-		expect(a()).toBeUndefined();
-		expect(b()).toBe(host.firstElementChild);
+		expect(a.get()).toBeUndefined();
+		expect(b.get()).toBe(host.firstElementChild);
 	});
 
 	it('supports several element slots plus attributes on one element', () => {
@@ -74,8 +74,8 @@ describe('ref directive', () => {
 		const b = createRef();
 		const host = document.createElement('div');
 		render(t`<div class=${'x'} ${ref(a)} ${ref(b)}></div>`, host);
-		expect(a()).toBe(host.firstElementChild);
-		expect(b()).toBe(host.firstElementChild);
+		expect(a.get()).toBe(host.firstElementChild);
+		expect(b.get()).toBe(host.firstElementChild);
 		expect(host.firstElementChild!.className).toBe('x');
 	});
 

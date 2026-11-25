@@ -15,7 +15,7 @@ export class DemoBindSignalKnob extends UIElement {
 	protected override template() {
 		return t`
 			<button type="button" @click=${() => this.#bump(-1)}>−</button>
-			<span class="demo-bind-knob__readout">level ${this.level()}</span>
+			<span class="demo-bind-knob__readout">level ${this.level.get()}</span>
 			<button type="button" @click=${() => this.#bump(1)}>+</button>
 		`;
 	}

@@ -37,7 +37,7 @@ describe('stateArray', () => {
 		const list = stateArray([1, 2], state);
 		let lenRuns = 0;
 		effect(() => {
-			list.length();
+			list.length.get();
 			lenRuns++;
 		});
 		await flush();
@@ -50,14 +50,14 @@ describe('stateArray', () => {
 		list.push(3);
 		await flush();
 		expect(lenRuns).toBe(2);
-		expect(list.length()).toBe(3);
+		expect(list.length.get()).toBe(3);
 	});
 
 	it('at(i) effect does not re-run when a sibling item changes', async () => {
 		const list = stateArray([1, 2], state);
 		let slot0Runs = 0;
 		effect(() => {
-			list.at(0)!();
+			list.at(0)!.get();
 			slot0Runs++;
 		});
 		await flush();
@@ -97,11 +97,11 @@ describe('stateArray', () => {
 
 	it('() returns plain values and tracks only set() replacement', async () => {
 		const list = stateArray([1, 2], state);
-		expect(list()).toEqual([1, 2]);
+		expect(list.get()).toEqual([1, 2]);
 		expect(list.shallow()).toBe(list.deep());
 		let runs = 0;
 		effect(() => {
-			list();
+			list.get();
 			runs++;
 		});
 		await flush();
@@ -133,8 +133,8 @@ describe('stateArray', () => {
 
 	it('negative at() indexes from the end', () => {
 		const list = stateArray([1, 2, 3], state);
-		expect(list.at(-1)!()).toBe(3);
-		expect(list.at(-2)!()).toBe(2);
+		expect(list.at(-1)!.get()).toBe(3);
+		expect(list.at(-2)!.get()).toBe(2);
 	});
 
 	it('remove returns false for out-of-range index', () => {
@@ -165,12 +165,12 @@ describe('stateArray via state', () => {
 		const tree = stateTree({ count: 0, tags: ['a'] });
 		tree.set({ tags: ['x', 'y'] });
 		expect(tree.tags.deep()).toEqual(['x', 'y']);
-		expect(tree.count()).toBe(0);
+		expect(tree.count.get()).toBe(0);
 	});
 
 	it('object elements are state branches', () => {
 		const todos = stateTree([{ text: 'a', done: false }]);
-		expect(todos.at(0)!.text()).toBe('a');
+		expect(todos.at(0)!.text.get()).toBe('a');
 		todos.at(0)!.done.set(true);
 		expect(todos.at(0)!.deep()).toEqual({ text: 'a', done: true });
 	});

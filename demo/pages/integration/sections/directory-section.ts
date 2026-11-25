@@ -32,18 +32,18 @@ export class DemoIntegrationDirectory extends UIElement {
 	#nextId = 5_000;
 
 	#visible(): Person[] {
-		const q = this.search().trim().toLowerCase();
-		const all = this.people();
+		const q = this.search.get().trim().toLowerCase();
+		const all = this.people.get();
 		return q ? all.filter(p => p.name.toLowerCase().includes(q)) : all;
 	}
 
 	#add(): void {
 		draft.formUi.touchAll();
-		if (!draft.check.valid()) {
+		if (!draft.check.valid.get()) {
 			this.querySelector<HTMLFormElement>('form')?.reportValidity();
 			return;
 		}
-		const person: Person = { id: this.#nextId++, name: draft.name(), age: Number(draft.age()) };
+		const person: Person = { id: this.#nextId++, name: draft.name.get(), age: Number(draft.age.get()) };
 		this.people.update(list => [person, ...list]);
 		draft.name.set('');
 		draft.formUi.untouchAll();
@@ -63,7 +63,7 @@ export class DemoIntegrationDirectory extends UIElement {
 					Search
 					<input type="search" placeholder="filter by name" .value=${bind(this.search)} />
 				</label>
-				<p class="demo-bind-mirror">Showing <code>${visible.length}</code> of <code>${this.people().length}</code></p>
+				<p class="demo-bind-mirror">Showing <code>${visible.length}</code> of <code>${this.people.get().length}</code></p>
 
 				<div class="demo-v-scroller demo-v-scroller-y">
 					<div>

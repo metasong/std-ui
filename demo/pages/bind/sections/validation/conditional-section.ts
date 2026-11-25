@@ -32,8 +32,8 @@ form.email.check.enabled.set(false); // off until "Notify me" is ticked
 // FEATURE 3: formUi.disabled. A node disabled in its form UI (or under a disabled parent) is not
 // validated, like a native disabled input. No extra wiring: `check` follows the flag.
 form.address.formUi.disabled.own.set(true);
-type Node = { check: { errors(): { message: string }[] } };
-const error = (node: Node) => node.check.errors()[0]?.message ?? '';
+type Node = { check: { errors: { get(): { message: string }[] } } };
+const error = (node: Node) => node.check.errors.get()[0]?.message ?? '';
 
 const toggle = (label: string, checked: boolean, onChange: (on: boolean) => void) =>
 	t`<label class="demo-bind-field"><input type="checkbox" .checked=${checked} @change=${(e: Event) => onChange((e.target as HTMLInputElement).checked)} /> ${label}</label>`;
@@ -58,17 +58,17 @@ export class DemoBindConditionalSection extends UIElement {
 
 				${card('when()', 'VAT rules apply only to companies. Switch the type.', t`
 				<div class="demo-actions">
-					<button type="button" class=${isCompany() ? '' : 'tonal'} @click=${() => isCompany.set(false)}>Personal</button>
-					<button type="button" class=${isCompany() ? 'tonal' : ''} @click=${() => isCompany.set(true)}>Company</button>
+					<button type="button" class=${isCompany.get() ? '' : 'tonal'} @click=${() => isCompany.set(false)}>Personal</button>
+					<button type="button" class=${isCompany.get() ? 'tonal' : ''} @click=${() => isCompany.set(true)}>Company</button>
 				</div>
 				<label class="demo-bind-field">
-					VAT number${isCompany() ? ' *' : ''}
+					VAT number${isCompany.get() ? ' *' : ''}
 					<input type="text" .value=${formBind(form.vat)} />
 				</label>
 				${fieldError(form.vat)}`)}
 
 				${card('check.enabled', 'Email is checked only while this is on.', t`
-				${toggle('Notify me by email', form.email.check.enabled(), on => form.email.check.enabled.set(on))}
+				${toggle('Notify me by email', form.email.check.enabled.get(), on => form.email.check.enabled.set(on))}
 				<label class="demo-bind-field">
 					Email
 					<input type="text" .value=${formBind(form.email)} />
@@ -76,7 +76,7 @@ export class DemoBindConditionalSection extends UIElement {
 				${fieldError(form.email)}`)}
 
 				${card('formUi.disabled', 'A disabled input is not validated.', t`
-				${toggle('Ship to another address', !form.address.formUi.disabled.own(), on => form.address.formUi.disabled.own.set(!on))}
+				${toggle('Ship to another address', !form.address.formUi.disabled.own.get(), on => form.address.formUi.disabled.own.set(!on))}
 				<label class="demo-bind-field">
 					Address
 					<input type="text" .value=${formBind(form.address)} />
@@ -84,7 +84,7 @@ export class DemoBindConditionalSection extends UIElement {
 				${fieldError(form.address)}`)}
 
 				<div class="demo-actions">
-					<button type="button" ?disabled=${!form.check.valid()}>Submit</button>
+					<button type="button" ?disabled=${!form.check.valid.get()}>Submit</button>
 				</div>
 			</section>
 		`;

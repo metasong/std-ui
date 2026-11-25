@@ -68,7 +68,7 @@ describe('UIFeat', () => {
 		class EffectFeat extends UIFeat {
 			protected override connected() {
 				this.effect(() => {
-					seen.push(source());
+					seen.push(source.get());
 				});
 			}
 		}
@@ -100,7 +100,7 @@ describe('UIFeat', () => {
 		class Host extends UIElement {
 			readonly counter = new CounterFeat(this);
 			protected override template(): void {
-				rendered.push(this.counter.count());
+				rendered.push(this.counter.count.get());
 			}
 		}
 

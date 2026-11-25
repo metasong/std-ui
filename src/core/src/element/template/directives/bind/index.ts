@@ -5,5 +5,5 @@ export type {
 	BindPlugin,
 	BindPluginContext,
 	BindSource,
-	WritableSignal,
+	WritableState,
 } from './types.js';

@@ -22,7 +22,7 @@ describe('Router', () => {
 			await router.start();
 			await router.navigate('/admin');
 			await tick();
-			expect(router.location().pathname).toBe('/login');
+			expect(router.location.get().pathname).toBe('/login');
 			expect(new URL(navigation.currentEntry!.url!).pathname).toBe('/login');
 		});
 
@@ -31,7 +31,7 @@ describe('Router', () => {
 			await router.start();
 			await router.navigate('/secret');
 			await tick();
-			expect(router.location().pathname).toBe('/');
+			expect(router.location.get().pathname).toBe('/');
 			expect(new URL(navigation.currentEntry!.url!).pathname).toBe('/');
 		});
 
@@ -46,15 +46,15 @@ describe('Router', () => {
 			});
 			await router.navigate('/b');
 			await tick();
-			expect(router.location().pathname).toBe('/a');
+			expect(router.location.get().pathname).toBe('/a');
 			allow = true;
 			await router.navigate('/b');
-			expect(router.location().pathname).toBe('/b');
+			expect(router.location.get().pathname).toBe('/b');
 			expect(calls).toEqual(['/a>/b', '/a>/b']);
 			off();
 			allow = false;
 			await router.navigate('/a');
-			expect(router.location().pathname).toBe('/a');
+			expect(router.location.get().pathname).toBe('/a');
 		});
 
 		it('a blocked back() keeps the current entry', async () => {
@@ -64,7 +64,7 @@ describe('Router', () => {
 			router.beforeLeave(() => false);
 			await router.back();
 			await tick();
-			expect(router.location().pathname).toBe('/b');
+			expect(router.location.get().pathname).toBe('/b');
 			expect(new URL(navigation.currentEntry!.url!).pathname).toBe('/b');
 		});
 
@@ -76,28 +76,28 @@ describe('Router', () => {
 			await router.navigate('/admin');
 			await tick();
 			expect(n).toBe(1);
-			expect(router.location().pathname).toBe('/login');
+			expect(router.location.get().pathname).toBe('/login');
 		});
 	});
 
 	it('resolves the current URL on start', async () => {
 		const { router } = setup([{ path: 'a' }], '/a');
 		await router.start();
-		expect(router.matches()).toHaveLength(1);
-		expect(router.location().pathname).toBe('/a');
+		expect(router.matches.get()).toHaveLength(1);
+		expect(router.location.get().pathname).toBe('/a');
 	});
 
 	it('navigate() commits matches and params', async () => {
 		const { router } = setup([{ path: 'users/:id' }]);
 		await router.start();
 		await router.navigate('/users/5');
-		expect(router.params()).toEqual({ id: '5' });
+		expect(router.params.get()).toEqual({ id: '5' });
 	});
 
 	it('strips and re-adds base', async () => {
 		const { router, navigation } = setup([{ path: 'a' }], '/a', '/app');
 		await router.start();
-		expect(router.location().pathname).toBe('/a');
+		expect(router.location.get().pathname).toBe('/a');
 		await router.navigate('/a?x=1');
 		expect(navigation.currentEntry!.url).toBe('http://router.local/app/a?x=1');
 	});
@@ -107,7 +107,7 @@ describe('Router', () => {
 		await router.start();
 		await router.navigate('/old/3');
 		await new Promise((r) => setTimeout(r, 0));
-		expect(router.location().pathname).toBe('/new/3');
+		expect(router.location.get().pathname).toBe('/new/3');
 	});
 
 	it('guard returning a string redirects', async () => {
@@ -115,7 +115,7 @@ describe('Router', () => {
 		await router.start();
 		await router.navigate('/admin');
 		await new Promise((r) => setTimeout(r, 0));
-		expect(router.location().pathname).toBe('/login');
+		expect(router.location.get().pathname).toBe('/login');
 	});
 
 	it('guard returning false blocks and reverts the URL', async () => {
@@ -123,7 +123,7 @@ describe('Router', () => {
 		await router.start();
 		await router.navigate('/secret');
 		await new Promise((r) => setTimeout(r, 0));
-		expect(router.location().pathname).toBe('/');
+		expect(router.location.get().pathname).toBe('/');
 		expect(new URL(navigation.currentEntry!.url!).pathname).toBe('/');
 	});
 
@@ -133,10 +133,10 @@ describe('Router', () => {
 		const { router } = setup([ok, bad]);
 		await router.start();
 		await router.navigate('/ok');
-		expect(router.data().get(ok)).toBe(42);
+		expect(router.data.get().get(ok)).toBe(42);
 		await router.navigate('/bad');
-		expect(router.status()).toBe('error');
-		expect((router.error() as Error).message).toBe('boom');
+		expect(router.status.get()).toBe('error');
+		expect((router.error.get() as Error).message).toBe('boom');
 	});
 
 	it('a superseded navigation never commits', async () => {
@@ -147,7 +147,7 @@ describe('Router', () => {
 		await router.navigate('/fast');
 		await first;
 		await new Promise((r) => setTimeout(r, 40));
-		expect(router.location().pathname).toBe('/fast');
+		expect(router.location.get().pathname).toBe('/fast');
 	});
 
 	it('back() re-resolves the previous entry', async () => {
@@ -155,7 +155,7 @@ describe('Router', () => {
 		await router.start();
 		await router.navigate('/b');
 		await router.back();
-		expect(router.location().pathname).toBe('/a');
+		expect(router.location.get().pathname).toBe('/a');
 	});
 
 	it('addRoute() registers and unregisters', async () => {
@@ -163,10 +163,10 @@ describe('Router', () => {
 		await router.start();
 		const remove = router.addRoute({ path: 'late' });
 		await router.navigate('/late');
-		expect(router.matches()).toHaveLength(1);
+		expect(router.matches.get()).toHaveLength(1);
 		remove();
 		await new Promise((r) => setTimeout(r, 0));
-		expect(router.matches()).toHaveLength(0);
+		expect(router.matches.get()).toHaveLength(0);
 	});
 
 	describe('failures', () => {
@@ -177,10 +177,10 @@ describe('Router', () => {
 			const { router } = setup([bad, { path: '' }]);
 			await router.start();
 			await router.navigate('/bad');
-			expect(router.status()).toBe('error');
-			expect((router.error() as Error).message).toBe('nope');
-			expect(router.location().pathname).toBe('/bad');
-			expect(router.matches()).toHaveLength(1);
+			expect(router.status.get()).toBe('error');
+			expect((router.error.get() as Error).message).toBe('nope');
+			expect(router.location.get().pathname).toBe('/bad');
+			expect(router.matches.get()).toHaveLength(1);
 		});
 
 		it('a throwing beforeLeave hook commits an error state', async () => {
@@ -188,21 +188,21 @@ describe('Router', () => {
 			await router.start();
 			router.beforeLeave(() => { throw new Error('hook'); });
 			await router.navigate('/a');
-			expect(router.status()).toBe('error');
+			expect(router.status.get()).toBe('error');
 		});
 
 		it('a redirect loop ends in an error state, not an unhandled rejection', async () => {
 			const { router } = setup([{ path: 'a', redirect: '/b' }, { path: 'b', redirect: '/a' }], '/');
 			await router.start();
 			await router.navigate('/a');
-			expect(router.status()).toBe('error');
-			expect((router.error() as Error).message).toMatch(/Too many redirects/);
+			expect(router.status.get()).toBe('error');
+			expect((router.error.get() as Error).message).toMatch(/Too many redirects/);
 		});
 
 		it('start() on a looping URL resolves with an error state', async () => {
 			const { router } = setup([{ path: 'a', redirect: '/b' }, { path: 'b', redirect: '/a' }], '/a');
 			await router.start();
-			expect(router.status()).toBe('error');
+			expect(router.status.get()).toBe('error');
 		});
 
 		it('a navigation superseded by a blocked one does not leave status stuck on loading', async () => {
@@ -215,7 +215,7 @@ describe('Router', () => {
 			await router.navigate('/blocked');
 			await first;
 			await new Promise((r) => setTimeout(r, 40));
-			expect(router.status()).toBe('idle');
+			expect(router.status.get()).toBe('idle');
 		});
 
 		it('warns once per path when nothing matches', async () => {

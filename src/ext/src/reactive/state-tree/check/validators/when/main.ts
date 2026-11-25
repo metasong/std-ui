@@ -1,10 +1,10 @@
 import type { Validator } from '../../main.js';
 
 /** Anything read as a tracked boolean: a `State<boolean>`, a `Computed<boolean>` or `() => boolean`. */
-export type Enabled = () => boolean;
+export type Enabled = { get(): boolean } | (() => boolean);
 
 /**
- * Makes validators apply only while `enabled()` is true. Disabled: no errors, not pending, and the
+ * Makes validators apply only while `enabled` is true. Disabled: no errors, not pending, and the
  * wrapped validator is not called at all (so an async one starts no request). `enabled` is read
  * inside the node's computeds, so flipping it re-evaluates `errors` / `valid` / `pending`.
  *
@@ -22,7 +22,7 @@ export function when<T>(
 		? (validators as readonly Validator<T>[])
 		: [validators as Validator<T>];
 	if (!enabled && list.length === 1) return list[0];
-	const on: Enabled = enabled ?? (() => true);
+	const on: () => boolean = !enabled ? () => true : typeof enabled === 'function' ? enabled : () => enabled.get();
 
 	const run: Validator<T> = (value) => {
 		if (!on()) return null;

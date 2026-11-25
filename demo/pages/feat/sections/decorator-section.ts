@@ -13,7 +13,7 @@ export class DemoFeatCounter extends UIElement {
 	readonly count = stateTree(0);
 
 	protected override template() {
-		return t`<div tabindex="0">count: <b>${this.count()}</b> <small>focus, then ArrowUp / ArrowDown</small></div>`;
+		return t`<div tabindex="0">count: <b>${this.count.get()}</b> <small>focus, then ArrowUp / ArrowDown</small></div>`;
 	}
 }
 

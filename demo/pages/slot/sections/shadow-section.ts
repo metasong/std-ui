@@ -26,7 +26,7 @@ export class DemoShadowCard extends UIElement {
 				<button type="button" @click=${() => this.slotted.set(
 					`title: ${this.titleChildren.length}, default elements: ${this.defaultChildren.length}`,
 				)}>count slotted</button>
-				<small>${this.slotted()}</small>
+				<small>${this.slotted.get()}</small>
 			</article>
 		`;
 	}

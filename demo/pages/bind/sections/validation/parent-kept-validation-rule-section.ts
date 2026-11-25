@@ -24,7 +24,7 @@ form.profile.check.fields({
 });
 let nextLang = 1;
 
-type Node = { check: { errors(): { message: string }[] } };
+type Node = { check: { errors: { get(): { message: string }[] } } };
 /** One sub-demo: a titled box, so each feature reads as its own group. */
 const card = (title: string, hint: string, body: unknown) => t`
 	<div style="border: 1px solid var(--outline, #cfcfcf); border-radius: 8px; padding: 12px 16px; margin: 12px 0">
@@ -34,12 +34,12 @@ const card = (title: string, hint: string, body: unknown) => t`
 	</div>
 `;
 const fieldError = (node: Node) =>
-	t`<small style="color: var(--danger, #c62828); min-height: 1.2em; display: block">${node.check.errors()[0]?.message ?? ''}</small>`;
+	t`<small style="color: var(--danger, #c62828); min-height: 1.2em; display: block">${node.check.errors.get()[0]?.message ?? ''}</small>`;
 
 @tag('demo-bind-parent-kept-validation-rule-section')
 export class DemoBindParentKeptValidationRuleSection extends UIElement {
 	protected override template() {
-		const all = form.tags.check.valid() && form.labels.check.valid() && form.profile.check.valid();
+		const all = form.tags.check.valid.get() && form.labels.check.valid.get() && form.profile.check.valid.get();
 		return t`
 			<section class="demo-bind-block" id="parent-kept-validation-rule">
 				<h2>Rules kept on the parent</h2>

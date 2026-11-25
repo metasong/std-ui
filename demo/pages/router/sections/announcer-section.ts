@@ -39,7 +39,7 @@ export class DemoRouterAnnouncerSection extends UIElement {
 					</p>
 					<std-outlet></std-outlet>
 				</std-router>
-				<p><strong>Screen reader hears:</strong> <output>${this.heard()}</output></p>
+				<p><strong>Screen reader hears:</strong> <output>${this.heard.get()}</output></p>
 			</section>
 		`;
 	}

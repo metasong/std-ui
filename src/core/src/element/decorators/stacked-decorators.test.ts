@@ -41,9 +41,9 @@ describe('defineElement() - the decorator-free path', () => {
 		expect(el.hasAttribute('internal-only')).toBe(false);
 
 		el.setAttribute('count', '9');
-		expect(el.count()).toBe(9);
+		expect(el.count.get()).toBe(9);
 		el.setAttribute('label', 'yo');
-		expect(el.label()).toBe('yo');
+		expect(el.label.get()).toBe('yo');
 
 		el.count.set(2);
 		await flush();
@@ -63,7 +63,7 @@ describe('defineElement() - the decorator-free path', () => {
 		expect(el.hasAttribute('active')).toBe(false); // Boolean converter
 		expect(el.getAttribute('config')).toBe('{"a":1}'); // Object converter
 		el.setAttribute('active', '');
-		expect(el.active()).toBe(true);
+		expect(el.active.get()).toBe(true);
 		el.remove();
 	});
 
@@ -78,7 +78,7 @@ describe('defineElement() - the decorator-free path', () => {
 		defineElement('define-el-upgrade', Foo, { attributes: { count: { type: Number } } });
 
 		const el = host.firstElementChild as Foo;
-		expect(el.count()).toBe(7);
+		expect(el.count.get()).toBe(7);
 		host.remove();
 	});
 
@@ -105,7 +105,7 @@ describe('defineElement() - the decorator-free path', () => {
 		const el = document.createElement('define-el-child') as Child;
 		el.setAttribute('count', '4');
 		el.setAttribute('label', 'z');
-		expect(el.count()).toBe(4);
-		expect(el.label()).toBe('z');
+		expect(el.count.get()).toBe(4);
+		expect(el.label.get()).toBe('z');
 	});
 });

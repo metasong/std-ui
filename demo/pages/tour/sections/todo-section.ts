@@ -56,8 +56,8 @@ export class DemoTodoSection extends UIElement {
 	]);
 
 	protected override template() {
-		const todos = this.todos();
-		const remaining = computed(() => this.todos().filter(t => !t.done).length)();
+		const todos = this.todos.get();
+		const remaining = computed(() => this.todos.get().filter(t => !t.done).length).get();
 
 		return t`
 			<h2>Putting it together: a tiny todo list</h2>
@@ -80,11 +80,11 @@ export class DemoTodoSection extends UIElement {
 	}
 
 	#toggle(id: number): void {
-		this.todos.set(this.todos().map(t => (t.id === id ? { ...t, done: !t.done } : t)));
+		this.todos.set(this.todos.get().map(t => (t.id === id ? { ...t, done: !t.done } : t)));
 	}
 
 	#remove(id: number): void {
-		this.todos.set(this.todos().filter(t => t.id !== id));
+		this.todos.set(this.todos.get().filter(t => t.id !== id));
 	}
 
 	#onSubmit(e: Event): void {
@@ -93,7 +93,7 @@ export class DemoTodoSection extends UIElement {
 		const input = form.elements.namedItem('text') as HTMLInputElement;
 		const text = input.value.trim();
 		if (!text) return;
-		this.todos.set([...this.todos(), { id: nextId++, text, done: false }]);
+		this.todos.set([...this.todos.get(), { id: nextId++, text, done: false }]);
 		form.reset();
 	}
 }

@@ -14,11 +14,11 @@ export interface BindOptions {
 	/**
 	 * How deep model reads track changes on a signal-tree node (signal form only; ignored for
 	 * `{ get, set }`). Same option name and values as `state`'s `depth`:
-	 * - `'value'` → `node()`: only replacement of the node's value.
+	 * - `'value'` → `node.get()`: only replacement of the node's value.
 	 * - `'shallow'` → `node.shallow()`: + structural changes (key add/delete, push/splice/reorder).
 	 * - `'deep'` → `node.deep()`: + any value change below, recursively.
 	 * All three yield the same plain value. Plain signals without `shallow()` / `deep()` fall back to
-	 * `node()`. Default: `'deep'`.
+	 * `node.get()`. Default: `'deep'`.
 	 */
 	depth?: BindDepth;
 	/**
@@ -46,11 +46,7 @@ export interface BindOptions {
 /** `bind({ get, set, ...options })` — accessor and options in one object. */
 export type BindSource = BindAccessor & BindOptions;
 
-/** Anything callable to read with a `.set()` to write: `state()` or a `stateTree()` node. */
-export interface WritableSignal<T = unknown> {
-	(): T;
-	set(value: never): void;
-}
+export type { WritableState } from '../../../../reactive/signal/state.js';
 
 /** A fully resolved binding: the model side, the view side, and how to compare / convert. */
 export interface Binding {

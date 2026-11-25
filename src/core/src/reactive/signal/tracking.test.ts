@@ -1,84 +1,77 @@
 import { describe, expect, it, vi } from 'vitest';
 import { computed } from './computed.js';
 import { effect } from '../effect/main.js';
-import { flushEffects } from '../effect/test-helpers.js';
+import { inReactiveContext, untrack, Watcher } from './tracking.js';
 import { state } from './state.js';
-import { ReactiveNode, runTracked, untrack, Watcher } from './tracking.js';
 
 describe('untrack', () => {
 	it('reads a signal without tracking it, even inside a tracked run', () => {
 		const a = state(1);
-		const spy = vi.fn(() => untrack(() => a()));
-		const consumer = new ReactiveNode();
-		consumer.markDirty = vi.fn();
-		expect(runTracked(consumer, spy)).toBe(1);
+		const spy = vi.fn(() => untrack(() => a.get()) + 1);
+		const c = computed(spy);
+		expect(c.get()).toBe(2);
 
-		a.set(2); // no one should be subscribed - `markDirty` must not have been called
-		expect(consumer.markDirty).not.toHaveBeenCalled();
+		a.set(2); // `a` was not tracked - the computed stays cached
+		expect(c.get()).toBe(2);
+		expect(spy).toHaveBeenCalledTimes(1);
 	});
 });
 
-describe('observer hooks', () => {
-	it('fires onWatched for the first observer and onUnwatched when the last one leaves', () => {
-		const source = new ReactiveNode();
-		source.onWatched = vi.fn();
-		source.onUnwatched = vi.fn();
-		const w1 = new Watcher(() => {});
-		const w2 = new Watcher(() => {});
-
-		w1.watch(source);
-		w2.watch(source);
-		expect(source.onWatched).toHaveBeenCalledTimes(1);
-
-		w1.unwatch(source);
-		expect(source.onUnwatched).not.toHaveBeenCalled();
-		w2.unwatch(source);
-		expect(source.onUnwatched).toHaveBeenCalledTimes(1);
+describe('inReactiveContext', () => {
+	it('is true only while a computed body runs', () => {
+		let inside = false;
+		computed(() => (inside = inReactiveContext())).get();
+		expect(inside).toBe(true);
+		expect(inReactiveContext()).toBe(false);
 	});
 });
 
 describe('Watcher', () => {
-	it('fires notify once when a watched dependency changes, then goes inert', () => {
+	it('rejects anything that is not a state()/computed() accessor', () => {
+		expect(() => new Watcher(() => {}).watch((() => 1) as never)).toThrow();
+	});
+
+	it('fires notify once when a watched dependency changes, then goes inert until re-armed', () => {
 		const a = state(1);
 		const notify = vi.fn();
 		const watcher = new Watcher(notify);
-		// `signal`/`computed` don't expose their internal `Dependency` directly, so watch through
-		// a computed that tracks `a` and exposes its own dependency via a tracked read.
-		const double = computed(() => a() * 2);
-		double(); // warm it so reading it inside runTracked below tracks `double`'s own dep
-
-		runTracked(watcher, () => double());
+		const double = computed(() => a.get() * 2);
+		double.get();
+		watcher.watch(double);
 		expect(notify).not.toHaveBeenCalled();
 
 		a.set(2);
 		expect(notify).toHaveBeenCalledTimes(1);
 
-		// Inert after firing: further changes don't notify again until re-`watch()`ed.
 		a.set(3);
 		expect(notify).toHaveBeenCalledTimes(1);
+
+		double.get(); // re-read so it can go dirty again
+		watcher.watch(); // re-arm
+		a.set(4);
+		expect(notify).toHaveBeenCalledTimes(2);
 	});
 
-	it('getPending() reports a watched dependency marked dirty, without forcing a recompute', () => {
-		const dep = new ReactiveNode();
+	it('getPending() reports a watched computed that was notified', () => {
+		const a = state(1);
+		const double = computed(() => a.get() * 2);
+		double.get();
 		const watcher = new Watcher(() => {});
-		watcher.watch(dep);
+		watcher.watch(double);
 		expect(watcher.getPending()).toEqual([]);
 
-		dep.dirty = true;
-		expect(watcher.getPending()).toEqual([dep]);
+		a.set(2);
+		expect(watcher.getPending()).toEqual([double]);
 	});
 
-	it('unwatch() stops a dependency from notifying this watcher', () => {
-		const dep = new ReactiveNode();
+	it('unwatch() stops a signal from notifying this watcher', () => {
+		const a = state(1);
 		const notify = vi.fn();
 		const watcher = new Watcher(notify);
-		watcher.watch(dep);
-		watcher.unwatch(dep);
-
-		const a = state(1);
-		runTracked(watcher, () => a()); // re-arms watcher with `a`'s real dependency only
+		watcher.watch(a);
+		watcher.unwatch(a);
 		a.set(2);
-		expect(notify).toHaveBeenCalledTimes(1); // only from `a`, `dep` was already unwatched
+		expect(notify).not.toHaveBeenCalled();
 	});
 });
 
@@ -87,10 +80,10 @@ describe('equality cutoff (push-pull)', () => {
 
 	it('effect skips re-run when a computed recomputes to an equal value', async () => {
 		const a = state(1);
-		const parity = computed(() => a() % 2);
+		const parity = computed(() => a.get() % 2);
 		let runs = 0;
 		effect(() => {
-			parity();
+			parity.get();
 			runs++;
 		});
 		a.set(3);
@@ -103,21 +96,21 @@ describe('equality cutoff (push-pull)', () => {
 
 	it('computed skips recompute when its computed source is unchanged', () => {
 		const a = state(1);
-		const parity = computed(() => a() % 2);
-		const fn = vi.fn(() => parity() * 10);
+		const parity = computed(() => a.get() % 2);
+		const fn = vi.fn(() => parity.get() * 10);
 		const derived = computed(fn);
-		derived();
+		derived.get();
 		a.set(3);
-		expect(derived()).toBe(10);
+		expect(derived.get()).toBe(10);
 		expect(fn).toHaveBeenCalledTimes(1);
 	});
 
 	it('effect still re-runs after a false alarm when later changes happen', async () => {
 		const a = state(1);
-		const parity = computed(() => a() % 2);
+		const parity = computed(() => a.get() % 2);
 		let runs = 0;
 		effect(() => {
-			parity();
+			parity.get();
 			runs++;
 		});
 		a.set(3);

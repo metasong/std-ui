@@ -107,7 +107,7 @@
 		@tag('check-report')
 		class CheckReport extends UIElement {
 			template() {
-				const list = results();
+				const list = results.get();
 				const failed = list.filter((r) => !r.ok).length;
 				return t`
 					<p class="summary" style=${styleMap({ color: failed ? '#f85149' : '#3fb950' })}>
@@ -129,12 +129,12 @@
 			@attribute() label = state('Guest');
 			@attribute({ type: Boolean, reflect: true }) admin = state(false);
 			clicks = state(0);
-			title = computed(() => `${this.label()}${this.admin() ? ' (admin)' : ''}`);
+			title = computed(() => `${this.label.get()}${this.admin.get() ? ' (admin)' : ''}`);
 
 			template() {
 				return t`
 					<p class="metric">
-						<strong>${this.title()}</strong>: ${this.count()} (clicked ${this.clicks()}x)
+						<strong>${this.title.get()}</strong>: ${this.count.get()} (clicked ${this.clicks.get()}x)
 					</p>
 					<div class="actions">
 						<button type="button" class="primary" data-act="inc"
@@ -162,16 +162,16 @@
 			nextId = 1;
 
 			visible = computed(() => {
-				const f = this.filter();
-				return this.items().filter((i) => f === 'all' || (f === 'done') === i.done());
+				const f = this.filter.get();
+				return this.items.get().filter((i) => f === 'all' || (f === 'done') === i.done.get());
 			});
-			remaining = computed(() => this.items().filter((i) => !i.done()).length);
+			remaining = computed(() => this.items.get().filter((i) => !i.done.get()).length);
 
 			@query('.count') countEl;
 			@queryAll('ul.todos li') rows;
 
 			add = () => {
-				const text = this.draft().trim();
+				const text = this.draft.get().trim();
 				if (!text) return;
 				this.items.update((l) => [...l, { id: this.nextId++, text, done: state(false) }]);
 				this.draft.set('');
@@ -183,31 +183,31 @@
 					<div @click=${() => { this.outerClicks++; }}>
 						<form class="row" @submit=${(e) => { e.preventDefault(); this.submits++; this.add(); }}>
 							<input ${ref(this.inputRef)} type="text" placeholder="What needs doing?" .value=${bind(this.draft)} />
-							<button type="submit" class="primary" ?disabled=${!this.draft().trim()}>Add</button>
+							<button type="submit" class="primary" ?disabled=${!this.draft.get().trim()}>Add</button>
 							<button type="button" data-act="once" @click=${withEventOptions(() => { this.onceClicks++; }, { once: true })}>click (once)</button>
 						</form>
 
 						<div class="row">
 							${['all', 'active', 'done'].map((f) => t`
 								<button type="button" data-filter=${f}
-									class=${classMap({ primary: this.filter() === f })}
+									class=${classMap({ primary: this.filter.get() === f })}
 									@click=${() => this.filter.set(f)}>${f}</button>
 							`)}
 						</div>
 
 						<ul class="todos">
-							${mapByKey(this.visible(), (i) => i.id, (i) => t`
+							${mapByKey(this.visible.get(), (i) => i.id, (i) => t`
 								<li data-id=${i.id}
-									class=${classMap({ done: i.done() })}
-									style=${styleMap({ opacity: i.done() ? '0.5' : null, color: i.done() ? 'gray' : null })}>
+									class=${classMap({ done: i.done.get() })}
+									style=${styleMap({ opacity: i.done.get() ? '0.5' : null, color: i.done.get() ? 'gray' : null })}>
 									<label><input type="checkbox" .checked=${bind(i.done)} /> ${i.text}</label>
 									<button type="button" data-act="remove" @click=${() => this.remove(i.id)}>✕</button>
 								</li>
 							`)}
 						</ul>
 
-						<p class="hint" ?hidden=${this.items().length > 0}>Nothing yet — add one above.</p>
-						${this.items().length ? t`<p class="count">${this.remaining()} left</p>` : null}
+						<p class="hint" ?hidden=${this.items.get().length > 0}>Nothing yet — add one above.</p>
+						${this.items.get().length ? t`<p class="count">${this.remaining.get()} left</p>` : null}
 						${false}${undefined}
 					</div>
 				`;
@@ -227,7 +227,7 @@
 			@attribute() heading = state('Shadow card');
 
 			template() {
-				return t`<div class="title">${this.heading()}</div><slot></slot>`;
+				return t`<div class="title">${this.heading.get()}</div><slot></slot>`;
 			}
 		}
 
@@ -257,7 +257,7 @@
 				});
 			}
 			template() {
-				return t`<p class="metric">ticks: <strong>${this.timer.ticks()}</strong> (feature active: ${TimerFeat.active > 0 ? 'yes' : 'no'})</p>`;
+				return t`<p class="metric">ticks: <strong>${this.timer.ticks.get()}</strong> (feature active: ${TimerFeat.active > 0 ? 'yes' : 'no'})</p>`;
 			}
 		}
 
@@ -279,25 +279,25 @@
 			// -- signals ------------------------------------------------------------------------
 			await check('state / computed / effect: effect re-runs once per batched write', async () => {
 				const a = state(1);
-				const double = computed(() => a() * 2);
+				const double = computed(() => a.get() * 2);
 				const seen = [];
-				const stop = effect(() => { seen.push(double()); });
+				const stop = effect(() => { seen.push(double.get()); });
 				a.set(2); a.set(3); // batched in a microtask
 				await tick();
 				stop();
 				a.set(4); await tick();
-				eq(double(), 8, 'computed');
+				eq(double.get(), 8, 'computed');
 				return eq(JSON.stringify(seen), '[2,6]', 'effect values');
 			});
 
 			// -- @attribute -----------------------------------------------------------------------
 			await check('@attribute: Number/String/Boolean parsed from markup', async () => {
-				eq(badge.count(), 3, 'count'); eq(badge.label(), 'Ada', 'label');
-				return eq(badge.admin(), true, 'admin');
+				eq(badge.count.get(), 3, 'count'); eq(badge.label.get(), 'Ada', 'label');
+				return eq(badge.admin.get(), true, 'admin');
 			});
 			await check('@attribute: attribute change updates store and DOM', async () => {
 				badge.setAttribute('count', '10'); await flush(badge);
-				eq(badge.count(), 10, 'store');
+				eq(badge.count.get(), 10, 'store');
 				return eq(badge.querySelector('.metric').textContent.includes('10'), true, 'rendered');
 			});
 			await check('@attribute reflect: store write mirrors back to attribute', async () => {
@@ -309,9 +309,9 @@
 				return eq(badge.hasAttribute('admin'), false, 'admin attr');
 			});
 			await check('events: @click increments and re-renders', async () => {
-				const before = badge.clicks();
+				const before = badge.clicks.get();
 				badge.querySelector('[data-act=inc]').click(); await flush(badge);
-				eq(badge.clicks(), before + 1, 'clicks');
+				eq(badge.clicks.get(), before + 1, 'clicks');
 				return eq(badge.querySelector('.metric').textContent.includes(`clicked ${before + 1}x`), true, 'text');
 			});
 			await check('computed in template follows attribute (label -> Grace)', async () => {
@@ -333,7 +333,7 @@
 			await check('bind (view -> model): typing updates the signal', async () => {
 				input().value = 'x';
 				input().dispatchEvent(new Event('input', { bubbles: true }));
-				eq(todo.draft(), 'x', 'draft');
+				eq(todo.draft.get(), 'x', 'draft');
 				await flush(todo);
 				return eq(addBtn().disabled, false, 'enabled after typing');
 			});
@@ -342,7 +342,7 @@
 				eq(input().value, 'from model', 'value');
 				todo.draft.set(''); await flush(todo);
 			});
-			await check('ref: createRef() resolves to the element', () => eq(todo.inputRef(), input(), 'ref'));
+			await check('ref: createRef() resolves to the element', () => eq(todo.inputRef.get(), input(), 'ref'));
 			await check('withEventOptions({ once }): handler fires a single time', async () => {
 				const b = todo.querySelector('[data-act=once]');
 				b.click(); b.click(); b.click();
@@ -357,7 +357,7 @@
 				const submitsBefore = todo.submits;
 				await addTodo('write tests'); await addTodo('ship it'); await addTodo('celebrate');
 				eq(todo.submits, submitsBefore + 3, 'submits');
-				return eq(todo.items().length, 3, 'items');
+				return eq(todo.items.get().length, 3, 'items');
 			});
 			await check('@query / @queryAll resolve into render root', async () => {
 				eq(todo.rows.length, 3, 'rows');
@@ -395,7 +395,7 @@
 				return eq(li.style.opacity, '', 'opacity cleared');
 			});
 			await check('remove: item leaves the DOM; empty hint toggles ?hidden', async () => {
-				while (todo.items().length) { todo.querySelector('[data-act=remove]').click(); await flush(todo); }
+				while (todo.items.get().length) { todo.querySelector('[data-act=remove]').click(); await flush(todo); }
 				eq(todo.rows.length, 0, 'rows');
 				eq(todo.querySelector('.hint').hidden, false, 'hint visible');
 				return eq(todo.countEl, null, 'conditional child removed');
@@ -416,10 +416,10 @@
 
 			// -- UIFeat + hooks ---------------------------------------------------------------------
 			await check('UIFeat: connected() ran, ticks advance and re-render', async () => {
-				eq(TimerFeat.active, 1, 'active'); const t0 = box.timer.ticks();
+				eq(TimerFeat.active, 1, 'active'); const t0 = box.timer.ticks.get();
 				await new Promise((r) => setTimeout(r, 180)); await flush(box);
-				eq(box.timer.ticks() > t0, true, 'ticks advanced');
-				return eq(box.querySelector('strong').textContent, String(box.timer.ticks()), 'rendered');
+				eq(box.timer.ticks.get() > t0, true, 'ticks advanced');
+				return eq(box.querySelector('strong').textContent, String(box.timer.ticks.get()), 'rendered');
 			});
 			await check('hooks: firstUpdated once, updated every render', () => {
 				eq(box.firstUpdatedCount, 1, 'firstUpdated'); return eq(box.updatedCount > 1, true, 'updated');
@@ -437,7 +437,7 @@
 				const r = state(4);
 				const view = () => t`
 					<p>${'text'}|${42}|${t`<b>nested</b>`}|${[1, 2, 3].map((n) => t`<i>${n}</i>`)}|${null}|${false}|${undefined}</p>
-					<svg viewBox="0 0 10 10" width="40" height="40"><circle cx="5" cy="5" r=${r()} fill="tomato"></circle></svg>
+					<svg viewBox="0 0 10 10" width="40" height="40"><circle cx="5" cy="5" r=${r.get()} fill="tomato"></circle></svg>
 					<div id="raw">${unsafeHtml('<u>raw html</u>')}</div>
 					<input id="prop" .value=${'prop-set'} data-x=${'attr-set'} />
 				`;

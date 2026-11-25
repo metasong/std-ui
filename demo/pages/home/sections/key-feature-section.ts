@@ -23,7 +23,7 @@ export class DemoHomeCounter extends UIElement {
 	@consume(ThemeKey) readonly theme!: Theme; // nearest ancestor's value
 
 	protected override template() {
-		return t`<button class=${this.theme.mode} @click=${() => this.count.set(this.count() + 1)}>Clicked ${this.count()} times</button>`;
+		return t`<button class=${this.theme.mode} @click=${() => this.count.set(this.count.get() + 1)}>Clicked ${this.count.get()} times</button>`;
 	}
 }
 

@@ -49,12 +49,15 @@ export {
 	computed,
 	effect,
 	subtle,
-	type Computed,
+	Computed,
+	isState,
 	type OnCleanup,
 	state,
-	type ReadonlyState,
+	type ReadableState,
+	type WritableState,
+	isWritableState,
 	type StateOptions,
-	type State,
+	State,
 } from './reactive/index.js';
 export { ChildRenderer, TemplateRenderer, renderWith } from './element/template/parts/child-renderers/index.js';
 export { AttributePart, ChildPart, EventPart, EVENT_OPTIONS, withEventOptions } from './element/template/parts/index.js';

@@ -20,7 +20,7 @@ export class DemoTextOnlySection extends UIElement {
 	};
 
 	protected override template() {
-		const data = JSON.stringify({ name: this.name(), hue: this.hue() }, null, 2);
+		const data = JSON.stringify({ name: this.name.get(), hue: this.hue.get() }, null, 2);
 		return t`
 			<h2>Text-only elements</h2>
 			<p class="desc">
@@ -29,37 +29,37 @@ export class DemoTextOnlySection extends UIElement {
 			</p>
 
 			<div class="demo-actions">
-				<label>name <input .value=${this.name()} @input=${(e: Event) => this.name.set((e.target as HTMLInputElement).value)} /></label>
+				<label>name <input .value=${this.name.get()} @input=${(e: Event) => this.name.set((e.target as HTMLInputElement).value)} /></label>
 				<label>
 					hue
-					<input type="range" min="0" max="360" .value=${this.hue()}
+					<input type="range" min="0" max="360" .value=${this.hue.get()}
 						@input=${(e: Event) => this.hue.set(Number((e.target as HTMLInputElement).value))} />
 				</label>
 			</div>
 
 			<!-- <title>: normally hidden by the browser; shown here so the joined text is visible. -->
 			<style>
-				.text-only-sample { padding: 0.5rem 0.75rem; border-radius: 8px; border: 1px solid hsl(${this.hue()} 60% 50%); }
-				.text-only-sample .swatch { background: hsl(${this.hue()} 70% 45%); color: white; padding: 0.25rem 0.5rem; border-radius: 4px; }
+				.text-only-sample { padding: 0.5rem 0.75rem; border-radius: 8px; border: 1px solid hsl(${this.hue.get()} 60% 50%); }
+				.text-only-sample .swatch { background: hsl(${this.hue.get()} 70% 45%); color: white; padding: 0.25rem 0.5rem; border-radius: 4px; }
 				.text-only-sample title { display: block; font-weight: 600; }
 			</style>
 			<div class="text-only-sample">
-				<title>Hello ${this.name()}, hue ${this.hue()}&deg; (&amp; entities in static text decode)</title>
+				<title>Hello ${this.name.get()}, hue ${this.hue.get()}&deg; (&amp; entities in static text decode)</title>
 				<span class="swatch">live &lt;style&gt;: the colors follow the slider</span>
 			</div>
 
 			<p>&lt;textarea&gt; default value (type in it: later renders no longer overwrite what you typed):</p>
-			<textarea rows="2" cols="40">Notes for ${this.name()}</textarea>
+			<textarea rows="2" cols="40">Notes for ${this.name.get()}</textarea>
 
 			<p>Inert <code>&lt;script type="application/json"&gt;</code> data block (never executes):</p>
 			<script type="application/json" id="text-only-data">${data}</script>
 			<div class="demo-actions">
 				<button type="button" @click=${this.readBack}>read it back with JSON.parse</button>
 			</div>
-			<pre class="demo-log">${this.readBackText() || 'press the button: the script element is parsed, not the signals'}</pre>
+			<pre class="demo-log">${this.readBackText.get() || 'press the button: the script element is parsed, not the signals'}</pre>
 
 			<p>Markup in a value stays text:</p>
-			<div class="text-only-sample"><title>${this.note()}</title></div>
+			<div class="text-only-sample"><title>${this.note.get()}</title></div>
 		`;
 	}
 }

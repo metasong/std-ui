@@ -33,7 +33,7 @@ export function wireConsumedContexts(host: HTMLElement): void {
 			);
 		}
 		Object.defineProperty(host, key, {
-			get: (): unknown => value(),
+			get: (): unknown => value.get(),
 			set(): void {
 				throw new TypeError(DEV ? `@consume() field "${String(key)}" is read-only - its value comes from the provider.` : '@consume(): read-only');
 			},

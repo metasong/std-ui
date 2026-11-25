@@ -17,7 +17,7 @@ export class DemoBindCustomSection extends UIElement {
 					<code>level-change</code> (the default for a property named <code>level</code>).
 				</p>
 				<demo-bind-knob .level=${bind(this.level)}></demo-bind-knob>
-				<p class="demo-bind-mirror">Parent <code>stateTree()</code> level: <code>${this.level()}</code></p>
+				<p class="demo-bind-mirror">Parent <code>stateTree()</code> level: <code>${this.level.get()}</code></p>
 				<h3>State property</h3>
 				<p class="desc">
 					<code>&lt;demo-bind-signal-knob&gt;</code> exposes <code>.level</code> as a <code>stateTree()</code>;

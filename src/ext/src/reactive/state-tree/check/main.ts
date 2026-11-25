@@ -105,8 +105,8 @@ const isObjectNode = (n: object): boolean => !isArrayNode(n) && !!(n as { _?: ob
 /** Rules a node inherits from its parent: the parent's `eachValidators`, then its `fields` entry for this node's key. */
 function inheritedRules(parent: object, node: object): readonly Validator<any>[] {
 	const st = (parent as { [STATE]: CheckState })[STATE];
-	const out: Validator<any>[] = [...(st.eachRules?.() ?? [])];
-	const fields = st.fieldRules?.();
+	const out: Validator<any>[] = [...(st.eachRules?.get() ?? [])];
+	const fields = st.fieldRules?.get();
 	if (fields) {
 		(parent as { shallow?: () => unknown }).shallow?.(); // tracked: which members exist
 		for (const [key, child] of childEntries(parent)) if (child === node && fields[key]) out.push(...fields[key]);
@@ -125,7 +125,7 @@ function attach(node: object, parent?: object): void {
 			return childEntries(n) as Entries;
 		},
 		// Duck-typed link to the form UI feature (when present): disabled nodes are not validated.
-		() => !!(n as { formUi?: { disabled(): boolean } }).formUi?.disabled(),
+		() => !!(n as { formUi?: { disabled: { get(): boolean } } }).formUi?.disabled.get(),
 		{
 			// Members also run their container's `eachValidators` (and, for objects, its `fields`).
 			inherited: parent && (isArrayNode(parent) || isObjectNode(parent)) ? () => inheritedRules(parent, n) : undefined,
@@ -168,9 +168,9 @@ export function createValidation<T>(
 	const validators = state<Validator<T>[]>([], { equals: () => false });
 	const enabled = state(true);
 	// The array's item rules (if this node is an item) run before the node's own.
-	const rules = (): readonly Validator<T>[] => [...(inherited?.() ?? []), ...validators()];
+	const rules = (): readonly Validator<T>[] => [...(inherited?.() ?? []), ...validators.get()];
 	// Off when switched off, or (default) when the node's form UI says it is disabled.
-	const off = () => !enabled() || !!suppressed?.();
+	const off = () => !enabled.get() || !!suppressed?.();
 	const ownErrors = computed<ValidationError[]>(
 		() => {
 			if (off()) return [];
@@ -196,16 +196,16 @@ export function createValidation<T>(
 	});
 	const pending = Object.assign(
 		computed(() => {
-			if (pendingOwn()) return true;
+			if (pendingOwn.get()) return true;
 			for (const [, child] of children()) if (childPending(child)) return true;
 			return false;
 		}),
 		{ own: pendingOwn },
 	);
-	const validOwn = computed(() => ownErrors().length === 0 && !pendingOwn());
+	const validOwn = computed(() => ownErrors.get().length === 0 && !pendingOwn.get());
 	const valid = Object.assign(
 		computed(() => {
-			if (!validOwn()) return false;
+			if (!validOwn.get()) return false;
 			for (const [, child] of children()) if (!isAllValid(child)) return false;
 			return true;
 		}),
@@ -217,7 +217,7 @@ export function createValidation<T>(
 		for (const [key, child] of children()) {
 			for (const e of errorsOf(child)) out.push({ ...e, path: [key, ...e.path] });
 		}
-		for (const e of ownErrors()) out.push({ ...e, path: [] });
+		for (const e of ownErrors.get()) out.push({ ...e, path: [] });
 		return out;
 	});
 	const errors = Object.assign(ownErrors, { all: allErrors });
@@ -260,7 +260,7 @@ function view(child: ItemNode<unknown>): { check?: Validation<any>; nested: Entr
 		if (own || !isTreeNode(child)) return { check: own, nested: [] };
 		return { nested: childEntries(child) as Entries }; // tree node never given `check`: valid unless a descendant has one
 	}
-	builtVersion(); // tracked: a later build must re-run the aggregate
+	builtVersion.get(); // tracked: a later build must re-run the aggregate
 	if (slot.built) return { check: slot.built, nested: [] };
 	// An item that inherits array rules must be validated even though nobody read its `check`.
 	// (Built here without bumping `builtVersion`: this reads `inherited()`, so it re-runs on its own.)
@@ -269,17 +269,17 @@ function view(child: ItemNode<unknown>): { check?: Validation<any>; nested: Entr
 }
 function isAllValid(child: ItemNode<unknown>): boolean {
 	const v = view(child);
-	if (v.check) return v.check.valid();
+	if (v.check) return v.check.valid.get();
 	return v.nested.every(([, c]) => isAllValid(c));
 }
 function childPending(child: ItemNode<unknown>): boolean {
 	const v = view(child);
-	if (v.check) return !!v.check.pending?.();
+	if (v.check) return !!v.check.pending?.get();
 	return v.nested.some(([, c]) => childPending(c));
 }
 function errorsOf(child: ItemNode<unknown>): PathError[] {
 	const v = view(child);
-	if (v.check) return v.check.errors.all();
+	if (v.check) return v.check.errors.all.get();
 	const out: PathError[] = [];
 	for (const [key, c] of v.nested) for (const e of errorsOf(c)) out.push({ ...e, path: [key, ...e.path] });
 	return out;

@@ -19,33 +19,33 @@ function setup() {
 describe('formUi()', () => {
 	it('cascades readonly / disabled to descendants, including members added later', () => {
 		const form = formUi(stateTree({ a: { b: 1 } }));
-		expect(form.a.b.formUi.disabled()).toBe(false);
+		expect(form.a.b.formUi.disabled.get()).toBe(false);
 		form.a.formUi.disabled.own.set(true);
-		expect(form.a.b.formUi.disabled()).toBe(true);
-		expect(form.formUi.disabled()).toBe(false);
+		expect(form.a.b.formUi.disabled.get()).toBe(true);
+		expect(form.formUi.disabled.get()).toBe(false);
 		form.formUi.readonly.own.set(true);
-		expect(form.a.b.formUi.readonly()).toBe(true);
+		expect(form.a.b.formUi.readonly.get()).toBe(true);
 	});
 
 	it('a node shared by two trees is disabled when either parent is', () => {
 		const shared = stateTree({ x: 1 });
 		const a = formUi(stateTree({ s: shared }));
 		const b = formUi(stateTree({ s: shared }));
-		expect(a.s.x.formUi.disabled()).toBe(false);
+		expect(a.s.x.formUi.disabled.get()).toBe(false);
 		b.formUi.disabled.own.set(true);
-		expect(a.s.x.formUi.disabled()).toBe(true);
+		expect(a.s.x.formUi.disabled.get()).toBe(true);
 	});
 
 	it('touched() is own OR any descendant; touched.own is just this node', () => {
 		const form = formUi(stateTree({ a: { b: 1 } }));
-		expect(form.formUi.touched()).toBe(false);
+		expect(form.formUi.touched.get()).toBe(false);
 		form.a.b.formUi.touch();
-		expect(form.formUi.touched()).toBe(true);
-		expect(form.formUi.touched.own()).toBe(false);
+		expect(form.formUi.touched.get()).toBe(true);
+		expect(form.formUi.touched.own.get()).toBe(false);
 		form.formUi.untouchAll();
-		expect(form.formUi.touched()).toBe(false);
+		expect(form.formUi.touched.get()).toBe(false);
 		form.formUi.touchAll();
-		expect(form.a.b.formUi.touched()).toBe(true);
+		expect(form.a.b.formUi.touched.get()).toBe(true);
 	});
 });
 
@@ -55,7 +55,7 @@ describe('formBind()', () => {
 		expect(input.value).toBe('a');
 		input.value = 'z';
 		input.dispatchEvent(new Event('input', { bubbles: true }));
-		expect(form.name()).toBe('z');
+		expect(form.name.get()).toBe('z');
 	});
 
 	it('reflects disabled and readonly from state, and restores on clear', async () => {
@@ -80,7 +80,7 @@ describe('formBind()', () => {
 		expect(input.hasAttribute('data-touched')).toBe(false);
 		input.dispatchEvent(new Event('focusout'));
 		await tick();
-		expect(form.name.formUi.touched()).toBe(true);
+		expect(form.name.formUi.touched.get()).toBe(true);
 		expect(input.hasAttribute('data-touched')).toBe(true);
 		form.name.formUi.untouch();
 		await tick();

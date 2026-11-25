@@ -12,23 +12,23 @@ describe('when', () => {
 		const on = state(false);
 		const s = check(stateTree({ name: '' }));
 		s.name.check.validators.set([when(on, required<string>())]);
-		expect(s.name.check.errors()).toEqual([]);
+		expect(s.name.check.errors.get()).toEqual([]);
 		on.set(true);
-		expect(s.name.check.errors()).toHaveLength(1);
-		expect(s.name.check.valid.own()).toBe(false);
+		expect(s.name.check.errors.get()).toHaveLength(1);
+		expect(s.name.check.valid.own.get()).toBe(false);
 		on.set(false);
-		expect(s.name.check.valid.own()).toBe(true);
+		expect(s.name.check.valid.own.get()).toBe(true);
 	});
 
 	it('node-level enabled switches all own validators off', () => {
 		const s = check(stateTree({ name: '' }));
 		s.name.check.validators.set([required<string>()]);
-		expect(s.name.check.valid.own()).toBe(false);
+		expect(s.name.check.valid.own.get()).toBe(false);
 		s.name.check.enabled.set(false);
-		expect(s.name.check.errors()).toEqual([]);
-		expect(s.name.check.valid()).toBe(true);
+		expect(s.name.check.errors.get()).toEqual([]);
+		expect(s.name.check.valid.get()).toBe(true);
 		s.name.check.enabled.set(true);
-		expect(s.name.check.valid()).toBe(false);
+		expect(s.name.check.valid.get()).toBe(false);
 	});
 
 	it('null means always enabled and returns the validator unchanged', () => {
@@ -50,14 +50,14 @@ describe('when', () => {
 		const fn = vi.fn(async () => null);
 		const s = check(stateTree({ name: 'x' }));
 		s.name.check.validators.set([when(on, asyncValidator<string>(fn))]);
-		expect(s.name.check.pending.own()).toBe(false);
-		expect(s.name.check.valid.own()).toBe(true);
+		expect(s.name.check.pending.own.get()).toBe(false);
+		expect(s.name.check.valid.own.get()).toBe(true);
 		await new Promise((r) => setTimeout(r, 10));
 		expect(fn).not.toHaveBeenCalled();
 		on.set(true);
-		expect(s.name.check.pending.own()).toBe(true);
+		expect(s.name.check.pending.own.get()).toBe(true);
 		await new Promise((r) => setTimeout(r, 10));
 		expect(fn).toHaveBeenCalledTimes(1);
-		expect(s.name.check.pending.own()).toBe(false);
+		expect(s.name.check.pending.own.get()).toBe(false);
 	});
 });

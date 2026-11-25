@@ -59,7 +59,7 @@ describe('UIElement', () => {
 		@tag('el-template')
 		class Foo extends UIElement {
 			protected override template(): void {
-				renderSpy(tree.count());
+				renderSpy(tree.count.get());
 			}
 		}
 
@@ -80,7 +80,7 @@ describe('UIElement', () => {
 		@tag('el-html')
 		class Foo extends UIElement {
 			protected override template() {
-				return t`<em>${tree.count()}</em>`;
+				return t`<em>${tree.count.get()}</em>`;
 			}
 		}
 
@@ -99,7 +99,7 @@ describe('UIElement', () => {
 		class Foo extends UIElement {
 			protected override disconnect = disconnect;
 			protected override template(): void {
-				renderSpy(tree.count());
+				renderSpy(tree.count.get());
 			}
 		}
 
@@ -124,7 +124,7 @@ describe('UIElement', () => {
 				count.set(count.peek() + 1);
 			}
 			protected override template(): void {
-				renderSpy(count());
+				renderSpy(count.get());
 			}
 		}
 
@@ -145,10 +145,10 @@ describe('UIElement', () => {
 				protected override connect(): void {
 					// s[0] -> s[1] -> s[2] -> s[3] -> s[4]: every hop needs its own microtask flush.
 					for (let i = 0; i < s.length - 1; i++) {
-						this.effect(() => { const v = s[i](); s[i + 1].set(v); });
+						this.effect(() => { const v = s[i].get(); s[i + 1].set(v); });
 					}
 				}
-				protected override template() { return t`<b>${s[4]()}</b>`; }
+				protected override template() { return t`<b>${s[4].get()}</b>`; }
 			}
 
 			const el = document.createElement('el-update-complete-cascade') as Foo;
@@ -164,7 +164,7 @@ describe('UIElement', () => {
 
 			@tag('el-update-complete-late-write')
 			class Foo extends UIElement {
-				protected override template() { return t`<b>${count()}</b>`; }
+				protected override template() { return t`<b>${count.get()}</b>`; }
 			}
 
 			const el = document.createElement('el-update-complete-late-write') as Foo;
@@ -192,7 +192,7 @@ describe('UIElement', () => {
 			@tag('el-removed-in-connect')
 			class Foo extends UIElement {
 				protected override connect(): void { this.remove(); }
-				protected override template(): void { renderSpy(count()); }
+				protected override template(): void { renderSpy(count.get()); }
 			}
 
 			document.body.appendChild(document.createElement('el-removed-in-connect'));
@@ -270,7 +270,7 @@ describe('UIElement', () => {
 			static override shadowRootOptions = { mode: 'open' } as const;
 
 			protected override template() {
-				return t`<strong>${tree.count()}</strong>`;
+				return t`<strong>${tree.count.get()}</strong>`;
 			}
 		}
 
@@ -375,7 +375,7 @@ describe('UIElement', () => {
 		class Foo extends UIElement {
 			protected override connect(): void {
 				this.effect(() => {
-					effectSpy(tree.count());
+					effectSpy(tree.count.get());
 				});
 			}
 		}
@@ -406,7 +406,7 @@ describe('state() fields on a UIElement', () => {
 		el.label.set('bye');
 		await flush();
 		expect(el.hasAttribute('label')).toBe(false);
-		expect(el.label()).toBe('bye');
+		expect(el.label.get()).toBe('bye');
 		el.remove();
 	});
 
@@ -417,7 +417,7 @@ describe('state() fields on a UIElement', () => {
 		class Foo extends UIElement {
 			readonly label = state('a');
 			protected override template(): void {
-				rendered.push(this.label());
+				rendered.push(this.label.get());
 			}
 		}
 
@@ -440,7 +440,7 @@ describe('state() fields on a UIElement', () => {
 		const a = document.createElement('state-per-instance') as Foo;
 		const b = document.createElement('state-per-instance') as Foo;
 		a.count.set(5);
-		expect(b.count()).toBe(0);
+		expect(b.count.get()).toBe(0);
 	});
 
 	it('registers no observedAttributes for a store-only class', () => {

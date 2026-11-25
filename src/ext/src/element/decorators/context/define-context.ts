@@ -7,7 +7,7 @@
 // defineContext(Child, { consume: { theme: ThemeKey } });
 // ``
 
-import { addClassHooks, ownMetadata } from '@std-ui/core';
+import { addClassHooks, ownMetadata, type ReadableState, type WritableState } from '@std-ui/core';
 import type { ContextKey } from './key.js';
 import { consumedContexts, providedContexts } from './metadata.js';
 import { consumeHooks } from './wire-consume.js';
@@ -15,11 +15,11 @@ import { provideHooks } from './wire-provide.js';
 
 /** Keys of `I` whose value is a store (readable, writable, peekable). */
 type StoreKeys<I> = {
-	[K in keyof I]: I[K] extends { (): unknown; peek(): unknown; set(value: never): void } ? K : never;
+	[K in keyof I]: I[K] extends WritableState ? K : never;
 }[keyof I] & string;
 
 /** `provide` option: store field name -> the `ContextKey` it provides (key value type must match the store's). */
-export type ProvideMap<I> = { [K in StoreKeys<I>]?: I[K] extends { peek(): infer V } ? ContextKey<V> : never };
+export type ProvideMap<I> = { [K in StoreKeys<I>]?: I[K] extends ReadableState<infer V> ? ContextKey<V> : never };
 
 /** `consume` option: field name -> the `ContextKey` it reads (the field is declared with the key's value type). */
 export type ConsumeMap<I> = { [K in keyof I & string]?: ContextKey<I[K]> };

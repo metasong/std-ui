@@ -11,12 +11,12 @@ describe('manualValidator', () => {
 		const s = check(stateTree({ email: 'a@b.c' }));
 		const v = manualValidator<string>();
 		s.email.check.validators.set([v]);
-		expect(s.email.check.valid.own()).toBe(true);
+		expect(s.email.check.valid.own.get()).toBe(true);
 		v.set('taken');
-		expect(s.email.check.errors()).toEqual([err('taken')]);
-		expect(s.check.errors.all()).toEqual([{ ...err('taken'), path: ['email'] }]);
+		expect(s.email.check.errors.get()).toEqual([err('taken')]);
+		expect(s.check.errors.all.get()).toEqual([{ ...err('taken'), path: ['email'] }]);
 		v.clear();
-		expect(s.email.check.errors()).toEqual([]);
+		expect(s.email.check.errors.get()).toEqual([]);
 	});
 
 	it('accepts errors with their own flag, mixed with messages', () => {
@@ -24,9 +24,9 @@ describe('manualValidator', () => {
 		const v = manualValidator<string>();
 		s.n.check.validators.set([v]);
 		v.set({ flag: flags.tooLong, message: 'long' });
-		expect(s.n.check.errors()).toEqual([{ flag: 'tooLong', message: 'long' }]);
+		expect(s.n.check.errors.get()).toEqual([{ flag: 'tooLong', message: 'long' }]);
 		v.set(['plain', { flag: flags.badInput, message: 'bad' }]);
-		expect(s.n.check.errors()).toEqual([err('plain'), { flag: 'badInput', message: 'bad' }]);
+		expect(s.n.check.errors.get()).toEqual([err('plain'), { flag: 'badInput', message: 'bad' }]);
 		// @ts-expect-error free-form flags are not allowed
 		v.set({ flag: 'server', message: 'nope' });
 	});
@@ -36,11 +36,11 @@ describe('manualValidator', () => {
 		const v = manualValidator<string>();
 		s.n.check.validators.set([v]);
 		v.set(['a', 'b']);
-		expect(s.n.check.errors()).toEqual([err('a'), err('b')]);
+		expect(s.n.check.errors.get()).toEqual([err('a'), err('b')]);
 		v.set('c');
-		expect(s.n.check.errors()).toEqual([err('c')]);
+		expect(s.n.check.errors.get()).toEqual([err('c')]);
 		v.set([]);
-		expect(s.n.check.errors()).toEqual([]);
+		expect(s.n.check.errors.get()).toEqual([]);
 	});
 
 	it('errors drop once the value changes and do not come back', () => {
@@ -48,11 +48,11 @@ describe('manualValidator', () => {
 		const v = manualValidator<string>();
 		s.n.check.validators.set([v]);
 		v.set('bad');
-		expect(s.n.check.valid.own()).toBe(false);
+		expect(s.n.check.valid.own.get()).toBe(false);
 		s.n.set('y');
-		expect(s.n.check.valid.own()).toBe(true);
+		expect(s.n.check.valid.own.get()).toBe(true);
 		s.n.set('x');
-		expect(s.n.check.valid.own()).toBe(true);
+		expect(s.n.check.valid.own.get()).toBe(true);
 	});
 
 	it('several manual validators are independent', () => {
@@ -62,8 +62,8 @@ describe('manualValidator', () => {
 		s.n.check.validators.set([a, b]);
 		a.set('a');
 		b.set('b');
-		expect(s.n.check.errors()).toEqual([err('a'), err('b')]);
+		expect(s.n.check.errors.get()).toEqual([err('a'), err('b')]);
 		a.clear();
-		expect(s.n.check.errors()).toEqual([err('b')]);
+		expect(s.n.check.errors.get()).toEqual([err('b')]);
 	});
 });

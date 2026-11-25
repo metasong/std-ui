@@ -24,10 +24,10 @@ describe('length validators', () => {
 	it('works together on a node', () => {
 		const s = check(stateTree({ pw: 'a' }));
 		s.pw.check.validators.set([minLength<string>(3), maxLength<string>(5)]);
-		expect(s.pw.check.errors().map((e) => e.flag)).toEqual(['tooShort']);
+		expect(s.pw.check.errors.get().map((e) => e.flag)).toEqual(['tooShort']);
 		s.pw.set('abcdef');
-		expect(s.pw.check.errors().map((e) => e.flag)).toEqual(['tooLong']);
+		expect(s.pw.check.errors.get().map((e) => e.flag)).toEqual(['tooLong']);
 		s.pw.set('abcd');
-		expect(s.pw.check.valid.own()).toBe(true);
+		expect(s.pw.check.valid.own.get()).toBe(true);
 	});
 });

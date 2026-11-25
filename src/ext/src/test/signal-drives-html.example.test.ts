@@ -9,12 +9,12 @@ import { stateTree } from '../reactive/state-tree/index.js';
 describe('doc: signals drive html render', () => {
 	it('Pattern A — effect + render patches DOM in place when signals change', async () => {
 		const count = stateTree(0);
-		const label = computed(() => (count() === 1 ? 'click' : 'clicks'));
+		const label = computed(() => (count.get() === 1 ? 'click' : 'clicks'));
 		const container = document.createElement('div');
 
 		const view = () => t`
-			<p><strong>${count()}</strong> ${label()}</p>
-			<button ?disabled=${count() >= 10}>+</button>
+			<p><strong>${count.get()}</strong> ${label.get()}</p>
+			<button ?disabled=${count.get() >= 10}>+</button>
 		`;
 
 		effect(() => {
@@ -58,10 +58,10 @@ describe('doc: signals drive html render', () => {
 			protected override template() {
 				const { value, max } = shared.counter;
 				return t`
-					<span>${value()}</span> / ${max()}
+					<span>${value.get()}</span> / ${max.get()}
 					<button
 						type="button"
-						?disabled=${value() >= max()}
+						?disabled=${value.get() >= max.get()}
 						@click=${() => shared.counter.value.update(n => n + 1)}
 					>+</button>
 				`;
@@ -113,7 +113,7 @@ describe('doc: signals drive html render', () => {
 		class DocInboxBadge extends UIElement {
 			protected override template() {
 				return t`
-					<h1>${shared.title()}</h1>
+					<h1>${shared.title.get()}</h1>
 					<span class="badge"></span>
 				`;
 			}
@@ -122,7 +122,7 @@ describe('doc: signals drive html render', () => {
 				const badge = this.querySelector('.badge') as HTMLElement;
 
 				this.effect(() => {
-					badge.textContent = String(shared.unreadCount());
+					badge.textContent = String(shared.unreadCount.get());
 				});
 			}
 		}

@@ -21,7 +21,7 @@ describe('effect', () => {
 		const count = state(0);
 		const spy = vi.fn();
 		effect(() => {
-			spy(count());
+			spy(count.get());
 		});
 		expect(spy).toHaveBeenCalledTimes(1);
 
@@ -37,7 +37,7 @@ describe('effect', () => {
 		const count = state(0);
 		const cleanup = vi.fn();
 		const dispose = effect(onCleanup => {
-			count();
+			count.get();
 			onCleanup(cleanup);
 		});
 		expect(cleanup).not.toHaveBeenCalled();
@@ -53,7 +53,7 @@ describe('effect', () => {
 	it('dispose() stops future re-runs', async () => {
 		const count = state(0);
 		const spy = vi.fn();
-		const dispose = effect(() => spy(count()));
+		const dispose = effect(() => spy(count.get()));
 		dispose();
 
 		count.set(1);
@@ -67,7 +67,7 @@ describe('effect', () => {
 		const b = state('b');
 		const spy = vi.fn();
 		effect(() => {
-			spy(useA() ? a() : b());
+			spy(useA.get() ? a.get() : b.get());
 		});
 		expect(spy).toHaveBeenCalledTimes(1);
 
@@ -92,10 +92,10 @@ describe('effect', () => {
 		const monitoredSpy = vi.fn(() => order.push('monitored'));
 		const afterSpy = vi.fn(() => {
 			order.push('after');
-			other(); // read inside afterAction - should not be tracked
+			other.get(); // read inside afterAction - should not be tracked
 		});
 		effect(() => {
-			count();
+			count.get();
 			monitoredSpy();
 		}, afterSpy);
 		expect(monitoredSpy).toHaveBeenCalledTimes(1);
@@ -125,7 +125,7 @@ describe('whenFlushed', () => {
 	it('waits for a pending re-run', async () => {
 		const a = state(0);
 		const seen: number[] = [];
-		effect(() => { seen.push(a()); });
+		effect(() => { seen.push(a.get()); });
 		a.set(1);
 		await whenFlushed();
 		expect(seen).toEqual([0, 1]);
@@ -133,15 +133,15 @@ describe('whenFlushed', () => {
 
 	it('waits for a cascade of any depth', async () => {
 		const s = Array.from({ length: 8 }, () => state(0));
-		for (let i = 0; i < s.length - 1; i++) effect(() => { s[i + 1].set(s[i]()); });
+		for (let i = 0; i < s.length - 1; i++) effect(() => { s[i + 1].set(s[i].get()); });
 		s[0].set(5);
 		await whenFlushed();
-		expect(s[s.length - 1]()).toBe(5);
+		expect(s[s.length - 1].get()).toBe(5);
 	});
 
 	it('still resolves when an effect throws during the flush', async () => {
 		const a = state(0);
-		effect(() => { if (a() === 1) throw new Error('boom'); });
+		effect(() => { if (a.get() === 1) throw new Error('boom'); });
 		const onError = vi.fn();
 		process.once('uncaughtException', onError);
 		a.set(1);
@@ -169,8 +169,8 @@ describe('effect errors during a flush', () => {
 	it('a throwing effect does not stop the other effects scheduled in the same flush', async () => {
 		const a = state(0);
 		const second = vi.fn();
-		effect(() => { if (a() === 1) throw new Error('boom'); });
-		effect(() => { second(a()); });
+		effect(() => { if (a.get() === 1) throw new Error('boom'); });
+		effect(() => { second(a.get()); });
 
 		const errors = await collectingUncaught(async () => {
 			a.set(1);
@@ -186,7 +186,7 @@ describe('effect errors during a flush', () => {
 	it('the throwing effect itself keeps reacting to what it read before throwing', async () => {
 		const a = state(0);
 		const seen: number[] = [];
-		effect(() => { const v = a(); seen.push(v); if (v === 1) throw new Error('boom'); });
+		effect(() => { const v = a.get(); seen.push(v); if (v === 1) throw new Error('boom'); });
 
 		await collectingUncaught(async () => {
 			a.set(1);
@@ -200,8 +200,8 @@ describe('effect errors during a flush', () => {
 
 	it('reports several failures of one flush together', async () => {
 		const a = state(0);
-		effect(() => { if (a() === 1) throw new Error('first'); });
-		effect(() => { if (a() === 1) throw new Error('second'); });
+		effect(() => { if (a.get() === 1) throw new Error('first'); });
+		effect(() => { if (a.get() === 1) throw new Error('second'); });
 
 		const errors = await collectingUncaught(async () => {
 			a.set(1);

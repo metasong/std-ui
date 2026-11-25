@@ -100,8 +100,8 @@ function createChangeTracking<T>(
 ): ChangeTracking<T> {
 	const currentInitial = state(initial);
 	return {
-		dirty: computed(() => !equals(read(), currentInitial())),
-		initial: computed(() => currentInitial()),
+		dirty: computed(() => !equals(read(), currentInitial.get())),
+		initial: computed(() => currentInitial.get()),
 		reset: (...args: [T?]) => {
 			if (args.length) currentInitial.set(args[0] as T);
 			restore(currentInitial.peek());

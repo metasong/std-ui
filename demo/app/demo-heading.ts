@@ -43,8 +43,8 @@ export class DemoHeading extends UIElement {
 	`;
 
 	protected override template() {
-		const page = pageOf(routerOf(this).location().pathname);
-		return t`<header class="demo-app-bar"><button type="button" class="demo-theme-toggle" aria-label="Switch to ${this.#theme() === 'dark' ? 'light' : 'dark'} theme" @click=${() => { const next = this.#theme.peek() === 'dark' ? 'light' : 'dark'; applyTheme(next); this.#theme.set(next); }}>${this.#theme() === 'dark' ? 'Light' : 'Dark'} theme</button><h1>${page?.heading ?? 'std-ui'}</h1><p class="lead">${page?.lead ?? ''}</p></header>`;
+		const page = pageOf(routerOf(this).location.get().pathname);
+		return t`<header class="demo-app-bar"><button type="button" class="demo-theme-toggle" aria-label="Switch to ${this.#theme.get() === 'dark' ? 'light' : 'dark'} theme" @click=${() => { const next = this.#theme.peek() === 'dark' ? 'light' : 'dark'; applyTheme(next); this.#theme.set(next); }}>${this.#theme.get() === 'dark' ? 'Light' : 'Dark'} theme</button><h1>${page?.heading ?? 'std-ui'}</h1><p class="lead">${page?.lead ?? ''}</p></header>`;
 	}
 }
 

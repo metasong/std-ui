@@ -29,8 +29,8 @@ const paramHooks: UIElementHooks = {
 			Object.defineProperty(host, field, {
 				get: (): string | undefined =>
 					source === 'route'
-						? current()?.params()[name]
-						: (new URLSearchParams(current()?.location().search).get(name) ?? undefined),
+						? current()?.params.get()[name]
+						: (new URLSearchParams(current()?.location.get().search).get(name) ?? undefined),
 				set(): void {
 					throw new TypeError(`@${source === 'route' ? 'routeParam' : 'searchParam'} field "${String(field)}" is read-only.`);
 				},

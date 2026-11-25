@@ -29,8 +29,8 @@ describe('pattern validators', () => {
 	it('works on a node', () => {
 		const s = check(stateTree({ mail: 'x' }));
 		s.mail.check.validators.set([email<string>()]);
-		expect(s.mail.check.valid.own()).toBe(false);
+		expect(s.mail.check.valid.own.get()).toBe(false);
 		s.mail.set('x@y.z');
-		expect(s.mail.check.valid.own()).toBe(true);
+		expect(s.mail.check.valid.own.get()).toBe(true);
 	});
 });

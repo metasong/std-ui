@@ -1,8 +1,8 @@
 // Observable record: `stateObject()` is the signal-tree version of a plain object, mirroring
 // `../array`. Each property is its own member node (built by the supplied `makeMember`), and which
 // members exist is tracked by one signal. Consequently:
-//   - `obj()`, `obj.shallow()` and `obj.deep()` all return the plain value; they differ in tracking:
-//   - `obj()` re-runs only when `set()` replaces the member record (new key, clear);
+//   - `obj.get()`, `obj.shallow()` and `obj.deep()` all return the plain value; they differ in tracking:
+//   - `obj.get()` re-runs only when `set()` replaces the member record (new key, clear);
 //   - `obj.shallow()` also re-runs when members are added (`set()` with a new key) or `delete`d;
 //   - `obj.deep()` re-runs on any member's value change, recursively;
 //   - `obj.key` is the member node itself (untracked access), e.g. `obj.user.label.set('x')`.
@@ -25,7 +25,7 @@ export interface StateObject<T, M = Members, P = Partial<T>> extends Extendable 
 	 * Reads the plain value, tracking only replacement of the member record: a `set()` that adds a
 	 * key or clears / restores the object. Use `shallow()` to also track `delete`.
 	 */
-	(): T;
+	get(): T;
 	/** Reads the plain value, tracking any change to which members exist. */
 	shallow(): T;
 	/** Reads the whole object as a plain value (tracks every member, recursively). */
@@ -51,7 +51,7 @@ export interface StateObject<T, M = Members, P = Partial<T>> extends Extendable 
 // Names reserved on the node: members share its property namespace (`obj.member`), and both
 // `obj.api()` and `obj.member.api()` use the same property access, so API names must win over keys.
 // `check` is reserved even though `check()` is a separate feature, so adding it never shadows a member.
-const API = new Set(['set', 'update', 'peek', 'deep', 'shallow', 'delete', 'with', 'check', 'changes', '_']);
+const API = new Set(['get', 'set', 'update', 'peek', 'deep', 'shallow', 'delete', 'with', 'check', 'changes', '_']);
 const hasOwn = (o: object, key: PropertyKey): boolean => Object.prototype.hasOwnProperty.call(o, key);
 
 export function stateObject<T, M = Members, P = Partial<T>>(
@@ -71,14 +71,15 @@ export function stateObject<T, M = Members, P = Partial<T>>(
 		return out as T;
 	};
 
-	const deep = computed(() => build(members(), readValue));
+	const deep = computed(() => build(members.get(), readValue));
 	// `delete` edits the record in place and only `set()` swaps in a new one, so with `Object.is`
 	// cutoff `record` notifies on replacement only.
-	const record = computed(() => members());
+	const record = computed(() => members.get());
 	// All three reads return the same plain value; they differ only in what they subscribe to.
-	const self = (() => (record(), deep.peek())) as unknown as StateObject<T, M, P>;
-	self.deep = () => deep();
-	self.shallow = () => (members(), deep.peek());
+	const self = {} as StateObject<T, M, P>;
+	self.get = () => (record.get(), deep.peek());
+	self.deep = () => deep.get();
+	self.shallow = () => (members.get(), deep.peek());
 	self.peek = () => build(members.peek(), (n) => n.peek());
 	// Only a membership change (new key, clear, restore) swaps in a new record; patching existing
 	// members just notifies those members, so untouched siblings keep their deep value identity.

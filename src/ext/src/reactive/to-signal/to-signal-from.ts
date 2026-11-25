@@ -92,7 +92,7 @@ export function toSignalFrom<T, U>(
 	options.onCleanup?.(dispose);
 
 	const read = computed<T | U | undefined>(() => {
-		const current = cell();
+		const current = cell.get();
 		if (!current.ok) throw current.error;
 		return current.value;
 	});

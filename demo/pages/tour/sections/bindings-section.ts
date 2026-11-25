@@ -34,7 +34,7 @@ export class DemoBindingsSection extends UIElement {
 	readonly log = stateTree<string[]>([]);
 
 	private note(message: string) {
-		this.log.set([message, ...this.log()].slice(0, 6));
+		this.log.set([message, ...this.log.get()].slice(0, 6));
 	}
 
 	// Handlers with registered options (`withEventOptions` returns the same function): `addEventListener` options without modifiers.
@@ -98,11 +98,11 @@ export class DemoBindingsSection extends UIElement {
 			<div class="demo-actions">
 				<button
 					type="button"
-					class.active=${this.active()}
-					style.background=${this.active() ? `hsl(${this.hue()} 70% 45%)` : null}
-					style.color=${this.active() ? 'white' : null}
-					style.--hue=${this.hue()}
-					@click=${() => this.active.set(!this.active())}
+					class.active=${this.active.get()}
+					style.background=${this.active.get() ? `hsl(${this.hue.get()} 70% 45%)` : null}
+					style.color=${this.active.get() ? 'white' : null}
+					style.--hue=${this.hue.get()}
+					@click=${() => this.active.set(!this.active.get())}
 				>
 					class.active + style.background
 				</button>
@@ -112,13 +112,13 @@ export class DemoBindingsSection extends UIElement {
 						type="range"
 						min="0"
 						max="360"
-						.value=${this.hue()}
+						.value=${this.hue.get()}
 						@input=${(e: Event) => this.hue.set(Number((e.target as HTMLInputElement).value))}
 					/>
 				</label>
 			</div>
 
-			<pre class="demo-log">${this.log().join('\n') || 'events log here'}</pre>
+			<pre class="demo-log">${this.log.get().join('\n') || 'events log here'}</pre>
 		`;
 	}
 }

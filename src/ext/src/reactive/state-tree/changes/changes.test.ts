@@ -6,9 +6,9 @@ describe("changes: depth 'value'", () => {
 	it('dirty is one deep comparison', () => {
 		const s = stateTree({ n: 1 }, { depth: 'value' }).with(changes);
 		s.set({ n: 2 });
-		expect(s.changes.dirty()).toBe(true);
+		expect(s.changes.dirty.get()).toBe(true);
 		s.set({ n: 1 });
-		expect(s.changes.dirty()).toBe(false);
+		expect(s.changes.dirty.get()).toBe(false);
 	});
 });
 
@@ -17,9 +17,9 @@ describe('changes: adopted nodes', () => {
 		const addr = stateTree({ city: 'Paris' });
 		const user = stateTree({ address: addr }).with(changes);
 		user.address.city.set('Rome');
-		expect(user.changes.dirty()).toBe(true);
+		expect(user.changes.dirty.get()).toBe(true);
 		user.changes.reset();
 		expect(addr.peek()).toEqual({ city: 'Paris' });
-		expect(user.changes.dirty()).toBe(false);
+		expect(user.changes.dirty.get()).toBe(false);
 	});
 });

@@ -17,7 +17,7 @@ model.last.check.validators.set([required('Last name required')]);
 model.start.check.validators.set([required('Start required')]);
 model.end.check.validators.set([
 	required('End required'),
-	v => (!v || !model.start() || String(v) >= String(model.start()) ? undefined : { flag: 'rangeUnderflow' as const, message: 'End is before start' }),
+	v => (!v || !model.start.get() || String(v) >= String(model.start.get()) ? undefined : { flag: 'rangeUnderflow' as const, message: 'End is before start' }),
 ]);
 
 @tag('demo-integration-signup')
@@ -55,7 +55,7 @@ export class DemoIntegrationSignup extends UIElement {
 	#submit(e: Event): void {
 		e.preventDefault();
 		model.formUi.touchAll();
-		this.submitted.set(JSON.stringify(model(), null, 2));
+		this.submitted.set(JSON.stringify(model.get(), null, 2));
 	}
 
 	#reset(): void {
@@ -69,7 +69,7 @@ export class DemoIntegrationSignup extends UIElement {
 	}
 
 	protected override template() {
-		const errors = model.check.errors.all();
+		const errors = model.check.errors.all.get();
 		return t`
 			<section class="demo-bind-block" id="signup">
 				<h2>Sign-up form: binding + validation + form elements</h2>
@@ -81,7 +81,7 @@ export class DemoIntegrationSignup extends UIElement {
 				<form @submit=${(e: Event) => this.#submit(e)}>
 					<label class="demo-bind-field">
 						Email (native input)
-						<input type="text" .value=${formBind(model.email)} title=${model.email.check.errors().map(e => e.message).join('\n')} />
+						<input type="text" .value=${formBind(model.email)} title=${model.email.check.errors.get().map(e => e.message).join('\n')} />
 					</label>
 
 					<p class="desc">Name (<code>FormElement</code>, errors merged into one state)</p>
@@ -100,9 +100,9 @@ export class DemoIntegrationSignup extends UIElement {
 					</p>
 				</form>
 
-				<p class="demo-bind-mirror">Model valid: <code>${String(model.check.valid())}</code></p>
+				<p class="demo-bind-mirror">Model valid: <code>${String(model.check.valid.get())}</code></p>
 				<pre class="demo-bind-mirror">${errors.length ? errors.map(e => `${e.path.join('.')}: ${e.message}`).join('\n') : 'No errors'}</pre>
-				<pre class="demo-bind-mirror">${this.submitted() || 'Nothing submitted yet.'}</pre>
+				<pre class="demo-bind-mirror">${this.submitted.get() || 'Nothing submitted yet.'}</pre>
 			</section>
 		`;
 	}

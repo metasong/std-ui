@@ -1,11 +1,11 @@
 // Observable collection: `stateArray()` is the signal-tree version of an array. Each element is its
 // own node (built by the supplied `makeItem`, so objects become branches and primitives leaves), and
 // the list structure (which nodes, in what order) is tracked by one signal. Consequently:
-//   - `list()`, `list.shallow()` and `list.deep()` all return plain values; they differ in tracking:
-//   - `list()` re-runs only on whole replacement via `set()`;
+//   - `list.get()`, `list.shallow()` and `list.deep()` all return plain values; they differ in tracking:
+//   - `list.get()` re-runs only on whole replacement via `set()`;
 //   - `list.shallow()` also re-runs when items are added/removed/reordered;
 //   - `list.deep()` re-runs on structure OR any item's value change;
-//   - `list.at(i)()` only re-runs when that element changes (or the element at `i` is replaced).
+//   - `list.at(i)?.get()` only re-runs when that element changes (or the element at `i` is replaced).
 
 import { computed, state, type Computed, type State } from '@std-ui/core';
 import {
@@ -23,7 +23,7 @@ export interface StateArray<T, N extends ItemNode<T> = ItemNode<T>> extends Exte
 	 * Reads the plain values, tracking only whole replacement via `set()` / `update()` (like a plain
 	 * `state(array)`). Use `shallow()` to also track push/pop/splice etc.
 	 */
-	(): T[];
+	get(): T[];
 	/**
 	 * Reads the plain values, tracking whole replacement and any structural change,
 	 * even when the length is the same.
@@ -55,7 +55,7 @@ export interface StateArray<T, N extends ItemNode<T> = ItemNode<T>> extends Exte
 	/**
 	 * Array-like mutators. `mutate` reads `nodes.peek()` so these do not subscribe; `nodes.set`
 	 * still notifies `deep()`, `length`, `at`, and `shallow()`. `pop` / `shift` / `splice` return untracked
-	 * value snapshots (`node.peek()`), not tracked `node()` reads.
+	 * value snapshots (`node.peek()`), not tracked `node.get()` reads.
 	 */
 	push(...values: T[]): number;
 	pop(): T | undefined;
@@ -80,13 +80,14 @@ export function stateArray<T, N extends ItemNode<T> = ItemNode<T>>(
 		inheritExtensions(proxy, node);
 		return node;
 	};
-	const deep = computed(() => nodes().map(readValue));
+	const deep = computed(() => nodes.get().map(readValue));
 	// Mutators edit the node array in place and only `set()` swaps in a new one, so with `Object.is`
 	// cutoff `instance` notifies on replacement only, like a plain `state(array)`.
-	const instance = computed(() => nodes());
+	const instance = computed(() => nodes.get());
 	// All three reads return the same plain values; they differ only in what they subscribe to.
-	const self = (() => (instance(), deep.peek())) as unknown as StateArray<T, N>;
-	self.deep = () => deep();
+	const self = {} as StateArray<T, N>;
+	self.get = () => (instance.get(), deep.peek());
+	self.deep = () => deep.get();
 
 	const snapshot = (list: readonly N[]): T[] => list.map((n) => n.peek());
 	/** In-place structural edit; `peek` avoids tracking when mutators run inside effects. */
@@ -113,7 +114,7 @@ export function stateArray<T, N extends ItemNode<T> = ItemNode<T>>(
 	// `equals: () => false` (notifies on every mutation, even same-size ones like `set()` or in-place
 	// replacement), whereas a computed only notifies dependents when the length value actually changes.
 	// It also satisfies the `Computed<number>` type on the interface.
-	Object.defineProperty(self, 'length', { value: computed(() => nodes().length) });
+	Object.defineProperty(self, 'length', { value: computed(() => nodes.get().length) });
 
 	// One cached computed per requested index: dependents only re-run when the node at that index
 	// actually changes (default `Object.is` equality), not on every structural edit.
@@ -126,14 +127,14 @@ export function stateArray<T, N extends ItemNode<T> = ItemNode<T>>(
 		let c = atCache.get(index);
 		if (!c) {
 			c = computed(() => {
-				const list = nodes();
+				const list = nodes.get();
 				return list[index < 0 ? list.length + index : index];
 			});
 			atCache.set(index, c);
 		}
-		return c();
+		return c.get();
 	};
-	self.shallow = () => (nodes(), deep.peek());
+	self.shallow = () => (nodes.get(), deep.peek());
 
 	self.push = (...values) => mutate((l) => l.push(...values.map(make)));
 	self.unshift = (...values) => mutate((l) => l.unshift(...values.map(make)));

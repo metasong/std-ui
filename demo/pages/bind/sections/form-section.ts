@@ -20,16 +20,16 @@ export class DemoBindFormSection extends UIElement {
 					Text
 					<input .value=${bind(this.search)} type="text" />
 				</label>
-				<p class="demo-bind-mirror">Model: <code>${this.search()}</code></p>
+				<p class="demo-bind-mirror">Model: <code>${this.search.get()}</code></p>
 				<label class="demo-bind-field demo-bind-field--inline">
 					<input type="checkbox" .checked=${bind(this.agreed)} />
 					I agree
 				</label>
-				<p class="demo-bind-mirror">Agreed: <code>${String(this.agreed())}</code></p>
+				<p class="demo-bind-mirror">Agreed: <code>${String(this.agreed.get())}</code></p>
 				<div class="demo-actions">
 					<button type="button" @click=${() => this.search.set('')}>clear query from model</button>
 					<button type="button" class="tonal" @click=${() => this.renderPasses.update(n => n + 1)}>
-						bump render counter (${this.renderPasses()})
+						bump render counter (${this.renderPasses.get()})
 					</button>
 				</div>
 			</section>

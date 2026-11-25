@@ -13,7 +13,6 @@ export { parseAttribute, serializeAttribute } from './attribute/converter.js';
 export {
 	defineObservedAttributes,
 	attributeDefs,
-	isSignalLikeForAttribute,
 	resolveInferredConverter,
 	type AttributeDef,
 } from './attribute/metadata.js';

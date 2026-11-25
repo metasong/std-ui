@@ -28,7 +28,7 @@ describe('@attribute()', () => {
 		const el = document.createElement('attr-seed-attr') as Foo;
 		el.setAttribute('count', '42');
 		document.body.appendChild(el);
-		expect(el.count()).toBe(42);
+		expect(el.count.get()).toBe(42);
 		el.remove();
 	});
 
@@ -45,7 +45,7 @@ describe('@attribute()', () => {
 		el.label.set('bye');
 		await flush();
 		expect(el.hasAttribute('label')).toBe(false);
-		expect(el.label()).toBe('bye');
+		expect(el.label.get()).toBe('bye');
 		el.remove();
 	});
 
@@ -75,7 +75,7 @@ describe('@attribute()', () => {
 		document.body.appendChild(el);
 
 		el.setAttribute('count', '9');
-		expect(el.count()).toBe(9);
+		expect(el.count.get()).toBe(9);
 		el.remove();
 	});
 
@@ -95,7 +95,7 @@ describe('@attribute()', () => {
 		expect(el.getAttribute('active')).toBe('');
 
 		el.removeAttribute('active');
-		expect(el.active()).toBe(false);
+		expect(el.active.get()).toBe(false);
 		el.remove();
 	});
 
@@ -113,7 +113,7 @@ describe('@attribute()', () => {
 		el.internalOnly.set('still-secret');
 		await flush();
 		expect(el.hasAttribute('internal-only')).toBe(false);
-		expect(el.internalOnly()).toBe('still-secret');
+		expect(el.internalOnly.get()).toBe('still-secret');
 		el.remove();
 	});
 
@@ -153,7 +153,7 @@ describe('@attribute()', () => {
 		expect(el.getAttribute('config')).toBe('{"a":1}');
 
 		el.setAttribute('config', '{"a":9}');
-		expect(el.config()).toEqual({ a: 9 });
+		expect(el.config.get()).toEqual({ a: 9 });
 
 		el.config.set({ a: 3 });
 		await flush();
@@ -171,7 +171,7 @@ describe('@attribute()', () => {
 		await flush();
 
 		let runs = 0;
-		const stop = effect(() => { el.config(); runs++; });
+		const stop = effect(() => { el.config.get(); runs++; });
 		expect(runs).toBe(1);
 
 		el.config.set({ a: 2 });
@@ -213,7 +213,7 @@ describe('@attribute()', () => {
 		// The default `Object` converter falls back to `{}` on unparsable text, but writing `{}`
 		// through the `state`'s `DeepPartial` merge provides no keys to overwrite, so the
 		// field's existing leaves are left as-is rather than cleared.
-		expect(el.config()).toEqual({});
+		expect(el.config.get()).toEqual({});
 		el.remove();
 	});
 
@@ -226,14 +226,14 @@ describe('@attribute()', () => {
 		const el = document.createElement('attr-num-edge') as Foo;
 		document.body.appendChild(el);
 		el.setAttribute('count', '7');
-		expect(el.count()).toBe(7);
+		expect(el.count.get()).toBe(7);
 		el.setAttribute('count', '');
-		expect(el.count()).toBe(0);
+		expect(el.count.get()).toBe(0);
 		el.setAttribute('count', 'abc');
-		expect(el.count()).toBeNaN();
+		expect(el.count.get()).toBeNaN();
 		el.setAttribute('count', '3');
 		el.removeAttribute('count');
-		expect(el.count()).toBe(0); // the zero value, like '' for String and false for Boolean, not the initial 5
+		expect(el.count.get()).toBe(0); // the zero value, like '' for String and false for Boolean, not the initial 5
 		el.remove();
 	});
 
@@ -248,7 +248,7 @@ describe('@attribute()', () => {
 		expect(el.getAttribute('count')).toBe('5'); // reflected as Number's converter would
 
 		el.setAttribute('count', '42');
-		expect(el.count()).toBe(42); // parsed as a number, not left as the string "42"
+		expect(el.count.get()).toBe(42); // parsed as a number, not left as the string "42"
 		el.remove();
 	});
 
@@ -279,7 +279,7 @@ describe('@attribute()', () => {
 		expect(el.getAttribute('config')).toBe('{"a":1}'); // JSON, like type: Object
 
 		el.setAttribute('config', '{"a":9}');
-		expect(el.config()).toEqual({ a: 9 });
+		expect(el.config.get()).toEqual({ a: 9 });
 		el.remove();
 	});
 
@@ -316,7 +316,7 @@ describe('@attribute()', () => {
 		expect(el.getAttribute('config')).toBe('{"theme":"dark"}');
 
 		el.setAttribute('config', 'garbage');
-		expect(el.config()).toEqual({ theme: 'dark' }); // custom converter's fallback, not the type default's {}
+		expect(el.config.get()).toEqual({ theme: 'dark' }); // custom converter's fallback, not the type default's {}
 
 		el.config.set({ theme: 'light' });
 		await flush();
@@ -345,7 +345,7 @@ describe('@attribute()', () => {
 		el.label.set('skip');
 		await flush();
 		expect(el.getAttribute('label')).toBe('from-markup');
-		expect(el.label()).toBe('skip');
+		expect(el.label.get()).toBe('skip');
 
 		el.label.set('updated');
 		await flush();

@@ -70,9 +70,9 @@ export class CodePreview extends UIElement {
 	private readonly wrap = stateTree(false);
 
 	protected override template() {
-		const files = this.files();
+		const files = this.files.get();
 		const names = Object.keys(files);
-		const active = this.active() in files ? this.active() : names[0] ?? '';
+		const active = this.active.get() in files ? this.active.get() : names[0] ?? '';
 		return t`
 			<div class="layout">
 				<div class="code">
@@ -91,7 +91,7 @@ export class CodePreview extends UIElement {
 							${svg`<svg viewBox="0 -960 960 960" aria-hidden="true"><path d="M120-200v-80h720v80H120Zm0-240v-80h560q50 0 85 35t35 85q0 50-35 85t-85 35H560v80l-120-120 120-120v80h120q17 0 28.500-11.500T720-400q0-17-11.500-28.500T680-440H120Zm0-240v-80h720v80H120Z"/></svg>`}
 						</label>
 					</div>
-					<pre role="tabpanel" class="${classMap({ wrap: this.wrap() })}"><code>${tokenize(files[active] ?? '').map(tok => t`<span class="${tok.kind}">${tok.text}</span>`)}</code></pre>
+					<pre role="tabpanel" class="${classMap({ wrap: this.wrap.get() })}"><code>${tokenize(files[active] ?? '').map(tok => t`<span class="${tok.kind}">${tok.text}</span>`)}</code></pre>
 				</div>
 				<div class="demo"><slot></slot></div>
 			</div>

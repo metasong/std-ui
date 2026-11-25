@@ -9,8 +9,9 @@
 import { Directive, directive, noChange, type DirectiveResult, isPropertyPartInfo, type PartInfo, type PropertyPartInfo } from '../directive.js';
 import { assertBindableTarget, isRadio } from './defaults.js';
 import { pullRadioSiblings, registerRadio, unregisterRadio } from './radio-group.js';
-import { BIND_USAGE, isWritableSignal, resolveBinding } from './resolve.js';
-import type { BindOptions, BindPlugin, BindSource, Binding, WritableSignal } from './types.js';
+import type { WritableState } from '../../../../reactive/signal/state.js';
+import { BIND_USAGE, isAccessor, resolveBinding } from './resolve.js';
+import type { BindOptions, BindPlugin, BindSource, Binding } from './types.js';
 import { DEV } from '../../../../dev/flag.js';
 import { assertPosition } from '../assert-child-part.js';
 import { usageError } from '../../../../util.js';
@@ -131,14 +132,12 @@ function defineBindDirective(plugins: readonly BindPlugin[]) {
 }
 
 function assertUsable(first: object): void {
-	const usable =
-		isWritableSignal(first) ||
-		(typeof (first as BindSource).get === 'function' && typeof (first as BindSource).set === 'function');
-	if (!usable) throw usageError(DEV && `std-ui bind(): ${BIND_USAGE}`, 'bind');
+	// A signal also has `get` + `set`, so one accessor check covers both forms.
+	if (!isAccessor(first)) throw usageError(DEV && `std-ui bind(): ${BIND_USAGE}`, 'bind');
 }
 
 type BindFunction = {
-	(state: WritableSignal, options?: BindOptions): DirectiveResult;
+	(state: WritableState, options?: BindOptions): DirectiveResult;
 	(source: BindSource): DirectiveResult;
 };
 

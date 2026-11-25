@@ -70,17 +70,17 @@ export class DemoTreemapMap extends UIElement {
 	readonly showRoot = stateTree(false);
 
 	/** Layout only depends on the tree and aspect, not on hover, so hovering does not recompute it. */
-	readonly #width = computed(() => Math.round(this.aspect() * H));
+	readonly #width = computed(() => Math.round(this.aspect.get() * H));
 	readonly #boxes = computed(() => {
-		const tree = this.tree();
-		return tree ? layoutTree(tree, this.#width(), H, this.showRoot(), this.keepGroupOrder()).filter((b) => b.depth === 0 || (b.w > 2 && b.h > 2)) : [];
+		const tree = this.tree.get();
+		return tree ? layoutTree(tree, this.#width.get(), H, this.showRoot.get(), this.keepGroupOrder.get()).filter((b) => b.depth === 0 || (b.w > 2 && b.h > 2)) : [];
 	});
 
 	private readonly selected = state<SizeNode | null>(null);
 
 	/** Keyboard: arrows walk the blocks in paint order (a folder, then its contents), Home/End jump, Esc clears. */
 	#onKey = (e: KeyboardEvent): void => {
-		const boxes = this.#boxes().slice(this.showRoot() ? 0 : 1); // a bare root is an invisible frame, not a stop
+		const boxes = this.#boxes.get().slice(this.showRoot.get() ? 0 : 1); // a bare root is an invisible frame, not a stop
 		if (!boxes.length) return;
 		const cur = boxes.findIndex((b) => b.node === this.selected.peek());
 		let next: number;
@@ -108,14 +108,14 @@ export class DemoTreemapMap extends UIElement {
 		const hue = groupHue(b.group);
 		const pos = this.#pos(b, W);
 		const total = this.tree.peek()?.size ?? 0;
-		const tip = `${labelPath(b.node)} - ${formatKb(b.node.size)} ${this.unit()}${total ? ` (${((b.node.size / total) * 100).toFixed(1)}%)` : ''}`;
+		const tip = `${labelPath(b.node)} - ${formatKb(b.node.size)} ${this.unit.get()}${total ? ` (${((b.node.size / total) * 100).toFixed(1)}%)` : ''}`;
 		const enter = () => this.selected.set(b.node);
 		const leave = () => { if (this.selected.peek() === b.node) this.selected.set(null); };
 
 		if (b.leaf) {
 			const fs = Math.min(34, Math.max(8, Math.sqrt(b.w * b.h) / 5.5)); // bigger tiles get bigger text
 			const showName = b.w > 28 && b.h > fs * 1.7;
-			const showSize = this.showLeafKb() && b.h > fs * 3.2 && b.w > 50;
+			const showSize = this.showLeafKb.get() && b.h > fs * 3.2 && b.w > 50;
 			return t`
 				<div class="block leaf" title="${tip}"
 					style=${styleMap({ ...pos, background: `hsl(${hue} 58% ${52 - Math.min(b.depth, 5) * 2}%)` })}
@@ -129,14 +129,14 @@ export class DemoTreemapMap extends UIElement {
 			`;
 		}
 		const light = 94 - Math.min(b.depth, 6) * 5;
-		const bare = b.depth === 0 && !this.showRoot();
+		const bare = b.depth === 0 && !this.showRoot.get();
 		return t`
 			<div class="block" title="${tip}"
 				style=${styleMap({ ...pos, background: bare ? 'transparent' : b.depth === 0 ? 'hsl(225 16% 90%)' : `hsl(${hue} 45% ${light}%)`, borderColor: bare ? 'transparent' : '' })}
 				@pointerenter=${enter} @pointerleave=${leave} @click=${enter}>
 				${b.header
 					? t`<div class="head" style=${styleMap({ height: `${(b.header / b.h) * 100}%`, fontSize: `${Math.min(15, b.header * 0.62) * u}cqw` })}>
-						<span class="name">${displayName(b.node)}</span>${this.showFolderKb() ? t`<span class="kb">${formatKb(b.node.size)}</span>` : ''}
+						<span class="name">${displayName(b.node)}</span>${this.showFolderKb.get() ? t`<span class="kb">${formatKb(b.node.size)}</span>` : ''}
 					</div>`
 					: ''}
 			</div>
@@ -144,26 +144,26 @@ export class DemoTreemapMap extends UIElement {
 	}
 
 	protected override template() {
-		const tree = this.tree();
+		const tree = this.tree.get();
 		if (!tree) return t`<div class="map" aria-hidden="true"></div>`;
-		const W = this.#width();
-		const boxes = this.#boxes();
+		const W = this.#width.get();
+		const boxes = this.#boxes.get();
 		const groups = tree.children ?? [];
-		const sel = this.selected();
+		const sel = this.selected.get();
 		const selBox = sel ? boxes.find((b) => b.node === sel) : undefined;
 		return t`
 			<div class="map" role="group" tabindex="0" aria-label="Treemap of ${tree.name} sizes. Use arrow keys to move between blocks."
 				style=${styleMap({ aspectRatio: `${W} / ${H}` })}
 				@keydown=${this.#onKey}>
 				${boxes.map((b) => this.#box(b, W))}
-				${selBox && (selBox.depth > 0 || this.showRoot()) ? t`<div class="ring" style=${styleMap(this.#pos(selBox, W))}></div>` : ''}
+				${selBox && (selBox.depth > 0 || this.showRoot.get()) ? t`<div class="ring" style=${styleMap(this.#pos(selBox, W))}></div>` : ''}
 			</div>
 			<ul class="legend">
-				${groups.map((g, i) => t`<li><i style=${styleMap({ background: `hsl(${groupHue(i)} 58% 50%)` })}></i>${g.name}${this.showFolderKb() ? ` ${formatKb(g.size)}` : ''}</li>`)}
+				${groups.map((g, i) => t`<li><i style=${styleMap({ background: `hsl(${groupHue(i)} 58% 50%)` })}></i>${g.name}${this.showFolderKb.get() ? ` ${formatKb(g.size)}` : ''}</li>`)}
 			</ul>
 			<div class="detail" aria-live="polite">
 				${sel
-					? t`<code>${labelPath(sel)}</code> - <strong>${formatKb(sel.size)}</strong> ${this.unit()}
+					? t`<code>${labelPath(sel)}</code> - <strong>${formatKb(sel.size)}</strong> ${this.unit.get()}
 						(${((sel.size / tree.size) * 100).toFixed(1)}% of ${tree.name})${sel.raw ? t`, ${formatKb(sel.raw, 1)} raw` : ''}`
 					: 'Hover, tap or click a block - or focus the map and use the arrow keys - for its path and share.'}
 			</div>

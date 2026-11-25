@@ -27,7 +27,7 @@ export const EQUALS = Symbol('equals');
  * members from outside, so they are not part of this contract.
  */
 export interface ItemNode<T> {
-	(): T;
+	get(): T;
 	peek(): T;
 	set(value: any): void;
 	changes?: { reset: (next?: any) => void };
@@ -35,25 +35,25 @@ export interface ItemNode<T> {
 
 /**
  * Tracked plain-value read of any signal. Every tree node has `deep()`; this also accepts plain
- * core / standard signals (`state()`, `computed()`, `toSignal()`), which only have `()`.
+ * core / standard signals (`state()`, `computed()`, `toSignal()`), which only have `get()`.
  */
 export function readValue<T>(node: ItemNode<T>): T {
 	const deep = (node as { deep?: () => T }).deep;
-	return typeof deep === 'function' ? deep() : node();
+	return typeof deep === 'function' ? deep() : node.get();
 }
 
 /** Type of a node built by this module (`stateTree()`, `stateObject()`, `stateArray()`, leaves). */
 export interface TreeNode {
-	(): unknown;
+	get(): unknown;
 	peek(): unknown;
 	deep(): unknown;
 	set(value: any): void;
 }
 
-/** Runtime check for `TreeNode`: a function with `deep()` and `shallow()` (plain core signals have neither). */
+/** Runtime check for `TreeNode`: an object with `deep()` and `shallow()` (plain core signals have neither). */
 export function isTreeNode(value: unknown): value is TreeNode {
 	return (
-		typeof value === 'function' &&
+		(typeof value === 'object' || typeof value === 'function') && value !== null &&
 		typeof (value as { deep?: unknown }).deep === 'function' &&
 		typeof (value as { shallow?: unknown }).shallow === 'function'
 	);

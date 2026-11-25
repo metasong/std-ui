@@ -33,7 +33,7 @@ export class DemoSvgSection extends UIElement {
 					<svg id="svg-tag" width="240" height="80" style="border:1px solid #888">${xs.map(svgCircle)}</svg>
 				</div>
 			</div>
-			<pre style="white-space:pre-wrap;font-size:0.8rem">${this.report()}</pre>
+			<pre style="white-space:pre-wrap;font-size:0.8rem">${this.report.get()}</pre>
 		`;
 	}
 

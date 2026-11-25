@@ -14,19 +14,19 @@ describe('check follows formUi.disabled', () => {
 
 	it('a disabled node is not validated, and re-enables reactively', () => {
 		const s = make();
-		expect(s.a.check.valid.own()).toBe(false);
+		expect(s.a.check.valid.own.get()).toBe(false);
 		s.a.formUi.disabled.own.set(true);
-		expect(s.a.check.errors()).toEqual([]);
-		expect(s.a.check.valid.own()).toBe(true);
-		expect(s.b.check.valid.own()).toBe(false);
+		expect(s.a.check.errors.get()).toEqual([]);
+		expect(s.a.check.valid.own.get()).toBe(true);
+		expect(s.b.check.valid.own.get()).toBe(false);
 		s.a.formUi.disabled.own.set(false);
-		expect(s.a.check.valid.own()).toBe(false);
+		expect(s.a.check.valid.own.get()).toBe(false);
 	});
 
 	it('inherits from a disabled ancestor', () => {
 		const s = make();
 		s.formUi.disabled.own.set(true);
-		expect(s.check.valid()).toBe(true);
-		expect(s.b.check.errors()).toEqual([]);
+		expect(s.check.valid.get()).toBe(true);
+		expect(s.b.check.errors.get()).toEqual([]);
 	});
 });

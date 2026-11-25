@@ -2,7 +2,7 @@ import { state, type StateOptions, type State } from '@std-ui/core';
 import { addWith, EQUALS, type Extendable } from './node.js';
 
 /**
- * A tree leaf: a plain `State<T>` plus `shallow()` / `deep()` (both identical to `()`) and `with()`.
+ * A tree leaf: a plain `State<T>` plus `shallow()` / `deep()` (both identical to `get()`) and `with()`.
  * Validation (`check`) and change tracking (`changes`) are separate features added through `with()`.
  */
 export type StateLeaf<T> = State<T> &
@@ -25,8 +25,8 @@ export function stateLeaf<T>(value: T, signalOptions?: StateOptions<T>): StateLe
 export function toStateLeaf<T>(source: State<T>, equals?: (a: T, b: T) => boolean): StateLeaf<T> {
 	if (isStateLeaf(source)) return source;
 	const leaf = source as StateLeaf<T>;
-	leaf.shallow = leaf;
-	leaf.deep = leaf;
+	leaf.shallow = () => leaf.get();
+	leaf.deep = () => leaf.get();
 	addWith(leaf);
 	if (equals) (leaf as { [EQUALS]?: unknown })[EQUALS] = equals;
 	return leaf;

@@ -6,20 +6,20 @@ import { state } from './state.js';
 describe('signal', () => {
 	it('reads back the initial value', () => {
 		const count = state(5);
-		expect(count()).toBe(5);
+		expect(count.get()).toBe(5);
 	});
 
 	it('set() updates the value read back', () => {
 		const count = state(1);
 		count.set(2);
-		expect(count()).toBe(2);
+		expect(count.get()).toBe(2);
 	});
 
 	it('update() derives the next value from the previous one and returns it', () => {
 		const count = state(1);
 		const next = count.update(n => n + 1);
 		expect(next).toBe(2);
-		expect(count()).toBe(2);
+		expect(count.get()).toBe(2);
 	});
 
 	it('peek() reads without tracking (no dependency registered)', async () => {
@@ -41,7 +41,7 @@ describe('signal', () => {
 		const count = state(1);
 		const spy = vi.fn();
 		effect(() => {
-			count();
+			count.get();
 			spy();
 		});
 		await flushEffects();
@@ -57,7 +57,7 @@ describe('signal', () => {
 		const name = state('Ada', { equals: (a, b) => a.toLowerCase() === b.toLowerCase() });
 		const spy = vi.fn();
 		effect(() => {
-			name();
+			name.get();
 			spy();
 		});
 		await flushEffects();
@@ -66,11 +66,11 @@ describe('signal', () => {
 		name.set('ADA');
 		await flushEffects();
 		expect(spy).not.toHaveBeenCalled();
-		expect(name()).toBe('Ada'); // unchanged - equals() said it was the same value
+		expect(name.get()).toBe('Ada'); // unchanged - equals() said it was the same value
 
 		name.set('Lin');
 		await flushEffects();
 		expect(spy).toHaveBeenCalledTimes(1);
-		expect(name()).toBe('Lin');
+		expect(name.get()).toBe('Lin');
 	});
 });

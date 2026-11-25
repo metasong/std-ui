@@ -24,7 +24,7 @@ describe("state depth: 'value'", () => {
 	it('only a whole replacement notifies', async () => {
 		const s = stateTree(data(), { depth: 'value' });
 		const seen: unknown[] = [];
-		effect(() => void seen.push(s().id));
+		effect(() => void seen.push(s.get().id));
 		await flushEffects();
 		s.set({ ...data(), id: 2 });
 		await flushEffects();
@@ -34,7 +34,7 @@ describe("state depth: 'value'", () => {
 	it('forwards `equals` to the leaf', async () => {
 		const s = stateTree(data(), { depth: 'value', equals: (a: { id: number }, b: { id: number }) => a.id === b.id });
 		let runs = 0;
-		effect(() => void (s(), runs++));
+		effect(() => void (s.get(), runs++));
 		await flushEffects();
 		s.set({ ...data(), user: { name: 'Bob', tags: [] } }); // same id -> not a change
 		await flushEffects();
@@ -43,10 +43,8 @@ describe("state depth: 'value'", () => {
 
 	it('shallow() and deep() are the same read as ()', () => {
 		const s = stateTree(data(), { depth: 'value' });
-		expect(s.shallow).toBe(s);
-		expect(s.deep).toBe(s);
-		expect(s.shallow()).toBe(s());
-		expect(s.deep()).toBe(s());
+		expect(s.shallow()).toBe(s.get());
+		expect(s.deep()).toBe(s.get());
 	});
 
 
@@ -60,8 +58,8 @@ describe("state depth: 'shallow'", () => {
 	it('builds a container whose members are leaves holding raw values', () => {
 		const input = data();
 		const tree = stateTree(input, { depth: 'shallow' });
-		expect(tree.id()).toBe(1);
-		expect(tree.user()).toBe(input.user); // raw reference, not walked
+		expect(tree.id.get()).toBe(1);
+		expect(tree.user.get()).toBe(input.user); // raw reference, not walked
 		expect((tree.user as unknown as Record<string, unknown>).tags).toBeUndefined(); // no sub-members
 		expect(tree.deep()).toEqual(data());
 	});
@@ -74,7 +72,7 @@ describe("state depth: 'shallow'", () => {
 		tree.user.set({ name: 'Bob', tags: [] });
 		await flushEffects();
 		expect(seen).toEqual(['Ada', 'Bob']);
-		tree.user().name = 'Zed'; // in-place mutation of the raw value: no signal
+		tree.user.get().name = 'Zed'; // in-place mutation of the raw value: no signal
 		await flushEffects();
 		expect(seen).toEqual(['Ada', 'Bob']);
 	});
@@ -121,7 +119,7 @@ describe("state depth: 'shallow'", () => {
 	it('forwards `equals` to the member leaves', () => {
 		const tree = stateTree({ p: { x: 1 } }, { depth: 'shallow', equals: (a, b) => JSON.stringify(a) === JSON.stringify(b) });
 		let runs = 0;
-		effect(() => void (tree.p(), runs++));
+		effect(() => void (tree.p.get(), runs++));
 		tree.p.set({ x: 1 }); // structurally equal -> no change
 		expect(runs).toBe(1);
 	});
@@ -140,7 +138,7 @@ describe('state depth: composing shallow nodes into a deep tree', () => {
 		const big = stateTree({ rows: [{ id: 1 }, { id: 2 }] }, { depth: 'shallow' });
 		const page = stateTree({ title: 'T', big });
 		expect(page.big).toBe(big);
-		expect(page.big.rows()).toEqual([{ id: 1 }, { id: 2 }]); // raw array, one leaf
+		expect(page.big.rows.get()).toEqual([{ id: 1 }, { id: 2 }]); // raw array, one leaf
 		expect((page.big.rows as unknown as Record<string, unknown>).push).toBeUndefined();
 		expect(page.deep()).toEqual({ title: 'T', big: { rows: [{ id: 1 }, { id: 2 }] } });
 	});
@@ -191,7 +189,7 @@ describe('state depth: composing shallow nodes into a deep tree', () => {
 		let runs = 0;
 		effect(() => void (parent.deep(), runs++));
 		await flushEffects();
-		parent.raw().x = 2; // in-place mutation of a raw member: no signal
+		parent.raw.get().x = 2; // in-place mutation of a raw member: no signal
 		await flushEffects();
 		expect(runs).toBe(1);
 	});
@@ -209,7 +207,7 @@ describe('state depth: composing shallow nodes into a deep tree', () => {
 
 	it('default depth is deep', () => {
 		const tree = stateTree(data());
-		expect(tree.user.name()).toBe('Ada');
+		expect(tree.user.name.get()).toBe('Ada');
 		expect(tree.user.tags.deep()).toEqual(['a']);
 	});
 });

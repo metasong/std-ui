@@ -1,5 +1,6 @@
 import { DEV } from '../../../../dev/flag.js';
-import { isSettable, kebab } from '../../../../util.js';
+import { isReadableState, isWritableState } from '../../../../reactive/signal/state.js';
+import { kebab } from '../../../../util.js';
 import { usageError } from '../../../../util.js';
 // Element-aware defaults for `bind()`: which event, how to compare, how to coerce. Everything here
 // is a pure function of (element, property), so `resolve.ts` can stay a simple "options ?? default".
@@ -28,14 +29,14 @@ export function describeTarget(element: Element, property: string): string {
 
 export function readProperty(element: Element, property: string): unknown {
 	const value = (element as unknown as Record<string, unknown>)[property];
-	return isSettable(value) ? value() : value;
+	return isReadableState(value) ? value.get() : value;
 }
 
 /** A signal-valued property is written through its `.set()`; plain assignment would replace the signal itself. */
 export function writeProperty(element: Element, property: string, model: unknown): void {
 	const target = element as unknown as Record<string, unknown>;
 	const current = target[property];
-	if (isSettable(current) && current !== model) current.set(model as never);
+	if (isWritableState(current) && current !== model) current.set(model as never);
 	else target[property] = model;
 }
 

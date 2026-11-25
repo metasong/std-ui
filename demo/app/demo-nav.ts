@@ -31,7 +31,7 @@ export class DemoNav extends UIElement {
 	`;
 
 	protected override template() {
-		const { pathname, hash } = routerOf(this).location();
+		const { pathname, hash } = routerOf(this).location.get();
 		const current = pageOf(pathname);
 		return t`
 			<nav aria-label="Demos and sections">

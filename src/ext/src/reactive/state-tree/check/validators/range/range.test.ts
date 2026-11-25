@@ -16,10 +16,10 @@ describe('range validators', () => {
 	it('works on a node', () => {
 		const s = check(stateTree({ age: -1 }));
 		s.age.check.validators.set([min<number>(0), max<number>(120)]);
-		expect(s.age.check.errors().map((e) => e.flag)).toEqual(['rangeUnderflow']);
+		expect(s.age.check.errors.get().map((e) => e.flag)).toEqual(['rangeUnderflow']);
 		s.age.set(121);
-		expect(s.age.check.errors().map((e) => e.flag)).toEqual(['rangeOverflow']);
+		expect(s.age.check.errors.get().map((e) => e.flag)).toEqual(['rangeOverflow']);
 		s.age.set(30);
-		expect(s.age.check.valid.own()).toBe(true);
+		expect(s.age.check.valid.own.get()).toBe(true);
 	});
 });

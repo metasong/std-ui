@@ -10,7 +10,7 @@ class ClockFeat extends UIFeat {
 	protected override connected() {
 		// Re-runs on every connect; the effect is disposed on disconnect, and so is the interval via the cleanup.
 		this.effect((onCleanup) => {
-			if (!this.running()) return;
+			if (!this.running.get()) return;
 			const id = setInterval(() => this.now.set(Date.now()), 1000);
 			onCleanup(() => clearInterval(id));
 		});
@@ -30,8 +30,8 @@ export class DemoFeatClock extends UIElement {
 	protected override template() {
 		return t`
 			<div tabindex="0">
-				<time>${new Date(this.#clock.now()).toLocaleTimeString()}</time>
-				<button type="button" @click=${() => this.#clock.toggle()}>${this.#clock.running() ? 'pause' : 'resume'}</button>
+				<time>${new Date(this.#clock.now.get()).toLocaleTimeString()}</time>
+				<button type="button" @click=${() => this.#clock.toggle()}>${this.#clock.running.get() ? 'pause' : 'resume'}</button>
 				<small>focus here and press Space</small>
 			</div>
 		`;

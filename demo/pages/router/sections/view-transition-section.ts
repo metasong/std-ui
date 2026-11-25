@@ -63,7 +63,7 @@ export class DemoRouterViewTransitionSection extends UIElement {
 						<button @click=${() => this.go('/')}>Home</button>
 						<button @click=${() => this.go('/products')}>Products</button>
 						<button @click=${() => this.go('/contact')}>Contact</button>
-						<small>effect: <output>${this.chosen()}</output></small>
+						<small>effect: <output>${this.chosen.get()}</output></small>
 					</p>
 					<std-outlet class="demo-rt-outlet" view-transition-name="demo-rt"></std-outlet>
 				</std-router>

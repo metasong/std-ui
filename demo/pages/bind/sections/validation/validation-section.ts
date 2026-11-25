@@ -26,8 +26,8 @@ const person = formUi(check(stateTree({ first: '', last: '' })));
 person.first.check.validators.set([required('First name required')]);
 person.last.check.validators.set([required('Last name required')]);
 
-const errorsOf = (node: { check: { errors(): { message: string }[] } }) =>
-	node.check.errors().map(e => e.message).join(', ') || 'none';
+const errorsOf = (node: { check: { errors: { get(): { message: string }[] } } }) =>
+	node.check.errors.get().map(e => e.message).join(', ') || 'none';
 
 type Validatable = HTMLElement & { checkValidity(): boolean; reportValidity(): boolean; validationMessage: string; validity: ValidityState };
 
@@ -108,7 +108,7 @@ export class DemoBindValidationSection extends UIElement {
 					<button type="button" class="tonal" @click=${() => this.querySelector<Validatable>('#range')?.reportValidity()}>reportValidity()</button>
 				</div>
 
-				<pre class="demo-bind-mirror">${this.status() || 'Press “inspect host validity” to see flags and message.'}</pre>
+				<pre class="demo-bind-mirror">${this.status.get() || 'Press “inspect host validity” to see flags and message.'}</pre>
 			</section>
 		`;
 	}

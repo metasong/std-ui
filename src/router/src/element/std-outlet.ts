@@ -36,9 +36,9 @@ export class StdOutlet extends UIElement {
 		this.effect(
 			() => {
 				const router = current(); // re-runs when `<std-router>.router` is replaced
-				match = router?.matches()[depth];
-				error = router?.error();
-				data = router?.data() ?? new Map();
+				match = router?.matches.get()[depth];
+				error = router?.error.get();
+				data = router?.data.get() ?? new Map();
 			},
 			() => this.#show(match, error, data.get(match?.route as RouteDef)),
 		);

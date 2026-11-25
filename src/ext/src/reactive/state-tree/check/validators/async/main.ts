@@ -79,14 +79,14 @@ export function asyncValidator<T = unknown, D = undefined>(
 	};
 
 	const isSettledFor = (key: Key) => {
-		const s = settled();
+		const s = settled.get();
 		return !!s && sameKey(s.key, key);
 	};
 
 	const validator = ((value: T) => {
 		const key = keyOf(value);
 		ensure(key);
-		const s = settled();
+		const s = settled.get();
 		return s && sameKey(s.key, key) ? s.errors : null;
 	}) as AsyncValidator<T>;
 	(validator as { pending: (value?: T) => boolean }).pending = (...args: [T?]) => {
@@ -96,7 +96,7 @@ export function asyncValidator<T = unknown, D = undefined>(
 			return !isSettledFor(key);
 		}
 		// No value given: use the key the node last asked this validator to check.
-		const w = wanted();
+		const w = wanted.get();
 		return !!w && !isSettledFor(w);
 	};
 	return validator;

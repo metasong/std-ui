@@ -4,7 +4,7 @@ import { state, type State } from '../../../../reactive/signal/index.js';
 import { assertPosition } from '../assert-child-part.js';
 
 /** A signal holding the rendered element, filled in by `ref()`: `undefined` before the first render and after
- *  teardown. Read it by calling it (tracked in effects/templates), or `.peek()` for an untracked read. */
+ *  teardown. Read it with `.get()` (tracked in effects/templates), or `.peek()` for an untracked read. */
 export type Ref<T extends Element = Element> = State<T | undefined>;
 /** Called with the element when it renders, and with `undefined` when the binding is torn down
  *  or switched to another ref. */
@@ -78,9 +78,7 @@ class RefDirective extends Directive {
 	}
 }
 
-/** A `Ref` is a signal, which is also a function: tell it from a callback by its `set`.
- *  (Guards `Ref`, not `RefCallback`: a `Ref` is itself assignable to `RefCallback`, so the false branch of a
- *  `ref is RefCallback` guard would narrow to `never`.) */
+/** A `Ref` is a signal (an object); a callback is a function: tell them apart by `set`. */
 function isRef(ref: RefOrCallback): ref is Ref {
 	return 'set' in ref;
 }

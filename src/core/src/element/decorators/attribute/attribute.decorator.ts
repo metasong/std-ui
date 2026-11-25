@@ -66,9 +66,6 @@ export interface AttributeOptions<V = unknown> {
 	converter?: AttributeConverter<V>;
 }
 
-/** A store a field can be mirrored through: anything `stateTree()` returns (readable, writable). */
-export type AttributeStore = { (): unknown; peek(): unknown; set(value: never): void };
-
 /**
  * Field decorator that registers a `stateTree(...)` field to be mirrored to/from an HTML
  * attribute by `UIElement` (see `../element/ui-element.ts`): the attribute being set (including by the

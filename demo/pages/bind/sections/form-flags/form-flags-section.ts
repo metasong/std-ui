@@ -129,7 +129,7 @@ export class DemoBindFormFlagsSection extends UIElement {
 	}
 
 	protected override template() {
-		attributesChanged(); // tracked: re-render when an observed attribute changes
+		attributesChanged.get(); // tracked: re-render when an observed attribute changes
 		return t`
 			<section class="demo-bind-block" id="form-flags">
 				<h2>Form flags and aria</h2>

@@ -13,7 +13,7 @@ import { setFlag } from '../../../form/flags.js';
 import type { FormUi } from '../../../../reactive/state-tree/form-ui/index.js';
 import type { ValidationError } from '../../../../reactive/state-tree/check/index.js';
 
-type ErrorReader = () => readonly ValidationError[];
+type ErrorReader = { get(): readonly ValidationError[] };
 type SettableErrors = Element & { setErrors(property: string, errors: readonly ValidationError[]): void };
 type ValidityTarget = SettableErrors | HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement;
 
@@ -45,14 +45,16 @@ function report(element: ValidityTarget, property: string, errors: readonly Vali
 
 /** Validators carry the flag they report (`required()` → `valueMissing`); read structurally, tracked. */
 const requiredOf = (source: unknown): (() => boolean) | undefined => {
-	const validators = (source as { check?: { validators?: () => readonly { flag?: unknown }[] } } | null)?.check
+	const validators = (source as { check?: { validators?: { get(): readonly { flag?: unknown }[] } } } | null)?.check
 		?.validators;
-	return validators && (() => validators().some((v) => v.flag === 'valueMissing'));
+	return validators && (() => validators.get().some((v) => v.flag === 'valueMissing'));
 };
+const readerOf = (signal: { get(): boolean } | undefined): (() => boolean) | undefined =>
+	signal && (() => signal.get());
 const dirtyOf = (source: unknown): (() => boolean) | undefined =>
-	(source as { changes?: { dirty?: () => boolean } } | null)?.changes?.dirty;
+	readerOf((source as { changes?: { dirty?: { get(): boolean } } } | null)?.changes?.dirty);
 const pendingOf = (source: unknown): (() => boolean) | undefined =>
-	(source as { check?: { pending?: { own?: () => boolean } } } | null)?.check?.pending?.own;
+	readerOf((source as { check?: { pending?: { own?: { get(): boolean } } } } | null)?.check?.pending?.own);
 
 /**
  * `aria-invalid`, and the message text in the element `aria-errormessage` points to (the author
@@ -81,7 +83,7 @@ function wireErrors({ element, property, source }: BindPluginContext): () => voi
 		report(element, property, errors);
 		reflectAria(element);
 	};
-	const stop = effect(() => apply(errorsOf(source())?.() ?? []));
+	const stop = effect(() => apply(errorsOf(source())?.get() ?? []));
 	return () => {
 		stop();
 		apply([]);
@@ -100,7 +102,7 @@ function wireTouched({ element, source }: BindPluginContext): () => void {
 	element.addEventListener('invalid', onTouch);
 	let shown = false;
 	const stop = effect(() => {
-		const touched = uiOf(source())?.touched();
+		const touched = uiOf(source())?.touched.get();
 		if (touched) {
 			shown = true;
 			setFlag(element, 'touched', true);
@@ -209,8 +211,8 @@ function wireLocks({ element, source }: BindPluginContext): () => void {
 	const stop = effect(() => {
 		const ui = uiOf(source());
 		if (!ui) return;
-		const ro = ui.readonly();
-		const dis = ui.disabled();
+		const ro = ui.readonly.get();
+		const dis = ui.disabled.get();
 		if (ro !== readonly) setReadonly(element, (readonly = ro));
 		if (dis !== disabled) setDisabled(element, (disabled = dis));
 	});

@@ -109,11 +109,11 @@ function attach(node: object): void {
 	const n = node as TreeNode & { shallow?: () => unknown };
 	const flag = (resolve: (own: boolean) => boolean): Flag => {
 		const own = state(false);
-		return Object.assign(computed(() => resolve(own())), { own });
+		return Object.assign(computed(() => resolve(own.get())), { own });
 	};
 	// readonly / disabled: own OR any ancestor.
 	const fromAncestors = (pick: (ui: FormUi) => Flag) => (own: boolean) =>
-		own || parentsOf(n).some((p) => pick(p.formUi)());
+		own || parentsOf(n).some((p) => pick(p.formUi).get());
 	const readonly = flag(fromAncestors((ui) => ui.readonly));
 	const disabled = flag(fromAncestors((ui) => ui.disabled));
 	// touched: own OR any descendant.
@@ -122,7 +122,7 @@ function attach(node: object): void {
 		n.shallow?.(); // tracked: which members exist
 		let any = false;
 		eachChild(n, (ui) => {
-			if (!any && ui.touched()) any = true;
+			if (!any && ui.touched.get()) any = true;
 		});
 		return any;
 	});
