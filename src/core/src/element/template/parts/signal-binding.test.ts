@@ -1,7 +1,8 @@
 import { describe, expect, it, vi } from 'vitest';
 import { Signal } from 'signal-polyfill';
 import { computed, state } from '../../../reactive/index.js';
-import { effect, whenFlushed } from '../../../reactive/effect/main.js';
+import { effect } from '../../../reactive/effect/effect.js';
+import { whenFlushed } from '../../../reactive/effect/scheduler.js';
 import { AttributePart, BooleanAttributePart, ChildPart, PropertyPart } from './index.js';
 import { raw } from '../custom-attributes/property/index.js';
 import { render } from '../render.js';

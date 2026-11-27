@@ -20,7 +20,7 @@ ignored. The example above runs once.
 Trade-off: the effect read the state *before* its own write, so it does not re-run to observe the
 result. If you need that, split the write into a separate effect, or read with `peek()`.
 
-## 2. Cycle guard (`main.ts`, `flush`)
+## 2. Cycle guard (`scheduler.ts`, `flush`)
 
 The self-write guard cannot see indirect cycles: effect A writes what B reads, and B writes what A
 reads. `CycleGuard` (`dev/effect-cycle-guard.ts`), used by `flush()`, counts re-runs per effect

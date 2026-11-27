@@ -120,7 +120,7 @@ previous run (e.g. a branch that's no longer read) are automatically dropped. De
 `../index.js` also exports `subtle`, grouping two low-level primitives named after
 `Signal.subtle` in the proposal. Most code should stick to `state()`/`computed()`/`effect()` -
 reach for these only when building a custom scheduler or framework integration on top of the
-dependency graph (`effect()` itself is built on `subtle.Watcher`; see [`../effect/main.ts`](../effect/main.ts)):
+dependency graph (`effect()` itself is built on `subtle.Watcher`; see [`../effect/effect.ts`](../effect/effect.ts)):
 
 - **`subtle.Watcher`** (`new Watcher(notify)`) - watches a fixed set of dependencies (via
   `.watch(...)`/`.unwatch(...)`) and fires `notify` once, synchronously, the moment any of them

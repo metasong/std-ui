@@ -10,7 +10,8 @@
 
 import { describe, it, vi } from 'vitest';
 import { state, type State } from '../../../reactive/index.js';
-import { effect, whenFlushed } from '../../../reactive/effect/main.js';
+import { effect } from '../../../reactive/effect/effect.js';
+import { whenFlushed } from '../../../reactive/effect/scheduler.js';
 import { render } from '../render.js';
 import { t } from '../tag-funcs/html/index.js';
 

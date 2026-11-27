@@ -1,6 +1,6 @@
 # `effect()` — implementation design
 
-How [`main.ts`](./main.ts) works. For the user-facing API see [`README.md`](./README.md).
+How [`effect.ts`](./effect.ts), [`watch-signal.ts`](./watch-signal.ts) and [`scheduler.ts`](./scheduler.ts) work. For the user-facing API see [`README.md`](./README.md).
 
 ## Building blocks
 

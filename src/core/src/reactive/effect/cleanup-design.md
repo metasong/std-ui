@@ -1,7 +1,7 @@
 # Design: `onCleanup` in `effect()`
 
 Why `effect()` takes a body that receives an `onCleanup(fn)` registration function, and how it behaves.
-API reference: [`README.md`](./README.md). Implementation: [`main.ts`](./main.ts).
+API reference: [`README.md`](./README.md). Implementation: [`effect.ts`](./effect.ts).
 
 ## Decision
 

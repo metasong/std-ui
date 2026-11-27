@@ -53,7 +53,9 @@ export class CycleGuard {
 	/** Creation-site `Error` (or the effect body, when stack capture is off) of each live effect (dev only). */
 	readonly #origins = new Map<Watcher, Origin>();
 	/** Tracked body of each live effect, to list the signals it reads when a cycle is reported (dev only). */
-	readonly #bodies = new Map<Watcher, Signal.Computed<void>>();
+	readonly #bodies = new Map<Watcher, Signal.State<unknown> | Signal.Computed<unknown>>();
+	/** Watchers whose `#bodies` entry is the one signal they read, not a computed body to introspect (dev only). */
+	readonly #direct = new Set<Watcher>();
 	readonly #limit: number;
 	readonly #onTrip: () => void;
 
@@ -63,17 +65,20 @@ export class CycleGuard {
 		this.#onTrip = onTrip;
 	}
 
-	/** Remembers where `watcher`'s effect was created. Call from `effect()`. */
-	register(watcher: Watcher, action: (...args: never[]) => void, name: string | undefined, body: Signal.Computed<void>): void {
+	/** Remembers where `watcher`'s effect was created. Call from `effect()`. `reads` is the effect's tracked body, or,
+	 *  with `direct`, the one signal it watches (`watchSignal()`). */
+	register(watcher: Watcher, action: (...args: never[]) => void, name: string | undefined, reads: Signal.State<unknown> | Signal.Computed<unknown>, direct = false): void {
 		if (!DEV) return;
 		this.#origins.set(watcher, name ?? (captureStacks() ? new Error() : action));
-		this.#bodies.set(watcher, body);
+		this.#bodies.set(watcher, reads);
+		if (direct) this.#direct.add(watcher);
 	}
 
 	/** Forgets `watcher`. Call from the effect's dispose. */
 	unregister(watcher: Watcher): void {
 		this.#origins.delete(watcher);
 		this.#bodies.delete(watcher);
+		this.#direct.delete(watcher);
 		this.#runs.delete(watcher);
 	}
 
@@ -81,7 +86,7 @@ export class CycleGuard {
 	count(watcher: Watcher): void {
 		const n = (this.#runs.get(watcher) ?? 0) + 1;
 		if (n > this.#limit) {
-			const message = DEV ? describeCycle(this.#limit, this.#runs, this.#origins, this.#bodies, watcher) : `effect re-ran more than ${this.#limit} times (cycle?)`;
+			const message = DEV ? describeCycle(this.#limit, this.#runs, this.#origins, this.#bodies, this.#direct, watcher) : `effect re-ran more than ${this.#limit} times (cycle?)`;
 			this.#onTrip();
 			this.#runs.clear();
 			throw new Error(message);
@@ -101,11 +106,12 @@ function describeCycle(
 	limit: number,
 	runs: ReadonlyMap<Watcher, number>,
 	origins: ReadonlyMap<Watcher, Origin>,
-	bodies: ReadonlyMap<Watcher, Signal.Computed<void>>,
+	bodies: ReadonlyMap<Watcher, Signal.State<unknown> | Signal.Computed<unknown>>,
+	direct: ReadonlySet<Watcher>,
 	offender: Watcher,
 ): string {
 	const suspects = [...runs].filter(([w, n]) => w !== offender && n > 1);
-	const fmt = (w: Watcher, n: number): string => `  - ran ${n}x, created at:\n${originOf(origins.get(w))}\n    reads: ${readsOf(bodies.get(w))}`;
+	const fmt = (w: Watcher, n: number): string => `  - ran ${n}x, created at:\n${originOf(origins.get(w))}\n    reads: ${readsOf(bodies.get(w), direct.has(w))}`;
 	return [
 		`effect re-ran more than ${limit} times in a row: probably a cycle between effects that write signals each other reads.`,
 		`Effect that hit the limit:`,
@@ -117,10 +123,11 @@ function describeCycle(
 }
 
 /** The signals an effect currently reads, with their values: a counter that keeps climbing points at the cycle. */
-function readsOf(body: Signal.Computed<void> | undefined): string {
+function readsOf(body: Signal.State<unknown> | Signal.Computed<unknown> | undefined, direct: boolean): string {
 	if (!body) return '(unknown)';
 	try {
-		const sources = Signal.subtle.introspectSources(body);
+		// `introspectSources` only takes a consumer, so a `State` is always the direct case.
+		const sources = direct || body instanceof Signal.State ? [body] : Signal.subtle.introspectSources(body);
 		if (!sources.length) return '(none)';
 		return sources.slice(0, 8).map((s) => {
 			if (!(s instanceof Signal.State)) return 'computed';
@@ -145,7 +152,7 @@ function originOf(origin: Origin | undefined): string {
 	return error.stack
 		.split('\n')
 		.slice(1)
-		.filter((l) => !/\/(?:effect|effect-cycle-guard)\.ts/.test(l))
+		.filter((l) => !/\/reactive\/effect\/(?:main|effect|watch-signal|scheduler|dev\/effect-cycle-guard)\.ts/.test(l))
 		.slice(0, 3)
 		.join('\n');
 }

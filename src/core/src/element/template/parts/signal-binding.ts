@@ -4,7 +4,8 @@
 // `${this.count.get()}`), `template()` never reads it, so the host's template effect is not
 // subscribed to it. The part subscribes instead, with its own effect, and patches only its slot.
 // See `../signal-binding-plan.md`.
-import { effect } from '../../../reactive/effect/main.js';
+import { effect } from '../../../reactive/effect/effect.js';
+import { isWatchableSignal, watchSignal } from '../../../reactive/effect/watch-signal.js';
 import { isReadableState } from '../../../reactive/signal/state.js';
 import { untrack } from '../../../reactive/signal/tracking.js';
 import { warnOnce } from './part.js';
@@ -51,6 +52,13 @@ export class SignalBinding {
 			return;
 		}
 		this.#dispose?.();
+		// The common case, one signal and nothing else in the slot: watch it directly, with no effect (and no
+		// computed on top of the signal) in between. `watchSignal` already runs untracked.
+		const only = values.length === 1 ? values[0] : undefined;
+		if (isWatchableSignal(only)) {
+			this.#dispose = watchSignal(only, value => this.#apply([value]), this.#name);
+			return;
+		}
 		// Untracked: the first run is synchronous, and the part may be created inside the host's template
 		// effect, which must not pick these signals up as its own dependencies.
 		this.#dispose = untrack(() => effect(() => {

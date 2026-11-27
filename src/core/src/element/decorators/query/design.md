@@ -122,7 +122,7 @@ public get updateComplete(): Promise<true> {
 ```
 
 Render re-runs are microtask-batched (`effect()`'s `scheduleFlush()` in
-`../../../reactive/effect/main.ts` queues exactly **one** `queueMicrotask` per batch of synchronous
+`../../../reactive/effect/scheduler.ts` queues exactly **one** `queueMicrotask` per batch of synchronous
 writes, then flushes every pending effect in it). `updateComplete` first waits **one**
 microtask hop so that a write made later in the same synchronous turn (after reading
 `updateComplete`, before `await`) has already scheduled its flush. It then awaits `whenFlushed()`,
@@ -146,6 +146,6 @@ silently serve a stale answer the next time it's needed.
 - [`../design.md`](../design.md) - the registration mechanism the other decorators share (queries register nothing).
 - [`../context/design.md`](../context/design.md) - `@consume()`, which is also plain-field-only for the same "nothing to back at decoration time" reason.
 - [`../../ui-element.ts`](../../ui-element.ts) — `UIElement.updateComplete`.
-- [`../../../reactive/effect/main.ts`](../../../reactive/effect/main.ts) — the microtask-batched `effect()`
+- [`../../../reactive/effect/effect.ts`](../../../reactive/effect/effect.ts) — the microtask-batched `effect()`
   re-run `updateComplete` waits on.
 - [`query.test.ts`](./query.test.ts) — behavior tests.

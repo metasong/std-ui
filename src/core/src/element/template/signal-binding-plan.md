@@ -230,21 +230,34 @@ the pairs, not the absolute numbers). `plain` = `${s.get()}`, `signal` = `${s}`.
 
 | | Plain | Signal | Ratio |
 |---|---|---|---|
-| Update one row | 0.43 ms | 0.0022 ms | about 190x faster |
-| Update all rows | 1.18 ms | 1.56 ms | 1.33x |
-| Create + dispose | 14.4 ms | 18.1 ms | 1.25x |
-| Heap per row | 3.7 KB | 8.8 KB | 2.3x (about 2.5 KB per binding) |
+| Update one row | 0.41 ms | 0.0019 ms | about 215x faster |
+| Update all rows | 1.14 ms | 1.29 ms | 1.13x |
+| Create + dispose | 14.95 ms | 16.6 ms | 1.11x |
+| Heap per row | 3.7 KB | 6.3 KB | 1.7x (about 1.3 KB per binding) |
 
-At N=10 and N=100 the cells vary by about 10%. Ratios there: update one row 1.9x / 20x faster, update all 1.17x / 1.37x,
-create + dispose 1.10x / 1.11x.
+At N=10 and N=100 the cells vary by about 10%. Ratios there: update one row 2.3x / 22x faster, update all 0.98x / 1.11x,
+create + dispose 1.04x / 1.06x.
 
-Re-measured on the final code: best of 10 interleaved timing runs and 4 fresh-process heap runs, production, jsdom.
-The first round of this section had a noisier method and a wrong heap figure (0.8 KB per binding), so it was replaced.
+Measured on the final code, with the one-signal fast path below: best of 12 interleaved timing runs and 4 fresh-process
+heap runs, production, jsdom. The first round of this section had a noisier method and a wrong heap figure
+(0.8 KB per binding), so it was replaced.
 
 - Single-slot update is O(1) (about 2 us at any N) instead of O(N).
-- Update-all is slower with signals (N effects patch vs one template diff).
-- Create + dispose is about 1.1-1.25x slower; memory about 2.3x per row.
+- Update-all is about equal to 1.1x slower with signals (N bindings patch vs one template diff).
+- Create + dispose is about 1.05-1.1x slower; memory about 1.7x per row.
 
+### One-signal fast path (`watchSignal`)
+
+A binding of exactly one `state()` / `computed()` used to be `signal -> Computed (effect body) -> Watcher`. The computed
+only tracked one read, so `SignalBinding.follow()` now uses `watchSignal()` (`reactive/effect/watch-signal.ts`) for that case: a
+`Watcher` straight on the signal, in the same microtask flush as effects (same ordering, `whenFlushed()` and cycle guard),
+with an `Object.is` cutoff against the last value it handed over (what the computed's equality used to provide).
+Multi-slot attributes and state-tree nodes (not watchable) still use `effect()`.
+
+Before -> after (production, 18 interleaved runs): signal heap per row 8.8 -> 6.3 KB (-28%); update-all about -15% at
+every N; update-one -9% to -22%; create + dispose about -3% (noise). Plain rows are unchanged: a check with the direct
+path switched off (12 runs) showed no difference, so the flush loop running two kinds of job costs nothing measurable.
+Tests: `effect/watch-signal.test.ts`, plus the existing signal-binding tests.
 ### Dev (DEV on, the default in tests and unbundled pages)
 
 Before the fix, create + dispose was about 3.5x slower for signals (74 ms vs 20 ms at N=1000) and
@@ -285,7 +298,7 @@ Takeaways:
 Follow-ups:
 - [ ] Re-measure in a real browser; jsdom DOM writes skew the update-all ratio.
 - [ ] Evaluate the shared-watcher idea (`reactive/effect/shared-watcher.md`) for the remaining
-  per-binding memory (about 2.5 KB).
+  per-binding memory (about 1.3 KB after the one-signal fast path).
 
 ### Production profile and allocation trims (second round)
 

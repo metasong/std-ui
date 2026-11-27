@@ -138,7 +138,7 @@ export abstract class UIElement extends HTMLElement {
 			// One microtask hop first, so a write made later in the same synchronous turn (after this
 			// read, before `await`) has already scheduled its flush when we ask whether one is pending;
 			// then wait for the effect queue to go fully idle (`whenFlushed`, see
-			// `./reactive/effect/main.ts`), which covers cascades of any depth.
+			// `./reactive/effect/scheduler.ts`), which covers cascades of any depth.
 			queueMicrotask(() => whenFlushed().then(() => resolve(true)));
 		});
 	}

@@ -2,7 +2,7 @@
 
 Runs a callback immediately, then re-runs it whenever any **signal** or **computed** read inside that callback changes. Re-runs are **microtask-batched**, so several synchronous writes in one tick collapse into a single re-run. Use this for side effects (DOM, logging, subscriptions) — not for derived values (`computed()` for that).
 
-Broader API context: [`../signal/state.md`](../signal/state.md). Implementation: [`main.ts`](./main.ts) on top of `Watcher` from [`../signal/tracking.ts`](../signal/tracking.ts) (same role as `Signal.subtle.Watcher` in the [proposal](https://github.com/tc39/proposal-signals)).
+Broader API context: [`../signal/state.md`](../signal/state.md). Implementation: [`effect.ts`](./effect.ts) (with the shared flush in [`scheduler.ts`](./scheduler.ts)) on top of `Watcher` from [`../signal/tracking.ts`](../signal/tracking.ts) (same role as `Signal.subtle.Watcher` in the [proposal](https://github.com/tc39/proposal-signals)).
 
 Writing to signals you also read: [`effect-cycles.md`](./effect-cycles.md). How it is implemented: [`design.md`](./design.md).
 
@@ -49,6 +49,10 @@ Prefer `peek()` / `untrack()` in the main body when you need a value without sub
 - The **first** run is **synchronous** on creation (initial DOM sync is not deferred a tick).
 - After a dependency change, the effect is queued into a shared microtask **flush**; multiple effects and multiple writes in the same tick share one flush pass.
 - Before re-running, a **pull** check (`sourcesChanged`) skips work if no read dependency’s version actually moved (equality cutoff), same as the rest of the graph.
+
+## Pitfalls
+
+Writing a signal the body has already read (`get()`) from inside the body silently leaves the effect stale: do that write in `afterAction` or read with `peek()`. Details and the dev warning: [`effect-pitfalls.md`](./effect-pitfalls.md).
 
 ## `afterAction` vs cleanup
 

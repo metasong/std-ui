@@ -1,9 +1,9 @@
-// Side-effect runner: `effect()`. Re-runs are microtask-batched. Built on `Signal.subtle.Watcher`
-// + `Signal.Computed` from `signal-polyfill`. Not part of the TC39 proposal; lives outside `signal/`.
+// Side-effect runner: `effect()`. Re-runs are microtask-batched (see `./scheduler.ts`). Built on
+// `Signal.subtle.Watcher` + `Signal.Computed` from `signal-polyfill`. Not part of the TC39 proposal.
 
-import { CycleGuard } from './dev/effect-cycle-guard.js';
 import { Signal } from 'signal-polyfill';
 import { untrack, Watcher } from '../signal/tracking.js';
+import { cycleGuard, dequeue, enqueue, type Job } from './scheduler.js';
 
 /**
  * Call inside an `effect()` body to register cleanup that runs before the next re-run, and on dispose.
@@ -18,70 +18,7 @@ import { untrack, Watcher } from '../signal/tracking.js';
  */
 export type OnCleanup = (cleanup: () => void) => void;
 
-/** Effects pending a (microtask-batched) re-run. Swapped (not copied) by `flush()`. */
-let pending = new Set<Effect>();
-let flushScheduled = false;
-
-function scheduleFlush(): void {
-	if (flushScheduled) return;
-	flushScheduled = true;
-	queueMicrotask(flush);
-}
-
-/** Max re-runs of one effect within a single chain of consecutive flushes before we assume a cycle. */
-const MAX_RERUNS_PER_CHAIN = 100;
-const cycleGuard = new CycleGuard(MAX_RERUNS_PER_CHAIN, () => pending.clear());
-
-/** Resolvers of `whenFlushed()` promises, released once no flush is pending any more. */
-let flushWaiters: Array<() => void> = [];
-
-function releaseWaitersIfIdle(): void {
-	if (flushScheduled || pending.size > 0) return;
-	const waiters = flushWaiters;
-	flushWaiters = [];
-	for (const resolve of waiters) resolve();
-}
-
-/**
- * Resolves once every effect re-run that is pending *now* - and any re-run those cause in turn
- * (an effect writing a signal another effect reads) - has finished. Resolves immediately when
- * nothing is pending. Unlike counting microtask hops, this holds for cascades of any depth.
- */
-export function whenFlushed(): Promise<void> {
-	if (!flushScheduled && pending.size === 0) return Promise.resolve();
-	return new Promise(resolve => flushWaiters.push(resolve));
-}
-
-function flush(): void {
-	flushScheduled = false;
-	try {
-		// Double-buffer: effects scheduled while running land in the fresh set and run next flush.
-		const batch = pending;
-		pending = new Set();
-		// A throwing effect must not abort the loop: the rest are already out of `pending` and inert,
-		// so skipping them would leave them dead for good. Run them all, then report what failed.
-		let errors: unknown[] | undefined;
-		for (const fx of batch) {
-			try {
-				cycleGuard.count(fx);
-				fx.run();
-			} catch (err) {
-				(errors ??= []).push(err);
-			}
-		}
-		if (pending.size === 0) cycleGuard.reset();
-		if (errors) {
-			if (errors.length === 1) throw errors[0];
-			throw new AggregateError(errors, `${errors.length} effects threw during one flush`);
-		}
-	}
-	finally {
-		// Also when an effect throws: waiters must not hang forever. Re-armed flushes keep them waiting.
-		releaseWaitersIfIdle();
-	}
-}
-
-class Effect {
+class Effect implements Job {
 	#cleanups: Array<() => void> | null = null;
 	#disposed = false;
 	readonly #action: (onCleanup: OnCleanup) => void;
@@ -106,11 +43,9 @@ class Effect {
 		// `notify` runs synchronously inside the writer's `set()` (reads/writes are forbidden there), so
 		// it only schedules into the shared microtask flush: many synchronous writes, one re-run.
 		this.#watcher = new Watcher(() => {
-			if (this.#disposed || pending.has(this)) return;
-			pending.add(this);
-			scheduleFlush();
+			if (!this.#disposed) enqueue(this);
 		});
-		cycleGuard.register(this, action, name, this.#body);
+		cycleGuard.register(this, action, name, this.#body as Signal.Computed<unknown>);
 		this.#watcher.watch(this.#body);
 		// First run is synchronous so initial DOM sync isn't deferred a tick.
 		this.run();
@@ -134,7 +69,7 @@ class Effect {
 	dispose = (): void => {
 		if (this.#disposed) return;
 		this.#disposed = true;
-		pending.delete(this);
+		dequeue(this);
 		cycleGuard.unregister(this);
 		this.#watcher.unwatch(this.#body);
 		this.#runCleanup();

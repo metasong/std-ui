@@ -1,7 +1,8 @@
 import { describe, expect, it, vi } from 'vitest';
 import { computed } from '../signal/computed.js';
 import { state } from '../signal/state.js';
-import { effect, whenFlushed } from './main.js';
+import { effect } from './effect.js';
+import { whenFlushed } from './scheduler.js';
 import { flushEffects } from './test-helpers.js';
 
 // Node's `process` (tests run under vitest/Node); declared locally so no `@types/node` is needed.

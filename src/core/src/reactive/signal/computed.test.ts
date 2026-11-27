@@ -1,6 +1,6 @@
 import { describe, expect, it, vi } from 'vitest';
 import { computed, type Computed } from './computed.js';
-import { effect } from '../effect/main.js';
+import { effect } from '../effect/effect.js';
 import { flushEffects } from '../effect/test-helpers.js';
 import { state } from './state.js';
 

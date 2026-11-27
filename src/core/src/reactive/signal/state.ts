@@ -3,6 +3,8 @@
 // `signal-polyfill` (so it works with any standard signal consumer) plus `peek()` and `update()`.
 
 import { Signal } from 'signal-polyfill';
+import { DEV } from '../../dev/flag.js';
+import { once } from '../../dev/once.js';
 import { untrack } from './tracking.js';
 
 /** Options accepted by `state()` and `computed()`; a subset of the polyfill's `Signal.Options`.
@@ -61,6 +63,24 @@ export class State<T> extends Signal.State<T> implements WritableState<T> {
 		this.set(next);
 		return next;
 	}
+}
+
+// DEV only: writing a signal that the running computed/effect body has already read leaves that
+// body stale (the polyfill marks it clean after its own write; nothing re-runs it, nothing throws).
+// Installed only in DEV so production keeps the polyfill's `set` untouched. Not detected when the
+// write is wrapped in `untrack()` (no active computed then). See `../effect/effect-pitfalls.md`.
+if (DEV) {
+	const baseSet = Signal.State.prototype.set;
+	State.prototype.set = function (this: State<unknown>, value: unknown): void {
+		const running = Signal.subtle.currentComputed();
+		if (running && Signal.subtle.introspectSources(running).includes(this)) {
+			once(
+				'write-read-signal-in-computed',
+				'std-ui: a computed/effect wrote a signal it has already read; this update is not seen by that computed/effect and it will not re-run. Read with peek(), or do the write in effect() afterAction. See reactive/effect/effect-pitfalls.md.',
+			);
+		}
+		baseSet.call(this, value);
+	};
 }
 
 /** Whether `value` is a `state()` made by this library. A foreign `Signal.State` (no `peek` /

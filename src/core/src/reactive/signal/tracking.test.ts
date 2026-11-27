@@ -1,6 +1,6 @@
 import { describe, expect, it, vi } from 'vitest';
 import { computed } from './computed.js';
-import { effect } from '../effect/main.js';
+import { effect } from '../effect/effect.js';
 import { inReactiveContext, untrack, Watcher } from './tracking.js';
 import { state } from './state.js';
 

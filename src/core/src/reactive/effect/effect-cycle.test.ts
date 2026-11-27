@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { state } from '../signal/state.js';
-import { effect, whenFlushed } from './main.js';
+import { effect } from './effect.js';
+import { whenFlushed } from './scheduler.js';
 
 declare const process: {
 	on(event: 'uncaughtException', listener: (error: Error) => void): void;

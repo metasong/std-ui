@@ -7,8 +7,13 @@ import type { ReadableState, StateOptions } from './state.js';
 
 /** A read-only, lazily-recomputed derived value. `.get()` reads (and tracks). A standard `Signal.Computed`. */
 export class Computed<T> extends Signal.Computed<T> implements ReadableState<T> {
+	/** The `equals` option this computed was made with (`undefined`: `Object.is`). The polyfill keeps it private;
+	 *  it is exposed so `watchSignal()` can apply the same cutoff to a notification that turned out to be a false alarm.
+	 *  Parameters are `never` so a `Computed<N>` stays assignable to `Computed<N | undefined>`; the caller casts. */
+	readonly equals: ((prev: never, next: never) => boolean) | undefined;
 	constructor(fn: () => T, options: StateOptions<T> = {}) {
 		super(fn, options as Signal.Options<T>);
+		this.equals = options.equals;
 	}
 	/** Reads the current value without tracking it as a dependency. */
 	peek(): T {
