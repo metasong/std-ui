@@ -1,4 +1,4 @@
-import { isReadableState } from '../../../../reactive/signal/state.js';
+import { isReadableSignal } from '../../../../reactive/signal/index.js';
 import { kebab } from '../../../../util.js';
 // Element-aware defaults for `bind()`: which event, how to compare, how to coerce. Everything here
 // is a pure function of (element, property), so `resolve.ts` can stay a simple "options ?? default".
@@ -27,7 +27,7 @@ export function describeTarget(element: Element, property: string): string {
 
 export function readProperty(element: Element, property: string): unknown {
 	const value = (element as unknown as Record<string, unknown>)[property];
-	return isReadableState(value) ? value.get() : value;
+	return isReadableSignal(value) ? value.get() : value;
 }
 
 /** Native control events when applicable; otherwise `${kebab(property)}-change`. */

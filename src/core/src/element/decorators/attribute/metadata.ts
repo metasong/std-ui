@@ -4,7 +4,7 @@
 
 import { type AttributeConverter, type AttributeType, inferAttributeType, resolveConverter, toAttributeName } from './converter.js';
 import { createClassRegistry } from '../class-registry.js';
-import { isWritableState } from '../../../reactive/signal/state.js';
+import { isWritableSignal, peekSignal } from '../../../reactive/signal/index.js';
 
 /**
  * One attribute-backed field, recorded either by `@attribute()` (in a class's `context.metadata` /
@@ -33,7 +33,7 @@ export const attributeDefs = createClassRegistry<AttributeDef>('attributeDefs');
 export function resolveInferredConverter(host: object, def: AttributeDef): void {
 	if (!def.infer) return;
 	const field = (host as Record<PropertyKey, unknown>)[def.key];
-	def.converter = resolveConverter(inferAttributeType(isWritableState(field) ? field.peek() : field), undefined) as AttributeConverter;
+	def.converter = resolveConverter(inferAttributeType(isWritableSignal(field) ? peekSignal(field) : field), undefined) as AttributeConverter;
 	def.infer = false;
 }
 

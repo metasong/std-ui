@@ -37,7 +37,7 @@ stay assignable to `Signal.State` / `Signal.Computed`.
 
 - `x()` becomes `x.get()` everywhere: `state`, `computed`, `createRef()`, `stateTree()` nodes
   (`node.get()`, `node.shallow()`, `node.deep()`), `check.errors.get()`, `formUi.touched.get()`, ...
-- `ReadableState<T>` is `{ get(): T; peek(): T }`. `State<T>` and `Computed<T>` are classes.
+- `ReadableSignal<T>` is `{ get(): T; peek(): T }`. `State<T>` and `Computed<T>` are classes.
 - `subtle.Watcher` is the polyfill's `Signal.subtle.Watcher`, unwrapped. `watcher.watch(count)` just works.
 - `when(enabled, ...)` accepts a signal (`{ get(): boolean }`) or a plain `() => boolean`.
 - `bind(sig)`: a signal is recognised by having `get`, `set` **and** `peek`. A plain accessor

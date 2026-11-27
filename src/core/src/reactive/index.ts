@@ -1,4 +1,4 @@
-export { Computed, computed, isState, isWritableState, State, state, type ReadableState, type StateOptions, type WritableState } from './signal/index.js';
+export { Computed, computed, isState, isWritableSignal, markSignal, peekSignal, State, state, type ReadableSignal, type SignalOptions, type WritableSignal } from './signal/index.js';
 export { effect, type OnCleanup } from './effect/index.js';
 
 import {

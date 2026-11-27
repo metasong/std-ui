@@ -1,5 +1,6 @@
 export { Computed, computed } from './computed.js';
-export { isReadableState, isState, isWritableState, State, state, type ReadableState, type StateOptions, type WritableState } from './state.js';
+export { isState, State, state, type SignalOptions } from './state.js';
+export { isReadableSignal, isWritableSignal, markSignal, peekSignal, signalTarget, type ReadableSignal, type WritableSignal } from './signal-type.js';
 export {
 	assertNotInReactiveContext,
 	inReactiveContext,

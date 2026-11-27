@@ -17,7 +17,7 @@ Everything else is defaulting: given `(element, property)`, which `event`, `equa
 
 | File | Owns |
 |------|------|
-| [`types.ts`](./types.ts) | Public types (`BindOptions`, `BindSource`, `BindPlugin`, `WritableState`) and the internal `Binding`. |
+| [`types.ts`](./types.ts) | Public types (`BindOptions`, `BindSource`, `BindPlugin`) and the internal `Binding`. |
 | [`defaults.ts`](./defaults.ts) | Element-aware defaults: event, equals, coerce, `.checked` target validation. Pure functions. |
 | [`resolve.ts`](./resolve.ts) | `bind()` arguments → one `Binding` (`options ?? default`). |
 | [`radio-group.ts`](./radio-group.ts) | Keeps same-named radio bindings consistent. |

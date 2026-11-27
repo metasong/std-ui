@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { state } from '../signal/state.js';
+import { state } from '../signal/index.js';
 import { effect } from './effect.js';
 import { whenFlushed } from './scheduler.js';
 

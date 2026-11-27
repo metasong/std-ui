@@ -10,7 +10,7 @@ import {
 import { writeProperty } from '../../custom-attributes/property/write-property.js';
 import type { BindAccessor, BindDepth, BindOptions, BindSource, Binding } from './types.js';
 import { DEV } from '../../../../dev/flag.js';
-import { isWritableState } from '../../../../reactive/signal/state.js';
+import { isWritableSignal } from '../../../../reactive/signal/index.js';
 import { readSignal } from '../../../../util.js';
 import { usageError } from '../../../../util.js';
 
@@ -36,7 +36,7 @@ export class BindingCache {
 
 	resolve(args: readonly unknown[], element: Element, property: string): Binding {
 		const [first, second] = args;
-		if (this.#binding && isWritableState(first) && first === this.#state && second === this.#options
+		if (this.#binding && isWritableSignal(first) && first === this.#state && second === this.#options
 			&& element === this.#element && property === this.#property) {
 			return this.#binding;
 		}
@@ -59,7 +59,7 @@ export function resolveBinding(args: readonly unknown[], element: Element, prope
 	let model: BindAccessor;
 	let options: BindOptions;
 
-	if (isWritableState(first)) {
+	if (isWritableSignal(first)) {
 		options = (second as BindOptions | undefined) ?? {};
 		model = { get: () => readSignal(first, options.depth), set: v => first.set(v as never) };
 	} else if (isAccessor(first)) {

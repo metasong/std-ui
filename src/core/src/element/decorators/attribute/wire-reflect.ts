@@ -8,7 +8,7 @@ import { readSignal } from '../../../util.js';
 import type { UIElementHooks } from '../../ui-element-hooks.js';
 import { parseAttribute, serializeAttribute } from './converter.js';
 import { warnReflectNeedsStore } from './dev/warn-attribute.js';
-import { isWritableState } from '../../../reactive/signal/state.js';
+import { isWritableSignal } from '../../../reactive/signal/index.js';
 import { attributeDefs, resolveInferredConverter } from './metadata.js';
 
 /** The attribute write the reflect effect is performing right now (see its use in `wireReflectedAttributes`). */
@@ -22,7 +22,7 @@ let reflecting: { host: HTMLElement; name: string } | null = null;
 export function wireReflectedAttributes(host: HTMLElement, registerEffectDisposer: (dispose: () => void) => void): void {
 	for (const def of attributeDefs.get(host.constructor)) {
 		if (!def.reflect) continue;
-		if (!isWritableState((host as unknown as Record<PropertyKey, unknown>)[def.key])) {
+		if (!isWritableSignal((host as unknown as Record<PropertyKey, unknown>)[def.key])) {
 			warnReflectNeedsStore(host, def.key); // a plain field cannot be observed; attribute -> property still works
 			continue;
 		}
@@ -61,7 +61,7 @@ function applyAttribute(host: HTMLElement, name: string, oldValue: string | null
 	if (parsed === undefined) return; // a converter's `fromAttribute` returning `undefined` means "leave untouched"
 	const record = host as unknown as Record<PropertyKey, unknown>;
 	const field = record[def.key];
-	if (isWritableState(field)) field.set(parsed as never);
+	if (isWritableSignal(field)) field.set(parsed as never);
 	else record[def.key] = parsed; // plain field: assigned directly
 }
 

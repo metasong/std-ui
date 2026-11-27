@@ -10,7 +10,7 @@ import { Directive, directive, noChange, type DirectiveResult, isPropertyPartInf
 import { isRadio } from './defaults.js';
 import { assertBindableTarget } from './dev/assert-bindable-target.js';
 import { pullRadioSiblings, registerRadio, unregisterRadio } from './radio-group.js';
-import type { WritableState } from '../../../../reactive/signal/state.js';
+import type { WritableSignal } from '../../../../reactive/signal/index.js';
 import { BIND_USAGE, BindingCache, isAccessor } from './resolve.js';
 import type { BindOptions, BindPlugin, BindSource, Binding } from './types.js';
 import { DEV } from '../../../../dev/flag.js';
@@ -140,7 +140,7 @@ function assertUsable(first: object): void {
 }
 
 type BindFunction = {
-	(state: WritableState, options?: BindOptions): DirectiveResult;
+	(state: WritableSignal, options?: BindOptions): DirectiveResult;
 	(source: BindSource): DirectiveResult;
 };
 

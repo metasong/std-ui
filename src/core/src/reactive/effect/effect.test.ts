@@ -1,6 +1,6 @@
 import { describe, expect, it, vi } from 'vitest';
 import { computed } from '../signal/computed.js';
-import { state } from '../signal/state.js';
+import { state } from '../signal/index.js';
 import { effect } from './effect.js';
 import { whenFlushed } from './scheduler.js';
 import { flushEffects } from './test-helpers.js';

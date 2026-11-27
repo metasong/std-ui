@@ -7,7 +7,7 @@
 //   - `obj.deep()` re-runs on any member's value change, recursively;
 //   - `obj.key` is the member node itself (untracked access), e.g. `obj.user.label.set('x')`.
 
-import { computed, state, type State } from '@std-ui/core';
+import { computed, markSignal, state, type State } from '@std-ui/core';
 import {
 	addWith,
 	assertAcyclic,
@@ -73,11 +73,13 @@ export function stateObject<T, M = Members, P = Partial<T>>(
 
 	const deep = computed(() => build(members.get(), readValue));
 	// `delete` edits the record in place and only `set()` swaps in a new one, so with `Object.is`
-	// cutoff `record` notifies on replacement only.
+	// cutoff `record` notifies on replacement only. `record` is also the node itself (`self`): a real
+	// `Computed`, so `watchSignal()` can watch it directly (through `markSignal(proxy, self)`).
 	const record = computed(() => members.get());
+	const recordGet = record.get; // the polyfill's own `get`, before the override below
 	// All three reads return the same plain value; they differ only in what they subscribe to.
-	const self = {} as StateObject<T, M, P>;
-	self.get = () => (record.get(), deep.peek());
+	const self = record as unknown as StateObject<T, M, P>;
+	self.get = () => (recordGet.call(record), deep.peek());
 	self.deep = () => deep.get();
 	self.shallow = () => (members.get(), deep.peek());
 	self.peek = () => build(members.peek(), (n) => n.peek());
@@ -124,6 +126,7 @@ export function stateObject<T, M = Members, P = Partial<T>>(
 	};
 
 	addWith(self);
+	markSignal(self, record); // the proxy reads this brand through to `self`; the raw computed is what a Watcher takes
 
 	// Escape hatch for members whose names collide with the API: a members-only view (`obj._.key`).
 	const membersOnly = new Proxy({} as object, {
@@ -145,6 +148,8 @@ export function stateObject<T, M = Members, P = Partial<T>>(
 		get: (target, key, receiver) =>
 			isMember(key) ? members.peek()[key] : Reflect.get(target, key, receiver),
 		has: (target, key) => isMember(key) || Reflect.has(target, key),
+		// Not a `Computed` to `instanceof`: the proxy fails the polyfill's brand check, so it must not look like one.
+		getPrototypeOf: () => Object.prototype,
 	});
 	return proxy;
 }

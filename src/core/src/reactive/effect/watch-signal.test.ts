@@ -3,7 +3,8 @@ import { Signal } from 'signal-polyfill';
 import { computed, state } from '../index.js';
 import { effect } from './effect.js';
 import { whenFlushed } from './scheduler.js';
-import { isWatchableSignal, watchSignal } from './watch-signal.js';
+import { markSignal } from '../signal/index.js';
+import { watchSignal } from './watch-signal.js';
 
 declare const process: {
 	on(event: 'uncaughtException', listener: (error: Error) => void): void;
@@ -150,12 +151,26 @@ describe('watchSignal()', () => {
 		expect(message).toContain('effect "my-watch"');
 		expect(message).toMatch(/reads: state\(\d+\)/);
 	});
-	it('isWatchableSignal accepts state() and computed(), not plain values or foreign signals', () => {
-		expect(isWatchableSignal(state(1))).toBe(true);
-		expect(isWatchableSignal(computed(() => 1))).toBe(true);
-		expect(isWatchableSignal(new Signal.State(1))).toBe(false); // no peek()
-		expect(isWatchableSignal({ get() {}, peek() {} })).toBe(false);
-		expect(isWatchableSignal(1)).toBe(false);
-		expect(isWatchableSignal(null)).toBe(false);
+	it('watches a standard Signal.State directly', async () => {
+		const s = new Signal.State(1);
+		const seen: number[] = [];
+		const stop = watchSignal(s, (v) => seen.push(v));
+		s.set(2);
+		await whenFlushed();
+		expect(seen).toEqual([1, 2]);
+		stop();
+	});
+	it('watches a marked wrapper (not a State / Computed) through a computed', async () => {
+		const inner = state(1);
+		const wrapper = markSignal({ get: () => inner.get() });
+		const seen: number[] = [];
+		const stop = watchSignal(wrapper, (v) => seen.push(v));
+		inner.set(2);
+		await whenFlushed();
+		expect(seen).toEqual([1, 2]);
+		stop();
+		inner.set(3);
+		await whenFlushed();
+		expect(seen).toEqual([1, 2]);
 	});
 });

@@ -119,7 +119,7 @@ a def into its own registry and leaves the field untouched, so they never interf
 |---|---|
 | Class evaluation | `AttributeDef`s registered; `tag()` / `defineElement()` sets `observedAttributes`. |
 | Instance creation | The field initializer creates the store; nothing else. |
-| Upgrade / attribute change | `attributeChangedCallback` -> `.set()` on a store, or direct assignment on a plain field (resolving an inferred converter first). `isWritableState()` tells them apart; `reflect` on a plain field is skipped with a dev warning. |
+| Upgrade / attribute change | `attributeChangedCallback` -> `.set()` on a store, or direct assignment on a plain field (resolving an inferred converter first). `isWritableSignal()` tells them apart; `reflect` on a plain field is skipped with a dev warning. |
 | `connectedCallback` | `wireReflectedAttributes` for `reflect: true` only. |
 | Store write | Render + reflection effects as applicable. |
 | `disconnectedCallback` | Reflection effects disposed; reconnect repeats the connect setup. |

@@ -3,16 +3,17 @@
 
 import { Signal } from 'signal-polyfill';
 import { untrack } from './tracking.js';
-import type { ReadableState, StateOptions } from './state.js';
+import type { SignalOptions } from './state.js';
+import type { ReadableSignal } from './signal-type.js';
 
 /** A read-only, lazily-recomputed derived value. `.get()` reads (and tracks). A standard `Signal.Computed`. */
-export class Computed<T> extends Signal.Computed<T> implements ReadableState<T> {
+export class Computed<T> extends Signal.Computed<T> implements ReadableSignal<T> {
 	/** The `equals` option this computed was made with (`undefined`: `Object.is`). The polyfill keeps it private;
 	 *  it is exposed so `watchSignal()` can apply the same cutoff to a notification that turned out to be a false alarm.
 	 *  Parameters are `never` so a `Computed<N>` stays assignable to `Computed<N | undefined>`; the caller casts. */
 	readonly equals: ((prev: never, next: never) => boolean) | undefined;
-	constructor(fn: () => T, options: StateOptions<T> = {}) {
-		super(fn, options as Signal.Options<T>);
+	constructor(fn: () => T, options: SignalOptions<T> = {}) {
+		super(fn, options);
 		this.equals = options.equals;
 	}
 	/** Reads the current value without tracking it as a dependency. */
@@ -24,6 +25,6 @@ export class Computed<T> extends Signal.Computed<T> implements ReadableState<T> 
 /** Creates a read-only derived value, lazily re-run whenever a signal/computed it reads changes.
  * `options.equals` (default `Object.is`) is checked against the previous value on recompute, same
  * role as `Signal.Computed`'s `equals` option in the proposed standard signals API. */
-export function computed<T>(fn: () => T, options: StateOptions<T> = {}): Computed<T> {
+export function computed<T>(fn: () => T, options: SignalOptions<T> = {}): Computed<T> {
 	return new Computed<T>(fn, options);
 }

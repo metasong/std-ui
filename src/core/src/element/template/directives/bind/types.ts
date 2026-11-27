@@ -46,8 +46,6 @@ export interface BindOptions {
 /** `bind({ get, set, ...options })` — accessor and options in one object. */
 export type BindSource = BindAccessor & BindOptions;
 
-export type { WritableState } from '../../../../reactive/signal/state.js';
-
 /** A fully resolved binding: the model side, the view side, and how to compare / convert. */
 export interface Binding {
 	readonly model: BindAccessor;

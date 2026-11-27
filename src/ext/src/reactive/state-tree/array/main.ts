@@ -7,7 +7,7 @@
 //   - `list.deep()` re-runs on structure OR any item's value change;
 //   - `list.at(i)?.get()` only re-runs when that element changes (or the element at `i` is replaced).
 
-import { computed, state, type Computed, type State } from '@std-ui/core';
+import { computed, markSignal, state, type Computed, type State } from '@std-ui/core';
 import {
 	addWith,
 	assertAcyclic,
@@ -82,11 +82,13 @@ export function stateArray<T, N extends ItemNode<T> = ItemNode<T>>(
 	};
 	const deep = computed(() => nodes.get().map(readValue));
 	// Mutators edit the node array in place and only `set()` swaps in a new one, so with `Object.is`
-	// cutoff `instance` notifies on replacement only, like a plain `state(array)`.
+	// cutoff `instance` notifies on replacement only, like a plain `state(array)`. `instance` is also the node
+	// itself (`self`): a real `Computed`, so `watchSignal()` can watch it directly (through `markSignal(proxy, self)`).
 	const instance = computed(() => nodes.get());
+	const instanceGet = instance.get; // the polyfill's own `get`, before the override below
 	// All three reads return the same plain values; they differ only in what they subscribe to.
-	const self = {} as StateArray<T, N>;
-	self.get = () => (instance.get(), deep.peek());
+	const self = instance as unknown as StateArray<T, N>;
+	self.get = () => (instanceGet.call(instance), deep.peek());
 	self.deep = () => deep.get();
 
 	const snapshot = (list: readonly N[]): T[] => list.map((n) => n.peek());
@@ -155,6 +157,7 @@ export function stateArray<T, N extends ItemNode<T> = ItemNode<T>>(
 	};
 
 	addWith(self);
+	markSignal(self, instance); // the proxy reads this brand through to `self`; the raw computed is what a Watcher takes
 
 	const isIndex = (key: string | symbol): key is string =>
 		typeof key === 'string' && /^(0|[1-9]\d*)$/.test(key);
@@ -164,6 +167,8 @@ export function stateArray<T, N extends ItemNode<T> = ItemNode<T>>(
 			isIndex(key) ? nodes.peek()[Number(key)] : Reflect.get(target, key, receiver),
 		has: (target, key) => // `1 in array` is true when that index exists
 			isIndex(key) ? Number(key) < nodes.peek().length : Reflect.has(target, key),
+		// Not a `Computed` to `instanceof`: the proxy fails the polyfill's brand check, so it must not look like one.
+		getPrototypeOf: () => Object.prototype,
 	});
 	return proxy;
 }

@@ -1,85 +1,105 @@
 {
-	"generatedAt": "2026-11-23T19:38:28.933Z",
+	"generatedAt": "2026-11-27T16:35:50.098Z",
 	"bundles": [
 		{
 			"file": "std-ui-core.release.min.js",
-			"raw": 33074,
-			"gzip": 11413,
-			"brotli": 10443
+			"raw": 43320,
+			"gzip": 14036,
+			"brotli": 12809
 		},
 		{
 			"file": "std-ui-core.release.iife.min.js",
-			"raw": 32132,
-			"gzip": 11061,
-			"brotli": 10096
+			"raw": 42145,
+			"gzip": 13578,
+			"brotli": 12348
 		},
 		{
 			"file": "std-ui-ext.release.min.js",
-			"raw": 49595,
-			"gzip": 14785,
-			"brotli": 13278
+			"raw": 51319,
+			"gzip": 15309,
+			"brotli": 13745
 		},
 		{
 			"file": "std-ui-ext.release.iife.min.js",
-			"raw": 37790,
-			"gzip": 13005,
-			"brotli": 11803
+			"raw": 39077,
+			"gzip": 13410,
+			"brotli": 12169
 		}
 	],
 	"packages": [
 		{
 			"name": "core",
 			"path": "core",
-			"size": 85291,
-			"raw": 208830,
+			"size": 98332,
+			"raw": 241407,
 			"children": [
 				{
 					"name": "element",
 					"path": "core/element",
-					"size": 74412,
-					"raw": 183039,
+					"size": 84731,
+					"raw": 209628,
 					"children": [
 						{
 							"name": "template",
 							"path": "core/element/template",
-							"size": 49228,
-							"raw": 122633,
+							"size": 59572,
+							"raw": 149308,
 							"children": [
 								{
 									"name": "directives",
 									"path": "core/element/template/directives",
-									"size": 15549,
-									"raw": 38955,
+									"size": 16819,
+									"raw": 41746,
 									"children": [
 										{
 											"name": "bind",
 											"path": "core/element/template/directives/bind",
-											"size": 4580,
-											"raw": 12577,
+											"size": 5925,
+											"raw": 15535,
 											"children": [
 												{
 													"name": "main.js",
 													"path": "core/element/template/directives/bind/main.js",
-													"size": 2028,
-													"raw": 6375
-												},
-												{
-													"name": "defaults.js",
-													"path": "core/element/template/directives/bind/defaults.js",
-													"size": 1138,
-													"raw": 3371
+													"size": 2078,
+													"raw": 6494
 												},
 												{
 													"name": "resolve.js",
 													"path": "core/element/template/directives/bind/resolve.js",
-													"size": 715,
-													"raw": 1712
+													"size": 1129,
+													"raw": 2962
+												},
+												{
+													"name": "defaults.js",
+													"path": "core/element/template/directives/bind/defaults.js",
+													"size": 887,
+													"raw": 2571
+												},
+												{
+													"name": "resolve.perf.js",
+													"path": "core/element/template/directives/bind/resolve.perf.js",
+													"size": 797,
+													"raw": 1861
 												},
 												{
 													"name": "radio-group.js",
 													"path": "core/element/template/directives/bind/radio-group.js",
 													"size": 468,
 													"raw": 913
+												},
+												{
+													"name": "dev",
+													"path": "core/element/template/directives/bind/dev",
+													"size": 335,
+													"raw": 528,
+													"children": [
+														{
+															"name": "assert-bindable-target.js",
+															"path": "core/element/template/directives/bind/dev/assert-bindable-target.js",
+															"size": 335,
+															"raw": 528
+														}
+													]
 												},
 												{
 													"name": "types.js",
@@ -144,14 +164,14 @@
 										{
 											"name": "ref",
 											"path": "core/element/template/directives/ref",
-											"size": 1378,
-											"raw": 3308,
+											"size": 1303,
+											"raw": 3141,
 											"children": [
 												{
 													"name": "main.js",
 													"path": "core/element/template/directives/ref/main.js",
-													"size": 1281,
-													"raw": 3231
+													"size": 1206,
+													"raw": 3064
 												},
 												{
 													"name": "index.js",
@@ -300,135 +320,23 @@
 									]
 								},
 								{
-									"name": "custom-attributes",
-									"path": "core/element/template/custom-attributes",
-									"size": 7557,
-									"raw": 18277,
-									"children": [
-										{
-											"name": "attribute",
-											"path": "core/element/template/custom-attributes/attribute",
-											"size": 2955,
-											"raw": 7903,
-											"children": [
-												{
-													"name": "attribute-part.js",
-													"path": "core/element/template/custom-attributes/attribute/attribute-part.js",
-													"size": 2486,
-													"raw": 7111
-												},
-												{
-													"name": "attribute.custom-attribute.js",
-													"path": "core/element/template/custom-attributes/attribute/attribute.custom-attribute.js",
-													"size": 336,
-													"raw": 631
-												},
-												{
-													"name": "index.js",
-													"path": "core/element/template/custom-attributes/attribute/index.js",
-													"size": 133,
-													"raw": 161
-												}
-											]
-										},
-										{
-											"name": "event",
-											"path": "core/element/template/custom-attributes/event",
-											"size": 2389,
-											"raw": 6022,
-											"children": [
-												{
-													"name": "event-part.js",
-													"path": "core/element/template/custom-attributes/event/event-part.js",
-													"size": 1971,
-													"raw": 5363
-												},
-												{
-													"name": "event.custom-attribute.js",
-													"path": "core/element/template/custom-attributes/event/event.custom-attribute.js",
-													"size": 277,
-													"raw": 501
-												},
-												{
-													"name": "index.js",
-													"path": "core/element/template/custom-attributes/event/index.js",
-													"size": 141,
-													"raw": 158
-												}
-											]
-										},
-										{
-											"name": "property",
-											"path": "core/element/template/custom-attributes/property",
-											"size": 898,
-											"raw": 1945,
-											"children": [
-												{
-													"name": "property-part.js",
-													"path": "core/element/template/custom-attributes/property/property-part.js",
-													"size": 495,
-													"raw": 1289
-												},
-												{
-													"name": "property.custom-attribute.js",
-													"path": "core/element/template/custom-attributes/property/property.custom-attribute.js",
-													"size": 272,
-													"raw": 504
-												},
-												{
-													"name": "index.js",
-													"path": "core/element/template/custom-attributes/property/index.js",
-													"size": 131,
-													"raw": 152
-												}
-											]
-										},
-										{
-											"name": "boolean",
-											"path": "core/element/template/custom-attributes/boolean",
-											"size": 711,
-											"raw": 1244,
-											"children": [
-												{
-													"name": "boolean-part.js",
-													"path": "core/element/template/custom-attributes/boolean/boolean-part.js",
-													"size": 298,
-													"raw": 552
-												},
-												{
-													"name": "boolean.custom-attribute.js",
-													"path": "core/element/template/custom-attributes/boolean/boolean.custom-attribute.js",
-													"size": 276,
-													"raw": 526
-												},
-												{
-													"name": "index.js",
-													"path": "core/element/template/custom-attributes/boolean/index.js",
-													"size": 137,
-													"raw": 166
-												}
-											]
-										},
-										{
-											"name": "reject-arg.js",
-											"path": "core/element/template/custom-attributes/reject-arg.js",
-											"size": 317,
-											"raw": 455
-										},
-										{
-											"name": "register-builtin.js",
-											"path": "core/element/template/custom-attributes/register-builtin.js",
-											"size": 287,
-											"raw": 708
-										}
-									]
-								},
-								{
 									"name": "parts",
 									"path": "core/element/template/parts",
-									"size": 6013,
-									"raw": 13454,
+									"size": 11337,
+									"raw": 27535,
 									"children": [
+										{
+											"name": "signal-binding.perf.js",
+											"path": "core/element/template/parts/signal-binding.perf.js",
+											"size": 2378,
+											"raw": 6315
+										},
+										{
+											"name": "signal-binding.js",
+											"path": "core/element/template/parts/signal-binding.js",
+											"size": 2345,
+											"raw": 6171
+										},
 										{
 											"name": "child-renderers",
 											"path": "core/element/template/parts/child-renderers",
@@ -468,16 +376,16 @@
 											]
 										},
 										{
-											"name": "part.js",
-											"path": "core/element/template/parts/part.js",
-											"size": 1078,
-											"raw": 2102
-										},
-										{
 											"name": "child-part.js",
 											"path": "core/element/template/parts/child-part.js",
-											"size": 1058,
-											"raw": 2932
+											"size": 1569,
+											"raw": 4231
+										},
+										{
+											"name": "part.js",
+											"path": "core/element/template/parts/part.js",
+											"size": 1152,
+											"raw": 2383
 										},
 										{
 											"name": "raw-text-part.js",
@@ -494,8 +402,138 @@
 										{
 											"name": "index.js",
 											"path": "core/element/template/parts/index.js",
-											"size": 223,
-											"raw": 533
+											"size": 239,
+											"raw": 548
+										}
+									]
+								},
+								{
+									"name": "custom-attributes",
+									"path": "core/element/template/custom-attributes",
+									"size": 10309,
+									"raw": 25090,
+									"children": [
+										{
+											"name": "attribute",
+											"path": "core/element/template/custom-attributes/attribute",
+											"size": 3513,
+											"raw": 9487,
+											"children": [
+												{
+													"name": "attribute-part.js",
+													"path": "core/element/template/custom-attributes/attribute/attribute-part.js",
+													"size": 3044,
+													"raw": 8695
+												},
+												{
+													"name": "attribute.custom-attribute.js",
+													"path": "core/element/template/custom-attributes/attribute/attribute.custom-attribute.js",
+													"size": 336,
+													"raw": 631
+												},
+												{
+													"name": "index.js",
+													"path": "core/element/template/custom-attributes/attribute/index.js",
+													"size": 133,
+													"raw": 161
+												}
+											]
+										},
+										{
+											"name": "event",
+											"path": "core/element/template/custom-attributes/event",
+											"size": 2871,
+											"raw": 7315,
+											"children": [
+												{
+													"name": "event-part.js",
+													"path": "core/element/template/custom-attributes/event/event-part.js",
+													"size": 2439,
+													"raw": 6641
+												},
+												{
+													"name": "event.custom-attribute.js",
+													"path": "core/element/template/custom-attributes/event/event.custom-attribute.js",
+													"size": 277,
+													"raw": 501
+												},
+												{
+													"name": "index.js",
+													"path": "core/element/template/custom-attributes/event/index.js",
+													"size": 155,
+													"raw": 173
+												}
+											]
+										},
+										{
+											"name": "property",
+											"path": "core/element/template/custom-attributes/property",
+											"size": 2041,
+											"raw": 4489,
+											"children": [
+												{
+													"name": "property-part.js",
+													"path": "core/element/template/custom-attributes/property/property-part.js",
+													"size": 1343,
+													"raw": 3347
+												},
+												{
+													"name": "write-property.js",
+													"path": "core/element/template/custom-attributes/property/write-property.js",
+													"size": 291,
+													"raw": 481
+												},
+												{
+													"name": "property.custom-attribute.js",
+													"path": "core/element/template/custom-attributes/property/property.custom-attribute.js",
+													"size": 272,
+													"raw": 504
+												},
+												{
+													"name": "index.js",
+													"path": "core/element/template/custom-attributes/property/index.js",
+													"size": 135,
+													"raw": 157
+												}
+											]
+										},
+										{
+											"name": "boolean",
+											"path": "core/element/template/custom-attributes/boolean",
+											"size": 1280,
+											"raw": 2636,
+											"children": [
+												{
+													"name": "boolean-part.js",
+													"path": "core/element/template/custom-attributes/boolean/boolean-part.js",
+													"size": 867,
+													"raw": 1944
+												},
+												{
+													"name": "boolean.custom-attribute.js",
+													"path": "core/element/template/custom-attributes/boolean/boolean.custom-attribute.js",
+													"size": 276,
+													"raw": 526
+												},
+												{
+													"name": "index.js",
+													"path": "core/element/template/custom-attributes/boolean/index.js",
+													"size": 137,
+													"raw": 166
+												}
+											]
+										},
+										{
+											"name": "reject-arg.js",
+											"path": "core/element/template/custom-attributes/reject-arg.js",
+											"size": 317,
+											"raw": 455
+										},
+										{
+											"name": "register-builtin.js",
+											"path": "core/element/template/custom-attributes/register-builtin.js",
+											"size": 287,
+											"raw": 708
 										}
 									]
 								},
@@ -538,8 +576,8 @@
 								{
 									"name": "render.js",
 									"path": "core/element/template/render.js",
-									"size": 1121,
-									"raw": 2800
+									"size": 2119,
+									"raw": 5790
 								},
 								{
 									"name": "index.js",
@@ -552,14 +590,14 @@
 						{
 							"name": "decorators",
 							"path": "core/element/decorators",
-							"size": 16402,
-							"raw": 36888,
+							"size": 16378,
+							"raw": 36797,
 							"children": [
 								{
 									"name": "attribute",
 									"path": "core/element/decorators/attribute",
-									"size": 6119,
-									"raw": 14886,
+									"size": 6107,
+									"raw": 14821,
 									"children": [
 										{
 											"name": "converter.js",
@@ -570,8 +608,8 @@
 										{
 											"name": "wire-reflect.js",
 											"path": "core/element/decorators/attribute/wire-reflect.js",
-											"size": 1491,
-											"raw": 4031
+											"size": 1503,
+											"raw": 4056
 										},
 										{
 											"name": "attribute.decorator.js",
@@ -582,8 +620,8 @@
 										{
 											"name": "metadata.js",
 											"path": "core/element/decorators/attribute/metadata.js",
-											"size": 1188,
-											"raw": 2797
+											"size": 1164,
+											"raw": 2707
 										},
 										{
 											"name": "dev",
@@ -720,16 +758,16 @@
 								{
 									"name": "index.js",
 									"path": "core/element/decorators/index.js",
-									"size": 345,
-									"raw": 820
+									"size": 333,
+									"raw": 794
 								}
 							]
 						},
 						{
 							"name": "ui-element.js",
 							"path": "core/element/ui-element.js",
-							"size": 4409,
-							"raw": 12643
+							"size": 4408,
+							"raw": 12648
 						},
 						{
 							"name": "element-styles.js",
@@ -768,34 +806,46 @@
 				{
 					"name": "reactive",
 					"path": "core/reactive",
-					"size": 8873,
-					"raw": 21944,
+					"size": 11621,
+					"raw": 28001,
 					"children": [
 						{
 							"name": "effect",
 							"path": "core/reactive/effect",
-							"size": 4241,
-							"raw": 10392,
+							"size": 7469,
+							"raw": 18576,
 							"children": [
-								{
-									"name": "main.js",
-									"path": "core/reactive/effect/main.js",
-									"size": 2393,
-									"raw": 6359
-								},
 								{
 									"name": "dev",
 									"path": "core/reactive/effect/dev",
-									"size": 1559,
-									"raw": 3726,
+									"size": 2722,
+									"raw": 6989,
 									"children": [
 										{
 											"name": "effect-cycle-guard.js",
 											"path": "core/reactive/effect/dev/effect-cycle-guard.js",
-											"size": 1559,
-											"raw": 3726
+											"size": 2722,
+											"raw": 6989
 										}
 									]
+								},
+								{
+									"name": "effect.js",
+									"path": "core/reactive/effect/effect.js",
+									"size": 1687,
+									"raw": 4342
+								},
+								{
+									"name": "watch-signal.js",
+									"path": "core/reactive/effect/watch-signal.js",
+									"size": 1430,
+									"raw": 3781
+								},
+								{
+									"name": "scheduler.js",
+									"path": "core/reactive/effect/scheduler.js",
+									"size": 1329,
+									"raw": 3122
 								},
 								{
 									"name": "test-helpers.js",
@@ -806,56 +856,50 @@
 								{
 									"name": "index.js",
 									"path": "core/reactive/effect/index.js",
-									"size": 102,
-									"raw": 82
+									"size": 114,
+									"raw": 117
 								}
 							]
 						},
 						{
 							"name": "signal",
 							"path": "core/reactive/signal",
-							"size": 4213,
-							"raw": 10703,
+							"size": 3704,
+							"raw": 8511,
 							"children": [
+								{
+									"name": "state.js",
+									"path": "core/reactive/signal/state.js",
+									"size": 1979,
+									"raw": 5071
+								},
 								{
 									"name": "tracking.js",
 									"path": "core/reactive/signal/tracking.js",
-									"size": 2377,
-									"raw": 6494
+									"size": 851,
+									"raw": 1743
 								},
 								{
 									"name": "computed.js",
 									"path": "core/reactive/signal/computed.js",
-									"size": 1198,
-									"raw": 3023
-								},
-								{
-									"name": "state.js",
-									"path": "core/reactive/signal/state.js",
-									"size": 484,
-									"raw": 977
+									"size": 685,
+									"raw": 1406
 								},
 								{
 									"name": "index.js",
 									"path": "core/reactive/signal/index.js",
-									"size": 154,
-									"raw": 209
+									"size": 189,
+									"raw": 291
 								}
 							]
 						},
 						{
 							"name": "index.js",
 							"path": "core/reactive/index.js",
-							"size": 419,
-							"raw": 849
+							"size": 448,
+							"raw": 914
 						}
 					]
-				},
-				{
-					"name": "util.js",
-					"path": "core/util.js",
-					"size": 791,
-					"raw": 1444
 				},
 				{
 					"name": "dev",
@@ -878,36 +922,42 @@
 					]
 				},
 				{
+					"name": "util.js",
+					"path": "core/util.js",
+					"size": 702,
+					"raw": 1217
+				},
+				{
 					"name": "index.js",
 					"path": "core/index.js",
-					"size": 502,
-					"raw": 1249
+					"size": 565,
+					"raw": 1407
 				}
 			]
 		},
 		{
 			"name": "ext",
 			"path": "ext",
-			"size": 56939,
-			"raw": 140890,
+			"size": 59854,
+			"raw": 147533,
 			"children": [
 				{
 					"name": "element",
 					"path": "ext/element",
-					"size": 33339,
-					"raw": 84966,
+					"size": 36155,
+					"raw": 91319,
 					"children": [
 						{
 							"name": "template",
 							"path": "ext/element/template",
-							"size": 22438,
-							"raw": 60829,
+							"size": 23462,
+							"raw": 62936,
 							"children": [
 								{
 									"name": "directives",
 									"path": "ext/element/template/directives",
-									"size": 18088,
-									"raw": 51476,
+									"size": 18122,
+									"raw": 51576,
 									"children": [
 										{
 											"name": "virtualize",
@@ -1000,14 +1050,14 @@
 										{
 											"name": "form-bind",
 											"path": "ext/element/template/directives/form-bind",
-											"size": 2620,
-											"raw": 8861,
+											"size": 2654,
+											"raw": 8961,
 											"children": [
 												{
 													"name": "main.js",
 													"path": "ext/element/template/directives/form-bind/main.js",
-													"size": 2519,
-													"raw": 8776
+													"size": 2553,
+													"raw": 8876
 												},
 												{
 													"name": "index.js",
@@ -1110,21 +1160,15 @@
 								{
 									"name": "custom-attributes",
 									"path": "ext/element/template/custom-attributes",
-									"size": 4244,
-									"raw": 9235,
+									"size": 5234,
+									"raw": 11242,
 									"children": [
 										{
 											"name": "event",
 											"path": "ext/element/template/custom-attributes/event",
-											"size": 2474,
-											"raw": 5312,
+											"size": 3464,
+											"raw": 7319,
 											"children": [
-												{
-													"name": "event.custom-attribute.js",
-													"path": "ext/element/template/custom-attributes/event/event.custom-attribute.js",
-													"size": 1239,
-													"raw": 3151
-												},
 												{
 													"name": "extensions",
 													"path": "ext/element/template/custom-attributes/event/extensions",
@@ -1156,6 +1200,18 @@
 															"raw": 120
 														}
 													]
+												},
+												{
+													"name": "event.custom-attribute.js",
+													"path": "ext/element/template/custom-attributes/event/event.custom-attribute.js",
+													"size": 1220,
+													"raw": 2850
+												},
+												{
+													"name": "event-modifiers.js",
+													"path": "ext/element/template/custom-attributes/event/event-modifiers.js",
+													"size": 1009,
+													"raw": 2308
 												}
 											]
 										},
@@ -1198,26 +1254,26 @@
 						{
 							"name": "decorators",
 							"path": "ext/element/decorators",
-							"size": 6746,
-							"raw": 14180,
+							"size": 8538,
+							"raw": 18426,
 							"children": [
 								{
 									"name": "context",
 									"path": "ext/element/decorators/context",
-									"size": 6663,
-									"raw": 14111,
+									"size": 6665,
+									"raw": 14119,
 									"children": [
 										{
 											"name": "wire-consume.js",
 											"path": "ext/element/decorators/context/wire-consume.js",
-											"size": 970,
-											"raw": 2110
+											"size": 971,
+											"raw": 2114
 										},
 										{
 											"name": "wire-provide.js",
 											"path": "ext/element/decorators/context/wire-provide.js",
-											"size": 950,
-											"raw": 2252
+											"size": 951,
+											"raw": 2256
 										},
 										{
 											"name": "provide.decorator.js",
@@ -1264,10 +1320,30 @@
 									]
 								},
 								{
+									"name": "event",
+									"path": "ext/element/decorators/event",
+									"size": 1781,
+									"raw": 4204,
+									"children": [
+										{
+											"name": "event.decorator.js",
+											"path": "ext/element/decorators/event/event.decorator.js",
+											"size": 1675,
+											"raw": 4115
+										},
+										{
+											"name": "index.js",
+											"path": "ext/element/decorators/event/index.js",
+											"size": 106,
+											"raw": 89
+										}
+									]
+								},
+								{
 									"name": "index.js",
 									"path": "ext/element/decorators/index.js",
-									"size": 83,
-									"raw": 69
+									"size": 92,
+									"raw": 103
 								}
 							]
 						},
@@ -1334,38 +1410,38 @@
 				{
 					"name": "reactive",
 					"path": "ext/reactive",
-					"size": 23157,
-					"raw": 55291,
+					"size": 23256,
+					"raw": 55581,
 					"children": [
 						{
 							"name": "state-tree",
 							"path": "ext/reactive/state-tree",
-							"size": 20728,
-							"raw": 49096,
+							"size": 20823,
+							"raw": 49378,
 							"children": [
 								{
 									"name": "check",
 									"path": "ext/reactive/state-tree/check",
-									"size": 8341,
-									"raw": 19124,
+									"size": 8387,
+									"raw": 19255,
 									"children": [
 										{
 											"name": "validators",
 											"path": "ext/reactive/state-tree/check/validators",
-											"size": 4856,
-											"raw": 9664,
+											"size": 4885,
+											"raw": 9742,
 											"children": [
 												{
 													"name": "async",
 													"path": "ext/reactive/state-tree/check/validators/async",
-													"size": 1328,
-													"raw": 3109,
+													"size": 1330,
+													"raw": 3121,
 													"children": [
 														{
 															"name": "main.js",
 															"path": "ext/reactive/state-tree/check/validators/async/main.js",
-															"size": 1231,
-															"raw": 3032
+															"size": 1233,
+															"raw": 3044
 														},
 														{
 															"name": "index.js",
@@ -1378,14 +1454,14 @@
 												{
 													"name": "manual",
 													"path": "ext/reactive/state-tree/check/validators/manual",
-													"size": 766,
-													"raw": 1556,
+													"size": 769,
+													"raw": 1560,
 													"children": [
 														{
 															"name": "main.js",
 															"path": "ext/reactive/state-tree/check/validators/manual/main.js",
-															"size": 668,
-															"raw": 1478
+															"size": 671,
+															"raw": 1482
 														},
 														{
 															"name": "index.js",
@@ -1418,14 +1494,14 @@
 												{
 													"name": "when",
 													"path": "ext/reactive/state-tree/check/validators/when",
-													"size": 504,
-													"raw": 1085,
+													"size": 528,
+													"raw": 1147,
 													"children": [
 														{
 															"name": "main.js",
 															"path": "ext/reactive/state-tree/check/validators/when/main.js",
-															"size": 417,
-															"raw": 1018
+															"size": 441,
+															"raw": 1080
 														},
 														{
 															"name": "index.js",
@@ -1512,8 +1588,8 @@
 										{
 											"name": "main.js",
 											"path": "ext/reactive/state-tree/check/main.js",
-											"size": 2788,
-											"raw": 8370
+											"size": 2805,
+											"raw": 8423
 										},
 										{
 											"name": "flags.js",
@@ -1538,14 +1614,14 @@
 								{
 									"name": "array",
 									"path": "ext/reactive/state-tree/array",
-									"size": 2160,
-									"raw": 5312,
+									"size": 2186,
+									"raw": 5406,
 									"children": [
 										{
 											"name": "main.js",
 											"path": "ext/reactive/state-tree/array/main.js",
-											"size": 2067,
-											"raw": 5239
+											"size": 2093,
+											"raw": 5333
 										},
 										{
 											"name": "index.js",
@@ -1558,14 +1634,14 @@
 								{
 									"name": "object",
 									"path": "ext/reactive/state-tree/object",
-									"size": 2032,
-									"raw": 5427,
+									"size": 2053,
+									"raw": 5511,
 									"children": [
 										{
 											"name": "main.js",
 											"path": "ext/reactive/state-tree/object/main.js",
-											"size": 1938,
-											"raw": 5353
+											"size": 1959,
+											"raw": 5437
 										},
 										{
 											"name": "index.js",
@@ -1578,8 +1654,8 @@
 								{
 									"name": "node.js",
 									"path": "ext/reactive/state-tree/node.js",
-									"size": 1929,
-									"raw": 4787
+									"size": 1949,
+									"raw": 4842
 								},
 								{
 									"name": "main.js",
@@ -1590,14 +1666,14 @@
 								{
 									"name": "form-ui",
 									"path": "ext/reactive/state-tree/form-ui",
-									"size": 1588,
-									"raw": 3973,
+									"size": 1589,
+									"raw": 3985,
 									"children": [
 										{
 											"name": "main.js",
 											"path": "ext/reactive/state-tree/form-ui/main.js",
-											"size": 1499,
-											"raw": 3904
+											"size": 1500,
+											"raw": 3916
 										},
 										{
 											"name": "index.js",
@@ -1610,14 +1686,14 @@
 								{
 									"name": "changes",
 									"path": "ext/reactive/state-tree/changes",
-									"size": 1314,
-									"raw": 3087,
+									"size": 1317,
+									"raw": 3095,
 									"children": [
 										{
 											"name": "main.js",
 											"path": "ext/reactive/state-tree/changes/main.js",
-											"size": 1224,
-											"raw": 3017
+											"size": 1227,
+											"raw": 3025
 										},
 										{
 											"name": "index.js",
@@ -1630,14 +1706,14 @@
 								{
 									"name": "leaf.js",
 									"path": "ext/reactive/state-tree/leaf.js",
-									"size": 579,
-									"raw": 1154
+									"size": 588,
+									"raw": 1178
 								},
 								{
 									"name": "to-state-tree.js",
 									"path": "ext/reactive/state-tree/to-state-tree.js",
-									"size": 346,
-									"raw": 723
+									"size": 315,
+									"raw": 597
 								},
 								{
 									"name": "tree-feature.js",
@@ -1656,20 +1732,20 @@
 						{
 							"name": "to-signal",
 							"path": "ext/reactive/to-signal",
-							"size": 2429,
-							"raw": 6195,
+							"size": 2433,
+							"raw": 6203,
 							"children": [
 								{
 									"name": "to-signal-from.js",
 									"path": "ext/reactive/to-signal/to-signal-from.js",
-									"size": 828,
-									"raw": 2633
+									"size": 830,
+									"raw": 2637
 								},
 								{
 									"name": "to-signal.js",
 									"path": "ext/reactive/to-signal/to-signal.js",
-									"size": 744,
-									"raw": 1828
+									"size": 746,
+									"raw": 1832
 								},
 								{
 									"name": "subscribable.js",

@@ -1,4 +1,4 @@
-import { state, type StateOptions, type State } from '@std-ui/core';
+import { state, type SignalOptions, type State } from '@std-ui/core';
 import { addWith, EQUALS, type Extendable } from './node.js';
 
 /**
@@ -12,7 +12,7 @@ export type StateLeaf<T> = State<T> &
 	};
 
 /** Wraps a core `state()` as a tree leaf; the core primitive itself stays standard-shaped. */
-export function stateLeaf<T>(value: T, signalOptions?: StateOptions<T>): StateLeaf<T> {
+export function stateLeaf<T>(value: T, signalOptions?: SignalOptions<T>): StateLeaf<T> {
 	return toStateLeaf(state(value, signalOptions), signalOptions?.equals);
 }
 

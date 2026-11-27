@@ -54,10 +54,12 @@ export {
 	isState,
 	type OnCleanup,
 	state,
-	type ReadableState,
-	type WritableState,
-	isWritableState,
-	type StateOptions,
+	type ReadableSignal,
+	type WritableSignal,
+	isWritableSignal,
+	markSignal,
+	peekSignal,
+	type SignalOptions,
 	State,
 } from './reactive/index.js';
 export { ChildRenderer, TemplateRenderer, renderWith } from './element/template/parts/child-renderers/index.js';

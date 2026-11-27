@@ -49,6 +49,7 @@
 		"typecheck": "tsc --noEmit -p ../../tsconfig.json"
 	},
 	"devDependencies": {
+		"signal-polyfill": "^0.2.3",
 		"terser": "^5.51.4",
 		"typescript": "^7.0.2",
 		"vite": "^8.3.8",
@@ -57,7 +58,7 @@
 	"publishConfig": {
 		"access": "public"
 	},
-	"dependencies": {
+	"peerDependencies": {
 		"signal-polyfill": "^0.2.3"
 	}
 }

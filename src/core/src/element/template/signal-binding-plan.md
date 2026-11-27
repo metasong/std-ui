@@ -346,8 +346,8 @@ Findings (production mode, jsdom, best of 6 alternating runs):
 | heap per row | | | +0.7% |
 
 - The first version of the check cost +18..34% on update-one-row. Cause: a `hasSignal` call per part per render,
-  with `isReadableState` probing `.get`/`.peek` on primitives. Now primitives are rejected with an inline
-  `typeof` in each part's `update()` (no call); objects still go through `isReadableState` (about 10 ns each).
+  with `isReadableSignal` probing `.get`/`.peek` on primitives. Now primitives are rejected with an inline
+  `typeof` in each part's `update()` (no call); objects still go through `isReadableSignal` (about 10 ns each).
   The list-item path (`ChildPart.update([templateResult])`) is the remaining hot spot: one object check per item.
 - The baseline stub is slightly optimistic: it makes the whole signal branch dead code, so V8 inlines `update()`
   more aggressively than it can with the real branch present. A true "feature absent" build would sit between
@@ -368,7 +368,7 @@ Each tweak was removed on its own. Differences within about 5% in either directi
 
 | Tweak | Result when removed | Decision |
 |---|---|---|
-| `typeof` early return in `isReadableState` | noise | removed |
+| `typeof` early return in `isReadableSignal` | noise | removed |
 | `#follow` split out of `update()` | noise | removed (inline in `update()`) |
 | `#applyResolved` / `#resolved` (no closure per `follow()`) | noise | removed (plain closure in the effect) |
 | Inline `typeof` check in each part's `update()` | plain update 9-35% slower | kept |
@@ -378,7 +378,7 @@ Each tweak was removed on its own. Differences within about 5% in either directi
 
 Lesson: the per-part inline `typeof` check is the one tweak that matters for plain templates. The inline check is repeated in four parts on purpose. A helper function costs a call per part per render, and V8 did not inline it. `AttributePart` also checks `values.length > 1`, because an attribute can have several slots.
 
-Tried a brand check in `isReadableState` (`value instanceof State` first, structural fallback for computed, state-tree nodes and foreign signals): within about 5% in both directions on every row, so it was not adopted. `isReadableState` stays structural.
+Tried a brand check in `isReadableSignal` (`value instanceof State` first, structural fallback for computed, state-tree nodes and foreign signals): within about 5% in both directions on every row, so it was not adopted. `isReadableSignal` stays structural.
 
 ### Known quirk: `raw(sig)` then `sig` on the same property slot
 

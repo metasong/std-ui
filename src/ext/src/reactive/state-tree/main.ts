@@ -8,7 +8,7 @@
 // Plain objects (`{ ... }` / `Object.create(null)`) become `StateObject`s; arrays `StateArray`s;
 // everything else (primitives, class instances, null, undefined, functions, ...) is a leaf `State`.
 
-import type { Computed, State, StateOptions } from '@std-ui/core';
+import type { Computed, State, SignalOptions } from '@std-ui/core';
 
 import { DEV } from '../../dev/flag.js';
 import { stateArray, type StateArray } from './array/index.js';
@@ -95,7 +95,7 @@ export type StateTree<T> = [T] extends [boolean] // `boolean` is `true | false`:
 export type StateDepth = 'value' | 'shallow' | 'deep';
 
 /** `stateTree()` options: the leaf `state()` options plus how deep to build. */
-export interface StateTreeOptions<T = unknown> extends StateOptions<T> {
+export interface StateTreeOptions<T = unknown> extends SignalOptions<T> {
 	/**
 	 * - `'deep'` (default): every nested object / array becomes a node.
 	 * - `'shallow'`: the root is a container node (`StateObject` / `StateArray`) but each member is
@@ -161,14 +161,14 @@ export function stateTree<T, D extends StateDepth = 'deep'>(
 /** `ancestors` holds the containers on the current construction path (not every visited one). */
 function build<T>(
 	value: T,
-	signalOptions: StateOptions<unknown> | undefined,
+	signalOptions: SignalOptions<unknown> | undefined,
 	depth: StateDepth,
 	ancestors: Set<object>,
 ): StateTree<T> {
 	// Composition: an existing tree node is adopted as-is, so the parent reads, validates and tracks it.
 	if (isTreeNode(value)) return value as StateTree<T>;
 	// `'value'` stops here: whatever the shape, it is one leaf holding the value as-is.
-	if (depth === 'value') return stateLeaf(value, signalOptions as StateOptions<T>) as unknown as StateTree<T>;
+	if (depth === 'value') return stateLeaf(value, signalOptions as SignalOptions<T>) as unknown as StateTree<T>;
 	const container = Array.isArray(value) || isPlainObject(value);
 	if (container) {
 		if (ancestors.has(value as object)) {
@@ -188,7 +188,7 @@ function build<T>(
 			if (depth === 'shallow') (node as { shallow(): unknown }).shallow = node.deep;
 			return node as unknown as StateTree<T>;
 		}
-		return stateLeaf(value, signalOptions as StateOptions<T>) as unknown as StateTree<T>;
+		return stateLeaf(value, signalOptions as SignalOptions<T>) as unknown as StateTree<T>;
 	} finally {
 		if (container) ancestors.delete(value as object);
 	}

@@ -5,8 +5,8 @@
 // subscribed to it. The part subscribes instead, with its own effect, and patches only its slot.
 // See `../signal-binding-plan.md`.
 import { effect } from '../../../reactive/effect/effect.js';
-import { isWatchableSignal, watchSignal } from '../../../reactive/effect/watch-signal.js';
-import { isReadableState } from '../../../reactive/signal/state.js';
+import { watchSignal } from '../../../reactive/effect/watch-signal.js';
+import { isReadableSignal, peekSignal } from '../../../reactive/signal/index.js';
 import { untrack } from '../../../reactive/signal/tracking.js';
 import { warnOnce } from './part.js';
 
@@ -15,7 +15,7 @@ function resolve(values: readonly unknown[], track: boolean): unknown[] {
 	const out = new Array<unknown>(values.length);
 	for (let i = 0; i < values.length; i++) {
 		const v = values[i];
-		out[i] = isReadableState(v) ? (track ? v.get() : v.peek()) : v;
+		out[i] = isReadableSignal(v) ? (track ? v.get() : peekSignal(v)) : v;
 	}
 	return out;
 }
@@ -55,7 +55,7 @@ export class SignalBinding {
 		// The common case, one signal and nothing else in the slot: watch it directly, with no effect (and no
 		// computed on top of the signal) in between. `watchSignal` already runs untracked.
 		const only = values.length === 1 ? values[0] : undefined;
-		if (isWatchableSignal(only)) {
+		if (isReadableSignal(only)) {
 			this.#dispose = watchSignal(only, value => this.#apply([value]), this.#name);
 			return;
 		}
@@ -83,7 +83,7 @@ export function hasSignal(values: readonly unknown[]): boolean {
 	// no call: only objects and functions can be signals.
 	for (let i = 0; i < values.length; i++) {
 		const v = values[i];
-		if ((typeof v === 'object' || typeof v === 'function') && isReadableState(v)) return true;
+		if ((typeof v === 'object' || typeof v === 'function') && isReadableSignal(v)) return true;
 	}
 	return false;
 }
@@ -94,7 +94,7 @@ function sameShape(a: readonly unknown[], b: readonly unknown[]): boolean {
 	for (let i = 0; i < a.length; i++) {
 		// A position holding a signal on either side must hold the same signal. Plain next to plain may differ:
 		// html`<div class="${this.kind} ${'static-or-changing'}">` - the second one.
-		if ((isReadableState(a[i]) || isReadableState(b[i])) && a[i] !== b[i]) return false;
+		if ((isReadableSignal(a[i]) || isReadableSignal(b[i])) && a[i] !== b[i]) return false;
 	}
 	return true;
 }

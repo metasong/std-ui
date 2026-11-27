@@ -1,17 +1,11 @@
-// `watchSignal()`: the one-signal case of `effect()`, without a computed body on top of the signal.
+// `watchSignal()`: the one-signal case of `effect()`, without a computed body on top of a `State` / `Computed`.
 // Runs in the same microtask flush as effects (see `./scheduler.ts`). Used by `SignalBinding`.
 
 import { Signal } from 'signal-polyfill';
+import { computed, signalTarget, type ReadableSignal } from '../signal/index.js';
+import { isStandardSignal, type StandardSignal } from '../signal/signal-type.js';
 import { untrack, Watcher } from '../signal/tracking.js';
 import { cycleGuard, dequeue, enqueue, type Job } from './scheduler.js';
-
-/** A `State` or `Computed` made by this library or the polyfill: the only sources a `Watcher` can watch directly. */
-export type WatchableSignal = Signal.State<unknown> | Signal.Computed<unknown>;
-
-/** Whether `value` can be given to `watchSignal()`. */
-export function isWatchableSignal(value: unknown): value is WatchableSignal & { peek(): unknown } {
-	return (value instanceof Signal.State || value instanceof Signal.Computed) && typeof (value as { peek?: unknown }).peek === 'function';
-}
 
 /**
  * The one-signal case of `effect()`: a `Watcher` straight on `source`, no tracked body in between. Cheaper
@@ -21,14 +15,26 @@ export function isWatchableSignal(value: unknown): value is WatchableSignal & { 
  * Calls `onValue(value)` now, then after a change in the same microtask-batched flush as effects, so ordering,
  * `whenFlushed()` and the cycle guard behave the same. `onValue` is untracked. Returns a `dispose()`.
  *
+ * Any readable signal works: one that is not a `State` / `Computed` (a `stateTree()` node, a marked wrapper)
+ * is read through a `computed()` that is watched instead.
+ *
  * Cutoff: a `State` only notifies when its own `equals` says the value changed, so every notification is a
  * real change and `onValue` always runs (also for an in-place mutation re-set with `equals: () => false`).
  * A `Computed` is notified as soon as a source *may* have changed, before it recomputes, so a re-run is
  * skipped when the recomputed value is equal to the last one handed over, by the computed's own `equals`
  * option (exposed by our `Computed`; `Object.is` when it has none).
  */
-export function watchSignal<T>(source: WatchableSignal & { peek(): T }, onValue: (value: T) => void, name?: string): () => void {
-	return new SignalWatch(source, onValue as (value: unknown) => void, name).dispose;
+export function watchSignal<T>(source: ReadableSignal<T>, onValue: (value: T) => void, name?: string): () => void {
+	return new SignalWatch(toWatchable(source), onValue as (value: unknown) => void, name).dispose;
+}
+
+/** The signal a `Watcher` can take for `source`: a `State` or `Computed` as is (the fast path, no lookup), a
+ * marked node's real signal, else a `computed()` over `source.get()`. A node's `Proxy` reports a plain
+ * prototype, so it never passes the first check. */
+function toWatchable(source: ReadableSignal<unknown>): StandardSignal {
+	if (isStandardSignal(source)) return source;
+	const target = signalTarget(source);
+	return target && isStandardSignal(target) ? target : computed(() => source.get());
 }
 
 class SignalWatch implements Job {
@@ -38,11 +44,11 @@ class SignalWatch implements Job {
 	#last: unknown;
 	/** Whether a notification can be a false alarm (a `Computed`), so `run()` must compare with `#last`. */
 	readonly #cutoff: boolean;
-	readonly #source: WatchableSignal & { peek(): unknown };
+	readonly #source: StandardSignal;
 	readonly #onValue: (value: unknown) => void;
 	readonly #watcher: Watcher;
 
-	constructor(source: WatchableSignal & { peek(): unknown }, onValue: (value: unknown) => void, name: string | undefined) {
+	constructor(source: StandardSignal, onValue: (value: unknown) => void, name: string | undefined) {
 		this.#source = source;
 		this.#onValue = onValue;
 		this.#cutoff = !(source instanceof Signal.State);
@@ -59,8 +65,8 @@ class SignalWatch implements Job {
 	run(): void {
 		if (this.#disposed) return;
 		try {
-			// `peek()`: untracked, so a part created inside the host's template effect does not make it depend on `source`.
-			const value = this.#source.peek();
+			// Untracked, so a part created inside the host's template effect does not make it depend on `source`.
+			const value = untrack(() => this.#source.get());
 			if (this.#cutoff) {
 				if (this.#started && this.#same(this.#last, value)) return;
 				this.#started = true;
