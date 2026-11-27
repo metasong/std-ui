@@ -26,6 +26,14 @@ export interface Modifier {
 
 const warned = new Set<string>();
 
+/** DEV only: logs `message` once per distinct message (a part is built once per template instance, and
+ *  re-renders would repeat the call). */
+export function warnOnce(message: string): void {
+	if (warned.has(message)) return;
+	warned.add(message);
+	console.warn(message);
+}
+
 /** DEV only: parts that interpret no modifiers call this so a stray `.modifier` isn't silently
  *  swallowed. Deduped by message, since a part is constructed once per template instance. */
 export function warnIgnoredModifiers(binding: string, modifiers: readonly Modifier[] = [], known: readonly string[] = []): void {

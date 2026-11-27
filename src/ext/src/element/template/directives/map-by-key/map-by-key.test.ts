@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest';
-import { t, render, AttributePart, ChildPart } from '@std-ui/core';
+import { Signal } from 'signal-polyfill';
+import { t, render, AttributePart, ChildPart, state } from '@std-ui/core';
 import { MapByKeyRenderer } from './map-by-key-renderer.js';
 import { mapByKey } from './main.js';
 
@@ -142,5 +143,32 @@ describe('mapByKey end-to-end', () => {
 			'b',
 			'a',
 		]);
+	});
+});
+
+describe('mapByKey with signals in rows', () => {
+	const followers = (sig: object) => Signal.subtle.introspectSinks(sig as Signal.State<unknown>).length;
+
+	it('a signal in a row follows while the row lives, and is released when the row is removed or the part disposed', async () => {
+		const container = document.createElement('div');
+		const anchor = document.createComment('std-ui-part');
+		container.appendChild(anchor);
+		const part = new ChildPart(anchor);
+		const a = state('a');
+		const b = state('b');
+		const rows = [{ id: 'a', s: a }, { id: 'b', s: b }];
+		const view = (list: typeof rows) => mapByKey(list, (r) => r.id, (r) => t`<li>${r.s}</li>`);
+		part.update([view(rows)]);
+		expect(container.textContent).toBe('ab');
+		expect([followers(a), followers(b)]).toEqual([1, 1]);
+		a.set('a2');
+		await new Promise((resolve) => setTimeout(resolve)); // let the microtask-batched effects run
+		expect(container.textContent).toBe('a2b');
+		part.update([view([rows[1]])]); // row 'a' removed
+		expect([followers(a), followers(b)]).toEqual([0, 1]);
+		part.update([view([rows[1], rows[0]])]); // row 'a' comes back as a new row
+		expect([followers(a), followers(b)]).toEqual([1, 1]);
+		part.dispose();
+		expect([followers(a), followers(b)]).toEqual([0, 0]);
 	});
 });

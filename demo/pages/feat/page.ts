@@ -5,8 +5,10 @@ import clock from './sections/clock-section.ts?raw';
 import decorator from './sections/decorator-section.ts?raw';
 
 import computedSkip from './sections/computed-skip-section.ts?raw';
+import signalBinding from './sections/signal-binding-section.ts?raw';
 
 const computedSkipFiles = { 'computed-skip-section.ts': computedSkip };
+const signalBindingFiles = { 'signal-binding-section.ts': signalBinding };
 const clockFiles = { 'clock-section.ts': clock };
 const decoratorFiles = { 'decorator-section.ts': decorator };
 
@@ -17,6 +19,7 @@ export class DemoFeatPage extends UIElement {
 			<code-preview .files=${clockFiles}><demo-feat-clock-section></demo-feat-clock-section></code-preview>
 			<code-preview .files=${decoratorFiles}><demo-feat-decorator-section></demo-feat-decorator-section></code-preview>
 			<code-preview .files=${computedSkipFiles}><demo-feat-computed-skip-section></demo-feat-computed-skip-section></code-preview>
+			<code-preview .files=${signalBindingFiles}><demo-feat-signal-binding-section></demo-feat-signal-binding-section></code-preview>
 		`;
 	}
 }

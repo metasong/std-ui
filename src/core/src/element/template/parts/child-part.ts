@@ -1,6 +1,8 @@
 import { DirectiveSlot, isDirectiveResult, noChange, type ChildPartInfo } from '../directives/directive.js';
 import { PartType } from './part.js';
 import type { Part } from './part.js';
+import { hasSignal, SignalBinding, warnMisplacedValue } from './signal-binding.js';
+import { DEV } from '../../../dev/flag.js';
 import {
 	isRenderWith,
 	isTemplateResult,
@@ -43,8 +45,26 @@ export class ChildPart implements Part {
 		return this.#anchor;
 	}
 
+	/** Follows a signal bound here (`${this.view}`) so a change patches only this slot. */
+	#signal: SignalBinding | undefined; // created on the first signal value
+
 	update(values: readonly unknown[]): void {
-		let value = values[0];
+		const value = values[0];
+		// PERF-CRITICAL, keep inline: runs for every part on every render. Only an object or function can be a
+		// signal, so a primitive skips `hasSignal()` with one `typeof`. Measured: calling `hasSignal(values)`
+		// directly, or a `maybeSignal(value)` helper, made plain updates 6-38% slower (V8 does not inline them).
+		// The same check is in child-part, boolean-part, property-part and attribute-part: if they are ever merged
+		// into one shared function, re-measure first (see signal-binding-plan.md in template/).
+		if ((typeof value === 'object' || typeof value === 'function') && hasSignal(values)) {
+			(this.#signal ??= new SignalBinding('signal binding (child-part)', resolved => this.#apply(resolved[0]))).follow(values);
+			return;
+		}
+		this.#signal?.release();
+		this.#apply(value);
+	}
+
+	#apply(value: unknown): void {
+		if (DEV) warnMisplacedValue(value, 'child');
 		if (!isDirectiveResult(value)) this.#slot.disconnect();
 		else {
 			const resolved = this.#slot.apply(this.#partInfo, value);
@@ -70,12 +90,14 @@ export class ChildPart implements Part {
 	/** Runs `disconnected()` on this part's directive and on directives in its nested content,
 	 *  leaving the DOM untouched (so a detached element keeps its last rendered output). */
 	disconnect(): void {
+		this.#signal?.release();
 		this.#slot.disconnect();
 		this.#renderer?.disconnect();
 	}
 
 	/** Removes this part's content and its anchor. @internal */
 	dispose(): void {
+		this.#signal?.release();
 		this.#slot.disconnect();
 		this.#clear();
 		this.#anchor.remove();

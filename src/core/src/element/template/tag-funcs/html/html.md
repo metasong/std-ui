@@ -29,6 +29,24 @@ Each `${...}` interpolation is bound based on *where* it appears in the markup:
 | `class.` entry | `class.active=${on}` | `el.classList.toggle('active', Boolean(on))` |
 | `style.` entry | `style.color=${value}` | `el.style.setProperty('color', value)` (removed if `value` is `null`/`undefined`/`false`) |
 
+### Signals in slots
+
+A signal bound as is (`${this.count}`, not `${this.count.get()}`) is followed by the slot itself, in a child,
+plain attribute, `?attribute` and `.property` position. The slot subscribes with its own effect and patches only
+itself when the signal changes, so `template()` is not re-run for it. Reading the signal in `template()`
+(`${this.count.get()}`) still works, but makes the whole template depend on it.
+
+```ts
+t`<p>${this.count}</p><p id=${this.id} ?hidden=${this.hidden}>${this.title}</p>`; // each slot follows its signal
+```
+
+- A signal inside a composed attribute (`class="a ${this.kind} b"`) is followed too; the other values are plain.
+- `.prop=${sig}` hands the element the signal's value and keeps it updated. Wrap the signal in `raw()` to hand the
+  element the signal object itself: `.source=${raw(this.series)}`. `raw()` means nothing in other positions (DEV warns).
+- A function in a child position is not called (DEV warns): call it yourself or pass a `computed()`.
+- A bare signal does not re-run `updated()` / `firstUpdated()`: those run after `template()`, and `template()` did not
+  re-run. See [`../../signal-binding-plan.md`](../../signal-binding-plan.md) for the design and measurements.
+
 ### Text-only elements: `<title>`, `<textarea>`, `<style>`, `<script>`
 
 The HTML parser reads the bodies of these elements as plain text, never as markup, so no child

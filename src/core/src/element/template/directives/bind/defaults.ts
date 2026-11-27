@@ -1,7 +1,5 @@
-import { DEV } from '../../../../dev/flag.js';
-import { isReadableState, isWritableState } from '../../../../reactive/signal/state.js';
+import { isReadableState } from '../../../../reactive/signal/state.js';
 import { kebab } from '../../../../util.js';
-import { usageError } from '../../../../util.js';
 // Element-aware defaults for `bind()`: which event, how to compare, how to coerce. Everything here
 // is a pure function of (element, property), so `resolve.ts` can stay a simple "options ?? default".
 
@@ -30,14 +28,6 @@ export function describeTarget(element: Element, property: string): string {
 export function readProperty(element: Element, property: string): unknown {
 	const value = (element as unknown as Record<string, unknown>)[property];
 	return isReadableState(value) ? value.get() : value;
-}
-
-/** A signal-valued property is written through its `.set()`; plain assignment would replace the signal itself. */
-export function writeProperty(element: Element, property: string, model: unknown): void {
-	const target = element as unknown as Record<string, unknown>;
-	const current = target[property];
-	if (isWritableState(current) && current !== model) current.set(model as never);
-	else target[property] = model;
 }
 
 /** Native control events when applicable; otherwise `${kebab(property)}-change`. */
@@ -80,11 +70,4 @@ export function defaultCoerce(
 		};
 	}
 	return view => view;
-}
-
-/** `.checked` on a plain <input> must be checkbox or radio (custom elements use `checked-change`). */
-export function assertBindableTarget(element: Element, property: string): void {
-	if (property === 'checked' && element instanceof HTMLInputElement && !isCheckableInput(element)) {
-		throw usageError(DEV && `std-ui bind(): ${describeTarget(element, property)} requires type="checkbox" or type="radio".`, 'bind');
-	}
 }

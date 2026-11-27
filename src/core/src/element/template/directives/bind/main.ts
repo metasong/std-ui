@@ -7,10 +7,11 @@
 // Anything beyond value sync (e.g. form UI state) is added with `createBind(plugins)`.
 
 import { Directive, directive, noChange, type DirectiveResult, isPropertyPartInfo, type PartInfo, type PropertyPartInfo } from '../directive.js';
-import { assertBindableTarget, isRadio } from './defaults.js';
+import { isRadio } from './defaults.js';
+import { assertBindableTarget } from './dev/assert-bindable-target.js';
 import { pullRadioSiblings, registerRadio, unregisterRadio } from './radio-group.js';
 import type { WritableState } from '../../../../reactive/signal/state.js';
-import { BIND_USAGE, isAccessor, resolveBinding } from './resolve.js';
+import { BIND_USAGE, BindingCache, isAccessor } from './resolve.js';
 import type { BindOptions, BindPlugin, BindSource, Binding } from './types.js';
 import { DEV } from '../../../../dev/flag.js';
 import { assertPosition } from '../assert-child-part.js';
@@ -28,6 +29,7 @@ function defineBindDirective(plugins: readonly BindPlugin[]) {
 		/** Latest binding: refreshed every render so accessors/hooks are never stale. */
 		#binding: Binding | undefined;
 		#property = '';
+		readonly #bindings = new BindingCache();
 		/** Latest first argument of `bind()`, read by plugins. */
 		#source: unknown;
 		/** Listener + element + event: only rebuilt when the element or event name changes. */
@@ -39,13 +41,13 @@ function defineBindDirective(plugins: readonly BindPlugin[]) {
 		constructor(partInfo: PartInfo) {
 			super(partInfo);
 			assertPosition(isPropertyPartInfo(partInfo), 'bind', 'a property binding, e.g. `.value=${bind(...)}`');
-			assertBindableTarget(partInfo.element, partInfo.name);
+			if (DEV) assertBindableTarget(partInfo.element, partInfo.name);
 		}
 
 		override update(part: PropertyPartInfo, ...args: readonly unknown[]): typeof noChange {
 			const element = part.element;
 			this.#source = args[0];
-			this.#binding = resolveBinding(args, element, part.name);
+			this.#binding = this.#bindings.resolve(args, element, part.name);
 			this.#property = part.name;
 
 			this.#ensureWired(element, this.#binding.view.event);
@@ -76,6 +78,7 @@ function defineBindDirective(plugins: readonly BindPlugin[]) {
 			this.#disposePlugins();
 			this.#unwire();
 			this.#binding = undefined;
+			this.#bindings.clear();
 		}
 
 		/** model → element (skipped when the element already shows the model). */

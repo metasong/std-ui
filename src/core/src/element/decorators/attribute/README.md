@@ -148,7 +148,8 @@ Leaf-level reactivity and whole-object `.set()` semantics: [`../state-tree/READM
   changes; disposed on disconnect like the render effect.
 - **No infinite loop** — the store notifies only on real value changes (`Object.is`), so reflecting
   the same serialized text back does not re-trigger endlessly.
-- **Template `.prop` bindings** from a parent pass plain values; `PropertyPart` forwards into
+- **Template `.prop` bindings** from a parent pass plain values (a bare signal `.prop=${sig}` is followed and its
+  value passed; `raw(sig)` stops the following and writes the signal as a plain value, so a store field gets it through `.set(sig)`); `PropertyPart` forwards into
   `.set()` on the child's store — same as for any store field (see [`../state-tree/README.md`](../state-tree/README.md)).
 
 ## Related reading

@@ -6,8 +6,8 @@ import {
 	defaultEvent,
 	describeTarget,
 	readProperty,
-	writeProperty,
 } from './defaults.js';
+import { writeProperty } from '../../custom-attributes/property/write-property.js';
 import type { BindAccessor, BindDepth, BindOptions, BindSource, Binding } from './types.js';
 import { DEV } from '../../../../dev/flag.js';
 import { isWritableState } from '../../../../reactive/signal/state.js';
@@ -22,6 +22,36 @@ export function isAccessor(value: unknown): value is BindSource {
 }
 
 export const BIND_USAGE = 'pass a signal (`bind(sig[, options])`) or `bind({ get, set, ... })`.';
+
+/**
+ * Remembers the last `Binding` and hands it back while its inputs are unchanged. Only `bind(state[, options])`
+ * is cached; accessor objects are re-resolved because their `get`/`set` are usually fresh closures. The options object is compared by identity, so an inline `{ ... }` literal misses every render: hoist it to hit the cache.
+ */
+export class BindingCache {
+	#binding: Binding | undefined;
+	#state: unknown;
+	#options: unknown;
+	#element: Element | undefined;
+	#property = '';
+
+	resolve(args: readonly unknown[], element: Element, property: string): Binding {
+		const [first, second] = args;
+		if (this.#binding && isWritableState(first) && first === this.#state && second === this.#options
+			&& element === this.#element && property === this.#property) {
+			return this.#binding;
+		}
+		this.#binding = resolveBinding(args, element, property);
+		this.#state = first;
+		this.#options = second;
+		this.#element = element;
+		this.#property = property;
+		return this.#binding;
+	}
+
+	clear(): void {
+		this.#binding = this.#state = this.#options = this.#element = undefined;
+	}
+}
 
 /** `args` are exactly what `bind()` forwarded: `[signal, options?]` or `[{ get, set, ...options }]`. */
 export function resolveBinding(args: readonly unknown[], element: Element, property: string): Binding {

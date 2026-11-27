@@ -34,7 +34,7 @@ Extend `UIFeat<Host>` and override any of these (all optional, all `protected`):
 | `beforeConnect()` | every connect, before the host's `connect()` | optional cleanup |
 | `connected()` | every connect, after the host's `connect()` | optional cleanup |
 | `firstUpdated()` | once per connection, after the first `template()` | optional cleanup |
-| `updated()` | after every `template()` | - |
+| `updated()` | after every `template()` (not after a slot patched by a bare signal: `template()` did not re-run) | - |
 | `attributeChanged(name, old, new)` | an observed attribute changed | - |
 | `disconnected()` | every disconnect, after the cleanups | - |
 

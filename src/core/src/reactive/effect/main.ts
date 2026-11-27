@@ -100,7 +100,7 @@ class Effect {
 		(this.#cleanups ??= []).push(fn);
 	};
 
-	constructor(action: (onCleanup: OnCleanup) => void, after: (() => void) | null) {
+	constructor(action: (onCleanup: OnCleanup) => void, after: (() => void) | null, name: string | undefined) {
 		this.#action = action;
 		this.#after = after;
 		// `notify` runs synchronously inside the writer's `set()` (reads/writes are forbidden there), so
@@ -110,7 +110,7 @@ class Effect {
 			pending.add(this);
 			scheduleFlush();
 		});
-		cycleGuard.register(this, action);
+		cycleGuard.register(this, action, name, this.#body);
 		this.#watcher.watch(this.#body);
 		// First run is synchronous so initial DOM sync isn't deferred a tick.
 		this.run();
@@ -173,10 +173,14 @@ class Effect {
  * @param afterAction - Optional callback run right after `monitoredAction` on every run (initial
  * and re-runs). Not dependency-tracked, so signals it reads won't trigger re-runs. Defaults to
  * `null`.
+ * @param options - `name` labels the effect in cycle errors and, in dev, replaces the creation stack
+ * (`new Error()`, about 7us per effect, against about 1.6us without). Use it for effects made by library
+ * internals, where a stack would only point inside the library, or in code creating many effects.
  */
 export function effect(
 	monitoredAction: (onCleanup: OnCleanup) => void,
-	afterAction: (() => void) | null = null
+	afterAction: (() => void) | null = null,
+	options: { name?: string } = {},
 ): () => void {
-	return new Effect(monitoredAction, afterAction).dispose;
+	return new Effect(monitoredAction, afterAction, options.name).dispose;
 }

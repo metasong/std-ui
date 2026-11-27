@@ -43,6 +43,7 @@ export {
 	type PartInfo,
 	type CSSResultGroup,
 } from './element/template/index.js';
+export { raw } from './element/template/custom-attributes/property/index.js';
 export { bind, createBind, classMap, styleMap, ref, createRef } from './element/template/directives/index.js';
 export type { BindAccessor, BindOptions, BindPlugin, BindPluginContext, BindSource, Ref, RefCallback, RefOrCallback } from './element/template/directives/index.js';
 export {

@@ -1,5 +1,6 @@
 import { DirectiveSlot, isDirectiveResult, noChange, type AttributePartInfo } from '../../directives/directive.js';
 import { PartType, type Modifier, type Part, warnIgnoredModifiers } from '../../parts/part.js';
+import { hasSignal, SignalBinding, warnMisplacedValue } from '../../parts/signal-binding.js';
 import { DEV } from '../../../../dev/flag.js';
 import { usageError } from '../../../../util.js';
 
@@ -36,13 +37,42 @@ export class AttributePart implements Part {
 
 	/** Runs `disconnected()` on every bound directive and forgets them. */
 	disconnect(): void {
+		this.#signal?.release();
+		this.#disconnectSlots();
+	}
+
+	dispose(): void {
+		this.#signal?.release();
+	}
+
+	#disconnectSlots(): void {
 		for (const s of this.#slots) s.disconnect();
 		this.#slots = [];
 	}
 
+	/** Follows signals bound here (`class=${this.cls}`) so a change patches only this attribute. */
+	#signal: SignalBinding | undefined; // created on the first signal value
+
 	update(values: readonly unknown[]): void {
+		const first = values[0];
+		// PERF-CRITICAL, keep inline: runs for every part on every render. Only an object or function can be a
+		// signal, so a primitive skips `hasSignal()` with one `typeof`. Measured: calling `hasSignal(values)`
+		// directly, or a `maybeSignal(value)` helper, made plain updates 6-38% slower (V8 does not inline them).
+		// The same check is in child-part, boolean-part, property-part and attribute-part: if they are ever merged
+		// into one shared function, re-measure first (see signal-binding-plan.md in template/).
+		// Here `values.length > 1` also forces the check: a later slot of a multi-slot attribute can be a signal.
+		if ((values.length > 1 || typeof first === 'object' || typeof first === 'function') && hasSignal(values)) {
+			(this.#signal ??= new SignalBinding('signal binding (attribute-part)', resolved => this.#apply(resolved))).follow(values);
+			return;
+		}
+		this.#signal?.release();
+		this.#apply(values);
+	}
+
+	#apply(values: readonly unknown[]): void {
+		if (DEV) for (const value of values) warnMisplacedValue(value, 'attribute');
 		const hasDirective = values.some(isDirectiveResult);
-		if (!hasDirective) this.disconnect();
+		if (!hasDirective) this.#disconnectSlots();
 		const isBareSingleValue = this.#literals.length === 2 && this.#literals[0] === '' && this.#literals[1] === '';
 
 		if (isBareSingleValue && isDirectiveResult(values[0])) {

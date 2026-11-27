@@ -29,7 +29,8 @@ class-wiring machinery that swapped the field for an accessor (`field-store.ts`)
 - **No attribute** — a plain store never touches an attribute. To mirror one, use
   `@attribute()` or `defineElement(..., { attributes })` ([`../attribute/README.md`](../attribute/README.md)).
 - **Parent `.prop` bindings** pass plain values; `PropertyPart` forwards them into `.set()` on the
-  child's store.
+  child's store. A bare signal (`.prop=${sig}`) is followed and its value passed. `raw(sig)` does not replace the
+  child's store: the store field receives it like any value, through `.set(sig)`.
 - **Context** — expose a store to descendants with `@provide(key)` / `defineElement({ provide })`
   ([`../context/README.md`](../context/README.md)).
 
