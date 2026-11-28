@@ -65,7 +65,7 @@ Writing a signal the body has already read (`get()`) from inside the body silent
 ## std-ui usage
 
 - [`../../element/ui-element.ts`](../../element/ui-element.ts) — `UIElement.effect()` wraps this and auto-disposes on `disconnectedCallback()`.
-- [`../state-tree/main.ts`](../state-tree/main.ts) — field reactions and template refresh build on the same primitives.
+- [`../store/main.ts`](../store/main.ts) — field reactions and template refresh build on the same primitives.
 
 ## Tests
 

@@ -39,7 +39,7 @@ The core is small on purpose, and almost everything else is an add-on built on t
 
 - **UIElement hooks** (`registerUIElementHooks`): plug into the component lifecycle.
 - **Class registries** (`createClassRegistry`) and **metadata** (`ownMetadata`): build your own decorators.
-- **State tree extensions** (`extendTree`, `.with(...)`): add features such as change tracking to every node in a state tree.
+- **Store extensions** (`extendTree`, `.with(...)`): add features such as change tracking to every node in a store.
 
 `@std-ui/ext` is the proof. Context, change tracking and forms are built only on these public APIs, and `@std-ui/core` has no knowledge of them. You can write yours the same way.
 
@@ -48,15 +48,15 @@ The core is small on purpose, and almost everything else is an add-on built on t
 - **Tiny.** The full core ships at about **14 kB gzip** (`std-ui-core.iife.min.js`), and the add-ons at about **10 kB**.
 - **Fine-grained reactivity.** `signal`, `computed` and `effect` update exactly the DOM that changed. There is no diffing and no re-render of whole trees.
 - **Real Web Components.** Extend `UIElement`, and it works anywhere HTML works.
-- **Reactive state trees.** Wrap plain objects and arrays in `stateTree(...)` to get deeply reactive, typed stores.
-- **Type-safe by design.** Fields are the store itself (`StateTree<number>`), so there are no decorator type lies and IntelliSense just works.
+- **Reactive stores.** Wrap plain objects and arrays in `store(...)` to get deeply reactive, typed stores.
+- **Type-safe by design.** Fields are the store itself (`Store<number>`), so there are no decorator type lies and IntelliSense just works.
 - **Fully extensible.** Hooks, registries and tree extensions let you add your own features.
 - **Opt-in extras.** Context, change tracking and forms live in `@std-ui/ext`. The core knows nothing about them, so you pay only for what you import.
 
 ## A taste
 
 ```ts
-import { UIElement, tag, attribute, stateTree, t, css } from '@std-ui/core';
+import { UIElement, tag, attribute, store, t, css } from '@std-ui/core';
 import { provide, consume, createContextKey } from '@std-ui/ext';
 
 interface Theme { mode: 'light' | 'dark'; }
@@ -64,7 +64,7 @@ const ThemeKey = createContextKey<Theme>('theme');
 
 @tag('app-root')
 class AppRoot extends UIElement {
-	@provide(ThemeKey) readonly theme = stateTree<Theme>({ mode: 'dark' }); // shared with every descendant
+	@provide(ThemeKey) readonly theme = store<Theme>({ mode: 'dark' }); // shared with every descendant
 	static override shadowRootOptions = { mode: 'open' } as const; // render into a shadow root so <slot> projects children
 	protected override template() { return t`<slot></slot>`; }
 }
@@ -72,7 +72,7 @@ class AppRoot extends UIElement {
 @tag('counter-button')
 class CounterButton extends UIElement {
 	static override styles = css`button { padding: .5rem 1rem; } button.dark { background: #222; color: #fff; }`;
-	@attribute({ type: Number, reflect: true }) readonly count = stateTree(0); // <counter-button count="3">
+	@attribute({ type: Number, reflect: true }) readonly count = store(0); // <counter-button count="3">
 	@consume(ThemeKey) readonly theme!: Theme;                            // nearest ancestor's value
 
 	protected override template() {
@@ -93,7 +93,7 @@ class CounterButton extends UIElement {
 
 ```ts
 class CounterButton extends UIElement {
-	readonly count = stateTree(0);
+	readonly count = store(0);
 	protected override template() {
 		return t`<button @click=${() => this.count.set(this.count.get() + 1)}>Clicked ${this.count.get()} times</button>`;
 	}
@@ -108,13 +108,13 @@ defineElement('counter-button', CounterButton, {
 A form-associated element in a few lines: validation feeds the native constraint API (`checkValidity()`, `:invalid`, blocking form submit).
 
 ```ts
-import { tag, stateTree, t } from '@std-ui/core';
+import { tag, store, t } from '@std-ui/core';
 import { FormElement, check, required, minLength, asyncValidator, flags } from '@std-ui/ext';
 
 @tag('name-input')
 class NameInput extends FormElement {
 	// reusable validators on a reactive state node
-	readonly name = stateTree('').with(check);
+	readonly name = store('').with(check);
 
 	constructor() {
 		super();
@@ -148,10 +148,10 @@ Validators are plain functions, so writing your own is one line. Built-ins use t
 ## Track changes in one line
 
 ```ts
-import { stateTree, effect } from '@std-ui/core';
+import { store, effect } from '@std-ui/core';
 import { changes } from '@std-ui/ext';
 
-const form = stateTree({ name: '', tags: [] as string[] }).with(changes);
+const form = store({ name: '', tags: [] as string[] }).with(changes);
 
 effect(() => {
 	// re-runs whenever the form's dirty state changes
@@ -168,7 +168,7 @@ Every node in the tree, including members added later, gets `dirty`, `initial` a
 
 | Package | What you get |
 |---|---|
-| [`@std-ui/core`](./core/README.md) | Signals, reactive state trees, HTML/CSS templates, `classMap` / `styleMap` directives, `UIElement`, `@attribute`, `defineElement` |
+| [`@std-ui/core`](./core/README.md) | Signals, reactive stores, HTML/CSS templates, `classMap` / `styleMap` directives, `UIElement`, `@attribute`, `defineElement` |
 | [`@std-ui/ext`](./ext/README.md) | Context (`@provide` / `@consume`), change tracking, form helpers, built only on std-ui's public extension points |
 
 ## Bundle size

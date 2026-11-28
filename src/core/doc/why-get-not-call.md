@@ -35,14 +35,14 @@ stay assignable to `Signal.State` / `Signal.Computed`.
 
 ## What changed
 
-- `x()` becomes `x.get()` everywhere: `state`, `computed`, `createRef()`, `stateTree()` nodes
+- `x()` becomes `x.get()` everywhere: `state`, `computed`, `createRef()`, `store()` nodes
   (`node.get()`, `node.shallow()`, `node.deep()`), `check.errors.get()`, `formUi.touched.get()`, ...
 - `ReadableSignal<T>` is `{ get(): T; peek(): T }`. `State<T>` and `Computed<T>` are classes.
 - `subtle.Watcher` is the polyfill's `Signal.subtle.Watcher`, unwrapped. `watcher.watch(count)` just works.
 - `when(enabled, ...)` accepts a signal (`{ get(): boolean }`) or a plain `() => boolean`.
 - `bind(sig)`: a signal is recognised by having `get`, `set` **and** `peek`. A plain accessor
   `bind({ get, set })` has no `peek`, so the two forms stay distinct.
-- State-tree object nodes are plain objects now, not functions. `get` joins the reserved API names
+- Store object nodes are plain objects now, not functions. `get` joins the reserved API names
   (`set`, `update`, `peek`, `deep`, `shallow`, ...), so a member called `get` is reached through
   `obj._.get`.
 

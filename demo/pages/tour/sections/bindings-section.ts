@@ -1,7 +1,7 @@
 // Demonstrates: event modifiers (`@click.once`, `.prevent`, `.stop`, `.self`, `.stop-immediate`)
 // and single-entry bindings (`class.name`, `style.prop`).
 import { tag, t, css, UIElement, withEventOptions } from '@std-ui/core';
-import { stateTree } from '@std-ui/ext';
+import { store } from '@std-ui/ext';
 // Registers the `class.name` / `style.prop` bindings used below.
 import '@std-ui/ext';
 
@@ -29,9 +29,9 @@ export class DemoBindingsSection extends UIElement {
 		}
 	`;
 
-	readonly active = stateTree(false);
-	readonly hue = stateTree(210);
-	readonly log = stateTree<string[]>([]);
+	readonly active = store(false);
+	readonly hue = store(210);
+	readonly log = store<string[]>([]);
 
 	private note(message: string) {
 		this.log.set([message, ...this.log.get()].slice(0, 6));

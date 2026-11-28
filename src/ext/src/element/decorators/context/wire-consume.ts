@@ -5,7 +5,7 @@
 
 import { type UIElementHooks } from '@std-ui/core';
 import { DEV } from '../../../dev/flag.js';
-import { stateTree } from '../../../reactive/state-tree/index.js';
+import { store } from '../../../reactive/store/index.js';
 import type { ContextKey } from './key.js';
 import { consumedContexts } from './metadata.js';
 import { ContextRequestEvent } from './request-event.js';
@@ -17,7 +17,7 @@ import { ContextRequestEvent } from './request-event.js';
  */
 export function wireConsumedContexts(host: HTMLElement): void {
 	for (const { key, contextKey } of consumedContexts.get(host.constructor)) {
-		const value = stateTree<unknown, 'value'>(undefined, { depth: 'value' });
+		const value = store<unknown, 'value'>(undefined, { depth: 'value' });
 		let found = false;
 		host.dispatchEvent(new ContextRequestEvent(contextKey as ContextKey<unknown>, next => {
 			found = true;

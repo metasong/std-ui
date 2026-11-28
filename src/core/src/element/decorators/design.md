@@ -6,9 +6,9 @@ folder has its own `README.md` and `design.md`.
 
 ## Principles
 
-1. **A field is just a store.** `count = stateTree(0)` is typed `StateTree<number>` from its
+1. **A field is just a store.** `count = store(0)` is typed `Store<number>` from its
    declaration. A decorator can never change a field's declared type, so no decorator wraps or
-   replaces a store (this is why `@stateTree()` and `field-store.ts` were removed).
+   replaces a store (this is why `@store()` and `field-store.ts` were removed).
 2. **Everything else is opt-in registration**: "this field mirrors an attribute / provides a context /
    consumes a context". Each registration exists in two equivalent forms - a decorator, and an entry
    in `defineElement`'s options (browsers don't run decorators) - and both feed the same registries.
@@ -24,7 +24,7 @@ folder has its own `README.md` and `design.md`.
 | [`context/`](./context/) | `@provide()`, `@consume()`, the request event - see [`context/design.md`](./context/design.md). |
 | [`tag/`](./tag/) | `@tag()` and `defineElement()` - see [`tag/README.md`](./tag/README.md). |
 | [`query/`](./query/) | `@query*()` and the decorator-free query functions - see [`query/design.md`](./query/design.md). |
-| [`state/`](./state-tree/) | Docs only: plain `stateTree()` fields (no code). |
+| [`state/`](./store/) | Docs only: plain `store()` fields (no code). |
 | [`index.ts`](./index.ts) | Public re-exports. |
 
 [`../ui-element.ts`](../ui-element.ts) owns `attributeChangedCallback` and `connectedCallback`, which
@@ -86,7 +86,7 @@ initializer).
 | Phase | What happens |
 |---|---|
 | Class evaluation | Decorators register into `context.metadata`; `@tag()` sets `observedAttributes` and calls `customElements.define()`. `defineElement()` registers into `ownMetadata(ctor)`, then does the same. |
-| Instance creation | Field initializers create the stores (`stateTree(...)`). |
+| Instance creation | Field initializers create the stores (`store(...)`). |
 | Upgrade / attribute change | `attributeChangedCallback` parses and `.set()`s the matching store. |
 | `connectedCallback` | `wireProvidedContextListeners` -> `connect()` -> `wireReflectedAttributes` -> `wireConsumedContexts` -> render effect. |
 | Store write | Render and reflection effects re-run (microtask-batched); context consumers update through their signal. |
@@ -97,5 +97,5 @@ initializer).
 - [`README.md`](./README.md) - overview and the decorator / decorator-free table.
 - [`attribute/design.md`](./attribute/design.md), [`context/design.md`](./context/design.md), [`query/design.md`](./query/design.md) - per-folder design.
 - [`tag/README.md`](./tag/README.md) - `@tag` / `defineElement`.
-- [`state/README.md`](./state-tree/README.md) - plain store fields.
+- [`state/README.md`](./store/README.md) - plain store fields.
 - [`../ui-element.ts`](../ui-element.ts) - lifecycle hooks.

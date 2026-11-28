@@ -10,8 +10,8 @@ export function usageError(dev: string | false, context: string): Error {
 
 /**
  * Tracked read of a signal at `depth`: `'deep'`/`'shallow'` use the matching method when the signal has one
- * (a state-tree node, so nested changes are tracked), otherwise - or for `'value'` - its `get()` is used.
- * Duck-typed so core has no dependency on state-tree.
+ * (a store node, so nested changes are tracked), otherwise - or for `'value'` - its `get()` is used.
+ * Duck-typed so core has no dependency on store.
  */
 export function readSignal(signal: { get(): unknown }, depth: 'value' | 'shallow' | 'deep' = 'deep'): unknown {
 	const read = depth === 'value' ? undefined : (signal as unknown as Record<string, unknown>)[depth];

@@ -2,11 +2,11 @@
 
 `formBind` is [`bind()`](../../../../../../core/src/element/template/directives/bind/README.md) with the same
 arguments and the same two-way value sync, plus an element-side layer for form controls. Plain `bind()` only
-syncs values; use `formBind()` wherever the state has [`check`](../../../../reactive/state-tree/check/design.md) or
-[`formUi`](../../../reactive/state-tree/form-ui/README.md).
+syncs values; use `formBind()` wherever the state has [`check`](../../../../reactive/store/check/design.md) or
+[`formUi`](../../../reactive/store/form-ui/README.md).
 
 ```ts
-const form = stateTree({ name: '', age: 5 }).with(check).with(formUi);
+const form = store({ name: '', age: 5 }).with(check).with(formUi);
 
 t`<input .value=${formBind(form.name)} />
   <input type="number" .value=${formBind(form.age)} />`;

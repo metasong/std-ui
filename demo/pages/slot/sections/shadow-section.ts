@@ -1,12 +1,12 @@
 // Shadow-DOM slots: native `<slot>` + `@querySlotted` (delegates to `slot.assignedNodes()`).
 import { t, tag, UIElement, querySlotted } from '@std-ui/core';
-import { stateTree } from '@std-ui/ext';
+import { store } from '@std-ui/ext';
 
 @tag('demo-shadow-card')
 export class DemoShadowCard extends UIElement {
 	static override shadowRootOptions = { mode: 'open' } as const;
 
-	readonly slotted = stateTree('');
+	readonly slotted = store('');
 
 	@querySlotted<HTMLElement>({ selector: '*' }) defaultChildren!: HTMLElement[];
 	@querySlotted<HTMLElement>({ slot: 'title', selector: '*' }) titleChildren!: HTMLElement[];

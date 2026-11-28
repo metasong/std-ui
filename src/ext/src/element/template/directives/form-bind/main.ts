@@ -10,8 +10,8 @@
 
 import { bind, createBind, effect, type BindPlugin, type BindPluginContext } from '@std-ui/core';
 import { setFlag } from '../../../form/flags.js';
-import type { FormUi } from '../../../../reactive/state-tree/form-ui/index.js';
-import type { ValidationError } from '../../../../reactive/state-tree/check/index.js';
+import type { FormUi } from '../../../../reactive/store/form-ui/index.js';
+import type { ValidationError } from '../../../../reactive/store/check/index.js';
 
 type ErrorReader = { get(): readonly ValidationError[] };
 type SettableErrors = Element & { setErrors(property: string, errors: readonly ValidationError[]): void };
@@ -233,7 +233,7 @@ export const formUiPlugin: BindPlugin = (context) => {
  * `bind()` with form UI: validation errors, touched, dirty, readonly and disabled shown on the element.
  *
  * ```ts
- * const form = stateTree({ name: '' }).with(check).with(formUi);
+ * const form = store({ name: '' }).with(check).with(formUi);
  * t`<input .value=${formBind(form.name)} />`
  * form.name.formUi.disabled.own.set(true); // input is disabled
  * ```

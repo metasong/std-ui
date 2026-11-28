@@ -10,7 +10,7 @@ import {
 
 /** Grouped re-export of the low-level primitives, named after `Signal.subtle` in the proposed
  * standard signals API (`Signal.subtle.Watcher`, `Signal.subtle.untrack`). Most code should use
- * `stateTree()`/`computed()`/`effect()` instead - reach for `subtle` only when building a custom
+ * `store()`/`computed()`/`effect()` instead - reach for `subtle` only when building a custom
  * scheduler or framework integration on top of the dependency graph. */
 export const subtle = {
 	Watcher: _Watcher,

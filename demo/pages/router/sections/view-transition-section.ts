@@ -1,6 +1,6 @@
 // Router `viewTransition`: each commit runs inside document.startViewTransition.
 import { css, t, tag, UIElement } from '@std-ui/core';
-import { stateTree } from '@std-ui/ext';
+import { store } from '@std-ui/ext';
 import '@std-ui/router';
 import { createRouter } from '@std-ui/router';
 import { createMemoryNavigation } from '@std-ui/router/testing';
@@ -19,7 +19,7 @@ const elementStyles = css`
 export class DemoRouterViewTransitionSection extends UIElement {
 	static override styles = elementStyles;
 
-	private readonly chosen = stateTree<string>('(none yet)');
+	private readonly chosen = store<string>('(none yet)');
 	private readonly router = createRouter({
 		routes: demoRoutes(),
 		navigation: createMemoryNavigation('/'),

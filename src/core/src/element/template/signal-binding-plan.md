@@ -202,7 +202,7 @@ Done: `SignalBinding`; child, attribute, `?attr` and `.prop` positions; `raw()` 
   - dispose leaves no leaked effect (e.g. the effect count returns to zero after teardown);
   - a signal swapped to `raw(sig)` and back in `.prop`.
 - [x] **Docs:**
-  - `decorators/attribute/README.md` and `ext/doc/state-tree/README.md` say ".prop bindings pass plain
+  - `decorators/attribute/README.md` and `ext/doc/store/README.md` say ".prop bindings pass plain
     values": mention that a bare signal is followed and `raw()` exists;
   - document that `updated()` means "template() re-ran" (see open questions);
   - mention `raw` in the template/directives docs.
@@ -252,7 +252,7 @@ A binding of exactly one `state()` / `computed()` used to be `signal -> Computed
 only tracked one read, so `SignalBinding.follow()` now uses `watchSignal()` (`reactive/effect/watch-signal.ts`) for that case: a
 `Watcher` straight on the signal, in the same microtask flush as effects (same ordering, `whenFlushed()` and cycle guard),
 with an `Object.is` cutoff against the last value it handed over (what the computed's equality used to provide).
-Multi-slot attributes and state-tree nodes (not watchable) still use `effect()`.
+Multi-slot attributes and store nodes (not watchable) still use `effect()`.
 
 Before -> after (production, 18 interleaved runs): signal heap per row 8.8 -> 6.3 KB (-28%); update-all about -15% at
 every N; update-one -9% to -22%; create + dispose about -3% (noise). Plain rows are unchanged: a check with the direct
@@ -378,7 +378,7 @@ Each tweak was removed on its own. Differences within about 5% in either directi
 
 Lesson: the per-part inline `typeof` check is the one tweak that matters for plain templates. The inline check is repeated in four parts on purpose. A helper function costs a call per part per render, and V8 did not inline it. `AttributePart` also checks `values.length > 1`, because an attribute can have several slots.
 
-Tried a brand check in `isReadableSignal` (`value instanceof State` first, structural fallback for computed, state-tree nodes and foreign signals): within about 5% in both directions on every row, so it was not adopted. `isReadableSignal` stays structural.
+Tried a brand check in `isReadableSignal` (`value instanceof State` first, structural fallback for computed, store nodes and foreign signals): within about 5% in both directions on every row, so it was not adopted. `isReadableSignal` stays structural.
 
 ### Known quirk: `raw(sig)` then `sig` on the same property slot
 
@@ -386,4 +386,4 @@ After `raw(sig)` the element's property holds `sig`, which is a writable store. 
 
 ### Audit of existing `.prop=${...}` usages (done)
 
-Searched `src/` (code, tests, docs). No usage binds a bare signal to a property, so nothing changes behaviour: `.value=${bind(...)}` and `formBind(...)` are directive results, not signals; `.checked=${todo.done}` in the state-tree array README iterates `.deep()`, which yields plain values; the remaining ones (`.items`, `.count=${this.tree.count.get()}`) pass plain values. Not checked: code outside `src/` (demos, other apps).
+Searched `src/` (code, tests, docs). No usage binds a bare signal to a property, so nothing changes behaviour: `.value=${bind(...)}` and `formBind(...)` are directive results, not signals; `.checked=${todo.done}` in the store array README iterates `.deep()`, which yields plain values; the remaining ones (`.items`, `.count=${this.tree.count.get()}`) pass plain values. Not checked: code outside `src/` (demos, other apps).

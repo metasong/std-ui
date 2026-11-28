@@ -51,7 +51,7 @@ Examples:
 ```html
 <!-- ES module -->
 <script type="module">
-  import { stateTree, t, render } from './dist/browser/std-ui-core.min.js';
+  import { store, t, render } from './dist/browser/std-ui-core.min.js';
 </script>
 
 <!-- IIFE -->

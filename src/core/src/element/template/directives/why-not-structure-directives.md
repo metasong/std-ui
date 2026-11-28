@@ -13,7 +13,7 @@ is enough.
 For how child bindings treat `null` / `false` / `undefined`, nested `` t`...` ``, and list diffing, see
 [`../tag-funcs/html/html.md`](../tag-funcs/html/html.md#logic-conditionals-and-lists).
 
-`@stateTree()` / `@attribute()` fields are their backing stores: read with `this.field.get()` inside
+`@store()` / `@attribute()` fields are their backing stores: read with `this.field.get()` inside
 `template()` (so the render effect tracks changes), write with `this.field.set(...)` or
 `.update(...)` in handlers — see [`../../decorators/README.md`](../../decorators/README.md).
 
@@ -34,12 +34,12 @@ ${this.showBanner.get() ? t`<p class="banner">Sale on now</p>` : null}
 **If / else** — same pattern, swap `null` for another `` t`...` ``:
 
 ```ts
-import { tag, t, UIElement, stateTree } from '@std-ui/core';
+import { tag, t, UIElement, store } from '@std-ui/core';
 
 @tag('demo-greeting')
 class DemoGreeting extends UIElement {
-  @stateTree() loggedIn = false;
-  @stateTree() name = 'Ada';
+  @store() loggedIn = false;
+  @store() name = 'Ada';
 
   protected override template() {
     return t`
@@ -59,13 +59,13 @@ class DemoGreeting extends UIElement {
 nesting reads like `if` / `else if` / `else`:
 
 ```ts
-import { tag, t, UIElement, stateTree } from '@std-ui/core';
+import { tag, t, UIElement, store } from '@std-ui/core';
 
 type Role = 'admin' | 'member' | 'guest';
 
 @tag('demo-role-banner')
 class DemoRoleBanner extends UIElement {
-  @stateTree() role: Role = 'guest';
+  @store() role: Role = 'guest';
 
   protected override template() {
     return t`
@@ -94,13 +94,13 @@ only list problem std-ui solves separately is **identity**: positional children 
 wrap each row’s `` t`...` ``:
 
 ```ts
-import { tag, t, UIElement, stateTree, mapByKey } from '@std-ui/core';
+import { tag, t, UIElement, store, mapByKey } from '@std-ui/core';
 
 type Todo = { id: number; text: string; done: boolean };
 
 @tag('demo-todo-list')
 class DemoTodoList extends UIElement {
-  @stateTree() todos: Todo[] = [
+  @store() todos: Todo[] = [
     { id: 1, text: 'Learn std-ui', done: true },
     { id: 2, text: 'Ship a feature', done: false },
   ];
@@ -122,7 +122,7 @@ class DemoTodoList extends UIElement {
 
 @tag('demo-sortable-todos')
 class DemoSortableTodos extends UIElement {
-  @stateTree() todos: Todo[] = [
+  @store() todos: Todo[] = [
     { id: 1, text: 'Alpha', done: false },
     { id: 2, text: 'Beta', done: false },
   ];
@@ -160,15 +160,15 @@ hide standard TypeScript control flow.
 `` t`...` `` per case):
 
 ```ts
-import { tag, t, UIElement, stateTree } from '@std-ui/core';
+import { tag, t, UIElement, store } from '@std-ui/core';
 
 type LoadState = 'idle' | 'loading' | 'error';
 type Tab = 'home' | 'settings';
 
 @tag('demo-status-panel')
 class DemoStatusPanel extends UIElement {
-  @stateTree() loadState: LoadState = 'idle';
-  @stateTree() errorMessage = '';
+  @store() loadState: LoadState = 'idle';
+  @store() errorMessage = '';
 
   protected override template() {
     return t`
@@ -193,7 +193,7 @@ you can use it in a helper method or before the `return`, then interpolate the r
 ```ts
 @tag('demo-tab-body')
 class DemoTabBody extends UIElement {
-  @stateTree() tab: Tab = 'home';
+  @store() tab: Tab = 'home';
 
   private renderBody() {
     switch (this.tab.get()) {

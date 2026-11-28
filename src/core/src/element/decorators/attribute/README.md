@@ -1,6 +1,6 @@
 # `@attribute()` — attribute-synced, store-backed component fields
 
-Field decorator for `UIElement` (see `../../ui-element.ts`) subclasses: it marks a field - a `stateTree()` store or a plain field - so it is also
+Field decorator for `UIElement` (see `../../ui-element.ts`) subclasses: it marks a field - a `store()` store or a plain field - so it is also
 kept in sync with an HTML attribute via the platform's custom-element mechanism
 (`observedAttributes` / `attributeChangedCallback`) — not `MutationObserver` or polling.
 
@@ -16,8 +16,8 @@ import { t } from '../../template/index.js';
 
 @tag('user-badge')
 class UserBadge extends UIElement {
-	@attribute({ type: Number, reflect: true }) readonly count = stateTree(0);
-	@attribute() readonly label = stateTree('Guest');
+	@attribute({ type: Number, reflect: true }) readonly count = store(0);
+	@attribute() readonly label = store('Guest');
 }
 ```
 
@@ -25,20 +25,20 @@ Decorator-free equivalent (same registrations, no build step needed for decorato
 
 ```ts
 class UserBadge extends UIElement {
-	readonly count = stateTree(0);
-	readonly label = stateTree('Guest');
+	readonly count = store(0);
+	readonly label = store('Guest');
 }
 defineElement('user-badge', UserBadge, {
 	attributes: { count: { type: Number, reflect: true }, label: {} }, // keys: any field of the class
 });
 ```
 
-`@attribute()` works on a **`stateTree()` store** or on a **plain field**; it registers the attribute and never touches the
+`@attribute()` works on a **`store()` store** or on a **plain field**; it registers the attribute and never touches the
 field itself. A store is updated with `.set(parsed)`, a plain field is assigned (`this.field = parsed`). When neither
 `type` nor `converter` is given, the converter is inferred from the field's value (the store's value, or the plain value)
 the first time it is needed.
 
-**`reflect: true` needs a store.** Reflecting means observing writes to the property, which only a `stateTree()` store
+**`reflect: true` needs a store.** Reflecting means observing writes to the property, which only a `store()` store
 allows. On a plain field `reflect` has no effect: a dev-only `console.warn` (once per element and field, see
 `dev/warn-attribute.ts`) says so, and attribute -> property still works.
 
@@ -54,7 +54,7 @@ el.setAttribute('count', '9'); // attributeChangedCallback → store
 
 ## Requirements
 
-- **A plain class field** (no `accessor`), holding either a `stateTree()` store or a plain value. `reflect: true` additionally requires a store.
+- **A plain class field** (no `accessor`), holding either a `store()` store or a plain value. `reflect: true` additionally requires a store.
 - **`@tag()` or `defineElement()`** — either sets `observedAttributes` before
   `customElements.define()`. `@tag()` reads `@attribute()` registrations from `context.metadata`;
   `defineElement()` registers its `attributes` map and reads it (and any decorator registrations) the same way - see [`../tag/README.md`](../tag/README.md).
@@ -75,8 +75,8 @@ Leave the field undecorated for fields that should never touch an attribute.
 `type` takes the constructor (`String`, `Number`, `Boolean`, `Object`, `Array`)
 a hint for the default converter, not a runtime `typeof` check. If omitted (and no `converter`),
 the converter is **inferred from the field's initial value** at first-instance construction
-(`inferAttributeType()` in [`converter.ts`](./converter.ts)) — so `@attribute() count = stateTree(0)` matches
-`@attribute({ type: Number }) count = stateTree(0)`:
+(`inferAttributeType()` in [`converter.ts`](./converter.ts)) — so `@attribute() count = store(0)` matches
+`@attribute({ type: Number }) count = store(0)`:
 
 | Initial value | Inferred `type` |
 |---|---|
@@ -111,7 +111,7 @@ For anything the five defaults do not cover — non-empty JSON fallback, `Date`,
 		toAttribute: (value: unknown) => (value ? JSON.stringify(value) : ''),
 	},
 })
-readonly config = stateTree({ theme: 'dark' });
+readonly config = store({ theme: 'dark' });
 ```
 
 `type` alongside `converter` is a readability hint only (no runtime effect once `converter` is set).
@@ -122,18 +122,18 @@ skips `.set`). `toAttribute` may return `undefined` to mean "leave the host attr
 
 ## Complex-object fields
 
-Same [`SignalTree`](../../../reactive/state-tree/README.md) backing as any `stateTree()` field — use `type: Object` when the
+Same [`SignalTree`](../../../reactive/store/README.md) backing as any `store()` field — use `type: Object` when the
 attribute should mirror JSON:
 
 ```ts
-@attribute({ type: Object, reflect: true }) readonly config = stateTree({ theme: 'dark' });
+@attribute({ type: Object, reflect: true }) readonly config = store({ theme: 'dark' });
 ```
 
 ```html
 <config-panel config='{"theme":"light"}'></config-panel>
 ```
 
-Leaf-level reactivity and whole-object `.set()` semantics: [`../state-tree/README.md`](../state-tree/README.md).
+Leaf-level reactivity and whole-object `.set()` semantics: [`../store/README.md`](../store/README.md).
 
 ## How the two sync directions work
 
@@ -150,12 +150,12 @@ Leaf-level reactivity and whole-object `.set()` semantics: [`../state-tree/READM
   the same serialized text back does not re-trigger endlessly.
 - **Template `.prop` bindings** from a parent pass plain values (a bare signal `.prop=${sig}` is followed and its
   value passed; `raw(sig)` stops the following and writes the signal as a plain value, so a store field gets it through `.set(sig)`); `PropertyPart` forwards into
-  `.set()` on the child's store — same as for any store field (see [`../state-tree/README.md`](../state-tree/README.md)).
+  `.set()` on the child's store — same as for any store field (see [`../store/README.md`](../store/README.md)).
 
 ## Related reading
 
 - [`./design.md`](./design.md) - converter, registration, `observedAttributes`, reflection, inheritance, loops.
-- [`../state-tree/README.md`](../state-tree/README.md) — store-only fields and complex-object behavior.
+- [`../store/README.md`](../store/README.md) — store-only fields and complex-object behavior.
 - [`../tag/README.md`](../tag/README.md) - `@tag()` / `defineElement()`.
 - [`../README.md`](../README.md) / [`../design.md`](../design.md) — shared overview.
 - [`../../ui-element.ts`](../../ui-element.ts) — `tag()`, `attributeChangedCallback`.

@@ -5,7 +5,7 @@
 import { describe, expect, it } from 'vitest';
 import { t, tag, UIElement } from '@std-ui/core';
 import { mapByKey } from '../element/template/directives/map-by-key/index.js';
-import { stateTree } from '../reactive/state-tree/index.js';
+import { store } from '../reactive/store/index.js';
 
 type Chore = { id: string; label: string };
 
@@ -13,7 +13,7 @@ describe('doc: mapByKey keeps row DOM when a state list is reordered', () => {
 	it('checkbox and <li> stay tied to chore id after sort', async () => {
 		@tag('sortable-chores')
 		class SortableChores extends UIElement {
-			readonly chores = stateTree<Chore[]>([
+			readonly chores = store<Chore[]>([
 				{ id: 'wash', label: 'Wash dishes' },
 				{ id: 'mail', label: 'Check mail' },
 				{ id: 'walk', label: 'Walk the dog' },

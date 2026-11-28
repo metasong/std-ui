@@ -4,10 +4,10 @@
 //   - readonly / disabled: set when the node or any ancestor is; touched(): when the node or any descendant is
 //   - mark a whole subtree with `touchAll()`
 import { bind, css, t, tag, UIElement } from '@std-ui/core';
-import { stateTree } from '@std-ui/ext';
+import { store } from '@std-ui/ext';
 import { check, formBind, formUi } from '@std-ui/ext';
 
-const form = stateTree({
+const form = store({
 	account: { email: 'ada@example.com', name: 'Ada' },
 	address: { city: 'London', notes: '' },
 }).with(check).with(formUi);

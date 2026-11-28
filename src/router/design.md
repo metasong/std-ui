@@ -70,7 +70,7 @@ Still inside the Navigation API, not a History fallback. Delete the shim when Sa
 `router.beforeLeave(({ from, to, signal }) => boolean | void | Promise<...>)` returns an unregister function. `false` blocks. Hooks run before route guards, only for router-handled navigations (not the initial resolve or re-resolves after route registration), and once per user navigation even if a guard redirects. The router has no dependency on `@std-ui/ext`; a dirty-form guard is one line against ext's change tracking:
 
 ```ts
-const form = changes(stateTree({ name: '' }));
+const form = changes(store({ name: '' }));
 router.beforeLeave(() => !form.changes.dirty.peek() || confirm('Discard changes?'));
 ```
 

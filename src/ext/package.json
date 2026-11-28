@@ -21,10 +21,10 @@
 			"import": "./dist/esm/decorators/context/index.js",
 			"default": "./dist/esm/decorators/context/index.js"
 		},
-		"./state-tree": {
-			"types": "./dist/esm/reactive/state-tree/index.d.ts",
-			"import": "./dist/esm/reactive/state-tree/index.js",
-			"default": "./dist/esm/reactive/state-tree/index.js"
+		"./store": {
+			"types": "./dist/esm/reactive/store/index.d.ts",
+			"import": "./dist/esm/reactive/store/index.js",
+			"default": "./dist/esm/reactive/store/index.js"
 		},
 		"./browser/*": "./dist/browser/*",
 		"./package.json": "./package.json"

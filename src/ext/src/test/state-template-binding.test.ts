@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { tag, UIElement, t } from '@std-ui/core';
-import { stateTree } from '../reactive/state-tree/index.js';
+import { store } from '../reactive/store/index.js';
 
 interface ParentState {
 	count: number;
@@ -14,7 +14,7 @@ describe('template `.prop` bindings with state fields', () => {
 	it('binds a parent property directly to a child `.prop` and re-renders the child template on change', async () => {
 		@tag('bind-child')
 		class Badge extends UIElement {
-			readonly count = stateTree(0);
+			readonly count = store(0);
 
 			protected override template() {
 				return t`<span class="count">${this.count.get()}</span>`;
@@ -23,7 +23,7 @@ describe('template `.prop` bindings with state fields', () => {
 
 		@tag('bind-panel')
 		class Panel extends UIElement {
-			readonly tree = stateTree<ParentState>({ count: 3 });
+			readonly tree = store<ParentState>({ count: 3 });
 
 			protected override template() {
 				return t`<bind-child .count=${this.tree.count.get()}></bind-child>`;

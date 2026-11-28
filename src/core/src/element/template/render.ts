@@ -67,7 +67,7 @@ class Slot implements Rendered {
 		// throws, the next `update()`/`dispose()` must still find these parts to dispose them.
 		this.#strings = result.strings;
 		this.#parts = parts;
-		// After connect so custom elements are upgraded before `.prop` bindings forward into `stateTree()`/`@attribute()` stores.
+		// After connect so custom elements are upgraded before `.prop` bindings forward into `store()`/`@attribute()` stores.
 		updateParts(parts, result.values);
 	}
 

@@ -2,15 +2,15 @@
 // The HTML parser reads these bodies as plain text, so every `${}` in one is joined with the static text
 // into a single string and set as the element's `textContent` (values are never parsed as markup).
 import { tag, t, UIElement } from '@std-ui/core';
-import { stateTree } from '@std-ui/ext';
+import { store } from '@std-ui/ext';
 
 @tag('demo-text-only-section')
 export class DemoTextOnlySection extends UIElement {
-	readonly name = stateTree('std-ui');
-	readonly hue = stateTree(210);
-	readonly note = stateTree('<b>not bold</b> - values are text, never markup');
+	readonly name = store('std-ui');
+	readonly hue = store(210);
+	readonly note = store('<b>not bold</b> - values are text, never markup');
 
-	readonly readBackText = stateTree('');
+	readonly readBackText = store('');
 
 	/** The data block is a normal DOM node: read its current text and parse it (it never executes). */
 	private readonly readBack = () => {

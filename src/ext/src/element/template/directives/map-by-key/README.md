@@ -23,17 +23,17 @@ do not buy DOM reuse (see [`design.md`](./design.md)).
 ## Example — sortable list with stable rows
 
 A keyed-repeat demo sorts todos and keeps each row’s checkbox with its item. The same idea in
-std-ui: a `UIElement` with `@stateTree()`, `mapByKey` keyed by `id`, and a sort that assigns a **new**
-array (in-place `.sort()` does not notify `@stateTree()`).
+std-ui: a `UIElement` with `@store()`, `mapByKey` keyed by `id`, and a sort that assigns a **new**
+array (in-place `.sort()` does not notify `@store()`).
 
 ```ts
-import { t, mapByKey, stateTree, tag, UIElement } from '@std-ui/core';
+import { t, mapByKey, store, tag, UIElement } from '@std-ui/core';
 
 type Chore = { id: string; label: string };
 
 @tag('sortable-chores')
 class SortableChores extends UIElement {
-  @stateTree() chores: Chore[] = [
+  @store() chores: Chore[] = [
     { id: 'wash', label: 'Wash dishes' },
     { id: 'mail', label: 'Check mail' },
     { id: 'walk', label: 'Walk the dog' },

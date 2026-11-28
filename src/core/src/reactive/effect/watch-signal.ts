@@ -15,7 +15,7 @@ import { cycleGuard, dequeue, enqueue, type Job } from './scheduler.js';
  * Calls `onValue(value)` now, then after a change in the same microtask-batched flush as effects, so ordering,
  * `whenFlushed()` and the cycle guard behave the same. `onValue` is untracked. Returns a `dispose()`.
  *
- * Any readable signal works: one that is not a `State` / `Computed` (a `stateTree()` node, a marked wrapper)
+ * Any readable signal works: one that is not a `State` / `Computed` (a `store()` node, a marked wrapper)
  * is read through a `computed()` that is watched instead.
  *
  * Cutoff: a `State` only notifies when its own `equals` says the value changed, so every notification is a

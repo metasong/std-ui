@@ -132,9 +132,9 @@ dependency graph (`effect()` itself is built on `subtle.Watcher`; see [`../effec
 
 ## Where this fits in std-ui
 
-- `../state-tree/main.ts`'s `stateTree()` mirrors a plain-object state shape into a tree of these
+- `../store/main.ts`'s `store()` mirrors a plain-object state shape into a tree of these
   `Signal`/`Computed` nodes - that's what backs an app's state (e.g. `core/store.ts`'s `appState`).
-- `../../element/ui-element.ts`'s `UIElement` reads its `state` (a `StateTree<S>`) inside an `effect()` to
+- `../../element/ui-element.ts`'s `UIElement` reads its `state` (a `Store<S>`) inside an `effect()` to
   drive `template()` on every change. `UIElement.effect()` itself wraps `effect()` from this folder,
   auto-disposing it on the element's `disconnectedCallback()` - use it for DOM slices that should
   react to specific signals without re-rendering the whole component.

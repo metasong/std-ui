@@ -1,6 +1,6 @@
 // What counts as a signal for a template, `bind`, `@attribute` or `@provide` (read or write) and
 // the guards that tell one from a plain value. A signal is a `Signal.State` / `Signal.Computed` of the
-// installed `signal-polyfill` (so `state()` and `computed()` too), or a `stateTree()` object / array
+// installed `signal-polyfill` (so `state()` and `computed()` too), or a `store()` object / array
 // node, which is a plain object behind a `Proxy` and carries a brand instead. See `./state.ts`.
 
 import { Signal } from 'signal-polyfill';
@@ -13,11 +13,11 @@ export interface ReadableSignal<T = unknown> {
 	/** Reads the current value and tracks it as a dependency. */
 	get(): T;
 	/** Reads the current value without tracking it as a dependency. Optional: where it is absent, use
-	 * `untrack(() => x.get())`. `state()`, `computed()` and `stateTree()` nodes all have it. */
+	 * `untrack(() => x.get())`. `state()`, `computed()` and `store()` nodes all have it. */
 	peek?(): T;
 }
 
-/** A signal that can be read and written: a `state()`, a standard `Signal.State`, or a `stateTree()`
+/** A signal that can be read and written: a `state()`, a standard `Signal.State`, or a `store()`
  * node. The one shape bind, `@attribute`, `@provide` and `defineContext` accept. `set` takes
  * `never` so a node whose `set` accepts a narrower or wider value (a tree branch takes a partial) still fits. */
 export interface WritableSignal<T = unknown> extends ReadableSignal<T> {
@@ -29,18 +29,18 @@ export interface WritableSignal<T = unknown> extends ReadableSignal<T> {
 export type StandardSignal = Signal.State<unknown> | Signal.Computed<unknown>;
 
 /** Whether `value` is a `StandardSignal` (an instance of this copy's `Signal.State` / `Signal.Computed`).
- * Unlike `isReadableSignal`, a marked `stateTree()` node is not one.
+ * Unlike `isReadableSignal`, a marked `store()` node is not one.
  * @internal Not exported from the `signal` folder (or the package) for now. */
 export function isStandardSignal(value: unknown): value is StandardSignal {
 	return value instanceof Signal.State || value instanceof Signal.Computed;
 }
 
-/** Brand for objects that act as signals but are not Signal instances (`stateTree()` object / array nodes,
+/** Brand for objects that act as signals but are not Signal instances (`store()` object / array nodes,
  * plain objects behind a `Proxy`). `Symbol.for`, so it matches across bundles of this library. */
 const SIGNAL_BRAND = Symbol.for('std-ui.signal');
 
 /** Marks a non-`Signal` object as a signal, so `isReadableSignal` / `isWritableSignal` accept it: a
- * `stateTree()` node, or your own wrapper around `state()` / `computed()` (mark its prototype to cover every
+ * `store()` node, or your own wrapper around `state()` / `computed()` (mark its prototype to cover every
  * instance). Its `get()` must read signals of this SAME `signal-polyfill` copy, or a binding never updates.
  *
  * `target`: the real `Signal.State` / `Signal.Computed` behind `node`, when it has one. Needed when `node` is
@@ -74,7 +74,7 @@ function warnLookalike(value: unknown): void {
 	}
 }
 
-/** Whether `value` is a `WritableSignal`: a `Signal.State` (so a `state()` too) or a marked `stateTree()`
+/** Whether `value` is a `WritableSignal`: a `Signal.State` (so a `state()` too) or a marked `store()`
  * node with `set()`. Not structural, so a plain `{ get, set }` accessor is not one. A `Signal.State`
  * from another copy of `signal-polyfill` is not either (it cannot be tracked). Shared by bind, property
  * parts and attributes. */
@@ -86,7 +86,7 @@ export function isWritableSignal(value: unknown): value is WritableSignal {
 }
 
 /** Whether `value` is a `ReadableSignal`: a `Signal.State`, a `Signal.Computed` (so `state()` and
- * `computed()` too) or a marked `stateTree()` node. Use it where a value is only read; use
+ * `computed()` too) or a marked `store()` node. Use it where a value is only read; use
  * `isWritableSignal` where it is written. */
 export function isReadableSignal(value: unknown): value is ReadableSignal {
 	if (value instanceof Signal.State || value instanceof Signal.Computed) return true;

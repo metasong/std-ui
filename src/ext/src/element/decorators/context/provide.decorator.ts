@@ -1,4 +1,4 @@
-// `@provide(key)` field decorator (optional sugar): exposes a `stateTree(...)` field of a
+// `@provide(key)` field decorator (optional sugar): exposes a `store(...)` field of a
 // `UIElement` subclass (see `@std-ui/core`) to descendants that `@consume(key)` - the
 // "provide" half of this codebase's context protocol. The decorator-free equivalent is
 // `defineContext(Class, { provide: { field: key } })`, which feeds the same registry.
@@ -10,20 +10,20 @@
 
 import { addClassHooks } from '@std-ui/core';
 import { DEV } from '../../../dev/flag.js';
-import { type StateTree } from '../../../reactive/state-tree/index.js';
+import { type Store } from '../../../reactive/store/index.js';
 import { provideHooks } from './wire-provide.js';
 import type { ContextKey } from './key.js';
 import { providedContexts } from './metadata.js';
 
 /**
  * Field decorator that provides the field's store to descendants through `contextKey`. The field
- * must be a `StateTree<V>` where `V` is the key's value type - anything else is a compile error.
+ * must be a `Store<V>` where `V` is the key's value type - anything else is a compile error.
  *
  * ```ts
  * export const ThemeKey = createContextKey<Theme>('theme');
  *
  * class RootPanel extends UIElement {
- *   @provide(ThemeKey) readonly theme = stateTree<Theme>({ mode: 'dark' });
+ *   @provide(ThemeKey) readonly theme = store<Theme>({ mode: 'dark' });
  * }
  *
  * class ChildPanel extends UIElement {
@@ -34,9 +34,9 @@ import { providedContexts } from './metadata.js';
  * Plain field only (no `accessor`).
  */
 export function provide<V>(contextKey: ContextKey<V>) {
-	return function provideDecorator(_value: undefined, ctx: ClassFieldDecoratorContext<object, StateTree<V>>): void {
+	return function provideDecorator(_value: undefined, ctx: ClassFieldDecoratorContext<object, Store<V>>): void {
 		if (ctx.kind !== 'field') {
-			throw new Error(DEV ? "@provide() can only decorate a plain class field, e.g. `@provide(key) foo = stateTree(0);` (no 'accessor')." : '@provide(): plain fields only');
+			throw new Error(DEV ? "@provide() can only decorate a plain class field, e.g. `@provide(key) foo = store(0);` (no 'accessor')." : '@provide(): plain fields only');
 		}
 		providedContexts.register(ctx.metadata as object, { key: ctx.name, contextKey: contextKey as ContextKey<unknown> });
 		addClassHooks(ctx.metadata as object, provideHooks);

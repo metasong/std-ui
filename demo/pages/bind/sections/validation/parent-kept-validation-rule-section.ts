@@ -4,10 +4,10 @@
 // Existing and later-added members get them; each member reports its own errors and the parent's
 // `valid` includes them.
 import { t, tag, UIElement } from '@std-ui/core';
-import { stateTree } from '@std-ui/ext';
+import { store } from '@std-ui/ext';
 import { check, formBind, minLength, required } from '@std-ui/ext';
 
-const form = stateTree({
+const form = store({
 	tags: ['ab'] as string[],
 	labels: { en: 'Hello', de: '' } as Record<string, string>,
 	profile: { name: '', age: 5 },

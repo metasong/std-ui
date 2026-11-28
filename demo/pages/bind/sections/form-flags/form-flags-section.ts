@@ -6,10 +6,10 @@
 //   - required  a `required()` validator (its `flag` is 'valueMissing') → aria-required
 // The table reads the attributes straight off the inputs, so it shows what is really on the element.
 import { css, state, t, tag, UIElement } from '@std-ui/core';
-import { stateTree } from '@std-ui/ext';
+import { store } from '@std-ui/ext';
 import { asyncValidator, changes, check, email, formBind, formUi, minLength, required } from '@std-ui/ext';
 
-const form = stateTree({ name: 'Ada', email: 'ada@example.com' }).with(check).with(changes).with(formUi);
+const form = store({ name: 'Ada', email: 'ada@example.com' }).with(check).with(changes).with(formUi);
 
 form.name.check.validators.set([required('Name is required'), minLength(3)]);
 form.email.check.validators.set([

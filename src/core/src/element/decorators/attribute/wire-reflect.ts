@@ -29,7 +29,7 @@ export function wireReflectedAttributes(host: HTMLElement, registerEffectDispose
 		resolveInferredConverter(host, def);
 		let prev: unknown; // previous property value; `undefined` on the first run
 		registerEffectDisposer(createEffect(() => {
-			// `deep` so any nested change of a state-tree field re-runs the effect.
+			// `deep` so any nested change of a store field re-runs the effect.
 			const value = readSignal((host as unknown as Record<PropertyKey, { get(): unknown }>)[def.key]);
 			const oldValue = prev;
 			prev = value;

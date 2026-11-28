@@ -1,7 +1,7 @@
-// Pulls several features together in one realistic component: `stateTree()` with a plain-object
+// Pulls several features together in one realistic component: `store()` with a plain-object
 // value (tree-backed, per-leaf reactivity), list rendering, `computed`, and event handlers.
 import { css, tag, t, UIElement } from '@std-ui/core';
-import { stateTree } from '@std-ui/ext';
+import { store } from '@std-ui/ext';
 import { computed } from '@std-ui/core';
 
 interface Todo { id: number; text: string; done: boolean; }
@@ -50,7 +50,7 @@ export class DemoTodoSection extends UIElement {
 		}
 	`;
 
-	readonly todos = stateTree<Todo[]>([
+	readonly todos = store<Todo[]>([
 		{ id: nextId++, text: 'Read the std-ui docs', done: true },
 		{ id: nextId++, text: 'Build a demo app', done: false },
 	]);
@@ -61,7 +61,7 @@ export class DemoTodoSection extends UIElement {
 
 		return t`
 			<h2>Putting it together: a tiny todo list</h2>
-			<p class="desc">A realistic composition of <code>stateTree()</code>, list rendering, and event bindings — no framework, no virtual DOM.</p>
+			<p class="desc">A realistic composition of <code>store()</code>, list rendering, and event bindings — no framework, no virtual DOM.</p>
 			<p>${remaining} remaining of ${todos.length}</p>
 			<ul class="demo-todo-list">
 				${todos.map(todo => t`

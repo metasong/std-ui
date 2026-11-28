@@ -1,12 +1,12 @@
 // bind() on a custom element whose change event is not the default: `bind(state, { event })`.
 import { bind, t, tag, UIElement } from '@std-ui/core';
-import { stateTree } from '@std-ui/ext';
+import { store } from '@std-ui/ext';
 import './swatch-control.js';
 
 @tag('demo-bind-custom-event-section')
 export class DemoBindCustomEventSection extends UIElement {
-	color = stateTree('seagreen');
-	lastEvent = stateTree('(none yet)');
+	color = store('seagreen');
+	lastEvent = store('(none yet)');
 
 	protected override template() {
 		return t`

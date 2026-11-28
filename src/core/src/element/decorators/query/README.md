@@ -14,12 +14,12 @@ Decorators where each turns a field into a live `querySelector`/
   by a render/effect that's still pending at the time it's read.
 
 ```ts
-import { tag, stateTree, query, queryAll, queryAsync, UIElement } from '../../../index.js';
+import { tag, store, query, queryAll, queryAsync, UIElement } from '../../../index.js';
 import { t } from '../../template/index.js';
 
 @tag('todo-list')
 class TodoList extends UIElement {
-	readonly items = stateTree(['Buy milk', 'Walk dog']);
+	readonly items = store(['Buy milk', 'Walk dog']);
 
 	@query('.title') title!: HTMLElement | null; // re-queried every read
 	@query('form', true) form!: HTMLFormElement | null; // resolved once, then cached
@@ -185,7 +185,7 @@ time. How `updateComplete` aligns with the effect flush (one microtask hop, then
 ## Related reading
 
 - [`./design.md`](./design.md) — why these need no initializer, and why they're plain-field-only.
-- [`../design.md`](../design.md) / [`../state-tree/README.md`](../state-tree/README.md) — `state`/`@attribute()` shared
+- [`../design.md`](../design.md) / [`../store/README.md`](../store/README.md) — `state`/`@attribute()` shared
   field mechanics, which this folder's `addInitializer` technique borrows.
 - [`../../ui-element.ts`](../../ui-element.ts) — `UIElement.updateComplete`, which `@queryAsync()`
   waits on.

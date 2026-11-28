@@ -1,11 +1,11 @@
 // Demonstrates: `@query()`/`@queryAll()` (light-DOM selector accessors) and `firstUpdated()` +
 // `this.effect()` for imperatively patching a node outside the template's own re-render.
 import { tag, t, UIElement, query, queryAll } from '@std-ui/core';
-import { stateTree } from '@std-ui/ext';
+import { store } from '@std-ui/ext';
 
 @tag('demo-query-section')
 export class DemoQuerySection extends UIElement {
-	readonly items = stateTree(['alpha', 'beta', 'gamma']);
+	readonly items = store(['alpha', 'beta', 'gamma']);
 
 	@query('input') input!: HTMLInputElement | null;
 	@queryAll('li') listItems!: NodeListOf<HTMLLIElement>;

@@ -9,7 +9,7 @@ import { CONTEXT_REQUEST_EVENT, ContextRequestEvent } from './request-event.js';
 
 type ProvidedStore = { get(): unknown; deep?: () => unknown };
 
-/** Deep (tracked) read of a store: a state tree's `.deep()`, else the leaf's own value. */
+/** Deep (tracked) read of a store: a store's `.deep()`, else the leaf's own value. */
 function readValue(store: ProvidedStore): unknown {
 	return typeof store.deep === 'function' ? store.deep() : store.get();
 }

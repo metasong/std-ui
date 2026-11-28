@@ -1,5 +1,5 @@
 import { computed, css, state, styleMap, t, tag, UIElement } from '@std-ui/core';
-import { stateTree } from '@std-ui/ext';
+import { store } from '@std-ui/ext';
 import { formatKb, type SizeNode } from './data.js';
 import { displayName, groupHue, labelPath, layoutTree, type LayoutBox } from './treemap-layout.js';
 
@@ -58,16 +58,16 @@ export class DemoTreemapMap extends UIElement {
 
 	/** Inputs, set with `.tree=${...}` etc. They are signals/state so the host re-renders when a parent binds them. */
 	readonly tree = state<SizeNode | null>(null);
-	readonly aspect = stateTree(2.2);
-	readonly showLeafKb = stateTree(true);
+	readonly aspect = store(2.2);
+	readonly showLeafKb = store(true);
 	/** Folder/group totals in header bars and legend. Off when the groups are just labels (e.g. core / ext bundles). */
-	readonly showFolderKb = stateTree(true);
+	readonly showFolderKb = store(true);
 	/** Compression the node sizes are measured in (shown in tooltips / selection). */
-	readonly unit = stateTree('gzip');
+	readonly unit = store('gzip');
 	/** Keep the top-level groups in the order given (e.g. core, then ext) instead of sorting by size. */
-	readonly keepGroupOrder = stateTree(false);
+	readonly keepGroupOrder = store(false);
 	/** Draw the root as a folder level (named header bar with its total) rather than an invisible frame. */
-	readonly showRoot = stateTree(false);
+	readonly showRoot = store(false);
 
 	/** Layout only depends on the tree and aspect, not on hover, so hovering does not recompute it. */
 	readonly #width = computed(() => Math.round(this.aspect.get() * H));

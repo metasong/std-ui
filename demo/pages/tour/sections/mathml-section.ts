@@ -1,7 +1,7 @@
 // Demonstrates: the `math` tag — composing MathML from small reusable *fragments* (no `<math>` ancestor in
 // each template string): fractions, roots, superscripts, sums, integrals and matrices, driven by live state.
 import { tag, t, math, UIElement } from '@std-ui/core';
-import { stateTree } from '@std-ui/ext';
+import { store } from '@std-ui/ext';
 
 // --- Reusable MathML fragments (each is parsed in the MathML namespace) -----------------------------
 const mi = (x: string) => math`<mi>${x}</mi>`;
@@ -28,10 +28,10 @@ const fmt = (v: number) => (Number.isInteger(v) ? String(v) : v.toFixed(3));
 
 @tag('demo-mathml-section')
 export class DemoMathmlSection extends UIElement {
-	readonly a = stateTree(1);
-	readonly b = stateTree(-3);
-	readonly c = stateTree(2);
-	readonly report = stateTree('');
+	readonly a = store(1);
+	readonly b = store(-3);
+	readonly c = store(2);
+	readonly report = store('');
 
 	protected override template() {
 		const [a, b, c] = [this.a.get(), this.b.get(), this.c.get()];

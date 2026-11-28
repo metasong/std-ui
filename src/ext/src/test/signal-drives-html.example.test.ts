@@ -4,11 +4,11 @@
  */
 import { describe, expect, it, vi } from 'vitest';
 import { tag, UIElement, computed, effect, t, render } from '@std-ui/core';
-import { stateTree } from '../reactive/state-tree/index.js';
+import { store } from '../reactive/store/index.js';
 
 describe('doc: signals drive html render', () => {
 	it('Pattern A — effect + render patches DOM in place when signals change', async () => {
-		const count = stateTree(0);
+		const count = store(0);
 		const label = computed(() => (count.get() === 1 ? 'click' : 'clicks'));
 		const container = document.createElement('div');
 
@@ -49,7 +49,7 @@ describe('doc: signals drive html render', () => {
 
 	it('Pattern B — UIElement\'s template() reads signals directly, drives html render, @click, and firstUpdated', async () => {
 		type DemoState = { counter: { value: number; max: number } };
-		const shared = stateTree<DemoState>({
+		const shared = store<DemoState>({
 			counter: { value: 0, max: 10 },
 		});
 
@@ -104,7 +104,7 @@ describe('doc: signals drive html render', () => {
 
 	it('Pattern C — firstUpdated registers effect() to patch a static .badge node', async () => {
 		type ShellState = { title: string; unreadCount: number };
-		const shared = stateTree<ShellState>({
+		const shared = store<ShellState>({
 			title: 'Inbox',
 			unreadCount: 0,
 		});

@@ -31,8 +31,8 @@ to diff old and new values by hand.
 ```ts
 @tag('demo-total')
 class DemoTotal extends UIElement {
-	@stateTree() price = 10;
-	@stateTree() qty = 2;
+	@store() price = 10;
+	@store() qty = 2;
 	readonly #total = computed(() => this.price.get() * this.qty.get());
 
 	protected override template() {
@@ -52,7 +52,7 @@ and is disposed on disconnect.
 ```ts
 @tag('demo-search')
 class DemoSearch extends UIElement {
-	@stateTree() query = '';
+	@store() query = '';
 
 	protected override connect() {
 		this.effect(() => {

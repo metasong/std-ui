@@ -5,11 +5,11 @@
 //   Address    formUi.disabled                  a disabled input is not validated
 // All three are configured in one call with `form.check.fields({...})`.
 import { t, tag, UIElement } from '@std-ui/core';
-import { stateTree } from '@std-ui/ext';
+import { store } from '@std-ui/ext';
 import { check, formBind, formUi, minLength, pattern, required, when } from '@std-ui/ext';
 
-const form = stateTree({ vat: '', email: '', address: '' }).with(check).with(formUi);
-const isCompany = stateTree(false);
+const form = store({ vat: '', email: '', address: '' }).with(check).with(formUi);
+const isCompany = store(false);
 
 // FEATURE 4: check.fields({...}) sets the rules of several members in one call (here for all
 // three fields), instead of `form.vat.check.validators.set(...)` for each.

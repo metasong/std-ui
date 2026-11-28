@@ -1,12 +1,12 @@
 // Custom element property + default `level-change` event.
 import { bind, t, tag, UIElement } from '@std-ui/core';
-import { stateTree } from '@std-ui/ext';
+import { store } from '@std-ui/ext';
 import './knob-control.js';
 import './signal-knob-control.js';
 
 @tag('demo-bind-custom-section')
 export class DemoBindCustomSection extends UIElement {
-	level = stateTree(2);
+	level = store(2);
 
 	protected override template() {
 		return t`
@@ -17,10 +17,10 @@ export class DemoBindCustomSection extends UIElement {
 					<code>level-change</code> (the default for a property named <code>level</code>).
 				</p>
 				<demo-bind-knob .level=${bind(this.level)}></demo-bind-knob>
-				<p class="demo-bind-mirror">Parent <code>stateTree()</code> level: <code>${this.level.get()}</code></p>
+				<p class="demo-bind-mirror">Parent <code>store()</code> level: <code>${this.level.get()}</code></p>
 				<h3>State property</h3>
 				<p class="desc">
-					<code>&lt;demo-bind-signal-knob&gt;</code> exposes <code>.level</code> as a <code>stateTree()</code>;
+					<code>&lt;demo-bind-signal-knob&gt;</code> exposes <code>.level</code> as a <code>store()</code>;
 					<code>bind()</code> reads it with <code>()</code> and writes it with <code>.set()</code>.
 				</p>
 				<demo-bind-signal-knob .level=${bind(this.level)}></demo-bind-signal-knob>
