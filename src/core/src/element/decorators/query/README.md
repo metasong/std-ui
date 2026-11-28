@@ -111,9 +111,39 @@ see additions/removals after the one you first read.
 
 ## `@queryAsync(selector)`
 
+### Example
+
 ```ts
-@queryAsync('.lazy') lazy!: Promise<HTMLElement | null>;
-@query('.lazy') lazySync!: Promise<HTMLElement | null>;
+class LazyPanel extends UIElement {
+  show = state(false);
+
+  @query('.lazy') lazySync!: HTMLElement | null;
+  @queryAsync('.lazy') lazy!: Promise<HTMLElement | null>;
+
+  template() {
+    return html`${this.show.get() ? html`<em class="lazy">loaded</em>` : null}`;
+  }
+}
+
+const el = document.createElement('lazy-panel') as LazyPanel;
+document.body.append(el);
+
+el.show.set(true);
+console.log(el.lazySync);       // null  - render not applied yet
+console.log(await el.lazy);     // <em class="lazy">loaded</em>
+console.log(el.lazySync);       // <em class="lazy">loaded</em> - DOM has caught up
+```
+
+```
+sync code                         microtask queue                DOM
+─────────────────────────────────────────────────────────────────────────────
+el.show.set(true)   ──► scheduleFlush()  (render queued)          (no .lazy)
+el.lazySync         ──► querySelector now ──► null                 (no .lazy)
+el.lazy             ──► await updateComplete ─┐
+                                              ▼
+                        flush: template() re-runs ───────────────► <em.lazy>
+                        updateComplete resolves
+                        querySelector ──► <em.lazy>  ◄── promise resolves
 ```
 
 ### Why `@queryAsync()` exists
