@@ -56,6 +56,7 @@ export {
 	state,
 	type ReadableSignal,
 	type WritableSignal,
+	isReadableSignal,
 	isWritableSignal,
 	markSignal,
 	peekSignal,

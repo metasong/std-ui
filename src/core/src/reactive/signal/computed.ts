@@ -20,6 +20,11 @@ export class Computed<T> extends Signal.Computed<T> implements ReadableSignal<T>
 	peek(): T {
 		return untrack(() => this.get());
 	}
+	/** Calls `feature(this)` and returns its result, so features chain: `computed(...).with(check)`.
+	 * The core knows no feature; each one is a function that extends the node (see the `ext` package). */
+	with<R>(feature: (node: this) => R): R {
+		return feature(this);
+	}
 }
 
 /** Creates a read-only derived value, lazily re-run whenever a signal/computed it reads changes.

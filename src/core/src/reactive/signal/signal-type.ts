@@ -18,10 +18,12 @@ export interface ReadableSignal<T = unknown> {
 }
 
 /** A signal that can be read and written: a `state()`, a standard `Signal.State`, or a `store()`
- * node. The one shape bind, `@attribute`, `@provide` and `defineContext` accept. `set` takes
- * `never` so a node whose `set` accepts a narrower or wider value (a tree branch takes a partial) still fits. */
+ * node. The one shape bind, `@attribute`, `@provide` and `defineContext` accept. `set` takes `T`, so
+ * a `WritableSignal<number>` is type-checked on write. The bare `WritableSignal` (`T = unknown`) accepts
+ * any value, and, `set` being a method, a typed node (a `State<number>`, or a tree branch whose `set`
+ * takes a partial) is still assignable to it. */
 export interface WritableSignal<T = unknown> extends ReadableSignal<T> {
-	set(value: never): void;
+	set(value: T): void;
 }
 
 /** A standard `Signal.State` or `Signal.Computed`: the only sources a `Watcher` can watch directly.

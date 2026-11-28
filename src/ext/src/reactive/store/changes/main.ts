@@ -7,8 +7,8 @@
 // later: its value when it is created), so apply it before editing the state.
 
 import type { WithFeature } from '../tree-feature.js';
-import { computed, state, type Computed } from '@std-ui/core';
-import { childEntries, deepEqual, EQUALS, extendTree, type ItemNode, type TreeNode } from '../node.js';
+import { computed, peekSignal, state, type Computed, type WritableSignal } from '@std-ui/core';
+import { childEntries, deepEqual, EQUALS, extendTree, readValue, type ItemNode } from '../node.js';
 import { type StateArray } from '../array/index.js';
 import { type StateObject } from '../object/index.js';
 
@@ -48,17 +48,24 @@ export type WithChanges<S> = WithFeature<S, 'changes'>;
  * chained: `store(...).with(check).with(changes)`. Returns the same tree (not a copy). Members
  * added later (`push`, new keys) get `changes` too. Safe to apply twice.
  */
-export function changes<S extends TreeNode>(node: S): WithChanges<S> {
+export function changes<S extends WritableSignal>(node: S): WithChanges<S> {
 	extendTree(node, attach);
 	return node as unknown as WithChanges<S>;
 }
 
+/** What `changes` needs from a node: readable and writable (tree nodes and a plain `state()` both fit). */
+type NodeLike<T = unknown> = WritableSignal<T> & {
+	delete?: (key: string) => boolean;
+	splice?: unknown;
+	_?: object;
+};
+
 /** The `changes()` extension: gives one node its `changes`, with its current value as the initial value. */
 function attach(node: object): void {
-	const n = node as TreeNode & { delete?: (key: string) => boolean; splice?: unknown; _?: object };
+	const n = node as NodeLike;
 	const equals = (n as { [EQUALS]?: (a: unknown, b: unknown) => boolean })[EQUALS];
 	Object.defineProperty(n, 'changes', {
-		value: createChangeTracking<unknown>(() => n.deep(), n.peek(), (base) => restore(n, base), equals),
+		value: createChangeTracking<unknown>(() => readValue(n), peekSignal(n), (base) => restore(n, base), equals),
 	});
 }
 
@@ -66,7 +73,7 @@ function attach(node: object): void {
  * The node's own write-back of an initial value, then the same value pushed to every child so each
  * level agrees on it (a child drops its own extras, and a re-created child starts from it).
  */
-function restore(n: TreeNode & { delete?: (key: string) => boolean; splice?: unknown; _?: object }, base: unknown): void {
+function restore(n: NodeLike, base: unknown): void {
 	if (n._ && n.delete) {
 		const target = base as Record<string, unknown>;
 		for (const [key] of childEntries(n)) {

@@ -4,8 +4,8 @@
 // node's `check` is first read: it is a lazy getter, so nodes nobody validates cost nothing.
 
 import type { WithFeature } from '../tree-feature.js';
-import { computed, state, type Computed, type State } from '@std-ui/core';
-import { childEntries, extendTree, isTreeNode, type ItemNode, type TreeNode } from '../node.js';
+import { computed, state, type Computed, type ReadableSignal, type State } from '@std-ui/core';
+import { childEntries, extendTree, isTreeNode, readValue, type ItemNode } from '../node.js';
 import { type StateArray } from '../array/index.js';
 import { type StateObject } from '../object/index.js';
 import type { PathError, ValidationError } from './validation.js';
@@ -93,7 +93,7 @@ export type WithCheck<S> = WithFeature<S, 'check'>;
  * Returns the same tree (not a copy), typed with `check` on every node. Members added later
  * (`push`, new keys) get `check` too. Safe to apply twice.
  */
-export function check<S extends TreeNode>(node: S): WithCheck<S> {
+export function check<S extends ReadableSignal>(node: S): WithCheck<S> {
 	extendTree(node, attach);
 	return node as unknown as WithCheck<S>;
 }
@@ -116,10 +116,10 @@ function inheritedRules(parent: object, node: object): readonly Validator<any>[]
 
 /** The `check()` extension: lazily gives one node its `check`. */
 function attach(node: object, parent?: object): void {
-	const n = node as TreeNode & { shallow?: () => unknown };
+	const n = node as ReadableSignal & { shallow?: () => unknown };
 	attachCheck(
 		n,
-		() => n.deep(),
+		() => readValue(n),
 		() => {
 			n.shallow?.(); // tracked: which members exist
 			return childEntries(n) as Entries;

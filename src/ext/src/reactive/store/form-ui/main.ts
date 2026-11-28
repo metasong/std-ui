@@ -9,8 +9,8 @@
 // `touchAll()` marks a whole subtree, e.g. on submit).
 
 import type { WithFeature } from '../tree-feature.js';
-import { computed, state, type Computed, type State } from '@std-ui/core';
-import { childEntries, extendTree, type TreeNode } from '../node.js';
+import { computed, state, type Computed, type ReadableSignal, type State } from '@std-ui/core';
+import { childEntries, extendTree } from '../node.js';
 import { type StateArray } from '../array/index.js';
 import { type StateObject } from '../object/index.js';
 
@@ -98,7 +98,7 @@ function eachChild(node: object, fn: (ui: FormUi) => void): void {
  * chained: `store(...).with(check).with(formUi)`. Returns the same tree (not a copy). Members
  * added later get `formUi` too. Safe to apply twice.
  */
-export function formUi<S extends TreeNode>(node: S): WithFormUi<S> {
+export function formUi<S extends ReadableSignal>(node: S): WithFormUi<S> {
 	if (!roots.some((r) => r.deref() === node)) roots.push(new WeakRef(node));
 	extendTree(node, attach);
 	link(node);
@@ -106,7 +106,7 @@ export function formUi<S extends TreeNode>(node: S): WithFormUi<S> {
 }
 
 function attach(node: object): void {
-	const n = node as TreeNode & { shallow?: () => unknown };
+	const n = node as ReadableSignal & { shallow?: () => unknown };
 	const flag = (resolve: (own: boolean) => boolean): Flag => {
 		const own = state(false);
 		return Object.assign(computed(() => resolve(own.get())), { own });

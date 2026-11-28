@@ -1,5 +1,6 @@
 // Shared contract between the tree's container nodes (./array, ./object) and their children.
 
+import { isReadableSignal } from '@std-ui/core';
 import { DEV } from '../../dev/flag.js';
 
 /**
@@ -37,7 +38,7 @@ export interface ItemNode<T> {
  * Tracked plain-value read of any signal. Every tree node has `deep()`; this also accepts plain
  * core / standard signals (`state()`, `computed()`, `toSignal()`), which only have `get()`.
  */
-export function readValue<T>(node: ItemNode<T>): T {
+export function readValue<T>(node: { get(): T }): T {
 	const deep = (node as { deep?: () => T }).deep;
 	return typeof deep === 'function' ? deep() : node.get();
 }
@@ -92,8 +93,10 @@ const EXTENSIONS = Symbol('extensions');
 /** A feature added to tree nodes from outside (e.g. `check`): called once per node it reaches. */
 export type Extension = (node: object, parent?: object) => void;
 
+// A feature attaches to any `ReadableSignal` (`isReadableSignal`): a tree node, or a plain
+// `state()` / `computed()` / `Signal.State`. Its value is read with `readValue`.
 function applyExtension(node: unknown, ext: Extension, parent?: object): void {
-	if (!isTreeNode(node)) return;
+	if (!isReadableSignal(node)) return;
 	const list = ((node as { [EXTENSIONS]?: Extension[] })[EXTENSIONS] ??= []);
 	if (list.includes(ext)) return; // already extended (shared or revisited node)
 	list.push(ext); // remembered, so members this node gets later are extended too

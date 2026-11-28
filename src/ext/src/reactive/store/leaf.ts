@@ -33,6 +33,6 @@ export function toStateLeaf<T>(source: State<T>, equals?: (a: T, b: T) => boolea
 }
 
 function isStateLeaf<T>(value: State<T>): value is StateLeaf<T> {
-	const v = value as Partial<StateLeaf<T>>;
+	const v = value as unknown as Partial<StateLeaf<T>>;
 	return typeof v.deep === 'function' && typeof v.shallow === 'function' && typeof v.with === 'function';
 }

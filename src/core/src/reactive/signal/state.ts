@@ -34,6 +34,11 @@ export class State<T> extends Signal.State<T> implements WritableSignal<T> {
 		this.set(next);
 		return next;
 	}
+	/** Calls `feature(this)` and returns its result, so features chain: `state('').with(check).with(formUi)`.
+	 * The core knows no feature; each one is a function that extends the node (see the `ext` package). */
+	with<R>(feature: (node: this) => R): R {
+		return feature(this);
+	}
 }
 
 // DEV only: writing a signal that the running computed/effect body has already read leaves that

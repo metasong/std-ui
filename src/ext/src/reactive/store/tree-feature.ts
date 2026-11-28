@@ -42,6 +42,6 @@ export type WithFeature<S, K extends Feature> =
 				} & S &
 					Mixin<K, T> &
 					ObjExtra<K, T>
-			: S extends { peek(): infer T }
+			: S extends { get(): infer T }
 				? S & Mixin<K, T>
 				: S;
